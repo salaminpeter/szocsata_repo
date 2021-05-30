@@ -1,0 +1,14 @@
+letter_count = 9
+computer_step_delay = 1000
+tile_count = 9
+board_size = 4.0
+tile_gap = 0.11
+tile_height = 0.05
+letter_height = 0.2
+board_height = 0.3
+best_word_count = 10
+game_difficulty = 2
+board_rotation_min = 30.0
+board_rotation_max = 90.0
+window_width = 2140
+window_height = 1080
