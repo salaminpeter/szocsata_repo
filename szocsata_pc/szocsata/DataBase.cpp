@@ -26,6 +26,9 @@ void CDataBase::LoadDataBase(const char* dbFilePath)
 	{
         CWordTree* WordTree;
 
+		Str.erase(std::remove(Str.begin(), Str.end(), '\r'), Str.end());
+		Str.erase(std::remove(Str.begin(), Str.end(), '\n'), Str.end());
+
 		if (m_WordTrees.find(Str[0]) != m_WordTrees.end())
 			WordTree = m_WordTrees[Str[0]];
 		else
