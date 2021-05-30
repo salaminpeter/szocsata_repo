@@ -31,9 +31,7 @@ bool CFileHandlerAndroid::GetStreamStrForFile(const char *path, std::stringstrea
 
     std::stringbuf* StrBuff = outStream.rdbuf();
     StrBuff->sputn(Buffer, size);
-    delete Buffer;
-
-    //	m_VM->DetachCurrentThread(m_VM);
+    delete[] Buffer;
 
     return true;
 }
@@ -58,12 +56,10 @@ bool CFileHandlerAndroid::GetStreamStrForFile(const char *path, std::wstringstre
     wchar_t* wstr = new wchar_t[size];
     int NewBuffSize = mbstowcs(wstr, Buffer, size);
 
-	std::wstringbuf* StrBuff = outStream.rdbuf();
-	StrBuff->sputn(wstr, NewBuffSize);
-	delete Buffer;
-    delete wstr;
+	outStream << wstr;
 
-	//	m_VM->DetachCurrentThread(m_VM);
+	delete[] Buffer;
+	delete[] wstr;
 
 	return true;
 }
