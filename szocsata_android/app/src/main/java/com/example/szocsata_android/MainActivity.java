@@ -51,7 +51,6 @@ public class MainActivity extends AppCompatActivity {
         AssetManager am = getAssets();
         SetAssetManager(am);
 
-
         m_OpenGLView.setOnTouchListener(new View.OnTouchListener() {
                                             @Override
                                             public boolean onTouch(View v, MotionEvent event) {
@@ -78,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
                                                     m_FingerPos1.y = y;
                                                     Distance = Math.sqrt((double)((m_FingerPos0.x - m_FingerPos1.x) * (m_FingerPos0.x - m_FingerPos1.x) + (m_FingerPos0.y - m_FingerPos1.y) * (m_FingerPos0.y - m_FingerPos1.y)));
                                                     Log.i("dist", "start Distance : " + Distance);
-                                                    HandleMultyTouchStartEvent(m_FingerPos0.x, m_FingerPos0.y, m_FingerPos1.x, m_FingerPos1.y);
+                                                    HandleMultyTouchStartEvent(m_FingerPos0.x, m_OpenGLView.getHeight() - m_FingerPos0.y, m_FingerPos1.x, m_OpenGLView.getHeight() - m_FingerPos1.y);
                                                     return  true;
                                                 }
 
