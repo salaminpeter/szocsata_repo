@@ -57,7 +57,8 @@ public:
 	void HandleDragFromBoardView(int x, int y);
 	void HandleDragFromUIView(int x, int y) {}
 	void HandleZoomEvent(float dist, int origoX, int origoY);
-	void HandleZoomEndEvent();
+    void HandleZoomEndEvent();
+    void HandleMultyDragEvent(int x0, int y0, int x1, int y1);
 
 	void StartPlayerTurn(CPlayer* player);
 	void StartComputerturn();

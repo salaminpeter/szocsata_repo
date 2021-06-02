@@ -360,7 +360,7 @@ glm::vec3 CRenderer::VectorBoardIntersect(glm::vec3 pos, glm::vec3 vec, bool boa
 	return IntersectionPos;
 }
 
-void CRenderer::DragCamera(float dist, int x0, int y0, int x1, int y1)
+void CRenderer::DragCamera(int x0, int y0, int x1, int y1)
 {
 	glm::vec3 StartPos = ScreenPosToBoardPos(x0, y0, true);
 	glm::vec3 EndPos = ScreenPosToBoardPos(x1, y1, true);
@@ -368,9 +368,9 @@ void CRenderer::DragCamera(float dist, int x0, int y0, int x1, int y1)
 	if (glm::length(StartPos - EndPos) < 0.001)
 		int i = 0;
 
-	glm::vec3 DragDir = glm::normalize(StartPos - EndPos);
+	glm::vec3 DragDir = StartPos - EndPos;
 	glm::vec3 CameraPos = m_Views["board_perspecive"]->GetCameraPosition();
-	glm::vec3 NewCameraPos(CameraPos.x + dist * DragDir.x, CameraPos.y + dist * DragDir.y, CameraPos.z);
+	glm::vec3 NewCameraPos(CameraPos.x + DragDir.x, CameraPos.y + DragDir.y, CameraPos.z);
 
 	m_Views["board_perspecive"]->PositionCamera(NewCameraPos);
 }

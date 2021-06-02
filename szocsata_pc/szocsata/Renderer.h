@@ -62,7 +62,7 @@ public:
 	void SetLightPosition();
 	void ZoomCamera(float dist, float origoX, float origoY, bool minZoomFitToView = false, bool toCenter = false);
 	void ResetZoom();
-	void DragCamera(float dist, int x0, int y0, int x1, int y1);
+	void DragCamera(int x0, int y0, int x1, int y1);
 	void GetFitToScreemProps(float& tilt, float& rotation, float& zoom, float& move, glm::vec2& dir);
 	float GetFitToViewDistance(float fovY);
 	float GetOptimalToViewDistance(float fovY);

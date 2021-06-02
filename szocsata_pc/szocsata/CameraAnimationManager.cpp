@@ -12,7 +12,7 @@ CCameraAnimationManager::CCameraAnimationManager(CTimerEventManager* timerEventM
 
 void CCameraAnimationManager::AnimateCamera(double& timeFromStart, double& timeFromPrev)
 {
-	double Duration = 1000; //TODO 15000 COnfig!
+	double Duration = 500; //TODO COnfig!
 	float t = (timeFromStart / Duration);
 	float d = std::sinf(t * glm::radians(90.f));
 

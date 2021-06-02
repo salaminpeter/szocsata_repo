@@ -866,6 +866,12 @@ void CGameManager::HandleZoomEvent(float dist, int origoX, int origoY)
 	m_Renderer->ZoomCamera(dist, origoX, origoY);
 }
 
+void CGameManager::HandleMultyDragEvent(int x0, int y0, int x1, int y1)
+{
+    m_Dragged = false;
+    m_Renderer->DragCamera(x0, y0, x1, y1);
+}
+
 
 void CGameManager::RenderTileAnimations()
 {

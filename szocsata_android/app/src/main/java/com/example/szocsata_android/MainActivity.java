@@ -135,7 +135,7 @@ public class MainActivity extends AppCompatActivity {
                                                             double Dist = Math.sqrt((double)((m_FingerPos0.x - m_FingerPos1.x) * (m_FingerPos0.x - m_FingerPos1.x) + (m_FingerPos0.y - m_FingerPos1.y) * (m_FingerPos0.y - m_FingerPos1.y)));
                                                             Log.i("dist", "Distance : " + (Dist - Distance));
                                                             Distance = Dist;
-                                                            HandleMultyTouchEvent(m_FingerPos0.x, m_FingerPos0.y, m_FingerPos1.x, m_FingerPos1.y);
+                                                            HandleMultyTouchEvent(m_FingerPos0.x, m_OpenGLView.getHeight() - m_FingerPos0.y, m_FingerPos1.x, m_OpenGLView.getHeight() - m_FingerPos1.y);
                                                         //}
                                                     }
 
