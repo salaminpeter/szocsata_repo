@@ -156,6 +156,7 @@
     <ClInclude Include="BoardTiles.h" />
     <ClInclude Include="BoardTilesModelData.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="CameraAnimationManager.h" />
     <ClInclude Include="Computer.h" />
     <ClInclude Include="Config.h" />
     <ClInclude Include="DataBase.h" />
@@ -207,6 +208,7 @@
     <ClCompile Include="BoardTiles.cpp" />
     <ClCompile Include="BoardTilesModelData.cpp" />
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="CameraAnimationManager.cpp" />
     <ClCompile Include="Computer.cpp" />
     <ClCompile Include="Config.cpp" />
     <ClCompile Include="DataBase.cpp" />

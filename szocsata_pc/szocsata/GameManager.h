@@ -23,6 +23,7 @@ class CTimerEventManager;
 class CTileAnimationManager;
 class CWordAnimationManager;
 class CLetterModel;
+class CCameraAnimationManager;
 
 class CGameManager
 {
@@ -65,8 +66,6 @@ public:
 	void NextPlayerTurn();
 	void UndoLastStep();
 	void UndoAllSteps();
-	void SetTopView();
-	void UpdateBoardAnimation();
 	void PositionPlayerLetters(const std::wstring& playerId);
 	void PlayerLetterClicked(unsigned letterIdx);
 	void GameLoop();
@@ -149,6 +148,7 @@ private:
 	CTimerEventManager* m_TimerEventManager;
 	CTileAnimationManager* m_TileAnimations;
 	CWordAnimationManager* m_WordAnimation;
+	CCameraAnimationManager* m_CameraAnimationManager;
 
 	CGridLayout* m_GridLayout;
 

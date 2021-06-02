@@ -156,7 +156,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    OpenGLFunctions::InitOpenGL(GetDC(hWnd), hWnd);
 
    GameManager->m_HWND = hWnd;
-   GameManager->InitRenderer(WindowWidth, WindowHeigth /*- 31*/);
+   GameManager->InitRenderer(WindowWidth, WindowHeigth );
    GameManager->InitLayouts();
    GameManager->InitUIManager();
    GameManager->SetGameState(CGameManager::BeginGame);
@@ -191,9 +191,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		if (wParam == VK_ESCAPE)
 			GameManager->UndoComp();
 
-		if (wParam == VK_SPACE)
-			GameManager->SetTopView();
-
 		if (wParam == VK_RETURN)
 		{
 			if (GameManager->CurrentPlayerName() != L"Computer" && !GameManager->m_GameEnded)
@@ -209,7 +206,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		int MouseX = GET_X_LPARAM(lParam);
 		int MouseY = GET_Y_LPARAM(lParam);
 
-		InputManager->HandleZoomEvent(Dist, MouseX, MouseY- 31);
+		InputManager->HandleZoomEvent(Dist, MouseX, (WindowHeigth - MouseY));
 		break;
 	}
 	case WM_LBUTTONDOWN:
@@ -217,7 +214,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		int MouseX = GET_X_LPARAM(lParam);
 		int MouseY = GET_Y_LPARAM(lParam);
 
-		InputManager->HandleTouchEvent(MouseX, MouseY, MouseX <= WindowHeigth /*- 31*/);
+		InputManager->HandleTouchEvent(MouseX, MouseY, MouseX <= WindowHeigth);
 		break;
 	}
 	case WM_LBUTTONUP:

@@ -22,7 +22,6 @@ public:
 	glm::mat4 GetView();
 	glm::vec2 GetViewPosition();
 	glm::vec2 GetViewSize();
-	void RotateCamera(float angle, glm::vec3 axis, bool axisInWorldSpace = false);
 	void PositionCamera(glm::vec3 translate);
 	void LookAt();
 

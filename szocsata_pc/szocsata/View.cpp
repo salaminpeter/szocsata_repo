@@ -41,14 +41,14 @@ glm::vec3 CView::GetCameraAxisInWorldSpace(int axis)
 
 glm::vec3 CView::GetCameraPosition()
 {
-	glm::mat4 InverseView = glm::inverse(m_Camera->m_ViewMatrix); //TODO inversematrix is tarolva legyen memberkent
+	glm::mat4 InverseView = glm::inverse(m_Camera->m_ViewMatrix); //TODO inversematrix is tarolva legyen memberkent + itt eleg lenne a sima m_LookVectort visszaadni
 
 	return glm::vec3(InverseView[3].x, InverseView[3].y, InverseView[3].z);
 }
 
 glm::vec3 CView::GetCameraLookAt()
 {
-	glm::mat4 InverseView = glm::inverse(m_Camera->m_ViewMatrix); //TODO inversematrix is tarolva legyen memberkent
+	glm::mat4 InverseView = glm::inverse(m_Camera->m_ViewMatrix); //TODO inversematrix is tarolva legyen memberkent + itt eleg lenne a sima m_LookVectort visszaadni
 
 	return -glm::vec3(InverseView[2].x, InverseView[2].y, InverseView[2].z);
 }
@@ -56,11 +56,6 @@ glm::vec3 CView::GetCameraLookAt()
 void CView::PositionCamera(glm::vec3 pos)
 {
 	m_Camera->SetPosition(pos);
-}
-
-void CView::RotateCamera(float angle, glm::vec3 axis, bool axisInWorldSpace)
-{
-	m_Camera->Rotate(angle, axis, axisInWorldSpace);
 }
 
 void CView::LookAt()

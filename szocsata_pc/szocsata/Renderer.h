@@ -44,7 +44,6 @@ public:
 	void AddView(const char* viewId, int x, int y, int w, int h);
 	glm::vec2 GetViewPosition(const char* viewId);
 	void CalculateOptimalCameraPos(float fovY, float boundingSphereRadius, float& xyOffset, float& height);
-	void RotateBoard(float angleZ, float angleY);
 	void SelectField(int x, int y);
 	void PositionSelection();
 	void PositionSelection(CModel* selectionModel, int x, int y);
@@ -53,24 +52,26 @@ public:
 	void AddLetterToBoard(wchar_t c);
 	void InitLetterTexPositions();
 	void CalculateScreenSpaceGrid();
-	glm::vec2 CalculatePosOnXYPlane(int x, int y);
 	void GetSelectionPos(int& x, int& y);
 	void RemoveLastLetter();
-	void SetTopView(bool fitToView = true, bool animate = false);
 	void SetTexturePos(glm::vec2 texturePos);
-	void UpdateBoardAnimation();
 	void DrawModel(CModel* model, const char* viewID, const char* shaderID, bool setLightPos, bool bindBuffers = true, bool bindTexture = true, bool unbindBuffers = true, bool setTextureVertexAttrib = true, int textureOffset = 0);
 	TPosition GetTilePos(int x, int y);
 	void FittBoardToView(bool topView);
-	void AnimateBoard();
 	void RotateCamera(float rotateAngle, float tiltAngle);
 	void SetLightPosition();
-	void ZoomCamera(float dist, float origoX, float origoY, float limitZ);
+	void ZoomCamera(float dist, float origoX, float origoY, bool minZoomFitToView = false, bool toCenter = false);
 	void ResetZoom();
 	void DragCamera(float dist, int x0, int y0, int x1, int y1);
+	void GetFitToScreemProps(float& tilt, float& rotation, float& zoom);
+	float GetLookAtYAxisAngle();
+	float GetFitToViewDistance(float fovY);
+	float GetOptimalToViewDistance(float fovY);
+	float GetFitToViewZoomDistance();
 
 	void HideSelection(bool hide) { m_SelectionVisible = !hide; } //TODO setvisibleblabla... atirni
 	bool IsInited() { return m_Inited; }
+	float GetCameraTiltAngle() {return m_CameraTiltAngle;}
 
 
 	std::shared_ptr<CSquarePositionData> GetSquarePositionData() { return m_SquarePositionData; }

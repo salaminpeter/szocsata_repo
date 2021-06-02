@@ -12,6 +12,7 @@
 #include "TimerEventManager.h"
 #include "TileAnimationManager.h"
 #include "WordAnimationManager.h"
+#include "CameraAnimationManager.h"
 
 
 //TODO computer jateknal preferalja a palya kozepe fele levo szvakat azonos pontszam eseten!!
@@ -32,6 +33,7 @@ CGameManager::CGameManager()
 	m_TimerEventManager = new CTimerEventManager();
 	m_TileAnimations = new CTileAnimationManager(m_TimerEventManager, this);
 	m_WordAnimation = new CWordAnimationManager(m_TimerEventManager, this); //TODO!!!!!!!!!!!
+	m_CameraAnimationManager = new CCameraAnimationManager(m_TimerEventManager, this); //TODO!!!!!!!!!!!
 }
 
 
@@ -627,11 +629,6 @@ int CGameManager::CalculateScore(const TWordPos& word, std::vector<TWordPos>* cr
 	return CrossingWordsValid ? Score : 0;
 }
 
-void CGameManager::SetTopView() 
-{ 
-	m_Renderer->SetTopView(true); 
-}
-
 void CGameManager::PlayerLetterClicked(unsigned letterIdx)
 {
 	int SelX, SelY;
@@ -739,13 +736,6 @@ glm::vec2 CGameManager::GetViewPosition(const char* viewId)
 { 
 	return m_Renderer->GetViewPosition(viewId); 
 }
-
-void CGameManager::UpdateBoardAnimation()
-{
-	if (m_Renderer)
-		m_Renderer->UpdateBoardAnimation();
-}
-
 
 void CGameManager::HandleReleaseEvent(int x, int y)
 {
@@ -857,7 +847,7 @@ void CGameManager::HandleDragFromBoardView(int x, int y)
 		float ZRotAngle = float(x - m_TouchX) / 3.;
 		float YRotAngle = float(y - m_TouchY) / 3.;
 
-		m_Renderer->RotateCamera(-ZRotAngle, -YRotAngle);
+		m_Renderer->RotateCamera(-ZRotAngle, YRotAngle);
 	}
 }
 
@@ -873,7 +863,7 @@ void CGameManager::HandleZoomEvent(float dist, int origoX, int origoY)
 		return;
 
 	m_Dragged = false;
-	m_Renderer->ZoomCamera(dist, origoX, origoY, 0);
+	m_Renderer->ZoomCamera(dist, origoX, origoY);
 }
 
 
@@ -918,7 +908,8 @@ void CGameManager::BackSpaceEvent()
 
 void CGameManager::TopViewEvent()
 {
-	m_Renderer->SetTopView(true);
+//	m_Renderer->SetTopView(true);
+	m_CameraAnimationManager->StartFitToScreenAnimation();
 }
 
 void CGameManager::RenderFrame()
