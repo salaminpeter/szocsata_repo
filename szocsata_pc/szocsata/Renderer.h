@@ -58,16 +58,15 @@ public:
 	void DrawModel(CModel* model, const char* viewID, const char* shaderID, bool setLightPos, bool bindBuffers = true, bool bindTexture = true, bool unbindBuffers = true, bool setTextureVertexAttrib = true, int textureOffset = 0);
 	TPosition GetTilePos(int x, int y);
 	void FittBoardToView(bool topView);
-	void RotateCamera(float rotateAngle, float tiltAngle);
+	void RotateCamera(float rotateAngle, float tiltAngle, bool intersectWithBoard = true);
 	void SetLightPosition();
 	void ZoomCamera(float dist, float origoX, float origoY, bool minZoomFitToView = false, bool toCenter = false);
 	void ResetZoom();
 	void DragCamera(float dist, int x0, int y0, int x1, int y1);
-	void GetFitToScreemProps(float& tilt, float& rotation, float& zoom);
-	float GetLookAtYAxisAngle();
+	void GetFitToScreemProps(float& tilt, float& rotation, float& zoom, float& move, glm::vec2& dir);
 	float GetFitToViewDistance(float fovY);
 	float GetOptimalToViewDistance(float fovY);
-	float GetFitToViewZoomDistance();
+	void CameraFitToViewAnim(float tilt, float rotation, float zoom, float move, const glm::vec2& dir);
 
 	void HideSelection(bool hide) { m_SelectionVisible = !hide; } //TODO setvisibleblabla... atirni
 	bool IsInited() { return m_Inited; }

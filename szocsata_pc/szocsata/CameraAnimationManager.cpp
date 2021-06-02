@@ -13,38 +13,45 @@ CCameraAnimationManager::CCameraAnimationManager(CTimerEventManager* timerEventM
 void CCameraAnimationManager::AnimateCamera(double& timeFromStart, double& timeFromPrev)
 {
 	double Duration = 1000; //TODO 15000 COnfig!
-	float d = std::sinf((timeFromStart / Duration) * glm::radians(90.f)); 
+	float t = (timeFromStart / Duration);
+	float d = std::sinf(t * glm::radians(90.f));
+
 	float Tilt;
 	float Rotation;
 	float Zoom;
+	float Move;
+
+	float PrevTilt = m_CurrTilt;
+	float PrevRotation = m_CurrRotation;
+	float PrevZoom = m_CurrZoom;
+	float PrevMove = m_CurrMoveDistance;
+
+	Tilt = d * m_DestTilt - m_CurrTilt;
+	Rotation = d * m_DestRotation - m_CurrRotation;
+	Zoom = d * m_DestZoom - m_CurrZoom;
+	Move = d * m_DestMoveDistance - m_CurrMoveDistance;
 
 	bool EndAnimation = false;
-	float LookAtYAxisAngle = m_GameManager->GetRenderer()->GetLookAtYAxisAngle();
-	float CamTiltAngle = m_GameManager->GetRenderer()->GetCameraTiltAngle();
 
-	//rotate / tilt
-	if (Duration - timeFromStart < 0.1)
+	if (std::fabs(m_CurrTilt + Tilt) > std::fabs(m_DestTilt) || 
+		std::fabs(m_CurrRotation + Rotation) > std::fabs(m_DestRotation) ||
+		std::fabs(m_CurrZoom + Zoom) > std::fabs(m_DestZoom) ||
+		std::fabs(m_CurrMoveDistance + Move) > std::fabs(m_DestMoveDistance) ||
+		timeFromStart >= Duration)
 	{
+		Tilt = m_DestTilt - PrevTilt;
+		Rotation = m_DestRotation - PrevRotation;
+		Zoom = m_DestZoom - PrevZoom;
+		Move = m_DestMoveDistance - PrevMove;
 		EndAnimation = true;
-		Tilt = 90.f - CamTiltAngle;
-		Rotation = LookAtYAxisAngle;
 	}
-	else
-	{
-		Rotation = (LookAtYAxisAngle * timeFromPrev) / (Duration - timeFromStart);
-		Tilt = ((90.f - CamTiltAngle) * timeFromPrev) / (Duration - timeFromStart);
-	}
-
-	//zoom
-	m_GameManager->GetRenderer()->RotateCamera(Rotation, Tilt);
-	float ZoomDist = m_GameManager->GetRenderer()->GetFitToViewZoomDistance();
-
-	if (Duration - timeFromStart < 0.1)
-		Zoom = ZoomDist;
-	else
-		Zoom = (ZoomDist * timeFromPrev) / (Duration - timeFromStart);
 	
-	m_GameManager->GetRenderer()->ZoomCamera(Zoom, 0.f, 0.f, true, true);
+	m_CurrTilt += Tilt;
+	m_CurrRotation += Rotation;
+	m_CurrZoom += Zoom;
+	m_CurrMoveDistance += Move;
+
+	m_GameManager->GetRenderer()->CameraFitToViewAnim(Tilt, Rotation, Zoom, Move, m_MoveDirection);
 
 	if (EndAnimation)
 	{
@@ -58,8 +65,9 @@ void CCameraAnimationManager::StartFitToScreenAnimation()
 	m_CurrTilt = 0.f;
 	m_CurrRotation = 0.f;
 	m_CurrZoom = 0.f;
+	m_CurrMoveDistance = 0.f;
 
-	m_GameManager->GetRenderer()->GetFitToScreemProps(m_DestTilt, m_DestRotation, m_DestZoom);
+	m_GameManager->GetRenderer()->GetFitToScreemProps(m_DestTilt, m_DestRotation, m_DestZoom, m_DestMoveDistance, m_MoveDirection);
 	m_TimerEventManager->AddTimerEvent(this, &CCameraAnimationManager::AnimateCamera, nullptr, "fit_to_view_animation");
 	m_TimerEventManager->StartTimer("fit_to_view_animation");
 }

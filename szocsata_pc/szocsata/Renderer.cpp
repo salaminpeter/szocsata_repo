@@ -219,7 +219,7 @@ void CRenderer::FittBoardToView(bool topView)
 
 //TODO fix a masodik betut le lehet tenni rossz sorba/oszlopba
 
-void CRenderer::RotateCamera(float rotateAngle, float tiltAngle)
+void CRenderer::RotateCamera(float rotateAngle, float tiltAngle, bool intersectWithBoard)
 {
 	float BoardRotMin;
 	float BoardRotMax;
@@ -229,19 +229,14 @@ void CRenderer::RotateCamera(float rotateAngle, float tiltAngle)
 
 	glm::vec3 CameraPos = m_Views["board_perspecive"]->GetCameraPosition();
 	glm::vec3 CameraLookAt = m_Views["board_perspecive"]->GetCameraLookAt();
-	glm::vec3 LookAtBoardIntPos = VectorBoardIntersect(CameraPos, CameraLookAt);
-	
-	bool NeedLookAt = false;
+	glm::vec3 LookAtBoardIntPos;
 
-	//rotate camera
-	float ang = glm::degrees(std::acosf(CameraLookAt.z));
-	if (ang > 2 || ang < 178)
-	{
-		glm::vec3 BoardToCamVec = CameraPos - LookAtBoardIntPos;
-		glm::vec3 CameraPosRotated = glm::rotate(BoardToCamVec, glm::radians(rotateAngle), glm::vec3(0, 0, 1));
-		CameraPos = CameraPosRotated + LookAtBoardIntPos;
-		NeedLookAt = true;
-	}
+	if (intersectWithBoard)
+		LookAtBoardIntPos = VectorBoardIntersect(CameraPos, CameraLookAt);
+	else
+		LookAtBoardIntPos = CameraPos + CameraLookAt * std::fabs(CameraPos.z / CameraLookAt.z);
+
+	bool NeedLookAt = false;
 
 	//tilt camera
 	if (m_CameraTiltAngle + tiltAngle > BoardRotMax)
@@ -254,7 +249,7 @@ void CRenderer::RotateCamera(float rotateAngle, float tiltAngle)
 	glm::vec3 BoardToCamVec = CameraPos - LookAtBoardIntPos;
 	glm::vec3 RotAxis = glm::vec4(1.f, 0.f, 0.f, 1.f) * m_Views["board_perspecive"]->GetView();
 
-	ang = glm::degrees(std::acosf(glm::dot(BoardToCamVec, RotAxis) / (glm::length(BoardToCamVec))));
+	float ang = glm::degrees(std::acosf(glm::dot(BoardToCamVec, RotAxis) / (glm::length(BoardToCamVec))));
 
 	if (ang > 2 || ang < 178)
 	{
@@ -262,6 +257,17 @@ void CRenderer::RotateCamera(float rotateAngle, float tiltAngle)
 		CameraPos = LookAtBoardIntPos + BoardToCamVec;
 		NeedLookAt = true;
 	}
+
+	//rotate camera
+	ang = glm::degrees(std::acosf(CameraLookAt.z));
+	if (ang > 2 || ang < 178)
+	{
+		glm::vec3 BoardToCamVec = CameraPos - LookAtBoardIntPos;
+		glm::vec3 CameraPosRotated = glm::rotate(BoardToCamVec, glm::radians(rotateAngle), glm::vec3(0, 0, 1));
+		CameraPos = CameraPosRotated + LookAtBoardIntPos;
+		NeedLookAt = true;
+	}
+
 	
 	if (NeedLookAt)
 	{
@@ -367,51 +373,7 @@ void CRenderer::DragCamera(float dist, int x0, int y0, int x1, int y1)
 	glm::vec3 NewCameraPos(CameraPos.x + dist * DragDir.x, CameraPos.y + dist * DragDir.y, CameraPos.z);
 
 	m_Views["board_perspecive"]->PositionCamera(NewCameraPos);
-	//	m_Views["board_perspecive"]->PositionCameraLookAt(NewCameraPos);
 }
-
-
-float CRenderer::GetFitToViewZoomDistance()
-{
-	glm::vec3 IntersectPos = glm::vec3(0.f, 0.f, 0.2);
-	glm::vec3 CameraPos = m_Views["board_perspecive"]->GetCameraPosition();
-	glm::vec3 CameraLookAt = m_Views["board_perspecive"]->GetCameraLookAt();
-	float MinCameraHeight = GetFitToViewDistance(40.f);
-	float dist;
-
-	if (glm::length(CameraPos) < MinCameraHeight)
-		dist = -1;
-	else
-		dist = 1;
-
-	if (dist > 0)
-	{
-		float CameraMinTilt;
-		CConfig::GetConfig("board_rotation_min", CameraMinTilt);
-
-		glm::vec3 ViewSpaceXAxis = m_Views["board_perspecive"]->GetCameraAxisInWorldSpace(0);
-
-		//rotated camera look at to min tilt angle
-		glm::vec3 RotatedCameraLookAt = glm::rotate(CameraLookAt, -glm::radians(CameraMinTilt - m_CameraTiltAngle), ViewSpaceXAxis);
-
-		//rotated camera lookat from min camera height to intersection point 
-		glm::vec3 RotatedCameraLookAtIntToMin = std::fabs((MinCameraHeight - IntersectPos.z) / RotatedCameraLookAt.z) * RotatedCameraLookAt;
-
-		//rotate calculated lookat back to original tilt
-		glm::vec3 OriginalTiltVector = glm::rotate(-RotatedCameraLookAtIntToMin, -glm::radians(m_CameraTiltAngle - CameraMinTilt), ViewSpaceXAxis);
-		glm::vec3 ZoomVector = IntersectPos + OriginalTiltVector - CameraPos;
-		
-		return -glm::length(ZoomVector);
-	}
-	else
-	{
-		float OptimalDist = GetFitToViewDistance(40.f);
-		glm::vec3  ZoomVector = -CameraLookAt * OptimalDist - CameraPos;
-
-		return glm::length(ZoomVector);
-	}
-}
-
 
 void CRenderer::ZoomCamera(float dist, float origoX, float origoY, bool minZoomFitToView, bool toCenter)
 {
@@ -499,39 +461,47 @@ void CRenderer::ZoomCamera(float dist, float origoX, float origoY, bool minZoomF
 	}
 }
 
-float CRenderer::GetLookAtYAxisAngle()
+void CRenderer::GetFitToScreemProps(float& tilt, float& rotation, float& zoom, float& move, glm::vec2& dir)
 {
-	glm::vec3 CameraLookAt = m_Views["board_perspecive"]->GetCameraLookAt();
-	glm::vec2 ProjectedLookatXY = glm::vec2(CameraLookAt.x, CameraLookAt.y);
-	glm::vec3 Normal = glm::cross(glm::vec3(ProjectedLookatXY, 0.f), glm::vec3(0.f, 1.f, 0.f));
-	
-	return glm::degrees(std::acos(CameraLookAt.y / glm::length(ProjectedLookatXY))) * (Normal.z < 0 ? -1 : 1);
-}
+	//tilt
+	tilt = 90.f - m_CameraTiltAngle;
 
-void CRenderer::GetFitToScreemProps(float& tilt, float& rotation, float& zoom)
-{
+	//rotation
 	glm::vec3 CameraLookAt = m_Views["board_perspecive"]->GetCameraLookAt();
 	glm::vec3 CameraPosition = m_Views["board_perspecive"]->GetCameraPosition();
 	glm::vec2 ProjectedLookatXY = glm::vec2(CameraLookAt.x, CameraLookAt.y);
 	glm::vec3 Normal = glm::cross(glm::vec3(ProjectedLookatXY, 0.f) , glm::vec3(0.f, 1.f, 0.f));
 	rotation = glm::degrees(std::acos(CameraLookAt.y / glm::length(ProjectedLookatXY))) * (Normal.z < 0 ? -1 : 1);
 
-	tilt = 90.f - m_CameraTiltAngle;
-	
-	glm::vec3 LookAtBoardIntPos = VectorBoardIntersect(CameraPosition, CameraLookAt);
-	glm::vec3 BoardToCamVec = CameraPosition - LookAtBoardIntPos;
+	//zoom
+	glm::vec3 LookAtPos = CameraPosition + CameraLookAt * std::fabs(CameraPosition.z / CameraLookAt.z);
+	zoom = glm::length(LookAtPos - CameraPosition) - GetFitToViewDistance(40.f);
 
-	//0csmany rendesen megcsinalni hogy ki lehessen kerni a topviewzoomot meg az optimalzoomot TODO
-	float BoardSize;
-	CConfig::GetConfig("board_size", BoardSize);
-	float o = 0;
-	float h = 0;
-	CalculateOptimalCameraPos(40.f, BoardSize, o, h);
-	glm::vec3 ZoomVector = glm::normalize(BoardToCamVec) * m_OptimalDistance - CameraPosition;
-	zoom = -glm::length(ZoomVector);
-	CalculateOptimalCameraPos(40.f, std::sqrtf(2 * BoardSize * BoardSize), o, h);
+	//move distance
+	move = glm::length(glm::vec2(LookAtPos.x, LookAtPos.y));
 
+	//move direction
+	dir = glm::normalize(glm::vec2(LookAtPos.x, LookAtPos.y));
 }
+
+void CRenderer::CameraFitToViewAnim(float tilt, float rotation, float zoom, float move, const glm::vec2& dir)
+{
+	glm::vec3 CameraLookAt = m_Views["board_perspecive"]->GetCameraLookAt();
+	glm::vec3 CameraPosition = m_Views["board_perspecive"]->GetCameraPosition();
+
+	//move
+	m_Views["board_perspecive"]->PositionCamera(glm::vec3(CameraPosition.x - dir.x * move, CameraPosition.y - dir.y * move, CameraPosition.z));
+
+	//rotate / tilt
+	RotateCamera(rotation, tilt, false);
+
+	//zoom
+	CameraLookAt = m_Views["board_perspecive"]->GetCameraLookAt();
+	CameraPosition = m_Views["board_perspecive"]->GetCameraPosition();
+	glm::vec3 NewCamPos = CameraPosition + zoom * CameraLookAt;
+	m_Views["board_perspecive"]->PositionCamera(NewCamPos);
+}
+
 
 void CRenderer::CalculateScreenSpaceGrid()
 {

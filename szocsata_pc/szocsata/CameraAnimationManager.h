@@ -1,5 +1,7 @@
 #pragma once
 
+#include <glm/glm.hpp>
+
 
 class CTimerEventManager;
 class CGameManager;
@@ -25,4 +27,7 @@ private:
 	float m_CurrRotation;
 	float m_DestZoom;
 	float m_CurrZoom;
+	float m_DestMoveDistance;
+	float m_CurrMoveDistance;
+	glm::vec2 m_MoveDirection;
 };
