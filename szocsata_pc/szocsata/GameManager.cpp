@@ -927,9 +927,13 @@ void CGameManager::RenderFrame()
 		if (frames == 0)
 			LastRenderTime = Clock::now();
 		
-		m_Renderer->Render();
-		RenderTileAnimations();
-		RenderUI();
+		{
+			const std::lock_guard<std::recursive_mutex> lock(m_Renderer->GetRenderLock());
+
+			m_Renderer->Render();
+			RenderTileAnimations();
+			RenderUI();
+		}
 
 		std::chrono::high_resolution_clock::time_point RenderTime = Clock::now();
 		std::chrono::duration<double, std::milli> TimeSpan = RenderTime - LastRenderTime;

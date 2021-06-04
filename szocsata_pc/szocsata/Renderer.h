@@ -9,6 +9,7 @@
 #include <map>
 #include <vector>
 #include <memory>
+#include <mutex>
 
 class CModel;
 class CView;
@@ -72,6 +73,7 @@ public:
 	bool IsInited() { return m_Inited; }
 	float GetCameraTiltAngle() {return m_CameraTiltAngle;}
 
+	std::recursive_mutex& GetRenderLock() {return m_RenderLock;}
 
 	std::shared_ptr<CSquarePositionData> GetSquarePositionData() { return m_SquarePositionData; }
 	std::shared_ptr<CSquareColorData> GetSquareColorData() { return m_SquareColorData; }
@@ -159,4 +161,5 @@ private:
 	unsigned long m_LastAnimTime;
 	bool m_BoardAnimated = false;
 
+	std::recursive_mutex m_RenderLock;
 };

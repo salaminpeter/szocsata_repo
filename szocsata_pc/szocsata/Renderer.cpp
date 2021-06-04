@@ -214,13 +214,15 @@ void CRenderer::FittBoardToView(bool topView)
 	CalculateOptimalCameraPos(40.f, r, CameraXY, CameraZ);
 
 	m_Views["board_perspecive"]->InitCamera(glm::vec3(-CameraXY, -CameraXY, CameraZ), glm::vec3(0, 0, 0.2), glm::vec3(0, 0, 1));
-	m_Views["board_perspecive"]->InitPerspective(40.f, 1.f, 30.f);
+	m_Views["board_perspecive"]->InitPerspective(40.f, 1.f, 25.f);
 }
 
 //TODO fix a masodik betut le lehet tenni rossz sorba/oszlopba
 
 void CRenderer::RotateCamera(float rotateAngle, float tiltAngle, bool intersectWithBoard)
 {
+	const std::lock_guard<std::recursive_mutex> lock(m_RenderLock);
+
 	float BoardRotMin;
 	float BoardRotMax;
 
@@ -377,6 +379,8 @@ void CRenderer::DragCamera(int x0, int y0, int x1, int y1)
 
 void CRenderer::ZoomCamera(float dist, float origoX, float origoY, bool minZoomFitToView, bool toCenter)
 {
+	const std::lock_guard<std::recursive_mutex> lock(m_RenderLock);
+
 	if (m_ZoomEndType == EZoomEndType::ZoomInEnd && dist < 0.f || m_ZoomEndType == EZoomEndType::ZoomOutEnd && dist > 0.f || m_ZoomEndType == EZoomEndType::None && m_LastZoomDist * dist < 0)
 	{
 		m_ZoomInited = false;
@@ -486,6 +490,8 @@ void CRenderer::GetFitToScreemProps(float& tilt, float& rotation, float& zoom, f
 
 void CRenderer::CameraFitToViewAnim(float tilt, float rotation, float zoom, float move, const glm::vec2& dir)
 {
+	const std::lock_guard<std::recursive_mutex> lock(m_RenderLock);
+
 	glm::vec3 CameraLookAt = m_Views["board_perspecive"]->GetCameraLookAt();
 	glm::vec3 CameraPosition = m_Views["board_perspecive"]->GetCameraPosition();
 
