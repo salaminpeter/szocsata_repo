@@ -26,6 +26,7 @@ public:
 	void ShowLetters(bool show);
 	void SetLetters(const std::wstring& letters);
 	void SetLetterVisibility();
+	void RemoveMissingLetters(std::wstring& letters);
 	
 	size_t GetVisibleLetterCount() { return std::count_if(m_Letters.begin(), m_Letters.end(), [](wchar_t c) {return c != L' ';});}
 

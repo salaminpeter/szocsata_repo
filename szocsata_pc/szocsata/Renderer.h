@@ -61,7 +61,8 @@ public:
 	void FittBoardToView(bool topView);
 	void RotateCamera(float rotateAngle, float tiltAngle, bool intersectWithBoard = true);
 	void SetLightPosition();
-	void ZoomCamera(float dist, float origoX, float origoY, bool minZoomFitToView = false, bool toCenter = false);
+	void ZoomCameraCentered(float dist, float origoX, float origoY);
+	void ZoomCameraSimple(float dist);
 	void ResetZoom();
 	void DragCamera(int x0, int y0, int x1, int y1);
 	void GetFitToScreemProps(float& tilt, float& rotation, float& zoom, float& move, glm::vec2& dir);

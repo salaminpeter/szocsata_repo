@@ -6,8 +6,6 @@ class CInputManager
 {
 public:
 
-    enum EInputState {None, Zoom, Drag};
-
 	CInputManager(CGameManager* gameManager) : m_GameManager(gameManager) {}
 
 	void HandleTouchEvent(int x, int y, bool onBoardView);
@@ -27,8 +25,6 @@ private:
 	float m_TouchCenterX;
 	float m_TouchCenterY;
 	float m_TouchDist;
-
-	EInputState m_InputState = None;
 
 	CGameManager* m_GameManager;
 };

@@ -18,10 +18,11 @@ void CLetterPool::DealLetters(std::wstring& letters)
 	int LetterCount;
 	int AddedLetterCount = 0;
 	int InitialLetterCount = std::count_if(letters.begin(), letters.end(), [](wchar_t c) {return c != L' ';});
+	int RemainingLetters = GetRemainingLetterCount();
 
 	CConfig::GetConfig("letter_count", LetterCount);
 
-	int Count = LetterCount - InitialLetterCount;
+	int Count = LetterCount - (InitialLetterCount < RemainingLetters ? InitialLetterCount : RemainingLetters);
 
 	while (AddedLetterCount < Count && m_LetterIdx.size() != 0)
 	{
@@ -51,21 +52,14 @@ void CLetterPool::DealLetters(std::wstring& letters)
 			}
 		}
 	}
-
-//	std::sort(letters.begin(), letters.end());
 }
 
-int CLetterPool::GetLetterCount()
+int CLetterPool::GetRemainingLetterCount()
 {
 	int Count = 0;
 
-	for (size_t i = 0; i < m_LetterIdx.size(); ++i)
-	{
-		wchar_t c = m_LetterIdx[i];
-		if (m_Letters.find(m_LetterIdx[i]) == m_Letters.end())
-			int i = 0;
-		Count += m_Letters[m_LetterIdx[i]];
-	}
+	for (auto it = m_Letters.begin(); it != m_Letters.end(); ++it)
+		Count += it->second;
 
 	return Count;
 }
@@ -139,4 +133,25 @@ void CLetterPool::Init()
 	m_Letters[L'ű'] = 4;
 	m_Letters[L'z'] = 4;
 	m_Letters[L'y'] = 5;
+
+	//set letter count based on board dimensions
+	int TileCount;
+	CConfig::GetConfig("tile_count", TileCount);
+	float div = static_cast<float>(TileCount * TileCount) / 144.f;
+
+	for (auto it = m_Letters.begin(); it != m_Letters.end(); ++it)
+	{
+		float Count = static_cast<float>(it->second) * div;
+		float fp = Count - static_cast<int>(Count);
+
+		if (fp < 0.5f)
+			Count = static_cast<int>(Count);
+		else
+			Count = static_cast<int>(Count + 1.f);
+
+		it->second = Count;
+	}
+
+	float ScaledLetterCount = (10.f / 12.f) * static_cast<float>(TileCount) + 1.f;
+	CConfig::AddConfig("letter_count", static_cast<int>(ScaledLetterCount));
 }

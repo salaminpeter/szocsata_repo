@@ -55,8 +55,9 @@ void CTileAnimationManager::UpdateColorEvent(double& timeFromStart, double& time
 
 	if (EndAnimation)
 	{
-		m_TilePositions.clear();
 		m_TimerEventManager->StopTimer("tile_animation");
+		const std::lock_guard<std::recursive_mutex> lock(m_GameManager->GetRenderer()->GetRenderLock());
+		m_TilePositions.clear();
 	}
 }
 

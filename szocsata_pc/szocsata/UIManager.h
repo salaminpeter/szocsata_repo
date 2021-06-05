@@ -7,6 +7,7 @@
 class CUIButton;
 class CUIText;
 class CUIPlayerLetters;
+class CUIPanel;
 class CSquarePositionData;
 class CSquareColorData;
 class CModel;
@@ -23,6 +24,7 @@ public:
 	void AddButton(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, float x, float y, float w, float h, const char* ViewID, const char* textureID, const wchar_t* id);
 	void AddText(const wchar_t* text, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, float x, float y, float w, float h, const char* ViewID, const char* textureID, const wchar_t* id);
 	void AddPlayerLetters(const wchar_t* playerId, const wchar_t* letters, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, const char* viewID);
+	void AddPanel(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, float x, float y, float w, float h, const char* ViewID, const char* textureID, const wchar_t* id);
 	void PositionPlayerLetter(const std::wstring& playerId, size_t letterIdx, float x, float y, float size);
 
 	CUIPlayerLetters* GetPlayerLetters(const std::wstring& playerID);
@@ -46,4 +48,5 @@ public:
 	std::vector<CUIButton*> m_UIButtons;
 	std::vector<CUIText*> m_UITexts;
 	std::vector<CUIPlayerLetters*> m_UIPlayerLetters;
+	CUIPanel* panel;
 };

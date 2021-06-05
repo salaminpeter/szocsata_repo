@@ -14,6 +14,10 @@
 #include "WordAnimationManager.h"
 #include "CameraAnimationManager.h"
 
+#define GL_GLEXT_PROTOTYPES 1
+#define GL3_PROTOTYPES 1
+#include <GLES3\gl3.h>
+
 
 //TODO computer jateknal preferalja a palya kozepe fele levo szvakat azonos pontszam eseten!!
 
@@ -60,6 +64,11 @@ void CGameManager::AddPlayers(int playerCount, bool addComputer)
 		PositionPlayerLetters(m_Players.back()->GetName().c_str());
 		m_UIManager->GetPlayerLetters(m_Players.back()->GetName().c_str())->ShowLetters(false);
 	}
+}
+
+void CGameManager::InitLetterPool()
+{
+	m_LetterPool.Init();
 }
 
 void CGameManager::StartGame()
@@ -174,8 +183,8 @@ bool CGameManager::EndPlayerTurn()
 	int TileCount;
 	CConfig::GetConfig("tile_count", TileCount);
 
-	bool Horizontal = m_FirstPlayerLetterY == m_SecondPlayerLetterY;
-	bool HorizUndefined = m_SecondPlayerLetterY == -1; //ha csak egy betut tettunk le
+	bool HorizUndefined = (m_SecondPlayerLetterX == -1); //ha csak egy betut tettunk le
+	bool Horizontal = !HorizUndefined && m_FirstPlayerLetterY == m_SecondPlayerLetterY;
 	int BoardX = m_FirstPlayerLetterX;
 	int BoardY = TileCount - m_FirstPlayerLetterY - 1;
 
@@ -220,6 +229,7 @@ bool CGameManager::EndPlayerTurn()
 	m_LetterPool.DealLetters(m_CurrentPlayer->GetLetters());
 	
 	CUIPlayerLetters* PlayerLetters = m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName().c_str());
+	PlayerLetters->RemoveMissingLetters(m_CurrentPlayer->GetLetters());
 	PlayerLetters->SetLetters(m_CurrentPlayer->GetLetters());
 	PlayerLetters->SetLetterVisibility();
 
@@ -235,6 +245,7 @@ void CGameManager::DealComputerLetters()
 {
 	m_LetterPool.DealLetters(m_Computer->GetLetters());
 	CUIPlayerLetters* ComputerLetters = m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName().c_str());
+	ComputerLetters->RemoveMissingLetters(m_CurrentPlayer->GetLetters());
 	ComputerLetters->SetLetters(m_CurrentPlayer->GetLetters());
 	ComputerLetters->SetLetterVisibility();
 }
@@ -288,61 +299,6 @@ bool CGameManager::EndComputerTurn()
 	m_WordAnimation->AddWordAnimation(*ComputerWord.m_Word, LetterIndices, ComputerWord.m_X, TileCount - ComputerWord.m_Y - 1, ComputerWord.m_Horizontal);
 	m_GameBoard.AddWord(ComputerWord);
 
-	/*
-	if (CTimer::GetCurrentTime() - PrevTickCount > ComputerStepDelay)
-	{
-		for (size_t i = LetterIdx; i < ComputerWord.m_Word->length(); ++i)
-		{ 
-			wchar_t CharOnBoard;
-			wchar_t PlacedLetter = (*ComputerWord.m_Word)[i];
-
-			if (ComputerWord.m_Horizontal)
-				CharOnBoard = m_GameBoard(ComputerWord.m_X + i, ComputerWord.m_Y).m_Char;
-			else
-				CharOnBoard = m_GameBoard(ComputerWord.m_X, ComputerWord.m_Y + i).m_Char;
-
-			if (CharOnBoard != PlacedLetter)
-			{
-				int x = ComputerWord.m_X + (ComputerWord.m_Horizontal ? i : 0);
-				int y = ComputerWord.m_Y + (ComputerWord.m_Horizontal ? 0 : i);
-
-				LettersAdded++;
-				m_Renderer->AddLetterToBoard(x, TileCount - y - 1, PlacedLetter);
-
-				m_Computer->RemoveLetter(PlacedLetter);
-				int RemovedIdx = m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName())->RemoveLetter(PlacedLetter);
-				m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName())->SetVisible(false, RemovedIdx);
-
-				LetterIdx = i + 1;
-				LetterAdded = true;
-				PrevTickCount = CTimer::GetCurrentTime();
-				break;
-			}
-		}
-
-		if (LettersAdded == m_Computer->GetUsedLetterCount())
-		{
-			m_GameBoard.AddWord(ComputerWord);
-
-			m_LetterPool.DealLetters(m_Computer->GetLetters());
-			CUIPlayerLetters* ComputerLetters = m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName().c_str());
-			ComputerLetters->SetLetters(m_CurrentPlayer->GetLetters());
-			ComputerLetters->SetLetterVisibility();
-
-			PrevTickCount = 0;
-			LetterIdx = 0;
-			LettersAdded = 0;
-			m_CurrentPlayer->ResetUsedLetters();
-			m_ComputerWordIdx = -1;
-			UpdatePlayerScores();
-			SetGameState(EGameState::ComputerTurnEnd);
-
-			return true;
-		}
-
-		return LetterAdded;
-	}
-	*/
 	return false;
 }
 
@@ -498,8 +454,7 @@ int CGameManager::CalculateScore(const TWordPos& word, std::vector<TWordPos>* cr
 	int Score = 0;
 	CGameBoard& board = (m_CurrentPlayer == m_Computer ? m_GameBoard : m_TmpGameBoard);
 	bool SingleHeightFound;
-	int CrossingWordCount = 0;
-	
+
 	if (word.m_Horizontal)
 	{
 		SingleHeightFound = false;
@@ -513,12 +468,10 @@ int CGameManager::CalculateScore(const TWordPos& word, std::vector<TWordPos>* cr
 				SingleHeightFound = true;
 		}
 
+        (*crossingWords).emplace_back(nullptr, word.m_X, word.m_Y, true, word.m_Word->length());
+
 		if (!SingleHeightFound)
-			return 0;
-
-		(*crossingWords).emplace_back(nullptr, word.m_X, word.m_Y, true, word.m_Word->length());
-
-		CrossingWordCount++;
+            return 0;
 
 		for (int i = word.m_X; i < word.m_X + word.m_Word->length(); ++i)
 		{
@@ -536,6 +489,8 @@ int CGameManager::CalculateScore(const TWordPos& word, std::vector<TWordPos>* cr
 
 				if (!m_DataBase.WordExists(CrossingWord))
 				{
+                    (*crossingWords).clear();
+                    (*crossingWords).emplace_back(nullptr, x, y, false, CrossingWord.length());
 					CrossingWordsValid = false;
 					break;
 				}
@@ -552,13 +507,14 @@ int CGameManager::CalculateScore(const TWordPos& word, std::vector<TWordPos>* cr
 				}
 
 				if (!SingleHeightFound)
-					return 0;
+				{
+                    (*crossingWords).clear();
+                    (*crossingWords).emplace_back(nullptr, x, y, false, CrossingWord.length());
+                    return 0;
+                }
 
 				Score++;
-
 				(*crossingWords).emplace_back(nullptr, x, y, false, CrossingWord.length());
-
-				CrossingWordCount++;
 			}
 		}
 	}
@@ -575,12 +531,10 @@ int CGameManager::CalculateScore(const TWordPos& word, std::vector<TWordPos>* cr
 				SingleHeightFound = true;
 		}
 
+        (*crossingWords).emplace_back(nullptr, word.m_X, word.m_Y, false, word.m_Word->length());
+
 		if (!SingleHeightFound)
-			return 0;
-
-		(*crossingWords).emplace_back(nullptr, word.m_X, word.m_Y, false, word.m_Word->length());
-
-		CrossingWordCount++;
+            return 0;
 
 		for (int i = word.m_Y; i < word.m_Y + word.m_Word->length(); ++i)
 		{
@@ -598,6 +552,8 @@ int CGameManager::CalculateScore(const TWordPos& word, std::vector<TWordPos>* cr
 
 				if (!m_DataBase.WordExists(CrossingWord))
 				{
+                    (*crossingWords).clear();
+                    (*crossingWords).emplace_back(nullptr, x, y, true, CrossingWord.length());
 					CrossingWordsValid = false;
 					break;
 				}
@@ -615,13 +571,14 @@ int CGameManager::CalculateScore(const TWordPos& word, std::vector<TWordPos>* cr
 				}
 
 				if (!SingleHeightFound)
-					return 0;
+				{
+                    (*crossingWords).clear();
+                    (*crossingWords).emplace_back(nullptr, x, y, true, CrossingWord.length());
+                    return 0;
+                }
 
 				Score++;
-
 				(*crossingWords).emplace_back(nullptr, x, y, true, CrossingWord.length());
-
-				CrossingWordCount++;
 			}
 		}
 	}
@@ -635,6 +592,9 @@ void CGameManager::PlayerLetterClicked(unsigned letterIdx)
 	m_Renderer->GetSelectionPos(SelX, SelY);
 
 	if (SelX == -1 || SelY == -1)
+		return;
+
+	if (m_PlayerSteps.size() == 1 && SelX != m_FirstPlayerLetterX && SelY != m_FirstPlayerLetterY)
 		return;
 
 	int TileCount;
@@ -863,8 +823,15 @@ void CGameManager::HandleZoomEvent(float dist, int origoX, int origoY)
 		return;
 
 	m_Dragged = false;
-	m_Renderer->ZoomCamera(dist, origoX, origoY);
+	m_Renderer->ZoomCameraCentered(dist, origoX, origoY);
 }
+
+void CGameManager::HandleZoomEvent(float dist)
+{
+	m_Dragged = false;
+	m_Renderer->ZoomCameraSimple(dist);
+}
+
 
 void CGameManager::HandleMultyDragEvent(int x0, int y0, int x1, int y1)
 {
@@ -890,6 +857,8 @@ void CGameManager::RenderTileAnimations()
 
 void CGameManager::RenderUI()
 {
+	glDisable(GL_DEPTH_TEST);
+
 	size_t idx = 0;
 
 	m_UIManager->RenderTexts();
@@ -897,6 +866,8 @@ void CGameManager::RenderUI()
 
 	if (m_CurrentPlayer)
 		m_UIManager->RenderPlayerLetters(m_CurrentPlayer->GetName().c_str());
+
+	glEnable(GL_DEPTH_TEST);
 }
 
 void CGameManager::BackSpaceEvent()

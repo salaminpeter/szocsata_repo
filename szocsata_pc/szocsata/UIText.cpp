@@ -7,7 +7,7 @@
 
 
 
-CUIText::CUIText(std::shared_ptr<CUIElement> parent, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, const wchar_t* text, int x, int y, int w, int h, int vx, int vy, const wchar_t* id) :
+CUIText::CUIText(CUIElement* parent, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, const wchar_t* text, int x, int y, int w, int h, int vx, int vy, const wchar_t* id) :
 	CUIElement(parent, id, nullptr, x, y, w, h, vx, vy, 0.f, 0.f),
 	m_Text(text),
 	m_PositionData(positionData),
@@ -43,7 +43,7 @@ void CUIText::SetText(const wchar_t* text)
 		size_t from = m_Children.size();
 
 		for (size_t i = from; i < m_Text.length(); ++i)
-			m_Children.push_back(new CUIElement(std::make_shared<CUIElement>(*this), L"", new CModel(false, 2, m_PositionData.get(), m_ColorData.get(), "font.bmp", "textured"), 0, 0, m_Width, m_Height, m_ViewXPosition, m_ViewYPosition, 0, 0));
+			m_Children.push_back(new CUIElement(this, L"", new CModel(false, 2, m_PositionData.get(), m_ColorData.get(), "font.bmp", "textured"), 0, 0, m_Width, m_Height, m_ViewXPosition, m_ViewYPosition, 0, 0));
 	}
 	else
 	{
@@ -62,9 +62,7 @@ void CUIText::SetText(const wchar_t* text)
 			Offset += 10; //TODO space
 		else
 		{
-			float tx = (1.f / 8.f) * m_FontTexPos[m_Text.at(i)].x;
-			float ty = (1.f / 8.f) * m_FontTexPos[m_Text.at(i)].y;
-			m_Children.push_back(new CUIElement(std::make_shared<CUIElement>(*this), L"", new CModel(false, 2, m_PositionData.get(), m_ColorData.get(), "font.bmp", "textured"), 0, 0, m_Width, m_Height, m_ViewXPosition, m_ViewYPosition, 0, 0));
+//			m_Children.push_back(new CUIElement(this, L"", new CModel(false, 2, m_PositionData.get(), m_ColorData.get(), "font.bmp", "textured"), 0, 0, m_Width, m_Height, m_ViewXPosition, m_ViewYPosition, 0, 0));
 			m_Children[idx]->SetPosAndSize(m_XPosition + Offset, m_YPosition, m_Width, m_Height);
 			m_Children[idx]->PositionElement();
 			Offset += m_FontCharWidth[m_Text.at(i)] * (m_Width / 64.) + 10. * (m_Width / 64.); //TODO betukoz konfigbol

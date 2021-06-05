@@ -156,6 +156,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    OpenGLFunctions::InitOpenGL(GetDC(hWnd), hWnd);
 
    GameManager->m_HWND = hWnd;
+   GameManager->InitLetterPool();
    GameManager->InitRenderer(WindowWidth, WindowHeigth );
    GameManager->InitLayouts();
    GameManager->InitUIManager();

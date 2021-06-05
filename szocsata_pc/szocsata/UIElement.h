@@ -17,7 +17,7 @@ friend CUIElement;
 
 public:
 
-	CUIElement(std::shared_ptr<CUIElement> parent, const wchar_t* id, CModel *model, int x, int y, int w, int h, int vx, int vy, float tx, float ty);
+	CUIElement(CUIElement*  parent, const wchar_t* id, CModel *model, int x, int y, int w, int h, int vx, int vy, float tx, float ty);
 		
 	template <typename ClassType, typename... ArgTypes>
 	void SetEvent(ClassType* funcClass, typename CEvent<ClassType, ArgTypes...>::TFuncPtrType funcPtr, ArgTypes&&... args)
@@ -69,4 +69,7 @@ protected:
 	bool m_Visible = true;
 	glm::vec2 m_TexturePosition;
 	std::wstring m_ID;
+
+	public:
+	std::string m_Type; //TODO szepen!
 };

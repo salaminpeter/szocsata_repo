@@ -1937,7 +1937,6 @@ anémiás
 anód
 anódáramkör
 aorta
-ap
 apa
 apacs
 apad
@@ -15996,7 +15995,6 @@ füllesztet
 fülsiketítő
 fülszöveg
 fülsértő
-fült
 fültövek
 fültő
 fültőmirigy
@@ -21318,6 +21316,7 @@ hogylét
 hokedli
 hoki
 hokizik
+hol
 hold
 holda
 holdak
@@ -43592,11 +43591,7 @@ pezsgősvödör
 pezsgősüveg
 pezsgőzik
 peónia
-pfennig
 pfujol
-pfujoz
-philipses
-pi
 pia
 piac
 piaci
@@ -66136,3 +66131,13 @@ zűrzavaros
 űz
 űzet
 űzött
+és
+le
+se
+pót
+mit
+hol
+el
+élő
+meg
+is

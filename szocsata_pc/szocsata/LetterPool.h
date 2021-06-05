@@ -11,7 +11,7 @@ public:
 
 	void DealLetters(std::wstring& letters);
 	void Init();
-	int GetLetterCount();
+	int GetRemainingLetterCount();
 
 	bool Empty() {return m_LetterIdx.size() == 0;}
 

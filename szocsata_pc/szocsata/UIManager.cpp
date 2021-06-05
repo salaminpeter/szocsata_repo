@@ -5,6 +5,7 @@
 #include "UIButton.h"
 #include "UIText.h"
 #include "UIPlayerLetters.h"
+#include "UIPanel.h"
 #include "GameManager.h"
 #include "Renderer.h"
 #include "Config.h"
@@ -13,7 +14,7 @@
 void CUIManager::AddButton(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, float x, float y, float w, float h, const char* ViewID, const char* textureID, const wchar_t* id)
 {
 	glm::vec2 ViewPos = m_GameManager->GetViewPosition(ViewID);
-	m_UIButtons.push_back(new CUIButton(positionData, colorData, x, y, w, h, ViewPos.x, ViewPos.y, textureID, id));
+	m_UIButtons.push_back(new CUIButton(nullptr, positionData, colorData, x, y, w, h, ViewPos.x, ViewPos.y, textureID, id));
 }
 
 void CUIManager::AddText(const wchar_t* text, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, float x, float y, float w, float h, const char* ViewID, const char* textureID, const wchar_t* id)
@@ -28,6 +29,13 @@ void CUIManager::AddPlayerLetters(const wchar_t* playerId, const wchar_t* letter
 	m_UIPlayerLetters.push_back(new CUIPlayerLetters(playerId));
 	m_UIPlayerLetters.back()->InitLetterElements(letters, positionData, colorData, ViewPos.x, ViewPos.y, m_GameManager);
 }
+
+void CUIManager::AddPanel(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, float x, float y, float w, float h, const char* ViewID, const char* textureID, const wchar_t* id)
+{
+	glm::vec2 ViewPos = m_GameManager->GetViewPosition(ViewID);
+	panel = new CUIPanel(nullptr, id, positionData, colorData, x, y, w, h, ViewPos.x, ViewPos.y, textureID, 0.f, 0.f);
+}
+
 
 void CUIManager::PositionPlayerLetter(const std::wstring& playerId, size_t letterIdx, float x, float y, float size)
 {
@@ -84,6 +92,8 @@ void CUIManager::InitUI(std::shared_ptr<CSquarePositionData> positionData, std::
 	AddText(L"", positionData, gridcolorData, btnx, pscorey + 50, 40, 40, "view_ortho", "font.bmp", L"ui_computer_score");
 	AddText(L"", positionData, gridcolorData, btnx, pscorey, 40, 40, "view_ortho", "font.bmp", L"ui_player_score");
 
+	AddPanel(positionData, colorData, 700, 500, 150, 150, "view_ortho", "panel.bmp", L"test_panel");
+	panel->AddText(L"15", positionData, gridcolorData, 0, 0, 40, 40, "font.bmp", L"panel_text_test");
 }
 
 CUIText* CUIManager::GetText(const wchar_t* id) const
@@ -122,6 +132,8 @@ void CUIManager::RenderTexts()
 {
 	for (size_t i = 0; i < m_UITexts.size(); ++i)
 		m_UITexts[i]->Render(m_GameManager->GetRenderer());
+
+	panel->Render(m_GameManager->GetRenderer());
 }
 
 

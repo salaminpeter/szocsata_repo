@@ -40,6 +40,7 @@ public:
 
 	void AddPlayers(int playerCount, bool addComputer);
 	void StartGame();
+	void InitLetterPool();
 	int CalculateScore(const TWordPos& word, std::vector<TWordPos>* crossingWords = nullptr);
 	void InitRenderer(int surfaceWidth, int surfaceHeight);
 	void InitUIManager();
@@ -57,7 +58,8 @@ public:
 	void HandleDragFromBoardView(int x, int y);
 	void HandleDragFromUIView(int x, int y) {}
 	void HandleZoomEvent(float dist, int origoX, int origoY);
-    void HandleZoomEndEvent();
+	void HandleZoomEvent(float dist);
+	void HandleZoomEndEvent();
     void HandleMultyDragEvent(int x0, int y0, int x1, int y1);
 
 	void StartPlayerTurn(CPlayer* player);
@@ -107,7 +109,7 @@ public:
 	bool m_GameEnded = false;
 	std::wstring GetScoreString()
 	{
-		int LetterCount = m_LetterPool.GetLetterCount();
+//		int LetterCount = m_LetterPool.GetLetterCount();
 		std::wstringstream ss;
 //		ss << "Jatekos : " << m_Players[0]->GetScore() << "      Computer : " << m_Computer->GetScore() << "       Betuk  : " << LetterCount << "   *********** " << m_CurrentPlayer->GetName() << " ***********";
 		return ss.str();

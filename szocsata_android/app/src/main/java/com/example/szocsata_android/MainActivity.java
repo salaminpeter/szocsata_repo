@@ -48,7 +48,7 @@ public class MainActivity extends AppCompatActivity {
 
                                                 if (Action == MotionEvent.ACTION_DOWN) {
                                                     Log.i("fos", "finger one down : " + 0);
-
+                                                    hideStatusBar();
                                                     int x = (int)event.getX(0);
                                                     int y = (int)event.getY(0);
                                                     m_FingerPos0.x = x;
@@ -149,6 +149,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume(){
         super.onResume();
+        hideStatusBar();
         m_OpenGLView.onResume();
     }
     @Override

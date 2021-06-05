@@ -3,7 +3,8 @@
 #include "Model.h"
 
 
-CUIElement::CUIElement(std::shared_ptr<CUIElement> parent, const wchar_t* id, CModel* model, int x, int y, int w, int h, int vx, int vy, float tx, float ty) :
+CUIElement::CUIElement(CUIElement* parent, const wchar_t* id, CModel* model, int x, int y, int w, int h, int vx, int vy, float tx, float ty) :
+	m_Parent(parent),
 	m_Model(model),
 	m_XPosition(x),
 	m_YPosition(y),

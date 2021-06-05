@@ -57,7 +57,7 @@ void CUIPlayerLetters::InitLetterElements(const wchar_t* letters, std::shared_pt
 	for (unsigned i = 0; i < LetterCount; ++i)
 	{ 
 		CUIElement* NewLetter;
-		AddChild(NewLetter = new CUIButton(positionData, colorData, 0, 0, 0, 0, ViewPosX, ViewPosY, "playerletters.bmp", L""));
+		AddChild(NewLetter = new CUIButton(nullptr, positionData, colorData, 0, 0, 0, 0, ViewPosX, ViewPosY, "playerletters.bmp", L""));
 		NewLetter->SetTexturePosition(m_LetterTexPos[letters[i]]);
 		NewLetter->SetEvent(gameManager, &CGameManager::PlayerLetterClicked, std::move(i));
 	}
@@ -94,13 +94,29 @@ int CUIPlayerLetters::RemoveLetter(wchar_t c)
 	return -1;
 }
 
-
 void CUIPlayerLetters::RemoveLetter(size_t letterIdx)
 {
 	if (letterIdx >= m_Letters.length())
 		return;
 
 	m_Letters[letterIdx] = L' ';
+}
+
+void CUIPlayerLetters::RemoveMissingLetters(std::wstring& letters)
+{
+	auto it = m_Children.begin();
+	size_t idx = 0;
+
+	while (it != m_Children.end())
+	{
+		if (letters[idx++] == L' ')
+			it = m_Children.erase(it);
+		else
+			++it;
+	}
+
+	m_Letters.erase(std::remove(m_Letters.begin(), m_Letters.end(), ' '), m_Letters.end());
+	letters.erase(std::remove(letters.begin(), letters.end(), ' '), letters.end());
 }
 
 void CUIPlayerLetters::SetLetterVisibility()
@@ -127,9 +143,8 @@ void CUIPlayerLetters::ShowLetters(bool show)
 
 void CUIPlayerLetters::Render(CRenderer* renderer)
 {
-	int LetterCount;
-	CConfig::GetConfig("letter_count", LetterCount);
-
+	int LetterCount = m_Children.size();
+	
 	size_t idx = 0;
 	size_t VisibleLetterCount = GetVisibleLetterCount();
 

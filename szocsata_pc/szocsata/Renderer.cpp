@@ -114,7 +114,7 @@ void CRenderer::DrawSelection(glm::vec4 color, int x, int y, bool bindBuffers, b
 	{
 		glEnable(GL_BLEND);
 		glEnable(GL_POLYGON_OFFSET_FILL);
-		glPolygonOffset(-0.2, -1.0);
+		glPolygonOffset(-1, 1.0);
 	}
 
 	GLuint ColorID = m_ShaderManager->GetShaderVariableID("transparent_color", "Color");
@@ -364,6 +364,8 @@ glm::vec3 CRenderer::VectorBoardIntersect(glm::vec3 pos, glm::vec3 vec, bool boa
 
 void CRenderer::DragCamera(int x0, int y0, int x1, int y1)
 {
+	const std::lock_guard<std::recursive_mutex> lock(m_RenderLock);
+
 	glm::vec3 StartPos = ScreenPosToBoardPos(x0, y0, true);
 	glm::vec3 EndPos = ScreenPosToBoardPos(x1, y1, true);
 
@@ -377,7 +379,16 @@ void CRenderer::DragCamera(int x0, int y0, int x1, int y1)
 	m_Views["board_perspecive"]->PositionCamera(NewCameraPos);
 }
 
-void CRenderer::ZoomCamera(float dist, float origoX, float origoY, bool minZoomFitToView, bool toCenter)
+void CRenderer::ZoomCameraSimple(float dist)
+{
+	glm::vec3 CameraLookAt = m_Views["board_perspecive"]->GetCameraLookAt();
+	glm::vec3 CameraPos = m_Views["board_perspecive"]->GetCameraPosition();
+	glm::vec3 NewCameraPos = CameraPos - dist * CameraLookAt;
+	m_Views["board_perspecive"]->PositionCamera(CameraPos + m_CameraZoomVector * std::fabs(dist));
+}
+
+
+void CRenderer::ZoomCameraCentered(float dist, float origoX, float origoY)
 {
 	const std::lock_guard<std::recursive_mutex> lock(m_RenderLock);
 
@@ -394,7 +405,7 @@ void CRenderer::ZoomCamera(float dist, float origoX, float origoY, bool minZoomF
 
 		glm::vec3 IntersectPos;
 
-		if (dist > 0 && !toCenter)
+		if (dist > 0)
 			IntersectPos = ScreenPosToBoardPos(origoX, origoY);
 		else
 			IntersectPos = glm::vec3(0.f, 0.f, 0.2);
@@ -407,11 +418,7 @@ void CRenderer::ZoomCamera(float dist, float origoX, float origoY, bool minZoomF
 			float CameraMinTilt;
 			float MinCameraHeight;
 			CConfig::GetConfig("board_rotation_min", CameraMinTilt);
-
-			if (!minZoomFitToView)
-				CConfig::GetConfig("camera_min_height", MinCameraHeight);
-			else
-				MinCameraHeight = GetFitToViewDistance(40.f);
+			CConfig::GetConfig("camera_min_height", MinCameraHeight);
 
 			glm::vec3 ViewSpaceXAxis = m_Views["board_perspecive"]->GetCameraAxisInWorldSpace(0);
 
@@ -426,18 +433,19 @@ void CRenderer::ZoomCamera(float dist, float origoX, float origoY, bool minZoomF
 			glm::vec3 ZoomVector = IntersectPos + OriginalTiltVector - CameraPos;
 			m_CameraZoomDistance = glm::length(ZoomVector);
 
+			//if already zoomed in to max then abort zoom
+			if (std::fabs(ZoomVector.z) < 0.05f)
+			{
+				ResetZoom();
+				return;
+			}
+
 			//calculate camera zoom vector
 			m_CameraZoomVector = glm::normalize(ZoomVector);
 		}
 		else
 		{
-			float OptimalDist;
-
-			if (minZoomFitToView)
-				OptimalDist = GetFitToViewDistance(40.f);
-			else
-				OptimalDist = GetOptimalToViewDistance(40.f);
-
+			float OptimalDist = OptimalDist = GetOptimalToViewDistance(40.f);
 			glm::vec3  ZoomVector = -CameraLookAt * OptimalDist - CameraPos;
 			m_CameraZoomDistance = glm::length(ZoomVector);
 			m_CameraZoomVector = glm::normalize(ZoomVector);
@@ -661,7 +669,7 @@ bool CRenderer::Init()
 	CConfig::GetConfig("letter_height", LetterHeight);
 	CConfig::GetConfig("board_height", BoardHeight);
 
-	CConfig::AddConfig("camera_min_height", BoardHeight / 2.f + LetterHeight * 5.f + 1.f);
+	CConfig::AddConfig("camera_min_height", BoardHeight / 2.f + LetterHeight * 5.f + 2.5f);
 
 	m_RoundedBoxPositionData = new CRoundedBoxPositionData(999, 0.18f);
 	m_RoundedBoxPositionData->GeneratePositionBuffer();
@@ -711,9 +719,7 @@ bool CRenderer::Init()
 	m_TextureManager->AddTexture("topviewbutton.bmp");
 	m_TextureManager->AddTexture("font.bmp");
 	m_TextureManager->AddTexture("playerletters.bmp");
-	//	m_TextureManager->AddTexture("testtexture.bmp"); 
-	//	m_TextureManager->AddTexture("boardtest.bmp");
-	//	m_TextureManager->AddTexture("white.bmp");
+	m_TextureManager->AddTexture("panel.bmp");
 
 	AddView("board_perspecive", 0, 0, m_ScreenHeight, m_ScreenHeight);
 	FittBoardToView(false);
@@ -741,7 +747,7 @@ bool CRenderer::Init()
 	glFrontFace(GL_CW);
 
 	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LEQUAL);
+	glDepthFunc(GL_LESS);
 
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
