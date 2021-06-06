@@ -5,7 +5,8 @@
 #include "UIButton.h"
 #include "UIText.h"
 #include "UIPlayerLetters.h"
-#include "UIPanel.h"
+#include "UITileCounter.h"
+#include "UIMessageBox.h"
 #include "GameManager.h"
 #include "Renderer.h"
 #include "Config.h"
@@ -29,13 +30,6 @@ void CUIManager::AddPlayerLetters(const wchar_t* playerId, const wchar_t* letter
 	m_UIPlayerLetters.push_back(new CUIPlayerLetters(playerId));
 	m_UIPlayerLetters.back()->InitLetterElements(letters, positionData, colorData, ViewPos.x, ViewPos.y, m_GameManager);
 }
-
-void CUIManager::AddPanel(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, float x, float y, float w, float h, const char* ViewID, const char* textureID, const wchar_t* id)
-{
-	glm::vec2 ViewPos = m_GameManager->GetViewPosition(ViewID);
-	panel = new CUIPanel(nullptr, id, positionData, colorData, x, y, w, h, ViewPos.x, ViewPos.y, textureID, 0.f, 0.f);
-}
-
 
 void CUIManager::PositionPlayerLetter(const std::wstring& playerId, size_t letterIdx, float x, float y, float size)
 {
@@ -92,9 +86,22 @@ void CUIManager::InitUI(std::shared_ptr<CSquarePositionData> positionData, std::
 	AddText(L"", positionData, gridcolorData, btnx, pscorey + 50, 40, 40, "view_ortho", "font.bmp", L"ui_computer_score");
 	AddText(L"", positionData, gridcolorData, btnx, pscorey, 40, 40, "view_ortho", "font.bmp", L"ui_player_score");
 
-	AddPanel(positionData, colorData, 700, 500, 150, 150, "view_ortho", "panel.bmp", L"test_panel");
-	panel->AddText(L"15", positionData, gridcolorData, 0, 0, 40, 40, "font.bmp", L"panel_text_test");
+	glm::vec2 ViewPos = m_GameManager->GetViewPosition("view_ortho");
+	m_UITileCounter = new CUITileCounter(positionData, colorData, gridcolorData, 800, 500, 150, 150, ViewPos.x, ViewPos.y);
+
+	m_MessageBoxOk = new CUIMessageBox(positionData, colorData, gridcolorData, 500, 400, 500, 300, ViewPos.x, ViewPos.y, CUIMessageBox::Ok);
 }
+
+void CUIManager::ShowMessageBox(int type, const wchar_t* text)
+{
+	m_GameManager->SetGameState(CGameManager::WaitingForMessageBox);
+
+	if (type == CUIMessageBox::Ok)
+		CUIMessageBox::m_ActiveMessageBox = m_MessageBoxOk;
+
+	CUIMessageBox::m_ActiveMessageBox->SetText(text);
+}
+
 
 CUIText* CUIManager::GetText(const wchar_t* id) const
 {
@@ -121,6 +128,16 @@ void CUIManager::RenderPlayerLetters(const wchar_t* id)
 		PlayerLetters->Render(m_GameManager->GetRenderer());
 }
 
+void CUIManager::RenderTileCounter()
+{
+	m_UITileCounter->Render(m_GameManager->GetRenderer());
+}
+
+void CUIManager::RenderMessageBox()
+{
+	if (CUIMessageBox::m_ActiveMessageBox)
+		CUIMessageBox::m_ActiveMessageBox->Render(m_GameManager->GetRenderer());
+}
 
 void CUIManager::RenderButtons()
 {
@@ -132,13 +149,19 @@ void CUIManager::RenderTexts()
 {
 	for (size_t i = 0; i < m_UITexts.size(); ++i)
 		m_UITexts[i]->Render(m_GameManager->GetRenderer());
-
-	panel->Render(m_GameManager->GetRenderer());
 }
 
 
 void CUIManager::HandleTouchEvent(int x, int y)
 {
+	//ha van aktiv message box csak arra kezeljunk eventeket
+	if (CUIMessageBox::m_ActiveMessageBox)
+	{
+		CUIMessageBox::m_ActiveMessageBox->HandleTouchEvent(x, y);
+		return;
+	}
+
+
 	for (size_t i = 0; i < m_UIButtons.size(); ++i)
 	{
 		if (m_UIButtons[i]->PositionInElement(x, y))
@@ -163,4 +186,9 @@ void CUIManager::HandleTouchEvent(int x, int y)
 			}
 		}
 	}
+}
+
+void CUIManager::SetTileCounterValue(unsigned count)
+{
+	m_UITileCounter->SetCounter(count);
 }

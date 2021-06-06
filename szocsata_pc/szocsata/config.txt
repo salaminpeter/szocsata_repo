@@ -1,4 +1,3 @@
-letter_count = 9
 computer_step_delay = 1000
 tile_count = 9
 board_size = 4.0

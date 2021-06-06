@@ -165,6 +165,12 @@
     <ClInclude Include="UIPanel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="UITileCounter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="UIMessageBox.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -294,6 +300,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="UIPanel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="UITileCounter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="UIMessageBox.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

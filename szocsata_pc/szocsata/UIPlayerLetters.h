@@ -19,6 +19,7 @@ public:
 
 
 	void InitLetterElements(const wchar_t* letters, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, float ViewPosX, float ViewPosY, CGameManager* gameManager);
+	void OrderLetterElements(CGameManager* gameManager);
 	void PositionPlayerLetter(size_t lettedIdx, float x, float y, float size);
 	wchar_t GetLetter(size_t letterIdx);
 	void RemoveLetter(size_t letterIdx);

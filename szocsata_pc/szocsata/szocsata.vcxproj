@@ -193,9 +193,11 @@
     <ClInclude Include="UIButton.h" />
     <ClInclude Include="UIElement.h" />
     <ClInclude Include="UIManager.h" />
+    <ClInclude Include="UIMessageBox.h" />
     <ClInclude Include="UIPanel.h" />
     <ClInclude Include="UIPlayerLetters.h" />
     <ClInclude Include="UIText.h" />
+    <ClInclude Include="UITileCounter.h" />
     <ClInclude Include="View.h" />
     <ClInclude Include="WordAnimationManager.h" />
     <ClInclude Include="WordTree.h" />
@@ -246,9 +248,11 @@
     <ClCompile Include="UIButton.cpp" />
     <ClCompile Include="UIElement.cpp" />
     <ClCompile Include="UIManager.cpp" />
+    <ClCompile Include="UIMessageBox.cpp" />
     <ClCompile Include="UIPanel.cpp" />
     <ClCompile Include="UIPlayerLetters.cpp" />
     <ClCompile Include="UIText.cpp" />
+    <ClCompile Include="UITileCounter.cpp" />
     <ClCompile Include="View.cpp" />
     <ClCompile Include="WordAnimationManager.cpp" />
     <ClCompile Include="WordTree.cpp" />

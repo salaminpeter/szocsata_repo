@@ -21,9 +21,22 @@ void CUIPanel::AddText(const wchar_t* text, std::shared_ptr<CSquarePositionData>
 void CUIPanel::AddButton(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, float x, float y, float w, float h, const char* textureID, const wchar_t* id)
 {
 	//TODO szepen!!!
-	m_Children.push_back(new CUIButton(this, positionData, colorData, x, y, w, h, m_XPosition, m_YPosition, textureID, id));
+	m_Children.push_back(new CUIButton(this, positionData, colorData, x + m_XPosition, y + m_YPosition, w, h, m_ViewXPosition, m_ViewYPosition, textureID, id));
 }
 
+void CUIPanel::HandleTouchEvent(int x, int y)
+{
+	for (size_t i = 1; i < m_Children.size(); ++i)
+	{
+		CUIButton* Button = static_cast<CUIButton*>(m_Children[i]);
+
+		if (Button->PositionInElement(x, y))
+		{
+			Button->HandleEvent();
+			return;
+		}
+	}
+}
 
 void CUIPanel::Render(CRenderer* renderer)
 {

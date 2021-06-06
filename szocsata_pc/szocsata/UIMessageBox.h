@@ -1,22 +1,28 @@
 #pragma once
 
-#include "UIElement.h"
+#include "UIPanel.h"
 
-class CSquarePositionData;
-class CSquareColorData;
-class CUIButton;
 class CUIText;
+class CUIButton;
+class CUIManager;
 
-class CUIMessageBox : public CUIElement
+class CUIMessageBox : public CUIPanel
 {
 public:
+	
+	enum EType {Ok, OkCancel};
+	CUIMessageBox(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridColorData, int x, int y, int w, int h, int vx, int vy, EType type);
 
-	CUIMessageBox(const wchar_t* text, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, float x, float y, float w, float h, float vx, float vy, const char* textureID, const wchar_t* id);
+	void ButtonPressed(int ret);
+	void SetText(const wchar_t* text);
 
-	void Render(CRenderer* renderer) override {};
+public:
+
+	static CUIMessageBox* m_ActiveMessageBox;
+	static int m_RetValue;
 
 private:
 
-	std::unique_ptr<CUIButton> m_OkButton;
-	std::unique_ptr<CUIText> m_Text;
+	EType m_Type;
+	CUIManager* m_UIManager;
 };

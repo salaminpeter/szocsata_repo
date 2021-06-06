@@ -29,7 +29,7 @@ class CGameManager
 {
 public:
 	
-	enum EGameState { NextTurn, WaintingOnAnimation, TurnInProgress, PlayerTurnEnd, ComputerTurnEnd, PlayerPass, ComputerPass, GameEnded, BeginGame, None };
+	enum EGameState { NextTurn, WaintingOnAnimation, WaitingForMessageBox, TurnInProgress, PlayerTurnEnd, ComputerTurnEnd, PlayerPass, ComputerPass, GameEnded, BeginGame, None };
 
 	CGameManager();
 
@@ -79,6 +79,7 @@ public:
 	CLetterModel* AddLetterToBoard(int x, int y, wchar_t c, float height);
 	void AddWordSelectionAnimationForComputer();
 	void UpdatePlayerScores();
+	std::wstring GetNextPlayerName();
 	wchar_t GetChOnBoard(int x, int y) { return m_GameBoard(x, y).m_Char; }
 
 	std::wstring GetWordAtPos(bool horizontal, int& x, int& y);

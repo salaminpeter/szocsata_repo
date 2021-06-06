@@ -17,6 +17,8 @@ public:
 
 	void AddButton(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, float x, float y, float w, float h, const char* textureID, const wchar_t* id);
 	void AddText(const wchar_t* text, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, float x, float y, float w, float h, const char* textureID, const wchar_t* id);
+	void HandleTouchEvent(int x, int y);
+
 	void Render(CRenderer* renderer) override;
 };
 

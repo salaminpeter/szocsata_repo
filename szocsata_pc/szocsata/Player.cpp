@@ -15,7 +15,7 @@ CPlayer::CPlayer(CGameManager* gameManager) : m_GameManager(gameManager)
 
 	m_Letters.resize(LetterCount, L' ');  
 	std::wstringstream ss;
-	ss << L"Jatekos " << ++m_PlayerCount;
+	ss << L"jatekos " << ++m_PlayerCount;
 	m_Name = ss.str();
 }
 
@@ -68,12 +68,9 @@ void CPlayer::ArrangeLetters()
 
 int CPlayer::GetUsedLetterCount()
 {
-	int LetterCount;
 	int Count = 0;
 
-	CConfig::GetConfig("letter_count", LetterCount);
-
-	for (int i = 0; i < LetterCount; ++i)
+	for (int i = 0; i < m_Letters.size(); ++i)
 	{
 		if (m_UsedLetters.GetFlag(i))
 			Count++;

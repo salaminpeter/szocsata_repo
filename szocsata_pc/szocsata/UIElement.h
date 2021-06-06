@@ -47,6 +47,7 @@ public:
 	bool IsVisible() {return m_Visible;}
 	bool IsVisible(size_t idx) { return m_Children[idx]->m_Visible; }
 	std::wstring GetID() {return m_ID;}
+	int GetChildCount() {return m_Children.size();}
 	CUIElement* GetChild(size_t childIdx);
 
 	virtual void Render(CRenderer* renderer) {};

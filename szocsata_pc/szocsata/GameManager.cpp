@@ -7,6 +7,7 @@
 #include "GameBoard.h"
 #include "UIButton.h"
 #include "UIPlayerLetters.h"
+#include "UIMessageBox.h"
 #include "GridLayout.h"
 #include "opengl.h"
 #include "TimerEventManager.h"
@@ -64,6 +65,8 @@ void CGameManager::AddPlayers(int playerCount, bool addComputer)
 		PositionPlayerLetters(m_Players.back()->GetName().c_str());
 		m_UIManager->GetPlayerLetters(m_Players.back()->GetName().c_str())->ShowLetters(false);
 	}
+
+	m_UIManager->SetTileCounterValue(m_LetterPool.GetRemainingLetterCount());
 }
 
 void CGameManager::InitLetterPool()
@@ -77,7 +80,8 @@ void CGameManager::StartGame()
 	m_LetterPool.Init();
 	AddPlayers(1, true);
 	UpdatePlayerScores();
-	StartPlayerTurn(m_Players[0]);
+	m_UIManager->ShowMessageBox(CUIMessageBox::Ok, m_Players[0]->GetName().c_str());
+//	StartPlayerTurn(m_Players[0]);
 }
 
 void CGameManager::AddWordSelectionAnimation(const std::vector<TWordPos>& wordPos, bool positive)
@@ -125,16 +129,32 @@ void CGameManager::StartPlayerTurn(CPlayer* player)
 	m_TmpGameBoard = m_GameBoard;
 }
 
+std::wstring CGameManager::GetNextPlayerName()
+{
+	int CurrPlayerIdx = -1;
+	while (m_Players[++CurrPlayerIdx] != m_CurrentPlayer);
+	int NextPlayerIdx = CurrPlayerIdx == m_Players.size() - 1 ? 0 : CurrPlayerIdx + 1;
+	
+	return m_Players[NextPlayerIdx]->GetName();
+}
+
 
 void CGameManager::NextPlayerTurn()
 {
-	m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName().c_str())->ShowLetters(false);
+	int NextPlayerIdx;
 
-	int CurrPlayerIdx = -1;
-
-	while (m_Players[++CurrPlayerIdx] != m_CurrentPlayer);
-
-	int NextPlayerIdx = CurrPlayerIdx == m_Players.size() - 1 ? 0 : CurrPlayerIdx + 1;
+	if (!m_CurrentPlayer)
+	{
+		NextPlayerIdx = 0;
+		m_CurrentPlayer = m_Players[0];
+	}
+	else
+	{ 
+		m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName().c_str())->ShowLetters(false);
+		int CurrPlayerIdx = -1;
+		while (m_Players[++CurrPlayerIdx] != m_CurrentPlayer);
+		NextPlayerIdx = CurrPlayerIdx == m_Players.size() - 1 ? 0 : CurrPlayerIdx + 1;
+	}
 
 	//letette e az osszes betujet a jatekos
 	if (m_CurrentPlayer->GetLetterCount() == 0)
@@ -158,7 +178,7 @@ void CGameManager::NextPlayerTurn()
 	m_Players[NextPlayerIdx]->m_Passed = false;
 	SetGameState(EGameState::TurnInProgress);
 
-	if (m_Players[NextPlayerIdx]->GetName() == L"Computer")
+	if (m_Players[NextPlayerIdx]->GetName() == L"computer")
 		StartComputerturn();
 	else
 		StartPlayerTurn(m_Players[NextPlayerIdx]);
@@ -227,9 +247,11 @@ bool CGameManager::EndPlayerTurn()
 	AddWordSelectionAnimation(CrossingWords, true);
 	m_CurrentPlayer->AddScore(Score);
 	m_LetterPool.DealLetters(m_CurrentPlayer->GetLetters());
+	m_UIManager->SetTileCounterValue(m_LetterPool.GetRemainingLetterCount());
 	
 	CUIPlayerLetters* PlayerLetters = m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName().c_str());
 	PlayerLetters->RemoveMissingLetters(m_CurrentPlayer->GetLetters());
+	PlayerLetters->OrderLetterElements(this);
 	PlayerLetters->SetLetters(m_CurrentPlayer->GetLetters());
 	PlayerLetters->SetLetterVisibility();
 
@@ -244,8 +266,10 @@ bool CGameManager::EndPlayerTurn()
 void CGameManager::DealComputerLetters()
 {
 	m_LetterPool.DealLetters(m_Computer->GetLetters());
+	m_UIManager->SetTileCounterValue(m_LetterPool.GetRemainingLetterCount());
 	CUIPlayerLetters* ComputerLetters = m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName().c_str());
 	ComputerLetters->RemoveMissingLetters(m_CurrentPlayer->GetLetters());
+	ComputerLetters->OrderLetterElements(this);
 	ComputerLetters->SetLetters(m_CurrentPlayer->GetLetters());
 	ComputerLetters->SetLetterVisibility();
 }
@@ -298,6 +322,7 @@ bool CGameManager::EndComputerTurn()
 
 	m_WordAnimation->AddWordAnimation(*ComputerWord.m_Word, LetterIndices, ComputerWord.m_X, TileCount - ComputerWord.m_Y - 1, ComputerWord.m_Horizontal);
 	m_GameBoard.AddWord(ComputerWord);
+	UpdatePlayerScores();
 
 	return false;
 }
@@ -323,12 +348,7 @@ void CGameManager::StartComputerturn()
 
 	int WordCount;
 
-	if (GameDifficulty == 2)
-		WordCount = 1;
-	else
-		WordCount = BestWordCount;
-
-	m_ComputerWordIdx = std::rand() / ((RAND_MAX + 1u) / WordCount);
+	m_ComputerWordIdx = std::rand() / ((RAND_MAX + 1u) / m_Computer->BestWordCount());
 
 	if (m_Computer->BestWordCount() && m_ComputerWordIdx < m_Computer->BestWordCount())
 	{
@@ -388,6 +408,9 @@ void CGameManager::GameLoop()
 
 	if (!m_GameEnded)
 	{
+		if (GetGameState() == EGameState::WaitingForMessageBox && !CUIMessageBox::m_ActiveMessageBox)
+			SetGameState(EGameState::NextTurn);
+
 		if (GetGameState() == EGameState::NextTurn)
 		{
 			NextPlayerTurn();
@@ -653,8 +676,8 @@ void CGameManager::PlayerLetterClicked(unsigned letterIdx)
 
 void CGameManager::PositionPlayerLetters(const std::wstring& playerId)
 {
-	int LetterCount;
-	CConfig::GetConfig("letter_count", LetterCount);
+	CUIPlayerLetters* pl = m_UIManager->GetPlayerLetters(playerId);
+	int LetterCount = pl->GetChildCount();
 
 	for (size_t i = 0; i < LetterCount; ++i)
 	{
@@ -680,6 +703,11 @@ void CGameManager::InitUIManager()
 {
 	m_UIManager = new CUIManager(this);
 	m_UIManager->InitUI(m_Renderer->GetSquarePositionData(), m_Renderer->GetSquareColorData(), m_Renderer->GetSquareColorGridData8x8());
+	m_UIManager->SetText(L"ui_fps_text", L"fps : 0");
+	m_UIManager->SetText(L"ui_computer_score", L"computer : 0");
+	m_UIManager->SetText(L"ui_player_score", L"jatekos : 0");
+	m_UIManager->SetTileCounterValue(m_LetterPool.GetRemainingLetterCount());
+	m_TileAnimations->SetUIManager(m_UIManager);
 }
 
 
@@ -861,11 +889,14 @@ void CGameManager::RenderUI()
 
 	size_t idx = 0;
 
+	m_UIManager->RenderTileCounter();
 	m_UIManager->RenderTexts();
 	m_UIManager->RenderButtons();
 
 	if (m_CurrentPlayer)
 		m_UIManager->RenderPlayerLetters(m_CurrentPlayer->GetName().c_str());
+
+	m_UIManager->RenderMessageBox();
 
 	glEnable(GL_DEPTH_TEST);
 }

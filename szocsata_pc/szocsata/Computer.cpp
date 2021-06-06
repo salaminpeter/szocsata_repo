@@ -14,7 +14,7 @@ CComputer::CComputer(CGameManager* gameManager) : CPlayer(gameManager)
 	CConfig::GetConfig("best_word_count", BestWordCount);
 
 	m_BestWords.reserve(BestWordCount);
-	m_Name = L"Computer";
+	m_Name = L"computer";
 }
 
 bool CComputer::FindWord(const std::wstring& word, int score, bool horizontal, bool checkAlingnment, size_t** idx)
@@ -67,12 +67,14 @@ void CComputer::AddResult(const TWordPos& wordPos, CBinaryBoolList usedLetters)
 
 	if (AddWord)
 	{
+	/*
 		if (m_BestWords.size() < BestWordCount)
 			m_BestWords.push_back(TComputerStep(wordPos.m_Word, wordPos.m_X, wordPos.m_Y, wordPos.m_Horizontal, Score, usedLetters, CrossingWords));
 		else if (m_BestWords.back().m_Score < Score)
 			m_BestWords.back() = TComputerStep(wordPos.m_Word, wordPos.m_X, wordPos.m_Y, wordPos.m_Horizontal, Score, usedLetters, CrossingWords);
-
-		std::sort(m_BestWords.begin(), m_BestWords.end(), [](TComputerStep& a, TComputerStep& b) {return a.m_Score > b.m_Score;});
+		*/
+		m_BestWords.push_back(TComputerStep(wordPos.m_Word, wordPos.m_X, wordPos.m_Y, wordPos.m_Horizontal, Score, usedLetters, CrossingWords));
+		std::sort(m_BestWords.begin(), m_BestWords.end(), [](TComputerStep& a, TComputerStep& b) {return a.m_Score > b.m_Score;}); //TODO biztos kell a sort?
 	}
 }
 

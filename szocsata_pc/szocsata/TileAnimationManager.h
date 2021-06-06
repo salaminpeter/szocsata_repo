@@ -11,6 +11,7 @@ class CModel;
 class CRoundedSquarePositionData;
 class CTimerEventManager;
 class CGameManager;
+class CUIManager;
 
 class CTileAnimationManager
 {
@@ -29,6 +30,8 @@ public:
 	void UpdateColorEvent(double& timeFromStart, double& timeFromPrev);
 	void AnimFinishedEvent();
 
+	void SetUIManager(CUIManager* uiManager) {m_UIManager = uiManager;}
+
 
 private:
 
@@ -38,6 +41,7 @@ private:
 
 	CTimerEventManager* m_TimerEventManager;
 	CGameManager* m_GameManager;
+	CUIManager* m_UIManager;
 
 	const int m_AnimLength = 1500; //config!!
 };

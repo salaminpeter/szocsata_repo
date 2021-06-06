@@ -47,6 +47,14 @@ void CUIPlayerLetters::InitLetterTexPositions()
 	m_LetterTexPos[L'z'] = glm::vec2(7, 0);
 }
 
+void CUIPlayerLetters::OrderLetterElements(CGameManager* gameManager)
+{
+	for (unsigned i = 0; i < m_Children.size(); ++i)
+	{
+		m_Children[i]->SetEvent(gameManager, &CGameManager::PlayerLetterClicked, std::move(i));
+	}
+}
+
 
 void CUIPlayerLetters::InitLetterElements(const wchar_t* letters, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, float ViewPosX, float ViewPosY, CGameManager* gameManager)
 {

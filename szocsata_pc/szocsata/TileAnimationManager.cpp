@@ -6,6 +6,7 @@
 #include <GLES3\gl3.h>
 
 #include "TileAnimationManager.h"
+#include "UIManager.h"
 #include "SelectionModel.h"
 #include "Config.h"
 #include "SquareModelData.h"
@@ -13,6 +14,7 @@
 #include "Timer.h"
 #include "TimerEventManager.h"
 #include "GameManager.h"
+#include "UIMessageBox.h"
 
 
 CTileAnimationManager::CTileAnimationManager(CTimerEventManager* timerEventMgr, CGameManager* gameManager) :
@@ -42,7 +44,7 @@ void CTileAnimationManager::StartAnimation(bool positive)
 
 void CTileAnimationManager::AnimFinishedEvent()
 {
-	m_GameManager->SetGameState(CGameManager::NextTurn);
+	m_UIManager->ShowMessageBox(CUIMessageBox::Ok, m_GameManager->GetNextPlayerName().c_str());
 }
 
 

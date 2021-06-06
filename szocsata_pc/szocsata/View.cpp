@@ -30,7 +30,7 @@ void CView::InitOrtho()
 void CView::Activate()
 {
 	glViewport(m_XPosition, m_YPosition, m_Width, m_Height);
-	m_Camera->LookAt();
+//	m_Camera->LookAt();
 }
 
 glm::vec3 CView::GetCameraAxisInWorldSpace(int axis)

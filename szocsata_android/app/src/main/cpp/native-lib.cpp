@@ -43,6 +43,7 @@ JNIEXPORT void JNICALL
 Java_com_example_szocsata_1android_OpenGLRenderer_InitGameManager(JNIEnv *env, jobject thiz) {
     gm = new CGameManager();
     InputManager = new CInputManager(gm);
+    gm->InitLetterPool();
     gm->InitRenderer(2340, 1080);
     gm->InitLayouts();
     gm->InitUIManager();

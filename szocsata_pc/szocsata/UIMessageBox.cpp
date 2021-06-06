@@ -1,19 +1,37 @@
 #include "stdafx.h"
 #include "UIMessageBox.h"
-#include "UIButton.h"
 #include "UIText.h"
-#include "SquareModelData.h"
-#include "Model.h"
+
+CUIMessageBox* CUIMessageBox::m_ActiveMessageBox = nullptr;
+int CUIMessageBox::m_RetValue = false;
 
 
-CUIMessageBox::CUIMessageBox(const wchar_t* text, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, float x, float y, float w, float h, float vx, float vy, const char* textureID, const wchar_t* id) :
-	CUIElement(nullptr, id, new CModel(false, 2, positionData.get(), colorData.get(), textureID, "textured"), x, y, w, h, vx, vy, 0.f, 0.f)
+CUIMessageBox::CUIMessageBox(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridColorData, int x, int y, int w, int h, int vx, int vy, EType type) :
+	CUIPanel(nullptr, L"ui_message_box", positionData, colorData, x, y, w, h, vx, vy, "panel.bmp", 0.f, 0.f),
+	m_Type(type)
 {
-	float BtnSize = h / 4;
-	float BtnX = (w - BtnSize) / 2;
-	float BtnY = (h - BtnSize) - (h / 10);
+	AddText(L"", positionData, gridColorData, -120.f, 0.f, 40.f, 40.f, "font.bmp", L"ui_message_box_text");
 
-	m_OkButton = std::make_unique<CUIButton>(positionData, colorData, BtnX, BtnY, BtnSize, BtnSize, vx, vy, "okbutton.bmp", id);
-	m_OkButton->PositionElement();
-	PositionElement();
+	if (m_Type == Ok)
+	{ 
+		AddButton(positionData, colorData, -80, -80, 50, 50, "okbutton.bmp", L"ui_message_box_ok_btn");
+		m_Children.back()->SetEvent(this, &CUIMessageBox::ButtonPressed, 1);
+	}
+
+	if (m_Type == OkCancel)
+	{
+		AddButton(positionData, colorData, 80, -80, 50, 50, "cancelbutton.bmp", L"ui_message_box_cancel_btn");
+		m_Children.back()->SetEvent(this, &CUIMessageBox::ButtonPressed, 0);
+	}
+}
+
+void CUIMessageBox::ButtonPressed(int ret)
+{
+	m_RetValue = ret;
+	m_ActiveMessageBox = nullptr;
+}
+
+void CUIMessageBox::SetText(const wchar_t* text)
+{
+	static_cast<CUIText*>(m_Children[0])->SetText(text);
 }
