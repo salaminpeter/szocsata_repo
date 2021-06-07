@@ -17,6 +17,7 @@ public:
 
 private:
 	
+	std::map<int, int> m_LettersForSize;
 	std::map<wchar_t, int> m_Letters;
 	std::vector<wchar_t> m_LetterIdx;
 };

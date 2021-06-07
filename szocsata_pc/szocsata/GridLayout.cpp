@@ -61,8 +61,8 @@ void CGridLayout::AllignGrid(int gridCount, bool recalcGridSize)
 		m_GridGapVert = (m_Height - m_RowCount * m_GridSize) / (m_RowCount + 1.f);
 	}
 
-	float XPos = m_GridGapHoriz;
-	float YPos = m_GridGapVert;
+	float XPos = m_XPosition + m_GridGapHoriz;
+	float YPos = m_YPosition + m_GridGapVert;
 	float LastRowGrids = gridCount % m_GridsInRow;
 	float LastRowOffset = (m_Width - (LastRowGrids  * m_GridSize + (LastRowGrids + 1) * m_GridGapHoriz)) / 2.f;
 
@@ -70,7 +70,7 @@ void CGridLayout::AllignGrid(int gridCount, bool recalcGridSize)
 	{
 		if (i != 0 && (i % m_GridsInRow) == 0)
 		{ 
-			XPos = m_GridGapHoriz;
+			XPos = m_XPosition + m_GridGapHoriz;
 			YPos += m_GridGapVert + m_GridSize;
 		}
 

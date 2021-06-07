@@ -54,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
                                                     m_FingerPos0.x = x;
                                                     m_FingerPos0.y = y;
                                                     if (!m_MultyTouch)
-                                                        HandleTouchEvent(x, y, x <= 1080);
+                                                        HandleTouchEvent(x, y, x <= v.getHeight());
                                                     return true;
                                                 }
 

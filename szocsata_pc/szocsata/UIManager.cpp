@@ -7,6 +7,7 @@
 #include "UIPlayerLetters.h"
 #include "UITileCounter.h"
 #include "UIMessageBox.h"
+#include "GridLayout.h"
 #include "GameManager.h"
 #include "Renderer.h"
 #include "Config.h"
@@ -60,36 +61,74 @@ CUIPlayerLetters* CUIManager::GetPlayerLetters(size_t playerLetterIdx)
 
 void CUIManager::InitUI(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData)
 {
-	//TODO--------------------------
-	int h = m_GameManager->m_SurfaceHeigh;
-	int w = m_GameManager->m_SurfaceWidth - h;
-	float btny = h / 1.3f;
-	float btnsize = h / 13.f;
-	float btnx = w / 2.f - (3.5 * btnsize);
-	float fpsposx = w / 1.9f;
-	float fpsposy = h * 0.95f;
-	float pscorex = w / 10.f;
-	float pscorey = h / 2.1f;
-	//TODO--------------------------
+	int LetterCount;
+	CConfig::GetConfig("letter_count", LetterCount);
 
+	m_PlayerLettersLayout = new CGridLayout(m_GameManager->m_SurfaceHeigh, /*m_GameManager->m_SurfaceHeigh / 2*/0, m_GameManager->m_SurfaceWidth - m_GameManager->m_SurfaceHeigh, m_GameManager->m_SurfaceHeigh / 3, 50.f, 60.f);
+	m_PlayerLettersLayout->AllignGrid(LetterCount, true);
 
-	AddButton(positionData, colorData, btnx, btny, btnsize, btnsize, "view_ortho", "okbutton.bmp", L"ui_ok_btn");
+	float ButtonsLayoutY = m_GameManager->m_SurfaceHeigh / 1.3f;
+	ButtonsLayoutY = ButtonsLayoutY < m_GameManager->m_SurfaceHeigh - 90 ? ButtonsLayoutY : m_GameManager->m_SurfaceHeigh - 90;
+	m_ButtonsLayout = new CGridLayout(m_GameManager->m_SurfaceHeigh, ButtonsLayoutY, m_GameManager->m_SurfaceWidth - m_GameManager->m_SurfaceHeigh, 200, 50.f, 100.f);
+	m_ButtonsLayout->AllignGrid(3, true);
+
+	AddButton(positionData, colorData, 0, 0, 0, 0, "view_ortho", "okbutton.bmp", L"ui_ok_btn");
 	m_UIButtons.back()->SetEvent(m_GameManager, &CGameManager::EndPlayerTurnEvent);
 
-	AddButton(positionData, colorData, btnx + 3 * btnsize, btny, btnsize, btnsize, "view_ortho", "backbutton.bmp", L"ui_back_btn");
+	AddButton(positionData, colorData, 0, 0, 0, 0, "view_ortho", "backbutton.bmp", L"ui_back_btn");
 	m_UIButtons.back()->SetEvent(m_GameManager, &CGameManager::BackSpaceEvent);
 
-	AddButton(positionData, colorData, btnx + 6 * btnsize, btny, btnsize, btnsize, "view_ortho", "topviewbutton.bmp", L"ui_topview_btn");
+	AddButton(positionData, colorData, 0, 0, 0, 0, "view_ortho", "topviewbutton.bmp", L"ui_topview_btn");
 	m_UIButtons.back()->SetEvent(m_GameManager, &CGameManager::TopViewEvent);
 
-	AddText(L"", positionData, gridcolorData, fpsposx, fpsposy, 30, 30, "view_ortho", "font.bmp", L"ui_fps_text");
-	AddText(L"", positionData, gridcolorData, btnx, pscorey + 50, 40, 40, "view_ortho", "font.bmp", L"ui_computer_score");
-	AddText(L"", positionData, gridcolorData, btnx, pscorey, 40, 40, "view_ortho", "font.bmp", L"ui_player_score");
+	PositionGameButtons();
+
+	auto GridPos = m_ButtonsLayout->GetGridPosition(0);
+	float PlayerScoreY = GridPos.m_Top;
+
+	AddText(L"", positionData, gridcolorData, m_GameManager->m_SurfaceWidth - 150, m_GameManager->m_SurfaceHeigh - 30, 30, 30, "view_ortho", "font.bmp", L"ui_fps_text");
+	AddText(L"", positionData, gridcolorData, GridPos.m_Left, PlayerScoreY - 100, 40, 40, "view_ortho", "font.bmp", L"ui_computer_score");
+	AddText(L"", positionData, gridcolorData, GridPos.m_Left, PlayerScoreY - 50, 40, 40, "view_ortho", "font.bmp", L"ui_player_score");
 
 	glm::vec2 ViewPos = m_GameManager->GetViewPosition("view_ortho");
-	m_UITileCounter = new CUITileCounter(positionData, colorData, gridcolorData, 800, 500, 150, 150, ViewPos.x, ViewPos.y);
+	m_UITileCounter = new CUITileCounter(positionData, colorData, gridcolorData, m_GameManager->m_SurfaceHeigh + (m_GameManager->m_SurfaceWidth - m_GameManager->m_SurfaceHeigh) / 2, PlayerScoreY - 250, 150, 150, ViewPos.x, ViewPos.y);
 
-	m_MessageBoxOk = new CUIMessageBox(positionData, colorData, gridcolorData, 500, 400, 500, 300, ViewPos.x, ViewPos.y, CUIMessageBox::Ok);
+	m_MessageBoxOk = new CUIMessageBox(positionData, colorData, gridcolorData, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh / 2, 600, 400, ViewPos.x, ViewPos.y, CUIMessageBox::Ok);
+}
+
+bool CUIManager::IsGameButton(const CUIButton* button) const
+{
+	//top view button nem kell azt nyomkodhatjuk ossze vissza nem okoz bajt
+	return (button->GetID() == L"ui_ok_btn" || button->GetID() == L"ui_back_btn");
+}
+
+void CUIManager::PositionGameButtons()
+{
+	for (size_t i = 0; i < 3; ++i)
+	{
+		auto GridPos = m_ButtonsLayout->GetGridPosition(i);
+		float Size = GridPos.m_Right - GridPos.m_Left;
+		float XPos = GridPos.m_Left + Size / 2;
+		float YPos = GridPos.m_Bottom - Size / 2;
+
+		m_UIButtons[i]->SetPosAndSize(XPos, YPos, Size, Size);
+	}
+}
+
+void CUIManager::PositionPlayerLetters(const std::wstring& playerId)
+{
+	CUIPlayerLetters* pl = GetPlayerLetters(playerId);
+	int LetterCount = pl->GetChildCount();
+
+	for (size_t i = 0; i < LetterCount; ++i)
+	{
+		auto GridPos = m_PlayerLettersLayout->GetGridPosition(i);
+		float Size = GridPos.m_Right - GridPos.m_Left;
+		float XPos = GridPos.m_Left + Size / 2;
+		float YPos = GridPos.m_Bottom - Size / 2;
+
+		PositionPlayerLetter(playerId.c_str(), i, XPos, YPos + 10, Size);
+	}
 }
 
 void CUIManager::ShowMessageBox(int type, const wchar_t* text)
@@ -160,13 +199,14 @@ void CUIManager::HandleTouchEvent(int x, int y)
 		CUIMessageBox::m_ActiveMessageBox->HandleTouchEvent(x, y);
 		return;
 	}
-
-
+	
 	for (size_t i = 0; i < m_UIButtons.size(); ++i)
 	{
 		if (m_UIButtons[i]->PositionInElement(x, y))
 		{
-			m_UIButtons[i]->HandleEvent();
+			if (!m_GameButtonsDisabled || !IsGameButton(m_UIButtons[i]))
+				m_UIButtons[i]->HandleEvent();
+
 			return;
 		}
 	}

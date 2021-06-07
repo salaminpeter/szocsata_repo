@@ -5,16 +5,19 @@
 
 void CInputManager::HandleTouchEvent(int x, int y, bool onBoardView)
 {
+	const std::lock_guard<std::mutex> lock(m_InputLock);
 	m_GameManager->HandleToucheEvent(x, y, onBoardView);
 }
 
 void CInputManager::HandleZoomEvent(float dist, float origoX, float origoY)
 {
+	const std::lock_guard<std::mutex> lock(m_InputLock);
 	m_GameManager->HandleZoomEvent(dist, origoX, origoY);
 }
 
 void CInputManager::HandleMultyTouchStart(float x0, float y0, float x1, float y1)
 {
+	const std::lock_guard<std::mutex> lock(m_InputLock);
 	m_Touch0X = x0;
 	m_Touch0Y = y0;
 	m_Touch1X = x1;
@@ -26,11 +29,13 @@ void CInputManager::HandleMultyTouchStart(float x0, float y0, float x1, float y1
 
 void CInputManager::HandleMultyTouchEnd()
 {
+	const std::lock_guard<std::mutex> lock(m_InputLock);
 	m_GameManager->HandleZoomEndEvent();
 }
 
 void CInputManager::HandleMultyTouch(float x0, float y0, float x1, float y1)
 {
+	const std::lock_guard<std::mutex> lock(m_InputLock);
 	glm::vec2 v0(x0 - m_Touch0X, y0 - m_Touch0Y);
 	glm::vec2 v1(x1 - m_Touch1X, y1 - m_Touch1Y);
 
@@ -70,11 +75,13 @@ void CInputManager::HandleMultyTouch(float x0, float y0, float x1, float y1)
 
 void CInputManager::HandleReleaseEvent(int x, int y)
 {
+	const std::lock_guard<std::mutex> lock(m_InputLock);
 	m_GameManager->HandleReleaseEvent(x, y);
 }
 
 void CInputManager::HandleDragEvent(int x, int y)
 {
+	const std::lock_guard<std::mutex> lock(m_InputLock);
 	m_GameManager->HandleDragEvent(x, y);
 }
 

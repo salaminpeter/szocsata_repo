@@ -45,6 +45,7 @@ void CTileAnimationManager::StartAnimation(bool positive)
 void CTileAnimationManager::AnimFinishedEvent()
 {
 	m_UIManager->ShowMessageBox(CUIMessageBox::Ok, m_GameManager->GetNextPlayerName().c_str());
+	m_UIManager->EnableGameButtons(true);
 }
 
 

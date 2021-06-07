@@ -10,17 +10,29 @@
 CLetterPool::CLetterPool()
 {
 	std::srand(std::time(nullptr));
+
+	m_LettersForSize[7] = 6;
+	m_LettersForSize[8] = 7;
+	m_LettersForSize[9] = 9;
+	m_LettersForSize[10] = 10;
+	m_LettersForSize[11] = 10;
+	m_LettersForSize[12] = 10;
+
 }
 
 
 void CLetterPool::DealLetters(std::wstring& letters)
 {
+	int TileCount;
+	CConfig::GetConfig("tile_count", TileCount);
+
 	int LetterCount;
+	CConfig::GetConfig("letter_count", LetterCount);
+
 	int AddedLetterCount = 0;
 	int InitialLetterCount = std::count_if(letters.begin(), letters.end(), [](wchar_t c) {return c != L' ';});
 	int RemainingLetters = GetRemainingLetterCount();
 
-	CConfig::GetConfig("letter_count", LetterCount);
 
 	int Count = LetterCount - (InitialLetterCount < RemainingLetters ? InitialLetterCount : RemainingLetters);
 
@@ -152,6 +164,5 @@ void CLetterPool::Init()
 		it->second = Count;
 	}
 
-	float ScaledLetterCount = (10.f / 12.f) * static_cast<float>(TileCount) + 1.f;
-	CConfig::AddConfig("letter_count", static_cast<int>(ScaledLetterCount));
+	CConfig::AddConfig("letter_count", m_LettersForSize[TileCount]);
 }

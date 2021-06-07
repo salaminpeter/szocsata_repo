@@ -9,5 +9,3 @@ best_word_count = 10
 game_difficulty = 0
 board_rotation_min = 30.0
 board_rotation_max = 90.0
-window_width = 2140
-window_height = 1080

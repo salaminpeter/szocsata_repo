@@ -18,7 +18,6 @@
 
 class CRenderer;
 class CUIManager;
-class CGridLayout;
 class CTimerEventManager;
 class CTileAnimationManager;
 class CWordAnimationManager;
@@ -44,7 +43,6 @@ public:
 	int CalculateScore(const TWordPos& word, std::vector<TWordPos>* crossingWords = nullptr);
 	void InitRenderer(int surfaceWidth, int surfaceHeight);
 	void InitUIManager();
-	void InitLayouts();
 	void RenderFrame();
 	void RenderUI();
 	void RenderTileAnimations();
@@ -69,7 +67,6 @@ public:
 	void NextPlayerTurn();
 	void UndoLastStep();
 	void UndoAllSteps();
-	void PositionPlayerLetters(const std::wstring& playerId);
 	void PlayerLetterClicked(unsigned letterIdx);
 	void GameLoop();
 	void SetGameState(int state);
@@ -92,12 +89,7 @@ public:
 	glm::vec2 GetViewPosition(const char* viewId);
 
 
-	//events
-	void EndPlayerTurnEvent()
-	{
-		EndPlayerTurn();
-	}
-
+	void EndPlayerTurnEvent();
 	void BackSpaceEvent();
 	void TopViewEvent();
 
@@ -154,9 +146,7 @@ private:
 	CWordAnimationManager* m_WordAnimation;
 	CCameraAnimationManager* m_CameraAnimationManager;
 
-	CGridLayout* m_GridLayout;
-
-	public:
+	public: //TODO
 	bool m_Dragged = false;
 	bool m_LastTouchOnBoardView;
 	int m_LastTouchX;

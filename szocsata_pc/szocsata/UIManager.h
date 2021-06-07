@@ -14,6 +14,8 @@ class CModel;
 class CGameManager;
 class CUITileCounter;
 class CUIMessageBox;
+class CGridLayout;
+
 
 class CUIManager
 {
@@ -46,9 +48,15 @@ public:
 
 	void SetTileCounterValue(unsigned count);
 
+	void PositionPlayerLetters(const std::wstring& playerId);
+	void PositionGameButtons();
+
+	void EnableGameButtons(bool enable) { m_GameButtonsDisabled = !enable; }
+
 private:
 
 	CUIText* GetText(const wchar_t* id) const;
+	bool IsGameButton(const CUIButton* button) const;
 
 public:
 
@@ -59,4 +67,8 @@ public:
 
 	CUITileCounter* m_UITileCounter;
 	CUIMessageBox* m_MessageBoxOk;
+	CGridLayout* m_PlayerLettersLayout;
+	CGridLayout* m_ButtonsLayout;
+
+	bool m_GameButtonsDisabled = false;
 };

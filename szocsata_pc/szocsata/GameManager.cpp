@@ -52,7 +52,7 @@ void CGameManager::AddPlayers(int playerCount, bool addComputer)
 		m_Players.push_back(new CPlayer(this));
 		m_LetterPool.DealLetters(m_Players.back()->GetLetters());
 		m_UIManager->AddPlayerLetters(m_Players.back()->GetName().c_str(), m_Players.back()->GetLetters().c_str(), m_Renderer->GetSquarePositionData(), m_Renderer->GetSquareColorGridData8x4(), "view_ortho");
-		PositionPlayerLetters(m_Players.back()->GetName().c_str());
+		m_UIManager->PositionPlayerLetters(m_Players.back()->GetName().c_str());
 		m_UIManager->GetPlayerLetters(m_Players.back()->GetName().c_str())->ShowLetters(false);
 	}
 
@@ -61,8 +61,9 @@ void CGameManager::AddPlayers(int playerCount, bool addComputer)
 		m_Computer = new CComputer(this);
 		m_LetterPool.DealLetters(m_Computer->GetLetters());
 		m_Players.push_back(m_Computer);
+		//TODO ezeket a uimanageres fuggvenyeket osszevonni egybe a uimanagerben
 		m_UIManager->AddPlayerLetters(m_Players.back()->GetName().c_str(), m_Computer->GetLetters().c_str(), m_Renderer->GetSquarePositionData(), m_Renderer->GetSquareColorGridData8x4(), "view_ortho");
-		PositionPlayerLetters(m_Players.back()->GetName().c_str());
+		m_UIManager->PositionPlayerLetters(m_Players.back()->GetName().c_str());
 		m_UIManager->GetPlayerLetters(m_Players.back()->GetName().c_str())->ShowLetters(false);
 	}
 
@@ -81,7 +82,6 @@ void CGameManager::StartGame()
 	AddPlayers(1, true);
 	UpdatePlayerScores();
 	m_UIManager->ShowMessageBox(CUIMessageBox::Ok, m_Players[0]->GetName().c_str());
-//	StartPlayerTurn(m_Players[0]);
 }
 
 void CGameManager::AddWordSelectionAnimation(const std::vector<TWordPos>& wordPos, bool positive)
@@ -122,7 +122,6 @@ void CGameManager::StartPlayerTurn(CPlayer* player)
 	m_SecondPlayerLetterY = -1;
 
 	m_CurrentPlayer = player;
-	m_CurrentPlayer->m_TurnInProgress = true;
 
 	SetGameState(EGameState::TurnInProgress);
 
@@ -179,16 +178,20 @@ void CGameManager::NextPlayerTurn()
 	SetGameState(EGameState::TurnInProgress);
 
 	if (m_Players[NextPlayerIdx]->GetName() == L"computer")
+	{
+		m_UIManager->EnableGameButtons(false);
 		StartComputerturn();
+	}
 	else
+	{
+		m_UIManager->EnableGameButtons(true);
 		StartPlayerTurn(m_Players[NextPlayerIdx]);
+	}
 }
 
 
 bool CGameManager::EndPlayerTurn()
 {	
-	m_CurrentPlayer->m_TurnInProgress = false;
-
 	m_Renderer->HideSelection(true);
 
 	//jatekos passz
@@ -196,7 +199,8 @@ bool CGameManager::EndPlayerTurn()
 	{
 		SetGameState(EGameState::PlayerPass);
 		m_CurrentPlayer->m_Passed = true;
-		NextPlayerTurn();
+		m_UIManager->ShowMessageBox(CUIMessageBox::Ok, GetNextPlayerName().c_str());
+		m_UIManager->EnableGameButtons(true);
 		return false;
 	}
 
@@ -299,9 +303,9 @@ bool CGameManager::EndComputerTurn()
 	//computer passz
 	if (ComputerPass || !ComputerWord.m_Word)
 	{
-		SetGameState(EGameState::ComputerPass);
 		m_CurrentPlayer->m_Passed = true;
-		NextPlayerTurn();
+		m_UIManager->ShowMessageBox(CUIMessageBox::Ok, GetNextPlayerName().c_str());
+		m_UIManager->EnableGameButtons(true);
 		return false;
 	}
 
@@ -329,8 +333,6 @@ bool CGameManager::EndComputerTurn()
 
 void CGameManager::StartComputerturn()
 {
-	m_Computer->m_TurnInProgress = true;
-
 	m_UIManager->GetPlayerLetters(m_Computer->GetName().c_str())->SetLetterVisibility();
 	m_UIManager->GetPlayerLetters(m_Computer->GetName().c_str())->SetVisible(true);
 
@@ -343,6 +345,15 @@ void CGameManager::StartComputerturn()
 
 	int GameDifficulty;
 	int BestWordCount = m_Computer->BestWordCount();
+
+	//computer passz, egy szot sem talalt ami megfelelt a kriteriumoknak
+	if (m_Computer->BestWordCount() == 0)
+	{
+		m_Computer->m_Passed = true;
+		m_UIManager->ShowMessageBox(CUIMessageBox::Ok, GetNextPlayerName().c_str());
+		m_UIManager->EnableGameButtons(true);
+		return;
+	}
 
 	CConfig::GetConfig("game_difficulty", GameDifficulty);
 
@@ -359,11 +370,12 @@ void CGameManager::StartComputerturn()
 	}
 	else
 	{
-		//coputer pass
+		//coputer passz
 		m_Computer->m_Passed = true;
+		m_UIManager->ShowMessageBox(CUIMessageBox::Ok, GetNextPlayerName().c_str());
+		m_UIManager->EnableGameButtons(true);
+		return;
 	}
-
-	m_Computer->m_TurnInProgress = false;
 
 	EndComputerTurn();
 }
@@ -673,32 +685,6 @@ void CGameManager::PlayerLetterClicked(unsigned letterIdx)
 		m_Renderer->HideSelection(true);
 }
 
-
-void CGameManager::PositionPlayerLetters(const std::wstring& playerId)
-{
-	CUIPlayerLetters* pl = m_UIManager->GetPlayerLetters(playerId);
-	int LetterCount = pl->GetChildCount();
-
-	for (size_t i = 0; i < LetterCount; ++i)
-	{
-		auto GridPos = m_GridLayout->GetGridPosition(i);
-		float Size = GridPos.m_Right - GridPos.m_Left;
-		float XPos = GridPos.m_Left + Size / 2;
-		float YPos = GridPos.m_Bottom - Size / 2;
-
-		m_UIManager->PositionPlayerLetter(playerId.c_str(), i, XPos, YPos + 10, Size);
-	}
-}
-
-void CGameManager::InitLayouts()
-{
-	int LetterCount;
-	CConfig::GetConfig("letter_count", LetterCount);
-
-	m_GridLayout = new CGridLayout(m_SurfaceHeigh, m_SurfaceHeigh / 2, m_SurfaceWidth - m_SurfaceHeigh, m_SurfaceHeigh / 3, 50.f, 60.f);
-	m_GridLayout->AllignGrid(LetterCount, true);
-}
-
 void CGameManager::InitUIManager()
 {
 	m_UIManager = new CUIManager(this);
@@ -715,6 +701,9 @@ void CGameManager::InitRenderer(int surfaceWidth, int surfaceHeight)
 {
 	m_SurfaceWidth = surfaceWidth;
 	m_SurfaceHeigh = surfaceHeight;
+
+	CConfig::AddConfig("window_width", surfaceWidth);
+	CConfig::AddConfig("window_height", surfaceHeight);
 
 	m_Renderer = new CRenderer(surfaceWidth, surfaceHeight, this);
 	m_Renderer->Init();
@@ -887,8 +876,6 @@ void CGameManager::RenderUI()
 {
 	glDisable(GL_DEPTH_TEST);
 
-	size_t idx = 0;
-
 	m_UIManager->RenderTileCounter();
 	m_UIManager->RenderTexts();
 	m_UIManager->RenderButtons();
@@ -899,6 +886,12 @@ void CGameManager::RenderUI()
 	m_UIManager->RenderMessageBox();
 
 	glEnable(GL_DEPTH_TEST);
+}
+
+void CGameManager::EndPlayerTurnEvent()
+{
+	if (EndPlayerTurn())
+		m_UIManager->EnableGameButtons(false);
 }
 
 void CGameManager::BackSpaceEvent()

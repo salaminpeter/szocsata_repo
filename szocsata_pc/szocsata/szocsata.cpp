@@ -158,7 +158,6 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    GameManager->m_HWND = hWnd;
    GameManager->InitLetterPool();
    GameManager->InitRenderer(WindowWidth, WindowHeigth );
-   GameManager->InitLayouts();
    GameManager->InitUIManager();
    GameManager->SetGameState(CGameManager::BeginGame);
 

@@ -720,15 +720,13 @@ bool CRenderer::Init()
 	m_TextureManager->AddTexture("font.bmp");
 	m_TextureManager->AddTexture("playerletters.bmp");
 	m_TextureManager->AddTexture("panel.bmp");
+	m_TextureManager->AddTexture("tilecounter.bmp");
 
 	AddView("board_perspecive", 0, 0, m_ScreenHeight, m_ScreenHeight);
 	FittBoardToView(false);
 
-	float ViewWidth = m_ScreenWidth - m_ScreenHeight;
-	AddView("view_ortho", m_ScreenHeight, 0, ViewWidth, m_ScreenHeight);
-	float x = 0;
-	float y = 0;
-	m_Views["view_ortho"]->InitCamera(glm::vec3(ViewWidth / 2, m_ScreenHeight / 2, 10.f), glm::vec3(ViewWidth / 2, m_ScreenHeight / 2, 0.f), glm::vec3(0, 1, 0));
+	AddView("view_ortho", 0, 0, m_ScreenWidth, m_ScreenHeight);
+	m_Views["view_ortho"]->InitCamera(glm::vec3(m_ScreenWidth / 2, m_ScreenHeight / 2, 10.f), glm::vec3(m_ScreenWidth / 2, m_ScreenHeight / 2, 0.f), glm::vec3(0, 1, 0));
 	m_Views["view_ortho"]->InitOrtho();
 
 

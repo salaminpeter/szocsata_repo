@@ -14,7 +14,9 @@ CUIMessageBox::CUIMessageBox(std::shared_ptr<CSquarePositionData> positionData, 
 
 	if (m_Type == Ok)
 	{ 
-		AddButton(positionData, colorData, -80, -80, 50, 50, "okbutton.bmp", L"ui_message_box_ok_btn");
+		int BtnX = m_Width / 2;
+		int BtnY = m_Height ;
+		AddButton(positionData, colorData, 0, -100, 120, 120, "okbutton.bmp", L"ui_message_box_ok_btn");
 		m_Children.back()->SetEvent(this, &CUIMessageBox::ButtonPressed, 1);
 	}
 

@@ -23,11 +23,7 @@ public:
 	int RemoveLetter(wchar_t c);
 
 	int GetLetterCount() {return m_Letters.size();}
-	void AddScore(int score) 
-	{
-		m_Score += score;
-		int i = 1;
-	}
+	void AddScore(int score) {m_Score += score;}
 	void ResetUsedLetters() {m_UsedLetters.Reset();}
 	void SetUsedLetters(CBinaryBoolList usedLetters) {m_UsedLetters = usedLetters;}
 	int GetScore() {return m_Score;}
@@ -46,5 +42,4 @@ public:
 	CBinaryBoolList m_UsedLetters;
 	int m_Score = 0;
 	bool m_Passed = false;
-	bool m_TurnInProgress = false;
 };

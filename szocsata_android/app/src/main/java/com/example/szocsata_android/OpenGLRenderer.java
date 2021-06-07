@@ -12,22 +12,21 @@ public class OpenGLRenderer implements GLSurfaceView.Renderer {
 
      @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-         InitGameManager();
-
-         GameThread = new Thread(new Runnable() {
-             public void run()
-             {
-                while (true)
-                    GameLoop();
-             }
-         });
-
-         GameThread.start();
      }
 
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
-        GLES20.glViewport(0,0, width, height);
+        InitGameManager(width, height);
+
+        GameThread = new Thread(new Runnable() {
+            public void run()
+            {
+                while (true)
+                    GameLoop();
+            }
+        });
+
+        GameThread.start();
     }
 
     @Override
@@ -36,7 +35,7 @@ public class OpenGLRenderer implements GLSurfaceView.Renderer {
         Render();
     }
 
-    public native void InitGameManager();
+    public native void InitGameManager(int surfaceWidth, int surfaceHeight);
     public native void Render();
     public native void GameLoop();
 }

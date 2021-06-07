@@ -1,5 +1,7 @@
 #pragma once
 
+#include <mutex>
+
 class CGameManager;
 
 class CInputManager
@@ -27,4 +29,5 @@ private:
 	float m_TouchDist;
 
 	CGameManager* m_GameManager;
+	std::mutex m_InputLock;
 };
