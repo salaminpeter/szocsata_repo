@@ -864,13 +864,16 @@ void CRenderer::DrawModel(CModel* model, const char* viewID, const char* shaderI
 	double t4 = CTimer::GetTime();
 }
 
-
-void CRenderer::Render()
+void CRenderer::ClearBuffers()
 {
 	glClearColor(0., 0., 0., 1.);
 	glClearDepthf(1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
 
+void CRenderer::Render()
+{
+	ClearBuffers();
 	CTimer::Start();
 
 	GLuint DistanceDividerID = m_ShaderManager->GetShaderVariableID("per_pixel_light_textured", "DistanceDivider");

@@ -171,6 +171,17 @@ void CGameManager::StartPlayerTurn(CPlayer* player)
 	m_TmpGameBoard = m_GameBoard;
 }
 
+bool CGameManager::GetPlayerNameScore(size_t idx, std::wstring& name, int& score)
+{
+	if (m_Players.size() <= idx)
+		return false;
+
+	name = m_Players[idx]->GetName();
+	score = m_Players[idx]->GetScore();
+
+	return true;
+}
+
 bool CGameManager::AllPlayersPassed()
 {
 	bool GameEnded = true;
@@ -216,6 +227,7 @@ void CGameManager::NextPlayerTurn()
 	//letette e az osszes betujet a jatekos
 	if (m_CurrentPlayer->GetLetterCount() == 0)
 	{
+		m_UIManager->InitRankingsPanel();
 		SetGameState(EGameState::GameEnded);
 		return;
 	}
@@ -241,6 +253,7 @@ void CGameManager::HandlePlayerPass()
 
 	if (AllPlayersPassed())
 	{
+		m_UIManager->InitRankingsPanel();
 		SetGameState(EGameState::GameEnded);
 		return;
 	}
@@ -477,16 +490,14 @@ void CGameManager::GameLoop()
 			SetGameState(EGameState::NextTurn);
 
 		if (GetGameState() == EGameState::NextTurn)
-		{
 			NextPlayerTurn();
-			SetGameState(EGameState::None);
-		}
 
 		m_TimerEventManager->Loop();
 	}
 	else
-	{
-		//TODO end game
+	{ 
+		m_Renderer->ClearBuffers();
+		SetGameState(EGameState::OnRankingsScreen);
 	}
 }
 
@@ -966,18 +977,13 @@ void CGameManager::RenderUI()
 {
 	glDisable(GL_DEPTH_TEST);
 
-	/*
-	m_UIManager->RenderTileCounter();
-	m_UIManager->RenderTexts();
-	m_UIManager->RenderButtons();
-	m_UIManager->RenderSelectControls();
-
-	if (m_CurrentPlayer)
-		m_UIManager->RenderPlayerLetters(m_CurrentPlayer->GetName().c_str());
-	*/
-	m_UIManager->RenderUI();
-
-	m_UIManager->RenderMessageBox();
+	if (GetGameState() != EGameState::OnRankingsScreen)
+	{
+		m_UIManager->RenderUI();
+		m_UIManager->RenderMessageBox();
+	}
+	else
+		m_UIManager->RenderRankingsPanel();
 
 	glEnable(GL_DEPTH_TEST);
 }
@@ -1019,11 +1025,13 @@ void CGameManager::RenderFrame()
 		{
 			const std::lock_guard<std::recursive_mutex> lock(m_Renderer->GetRenderLock());
 
-			if (GetGameState() != OnStartScreen)
+			if (GetGameState() != OnStartScreen && GetGameState() != OnRankingsScreen)
 			{
 				m_Renderer->Render();
 				RenderTileAnimations();
 			}
+			else
+				m_Renderer->ClearBuffers();
 
 			RenderUI();
 		}

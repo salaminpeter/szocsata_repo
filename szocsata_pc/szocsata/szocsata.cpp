@@ -160,7 +160,6 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    GameManager->InitUIManager();
    GameManager->SetGameState(CGameManager::OnStartScreen);
 
-
    SetWindowText(hWnd, GameManager->GetScoreString().c_str());
    SetCursor(LoadCursor(nullptr, IDC_ARROW));
 

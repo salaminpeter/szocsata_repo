@@ -5,15 +5,15 @@
 
 
 CUISelectControl::CUISelectControl(CUIElement* parent, const wchar_t* id, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData, int x, int y, int w, int h, int vx, int vy, const char* textureID, size_t idx) :
-	CUIPanel(parent, id, positionData, colorData, x, y, w, h, vx, vy, "selectcontrol.bmp", 0.f, 0.f),
+	CUIPanel(parent, id, positionData, colorData, gridcolorData, x, y, w, h, vx, vy, "selectcontrol.bmp", 0.f, 0.f),
 	m_CurrSelection(idx)
 {
-	AddText(L"", positionData, gridcolorData, -(w + h) / 2.f + h, 0.f, h - 20.f, h - 20.f, "font.bmp", L"ui_select_control_text");
+	AddText(L"", -(w + h) / 2.f + h, 0.f, h - 20.f, h - 20.f, "font.bmp", L"ui_select_control_text");
 
-	AddButton(positionData, colorData, -(w + h) / 2.f, 0.f, h, h, "leftarrow.bmp", L"arrow_left");
+	AddButton(-(w + h) / 2.f, 0.f, h, h, "leftarrow.bmp", L"arrow_left");
 	m_Children.back()->SetEvent(this, &CUISelectControl::ChangeEvent, -1);
 
-	AddButton(positionData, colorData, (w + h) / 2.f, 0, h, h, "rightarrow.bmp", L"arrow_right");
+	AddButton((w + h) / 2.f, 0, h, h, "rightarrow.bmp", L"arrow_right");
 	m_Children.back()->SetEvent(this, &CUISelectControl::ChangeEvent, 1);
 }
 

@@ -8,6 +8,7 @@
 #include "UIPlayerLetters.h"
 #include "UITileCounter.h"
 #include "UIMessageBox.h"
+#include "UIRankingsPanel.h"
 #include "UISelectControl.h"
 #include "GridLayout.h"
 #include "GameManager.h"
@@ -68,6 +69,11 @@ CUIPlayerLetters* CUIManager::GetPlayerLetters(size_t playerLetterIdx)
 	return m_UIPlayerLetters[playerLetterIdx];
 }
 
+void CUIManager::InitRankingsPanel() 
+{ 
+	m_RankingsPanel->Init(); 
+}
+
 void CUIManager::PositionUIElements()
 {
 	int LetterCount;
@@ -111,7 +117,9 @@ void CUIManager::InitUIElements(std::shared_ptr<CSquarePositionData> positionDat
 	m_MessageBoxOk = new CUIMessageBox(positionData, colorData, gridcolorData, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh / 2, 600, 400, ViewPos.x, ViewPos.y, CUIMessageBox::Ok);
 	m_Toast = new CUIToast(1000, m_TimerEventManager, this, positionData, colorData, gridcolorData, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh / 2, 600, 200, ViewPos.x, ViewPos.y, CUIMessageBox::NoButton);
 
-
+	m_RootGameEndScreen = new CUIElement(nullptr, L"ui_game_end_root", nullptr, 0.f, 0.f, m_GameManager->m_SurfaceWidth, m_GameManager->m_SurfaceHeigh, ViewPos.x, ViewPos.y, 0.f, 0.f);
+	m_RankingsPanel = new CUIRankingsPanel(m_RootGameEndScreen, m_GameManager, L"ui_rankings_panel", positionData, colorData, gridcolorData, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh / 2, 600, 1000, ViewPos.x, ViewPos.y, "panel.bmp", 0.f, 0.f);
+	
 	AddText(m_RootStartScreen, L"nehézség", positionData, gridcolorData, m_GameManager->m_SurfaceWidth / 2 - 200, m_GameManager->m_SurfaceHeigh - (m_GameManager->m_SurfaceHeigh / 6 - 80), 40, 40, "view_ortho", "font.bmp", L"ui_select_difficulty_text");
 	AddSelectControl(m_RootStartScreen, positionData, colorData, gridcolorData, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh - (m_GameManager->m_SurfaceHeigh / 6), 400, 80, "view_ortho", "selectioncontrol.bmp", L"ui_select_difficulty");
 	m_SelectControls.back()->AddOption(L"könnyű");
@@ -261,6 +269,11 @@ void CUIManager::RenderTileCounter()
 		m_UITileCounter->Render(m_GameManager->GetRenderer());
 }
 
+void CUIManager::RenderRankingsPanel()
+{
+	m_RankingsPanel->Render(m_GameManager->GetRenderer());
+}
+
 void CUIManager::RenderMessageBox()
 {
 	if (CUIMessageBox::m_ActiveMessageBox)
@@ -291,36 +304,22 @@ void CUIManager::HandleTouchEvent(int x, int y)
 	//ha van aktiv message box csak arra kezeljunk eventeket
 	if (CUIMessageBox::m_ActiveMessageBox)
 	{
-		CUIMessageBox::m_ActiveMessageBox->HandleTouchEvent(x, y);
+		CUIMessageBox::m_ActiveMessageBox->HandleEventAtPos(x, y);
 		return;
 	}
 	
-	CUIElement& Root = m_StartScreenActive ? *m_RootStartScreen : *m_RootGameScreen;
+	CUIElement* Root = nullptr;
 
-	for (size_t i = 0; i < Root.GetChildCount(); ++i)
-		if (Root.GetChild(i)->HandleEventAtPos(x, y))
+	if (m_GameManager->GetGameState() == CGameManager::OnStartScreen)
+		Root = m_RootStartScreen;
+	else if (m_GameManager->GetGameState() == CGameManager::OnRankingsScreen)
+		Root = m_RootGameEndScreen;
+	else
+		Root = m_RootGameScreen;
+
+	for (size_t i = 0; i < Root->GetChildCount(); ++i)
+		if (Root->GetChild(i)->HandleEventAtPos(x, y))
 			return;
-
-
-/*
-	for (size_t i = 0; i < m_SelectControls.size(); ++i)
-		if (m_SelectControls[i]->HandleEventAtPos(x, y))
-			return;
-
-	
-	for (size_t i = 0; i < m_UIButtons.size(); ++i)
-		if (m_UIButtons[i]->HandleEventAtPos(x, y))
-			return;
-
-	for (size_t i = 0; i < m_UIPlayerLetters.size(); ++i)
-	{
-		if (!m_UIPlayerLetters[i]->IsVisible())
-			continue;
-
-		if (m_UIPlayerLetters[i]->HandleEventAtPos(x, y))
-			return;
-	}
-*/
 }
 
 void CUIManager::SetTileCounterValue(unsigned count)

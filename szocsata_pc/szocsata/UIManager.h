@@ -19,6 +19,7 @@ class CUIMessageBox;
 class CUIToast;
 class CGridLayout;
 class CUISelectControl;
+class CUIRankingsPanel;
 
 
 class CUIManager
@@ -34,6 +35,7 @@ public:
 
 	void InitUIElements(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData);
 	void PositionUIElements();
+	void InitRankingsPanel();
 
 	void AddButton(CUIElement* parent, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, float x, float y, float w, float h, const char* ViewID, const char* textureID, const wchar_t* id);
 	void AddSelectControl(CUIElement* parent, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData, float x, float y, float w, float h, const char* ViewID, const char* textureID, const wchar_t* id);
@@ -56,6 +58,7 @@ public:
 	void RenderPlayerLetters(const wchar_t* id);
 	void RenderTileCounter();
 	void RenderMessageBox();
+	void RenderRankingsPanel();
 
 	void SetTileCounterValue(unsigned count);
 
@@ -88,9 +91,12 @@ public:
 
 	CUIElement* m_RootStartScreen;
 	CUIElement* m_RootGameScreen;
+	CUIElement* m_RootGameEndScreen;
+
 	CUITileCounter* m_UITileCounter;
 	CUIMessageBox* m_MessageBoxOk;
 	CUIToast* m_Toast;
+	CUIRankingsPanel* m_RankingsPanel;
 	CGridLayout* m_PlayerLettersLayout;
 	CGridLayout* m_ButtonsLayout;
 

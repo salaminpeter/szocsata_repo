@@ -43,6 +43,7 @@ public:
 	bool StartInit();
 	bool EndInit();
 	void Render();
+	void ClearBuffers();
 	void AddView(const char* viewId, int x, int y, int w, int h);
 	glm::vec2 GetViewPosition(const char* viewId);
 	void CalculateOptimalCameraPos(float fovY, float boundingSphereRadius, float& xyOffset, float& height);

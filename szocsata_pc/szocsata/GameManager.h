@@ -31,7 +31,7 @@ class CGameManager
 {
 public:
 	
-	enum EGameState { NextTurn, WaintingOnAnimation, WaitingForMessageBox, TurnInProgress, PlayerTurnEnd, ComputerTurnEnd, PlayerPass, ComputerPass, GameEnded, BeginGame, None, OnStartScreen };
+	enum EGameState { NextTurn, WaintingOnAnimation, WaitingForMessageBox, TurnInProgress, GameEnded, BeginGame, OnStartScreen, OnRankingsScreen, None};
 
 	CGameManager();
 
@@ -89,6 +89,7 @@ public:
 	wchar_t GetChOnBoard(int x, int y) { return m_GameBoard(x, y).m_Char; }
 	int GetDifficulty();
 	bool AllPlayersPassed();
+	bool GetPlayerNameScore(size_t idx, std::wstring& name, int& score);
 
 	std::wstring GetWordAtPos(bool horizontal, int& x, int& y);
 
