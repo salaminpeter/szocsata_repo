@@ -42,11 +42,13 @@ public:
 
 	void AddPlayers(int playerCount, bool addComputer);
 	void StartGame();
-	void Begin_Game();
+	void InitBasedOnTileCount();
+	void InitPlayers();
+	void SetTileCount();
 	void InitLetterPool();
 	int CalculateScore(const TWordPos& word, std::vector<TWordPos>* crossingWords = nullptr);
-	void PreInitRenderer(int surfaceWidth, int surfaceHeight);
-	void InitRenderer();
+	void StartInitRenderer(int surfaceWidth, int surfaceHeight);
+	void EndInitRenderer();
 	void InitUIManager();
 	void PositionUIElements();
 	void RenderFrame();

@@ -42,7 +42,7 @@ Java_com_example_szocsata_1android_OpenGLRenderer_InitGameManager(JNIEnv *env, j
     gm = new CGameManager();
     gm->m_JavaVM = g_VM;
     InputManager = new CInputManager(gm);
-    gm->PreInitRenderer(surface_width, surface_height);
+    gm->StartInitRenderer(surface_width, surface_height);
     gm->InitUIManager();
     gm->SetGameState(CGameManager::OnStartScreen);
 }
@@ -98,10 +98,16 @@ Java_com_example_szocsata_1android_MainActivity_HandleMultyTouchEndEvent(JNIEnv 
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_szocsata_1android_OpenGLRenderer_PostInitRenderer(JNIEnv *env, jobject thiz) {
-    gm->Begin_Game();
-}extern "C"
-JNIEXPORT void JNICALL
 Java_com_example_szocsata_1android_OpenGLRenderer_SetThisInGameManager(JNIEnv *env, jobject thiz, jobject obj) {
     gm->SetRendererObject(env->NewGlobalRef(obj));
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_szocsata_1android_OpenGLRenderer_EndInitAndStart(JNIEnv *env, jobject thiz) {
+    gm->SetTileCount();
+    gm->InitBasedOnTileCount();
+    gm->EndInitRenderer();
+    gm->InitPlayers();
+    gm->SetGameState(CGameManager::BeginGame);
 }

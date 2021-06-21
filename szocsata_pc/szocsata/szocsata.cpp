@@ -156,10 +156,8 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    OpenGLFunctions::InitOpenGL(GetDC(hWnd), hWnd);
 
    GameManager->m_HWND = hWnd;
-   GameManager->PreInitRenderer(WindowWidth, WindowHeigth );
+   GameManager->StartInitRenderer(WindowWidth, WindowHeigth );
    GameManager->InitUIManager();
-//   GameManager->InitRenderer();
-//   GameManager->InitLetterPool();
    GameManager->SetGameState(CGameManager::OnStartScreen);
 
 
@@ -192,6 +190,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		if (wParam == VK_ESCAPE)
 			GameManager->UndoComp();
 
+			/*
 		if (wParam == VK_RETURN)
 		{
 			if (GameManager->CurrentPlayerName() != L"Computer" && !GameManager->m_GameEnded)
@@ -200,6 +199,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			SetWindowText(hWnd, GameManager->GetScoreString().c_str());
 		}
 		break;
+		*/
 	}
 	case WM_MOUSEWHEEL:
 	{

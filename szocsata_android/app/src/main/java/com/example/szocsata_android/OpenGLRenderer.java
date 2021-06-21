@@ -1,6 +1,5 @@
 package com.example.szocsata_android;
 
-import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 
 import javax.microedition.khronos.egl.EGLConfig;
@@ -41,8 +40,9 @@ public class OpenGLRenderer implements GLSurfaceView.Renderer {
         m_ParentView.queueEvent(new Runnable(){
             @Override
             public void run() {
-                PostInitRenderer();
-            }});
+                EndInitAndStart();
+            }
+        });
     }
 
     @Override
@@ -54,6 +54,6 @@ public class OpenGLRenderer implements GLSurfaceView.Renderer {
     public native void InitGameManager(int surfaceWidth, int surfaceHeight);
     public native void Render();
     public native void GameLoop();
-    public native void PostInitRenderer();
+    public native void EndInitAndStart();
     public native void SetThisInGameManager(OpenGLRenderer obj);
 }

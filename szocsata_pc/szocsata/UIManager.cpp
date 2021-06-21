@@ -93,19 +93,6 @@ void CUIManager::InitUIElements(std::shared_ptr<CSquarePositionData> positionDat
 	ViewPos = m_GameManager->GetViewPosition("view_ortho");
 	m_RootGameScreen = new CUIElement(nullptr, L"ui_game_screen_root", nullptr, 0.f, 0.f, m_GameManager->m_SurfaceWidth, m_GameManager->m_SurfaceHeigh, ViewPos.x, ViewPos.y, 0.f, 0.f);
 
-	/*
-	int LetterCount;
-	CConfig::GetConfig("letter_count", LetterCount);
-
-	m_PlayerLettersLayout = new CGridLayout(m_GameManager->m_SurfaceHeigh, 0, m_GameManager->m_SurfaceWidth - m_GameManager->m_SurfaceHeigh, m_GameManager->m_SurfaceHeigh / 3, 50.f, 60.f);
-	m_PlayerLettersLayout->AllignGrid(LetterCount, true);
-
-	float ButtonsLayoutY = m_GameManager->m_SurfaceHeigh / 1.3f;
-	ButtonsLayoutY = ButtonsLayoutY < m_GameManager->m_SurfaceHeigh - 90 ? ButtonsLayoutY : m_GameManager->m_SurfaceHeigh - 90;
-	m_ButtonsLayout = new CGridLayout(m_GameManager->m_SurfaceHeigh, ButtonsLayoutY, m_GameManager->m_SurfaceWidth - m_GameManager->m_SurfaceHeigh, 200, 50.f, 100.f);
-	m_ButtonsLayout->AllignGrid(3, true);
-	*/
-
 	AddButton(m_RootGameScreen, positionData, colorData, 0, 0, 0, 0, "view_ortho", "okbutton.bmp", L"ui_ok_btn");
 	m_UIButtons.back()->SetEvent(m_GameManager, &CGameManager::EndPlayerTurnEvent);
 
@@ -115,18 +102,7 @@ void CUIManager::InitUIElements(std::shared_ptr<CSquarePositionData> positionDat
 	AddButton(m_RootGameScreen, positionData, colorData, 0, 0, 0, 0, "view_ortho", "topviewbutton.bmp", L"ui_topview_btn");
 	m_UIButtons.back()->SetEvent(m_GameManager, &CGameManager::TopViewEvent);
 
-//	PositionGameButtons();
-
-//	auto GridPos = m_ButtonsLayout->GetGridPosition(0);
-//	float PlayerScoreY = GridPos.m_Top;
-
 	AddText(m_RootGameScreen, L"", positionData, gridcolorData, m_GameManager->m_SurfaceWidth - 150, m_GameManager->m_SurfaceHeigh - 30, 30, 30, "view_ortho", "font.bmp", L"ui_fps_text");
-	/*
-	AddText(m_RootGameScreen, L"", positionData, gridcolorData, GridPos.m_Left, PlayerScoreY - 100, 40, 40, "view_ortho", "font.bmp", L"ui_computer_score");
-	AddText(m_RootGameScreen, L"", positionData, gridcolorData, GridPos.m_Left, PlayerScoreY - 50, 40, 40, "view_ortho", "font.bmp", L"ui_player_score");
-
-	m_UITileCounter = new CUITileCounter(m_RootGameScreen, positionData, colorData, gridcolorData, m_GameManager->m_SurfaceHeigh + (m_GameManager->m_SurfaceWidth - m_GameManager->m_SurfaceHeigh) / 2, PlayerScoreY - 250, 150, 150, ViewPos.x, ViewPos.y);
-	*/
 	AddText(m_RootGameScreen, L"", positionData, gridcolorData, 0, 0, 40, 40, "view_ortho", "font.bmp", L"ui_computer_score");
 	AddText(m_RootGameScreen, L"", positionData, gridcolorData, 0, 0, 40, 40, "view_ortho", "font.bmp", L"ui_player_score");
 

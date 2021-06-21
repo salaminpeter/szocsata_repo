@@ -76,11 +76,17 @@ void CGameManager::FinishRenderInit()
 	jclass Class = env->FindClass("com/example/szocsata_android/OpenGLRenderer");
 	jmethodID Method = env->GetMethodID(Class, "FinishRenderInit", "()V");
 	env->CallVoidMethod(m_RendererObject, Method);
+#else
+	SetTileCount();
+	InitBasedOnTileCount();
+	EndInitRenderer();
+	InitPlayers();
+	SetGameState(CGameManager::BeginGame);
 #endif
 }
 
-void CGameManager::Begin_Game() {
-
+void CGameManager::SetTileCount()
+{
 	int TileCount = m_UIManager->GetBoardSize();
 
 	if (TileCount == 0)
@@ -93,23 +99,31 @@ void CGameManager::Begin_Game() {
 		TileCount = 10;
 
 	CConfig::AddConfig("tile_count", TileCount);
+}
+
+
+void CGameManager::InitBasedOnTileCount()
+{
+	int TileCount;
+	CConfig::GetConfig("tile_count", TileCount);
 
 	m_GameBoard.SetSize(TileCount);
 	m_TmpGameBoard.SetSize(TileCount);
 	CompGameBoard.SetSize(TileCount);
 
-	InitRenderer();
 	InitLetterPool();
 	PositionUIElements();
 	m_UIManager->ActivateStartScreen(false);
-	SetGameState(EGameState::BeginGame);
+}
+
+void CGameManager::InitPlayers()
+{
+	AddPlayers(1, true);
+	UpdatePlayerScores();
 }
 
 void CGameManager::StartGame()
 {
-	m_LetterPool.Init();
-	AddPlayers(1, true);
-	UpdatePlayerScores();
 	m_UIManager->ShowMessageBox(CUIMessageBox::Ok, m_Players[0]->GetName().c_str());
 }
 
@@ -748,7 +762,7 @@ void CGameManager::InitUIManager()
 	m_TileAnimations->SetUIManager(m_UIManager);
 }
 
-void CGameManager::PreInitRenderer(int surfaceWidth, int surfaceHeight)
+void CGameManager::StartInitRenderer(int surfaceWidth, int surfaceHeight)
 {
 	m_SurfaceWidth = surfaceWidth;
 	m_SurfaceHeigh = surfaceHeight;
@@ -757,13 +771,13 @@ void CGameManager::PreInitRenderer(int surfaceWidth, int surfaceHeight)
 	CConfig::AddConfig("window_height", surfaceHeight);
 
 	m_Renderer = new CRenderer(surfaceWidth, surfaceHeight, this);
-	m_Renderer->PreInit();
+	m_Renderer->StartInit();
 }
 
 
-void CGameManager::InitRenderer()
+void CGameManager::EndInitRenderer()
 {
-	m_Renderer->Init();
+	m_Renderer->EndInit();
 }
 
 glm::vec2 CGameManager::GetViewPosition(const char* viewId) 
