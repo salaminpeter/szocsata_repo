@@ -39,7 +39,7 @@ void CUIManager::AddText(CUIElement* parent, const wchar_t* text, std::shared_pt
 void CUIManager::AddPlayerLetters(const wchar_t* playerId, const wchar_t* letters, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, const char* viewID)
 {
 	glm::vec2 ViewPos = m_GameManager->GetViewPosition(viewID);
-	m_UIPlayerLetters.push_back(new CUIPlayerLetters(m_RootGameScreen, playerId));
+	m_UIPlayerLetters.push_back(new CUIPlayerLetters(m_GameManager, m_RootGameScreen, playerId));
 	m_UIPlayerLetters.back()->InitLetterElements(letters, positionData, colorData, ViewPos.x, ViewPos.y, m_GameManager);
 }
 
@@ -136,7 +136,15 @@ void CUIManager::InitUIElements(std::shared_ptr<CSquarePositionData> positionDat
 	m_SelectControls.back()->AddOption(L"10-10");
 	m_SelectControls.back()->SetIndex(2);
 
-	AddButton(m_RootStartScreen, positionData, colorData, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh - (m_GameManager->m_SurfaceHeigh / 8 + 500), 400, 200, "view_ortho", "okbutton.bmp", L"ui_start_game_btn");
+	AddText(m_RootStartScreen, L"játékosok száma", positionData, gridcolorData, m_GameManager->m_SurfaceWidth / 2 - 200, m_GameManager->m_SurfaceHeigh - (m_GameManager->m_SurfaceHeigh / 6 + 360), 40, 40, "view_ortho", "font.bmp", L"ui_select_player_count_text");
+	AddSelectControl(m_RootStartScreen, positionData, colorData, gridcolorData, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh - (m_GameManager->m_SurfaceHeigh / 6 + 440), 400, 80, "view_ortho", "selectioncontrol.bmp", L"ui_select_player_count");
+	m_SelectControls.back()->AddOption(L"1");
+	m_SelectControls.back()->AddOption(L"2");
+	m_SelectControls.back()->AddOption(L"3");
+	m_SelectControls.back()->AddOption(L"4");
+	m_SelectControls.back()->SetIndex(0);
+
+	AddButton(m_RootStartScreen, positionData, colorData, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh - (m_GameManager->m_SurfaceHeigh / 8 + 700), 400, 200, "view_ortho", "okbutton.bmp", L"ui_start_game_btn");
 	m_UIButtons.back()->SetEvent(m_GameManager, &CGameManager::FinishRenderInit);
 }
 
@@ -150,6 +158,10 @@ int CUIManager::GetDifficulty()
 	return static_cast<CUISelectControl*>(m_RootStartScreen->GetChild(L"ui_select_difficulty"))->GetIndex();
 }
 
+int CUIManager::GetPlayerCount()
+{
+	return static_cast<CUISelectControl*>(m_RootStartScreen->GetChild(L"ui_select_player_count"))->GetIndex();
+}
 
 void CUIManager::ActivateStartScreen(bool activate)
 {
@@ -230,20 +242,11 @@ void CUIManager::SetText(const wchar_t* id, const wchar_t* text)
 		UIText->SetText(text);
 }
 
-void CUIManager::RenderPlayerLetters(const wchar_t* id)
-{
-	CUIPlayerLetters* PlayerLetters = GetPlayerLetters(id);
-
-	if (PlayerLetters && PlayerLetters->IsVisible())
-		PlayerLetters->Render(m_GameManager->GetRenderer());
-}
-
 void CUIManager::EnableGameButtons(bool enable)
 {
 	m_RootGameScreen->GetChild(L"ui_ok_btn")->Enable(enable);
 	m_RootGameScreen->GetChild(L"ui_back_btn")->Enable(enable);
 }
-
 
 void CUIManager::CloseToast(double& timeFromStart, double& timeFromPrev)
 {
@@ -263,12 +266,6 @@ void CUIManager::RenderUI()
 		Root->GetChild(i)->Render(m_GameManager->GetRenderer());
 }
 
-void CUIManager::RenderTileCounter()
-{
-	if (!m_StartScreenActive)
-		m_UITileCounter->Render(m_GameManager->GetRenderer());
-}
-
 void CUIManager::RenderRankingsPanel()
 {
 	m_RankingsPanel->Render(m_GameManager->GetRenderer());
@@ -279,25 +276,6 @@ void CUIManager::RenderMessageBox()
 	if (CUIMessageBox::m_ActiveMessageBox)
 		CUIMessageBox::m_ActiveMessageBox->Render(m_GameManager->GetRenderer());
 }
-
-void CUIManager::RenderSelectControls()
-{
-	for (size_t i = 0; i < m_SelectControls.size(); ++i)
-		m_SelectControls[i]->Render(m_GameManager->GetRenderer());
-}
-
-void CUIManager::RenderButtons()
-{
-	for (size_t i = 0; i < m_UIButtons.size(); ++i)
-		m_UIButtons[i]->Render(m_GameManager->GetRenderer());
-}
-
-void CUIManager::RenderTexts()
-{
-	for (size_t i = 0; i < m_UITexts.size(); ++i)
-		m_UITexts[i]->Render(m_GameManager->GetRenderer());
-}
-
 
 CUIElement* CUIManager::GetActiveScreenUIRoot()
 {

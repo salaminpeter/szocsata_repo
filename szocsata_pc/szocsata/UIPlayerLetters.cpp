@@ -8,6 +8,13 @@
 #include "Renderer.h"
 
 
+CUIPlayerLetters::CUIPlayerLetters(CGameManager* gameManager, CUIElement* parent, const wchar_t* id) :
+	CUIElement(parent, id, nullptr, 0, 0, 0, 0, 0, 0, 0, 0),
+	m_GameManager(gameManager)
+{
+	InitLetterTexPositions();
+}
+
 void CUIPlayerLetters::InitLetterTexPositions()
 {
 	m_LetterTexPos[L'a'] = glm::vec2(0, 3);
@@ -112,6 +119,8 @@ void CUIPlayerLetters::RemoveLetter(size_t letterIdx)
 
 void CUIPlayerLetters::RemoveMissingLetters(std::wstring& letters)
 {
+	const std::lock_guard<std::recursive_mutex> lock(m_GameManager->GetRenderer()->GetRenderLock());
+
 	auto it = m_Children.begin();
 	size_t idx = 0;
 

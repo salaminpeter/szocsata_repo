@@ -52,11 +52,6 @@ public:
 	void ShowMessageBox(int type, const wchar_t* text);
 
 	void RenderUI();
-	void RenderTexts();
-	void RenderButtons();
-	void RenderSelectControls();
-	void RenderPlayerLetters(const wchar_t* id);
-	void RenderTileCounter();
 	void RenderMessageBox();
 	void RenderRankingsPanel();
 
@@ -73,6 +68,7 @@ public:
 
 	int GetDifficulty();
 	int GetBoardSize();
+	int GetPlayerCount();
 
 	CUIElement* GetActiveScreenUIRoot();
 

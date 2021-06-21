@@ -19,6 +19,8 @@ public:
 
 	void Render(CRenderer* renderer) override;
 
+	static int GetTextLengthInPixels(const std::wstring& text, int size);
+
 private:
 
 	std::wstring m_Text;
@@ -26,7 +28,7 @@ private:
 	std::shared_ptr<CSquareColorData> m_ColorData;
 
 	std::map<wchar_t, glm::vec2> m_FontTexPos; //TODO kulon font osztaly!!!!!!!!!!
-	std::map<wchar_t, int> m_FontCharWidth;
+	static std::map<wchar_t, int> m_FontCharWidth;
 
 private:
 

@@ -118,7 +118,8 @@ void CGameManager::InitBasedOnTileCount()
 
 void CGameManager::InitPlayers()
 {
-	AddPlayers(1, true);
+	int PlayerCount = m_UIManager->GetPlayerCount() + 1;
+	AddPlayers(PlayerCount, true);
 	UpdatePlayerScores();
 }
 

@@ -19,6 +19,7 @@ public:
 
 	void AddOption(const wchar_t* text, bool setText = false);
 	void SetIndex(size_t idx);
+	void SetTextAndPos(const wchar_t* text);
 
 	int GetIndex() {return m_CurrSelection;}
 
@@ -30,4 +31,5 @@ private:
 
 	std::vector<std::wstring> m_Options;
 	size_t m_CurrSelection = 0;
+	int m_TextSize;
 };

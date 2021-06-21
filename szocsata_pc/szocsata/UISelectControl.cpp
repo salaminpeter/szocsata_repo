@@ -8,7 +8,9 @@ CUISelectControl::CUISelectControl(CUIElement* parent, const wchar_t* id, std::s
 	CUIPanel(parent, id, positionData, colorData, gridcolorData, x, y, w, h, vx, vy, "selectcontrol.bmp", 0.f, 0.f),
 	m_CurrSelection(idx)
 {
-	AddText(L"", -(w + h) / 2.f + h, 0.f, h - 20.f, h - 20.f, "font.bmp", L"ui_select_control_text");
+	m_TextSize = h - 20.f;
+
+	AddText(L"", 0.f, 0.f, m_TextSize, m_TextSize, "font.bmp", L"ui_select_control_text");
 
 	AddButton(-(w + h) / 2.f, 0.f, h, h, "leftarrow.bmp", L"arrow_left");
 	m_Children.back()->SetEvent(this, &CUISelectControl::ChangeEvent, -1);
@@ -16,6 +18,15 @@ CUISelectControl::CUISelectControl(CUIElement* parent, const wchar_t* id, std::s
 	AddButton((w + h) / 2.f, 0, h, h, "rightarrow.bmp", L"arrow_right");
 	m_Children.back()->SetEvent(this, &CUISelectControl::ChangeEvent, 1);
 }
+
+void CUISelectControl::SetTextAndPos(const wchar_t* text)
+{
+	CUIText* Text = static_cast<CUIText*>(GetChild(L"ui_select_control_text"));
+	int TextWidth = CUIText::GetTextLengthInPixels(text, m_TextSize);
+	Text->SetPosAndSize(m_XPosition - TextWidth / 2.f + m_Height / 2.f, m_YPosition, m_TextSize, m_TextSize);
+	Text->SetText(text);
+}
+
 
 void CUISelectControl::ChangeEvent(int dir)
 {
@@ -26,13 +37,13 @@ void CUISelectControl::ChangeEvent(int dir)
 	else
 		m_CurrSelection += dir;
 
-	static_cast<CUIText*>(GetChild(L"ui_select_control_text"))->SetText(m_Options[m_CurrSelection].c_str());
+	SetTextAndPos(m_Options[m_CurrSelection].c_str());
 }
 
 void CUISelectControl::SetIndex(size_t idx)
 {
 	m_CurrSelection = idx;
-	static_cast<CUIText*>(GetChild(L"ui_select_control_text"))->SetText(m_Options[m_CurrSelection].c_str());
+	SetTextAndPos(m_Options[m_CurrSelection].c_str());
 }
 
 
@@ -60,5 +71,5 @@ void CUISelectControl::AddOption(const wchar_t* text, bool setText)
 	m_Options.push_back(text); 
 
 	if (setText)
-		static_cast<CUIText*>(GetChild(L"ui_select_control_text"))->SetText(text);
+		SetTextAndPos(text);
 }

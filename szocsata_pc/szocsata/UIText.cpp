@@ -5,7 +5,7 @@
 #include "Renderer.h"
 #include "SquareModelData.h"
 
-
+std::map<wchar_t, int> CUIText::m_FontCharWidth;
 
 CUIText::CUIText(CUIElement* parent, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, const wchar_t* text, int x, int y, int w, int h, int vx, int vy, const wchar_t* id) :
 	CUIElement(parent, id, nullptr, x, y, w, h, vx, vy, 0.f, 0.f),
@@ -35,6 +35,24 @@ void CUIText::Render(CRenderer* renderer)
 	}
 }
 
+int CUIText::GetTextLengthInPixels(const std::wstring& text, int size)
+{
+	float SizeInPixels = 0.f;
+	size_t idx = 0;
+
+	for (size_t i = 0; i < text.length(); ++i)
+	{
+		if (text.at(i) == L' ')
+			SizeInPixels += 10; //TODO space
+		else
+		{
+			SizeInPixels += m_FontCharWidth[text.at(i)] * (size / 64.) + 10. * (size / 64.); //TODO betukoz konfigbol
+			idx++;
+		}
+	}
+
+	return SizeInPixels;
+}
 
 void CUIText::SetText(const wchar_t* text)
 {
@@ -65,9 +83,7 @@ void CUIText::SetText(const wchar_t* text)
 			Offset += 10; //TODO space
 		else
 		{
-//			m_Children.push_back(new CUIElement(this, L"", new CModel(false, 2, m_PositionData.get(), m_ColorData.get(), "font.bmp", "textured"), 0, 0, m_Width, m_Height, m_ViewXPosition, m_ViewYPosition, 0, 0));
 			m_Children[idx]->SetPosAndSize(m_XPosition + Offset, m_YPosition, m_Width, m_Height);
-			m_Children[idx]->PositionElement();
 			Offset += m_FontCharWidth[m_Text.at(i)] * (m_Width / 64.) + 10. * (m_Width / 64.); //TODO betukoz konfigbol
 			idx++;
 		}

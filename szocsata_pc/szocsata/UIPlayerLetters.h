@@ -12,7 +12,7 @@ class CUIPlayerLetters : public CUIElement
 {
 public:
 	
-	CUIPlayerLetters(CUIElement* parent, const wchar_t* id) : CUIElement(parent, id, nullptr, 0, 0, 0, 0, 0, 0, 0, 0) {InitLetterTexPositions();}
+	CUIPlayerLetters(CGameManager* gameManager, CUIElement* parent, const wchar_t* id);
 
 	void InitLetterTexPositions();
 	std::map<wchar_t, glm::vec2> m_LetterTexPos; //TODO ez ne legyen 100 helyen letrehozva!!!!
@@ -37,4 +37,5 @@ public:
 private:
 
 	std::wstring m_Letters; 
+	CGameManager* m_GameManager;
 };
