@@ -119,7 +119,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>D:\ProgrammingProjects\OpenGLES\glm-0.9.9.6;D:\ProgrammingProjects\OpenGLES\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>*JDKVersionPath*\include\win32;D:\ProgrammingProjects\OpenGLES\glm-0.9.9.6;*JDKVersionPath*\include;D:\ProgrammingProjects\OpenGLES\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -196,8 +196,10 @@
     <ClInclude Include="UIMessageBox.h" />
     <ClInclude Include="UIPanel.h" />
     <ClInclude Include="UIPlayerLetters.h" />
+    <ClInclude Include="UISelectControl.h" />
     <ClInclude Include="UIText.h" />
     <ClInclude Include="UITileCounter.h" />
+    <ClInclude Include="UIToast.h" />
     <ClInclude Include="View.h" />
     <ClInclude Include="WordAnimationManager.h" />
     <ClInclude Include="WordTree.h" />
@@ -251,8 +253,10 @@
     <ClCompile Include="UIMessageBox.cpp" />
     <ClCompile Include="UIPanel.cpp" />
     <ClCompile Include="UIPlayerLetters.cpp" />
+    <ClCompile Include="UISelectControl.cpp" />
     <ClCompile Include="UIText.cpp" />
     <ClCompile Include="UITileCounter.cpp" />
+    <ClCompile Include="UIToast.cpp" />
     <ClCompile Include="View.cpp" />
     <ClCompile Include="WordAnimationManager.cpp" />
     <ClCompile Include="WordTree.cpp" />

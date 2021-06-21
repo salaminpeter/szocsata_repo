@@ -62,17 +62,32 @@ void CComputer::AddResult(const TWordPos& wordPos, CBinaryBoolList usedLetters)
 	}
 
 	delete WordIdx;
+
+	int Difficulty = m_GameManager->GetDifficulty();
+	int MaxScore;
+    int MaxScoreOneResult = 0;
+
+    if (Difficulty == 0)
+        MaxScore = 3;
+	else if (Difficulty == 1)
+    {
+        MaxScore = 9;
+        MaxScoreOneResult = 3;
+    }
+	else if (Difficulty == 2)
+	{
+        MaxScore = 20;
+        MaxScoreOneResult = 5;
+    }
+	else if (Difficulty == 3)
+		MaxScore = 1000;
+
 	int WordsWithScore = std::count_if(m_BestWords.begin(), m_BestWords.end(), [&Score](const auto& compStep) {return compStep.m_Score == Score;});
-	bool AddWord = Score != 0 && Score < 10 && WordsWithScore < 3 && !FindWord(*wordPos.m_Word, Score); //TODO konstansok konfigba!
+	bool AddWordWithScore = (Score > MaxScoreOneResult &&  WordsWithScore < 4) || (Score <= MaxScoreOneResult && WordsWithScore == 0);
+	bool AddWord = Score != 0 && AddWordWithScore && !FindWord(*wordPos.m_Word, Score); //TODO konstansok konfigba!
 
 	if (AddWord)
 	{
-	/*
-		if (m_BestWords.size() < BestWordCount)
-			m_BestWords.push_back(TComputerStep(wordPos.m_Word, wordPos.m_X, wordPos.m_Y, wordPos.m_Horizontal, Score, usedLetters, CrossingWords));
-		else if (m_BestWords.back().m_Score < Score)
-			m_BestWords.back() = TComputerStep(wordPos.m_Word, wordPos.m_X, wordPos.m_Y, wordPos.m_Horizontal, Score, usedLetters, CrossingWords);
-		*/
 		m_BestWords.push_back(TComputerStep(wordPos.m_Word, wordPos.m_X, wordPos.m_Y, wordPos.m_Horizontal, Score, usedLetters, CrossingWords));
 		std::sort(m_BestWords.begin(), m_BestWords.end(), [](TComputerStep& a, TComputerStep& b) {return a.m_Score > b.m_Score;}); //TODO biztos kell a sort?
 	}

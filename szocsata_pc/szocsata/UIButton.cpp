@@ -11,8 +11,23 @@ CUIButton::CUIButton(CUIElement* parent, std::shared_ptr<CSquarePositionData> po
 	PositionElement();
 }
 
+bool CUIButton::HandleEventAtPos(int x, int y)
+{
+	if (m_Enabled && PositionInElement(x, y))
+	{
+		HandleEvent();
+		return true;
+	}
+
+	return false;
+}
+
+
 void CUIButton::Render(CRenderer* renderer)
 {
+	if (!m_Visible)
+		return;
+
 	renderer->SetTexturePos(glm::vec2(0.f, 0.f));
 	renderer->DrawModel(m_Model, "view_ortho", "textured", false);
 }

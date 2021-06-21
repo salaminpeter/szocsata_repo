@@ -9,6 +9,12 @@ import javax.microedition.khronos.opengles.GL10;
 public class OpenGLRenderer implements GLSurfaceView.Renderer {
 
     Thread GameThread = null;
+    GLSurfaceView m_ParentView;
+
+    OpenGLRenderer(GLSurfaceView surfaceView) {
+        super();
+        m_ParentView = surfaceView;
+    }
 
      @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
@@ -17,6 +23,7 @@ public class OpenGLRenderer implements GLSurfaceView.Renderer {
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
         InitGameManager(width, height);
+        SetThisInGameManager(this);
 
         GameThread = new Thread(new Runnable() {
             public void run()
@@ -28,6 +35,15 @@ public class OpenGLRenderer implements GLSurfaceView.Renderer {
 
         GameThread.start();
     }
+    
+    public void FinishRenderInit()
+    {
+        m_ParentView.queueEvent(new Runnable(){
+            @Override
+            public void run() {
+                PostInitRenderer();
+            }});
+    }
 
     @Override
     public void onDrawFrame(GL10 gl) {
@@ -38,4 +54,6 @@ public class OpenGLRenderer implements GLSurfaceView.Renderer {
     public native void InitGameManager(int surfaceWidth, int surfaceHeight);
     public native void Render();
     public native void GameLoop();
+    public native void PostInitRenderer();
+    public native void SetThisInGameManager(OpenGLRenderer obj);
 }

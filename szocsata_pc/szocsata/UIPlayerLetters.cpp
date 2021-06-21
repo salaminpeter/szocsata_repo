@@ -149,6 +149,21 @@ void CUIPlayerLetters::ShowLetters(bool show)
 		m_Children[i]->SetVisible(show);
 }
 
+
+bool CUIPlayerLetters::HandleEventAtPos(int x, int y)
+{
+	for (size_t i = 0; i < m_Children.size(); ++i)
+	{
+		if (m_Children[i]->IsEnabled() && m_Children[i]->PositionInElement(x, y))
+		{
+			m_Children[i]->HandleEvent();
+			return true;
+		}
+	}
+
+	return false;
+}
+
 void CUIPlayerLetters::Render(CRenderer* renderer)
 {
 	int LetterCount = m_Children.size();

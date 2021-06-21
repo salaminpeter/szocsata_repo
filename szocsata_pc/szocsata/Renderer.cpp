@@ -649,23 +649,15 @@ TPosition CRenderer::GetTilePos(int x, int y)
 	return Result;
 }
 
-bool CRenderer::Init()
+bool CRenderer::PreInit()
 {
 	m_Inited = true;
 
 	InitLetterTexPositions();
 
-	float BoardSize;
-	float TileHeight;
 	float LetterHeight;
 	float BoardHeight;
-	int LetterCount;
-	int TileCount;
 
-	CConfig::GetConfig("tile_count", TileCount);
-	CConfig::GetConfig("board_size", BoardSize);
-	CConfig::GetConfig("tile_height", TileHeight);
-	CConfig::GetConfig("letter_count", LetterCount);
 	CConfig::GetConfig("letter_height", LetterHeight);
 	CConfig::GetConfig("board_height", BoardHeight);
 
@@ -697,18 +689,17 @@ bool CRenderer::Init()
 	m_LetterTextureData8x4->m_DivY = 4.f;
 	m_LetterTextureData8x4->GenerateTextureCoordBuffer(std::vector<glm::vec3>());
 
-	m_BoardTilesPositionData = std::make_shared<CBoardTilesPositionData>(m_RoundedSquarePositionData);
-	m_BoardTilesPositionData->GeneratePositionBuffer();
+	m_ShaderManager = new CShaderManager();
+	m_ShaderManager->AddShader("per_pixel_light_textured", VertexShaderPerPixel, FragmentShaderPerPixel);
+	m_ShaderManager->AddShader("transparent_color", VertexShaderSelection, FragmentShaderSelection);
+	m_ShaderManager->AddShader("textured", VertexShaderTextured, FragmentShaderTextured);
 
-	m_BoardTilesTextureData = std::make_shared<CBoardTilesTextureData>();
-	m_BoardTilesTextureData->GenerateTextureCoordBuffer(m_RoundedSquarePositionData->GetVertices());
+	AddView("board_perspecive", 0, 0, m_ScreenHeight, m_ScreenHeight);
+	FittBoardToView(false);
 
-	m_BoardModel = new CBoardBaseModel();
-	m_BoardTiles = new CBoardTiles(m_BoardTilesPositionData, m_BoardTilesTextureData, m_BoardModel);
-
-	m_SelectionModel = new CSelectionModel(m_RoundedSquarePositionData.get());
-	m_SelectionModel->SetParent(m_BoardModel);
-
+	AddView("view_ortho", 0, 0, m_ScreenWidth, m_ScreenHeight);
+	m_Views["view_ortho"]->InitCamera(glm::vec3(m_ScreenWidth / 2, m_ScreenHeight / 2, 10.f), glm::vec3(m_ScreenWidth / 2, m_ScreenHeight / 2, 0.f), glm::vec3(0, 1, 0));
+	m_Views["view_ortho"]->InitOrtho();
 
 	m_TextureManager = new CTextureManager();
 	m_TextureManager->AddTexture("letters.bmp");
@@ -721,22 +712,100 @@ bool CRenderer::Init()
 	m_TextureManager->AddTexture("playerletters.bmp");
 	m_TextureManager->AddTexture("panel.bmp");
 	m_TextureManager->AddTexture("tilecounter.bmp");
+	m_TextureManager->AddTexture("selectcontrol.bmp");
+	m_TextureManager->AddTexture("leftarrow.bmp");
+	m_TextureManager->AddTexture("rightarrow.bmp");
 
+
+	return true;
+}
+
+bool CRenderer::Init()
+{
+	/*
+	InitLetterTexPositions();
+
+	float LetterHeight;
+	float BoardHeight;
+
+	CConfig::GetConfig("letter_height", LetterHeight);
+	CConfig::GetConfig("board_height", BoardHeight);
+
+	CConfig::AddConfig("camera_min_height", BoardHeight / 2.f + LetterHeight * 5.f + 2.5f);
+
+	m_RoundedBoxPositionData = new CRoundedBoxPositionData(999, 0.18f);
+	m_RoundedBoxPositionData->GeneratePositionBuffer();
+
+	m_LetterColorData = new CRoundedBoxColorData(0.f, 1.f / 8.f, 1.f / 8.f, 0, 0.f, .7f, 1.f, .5f, 8, 4);
+	m_LetterColorData->GenerateTextureCoordBuffer(m_RoundedBoxPositionData->GetTopVertices());
+
+	m_RoundedSquarePositionData = std::make_shared<CRoundedSquarePositionData>(5, 0.18f);
+	m_RoundedSquarePositionData->GenerateRoundedBoxVertices();
+	m_RoundedSquarePositionData->GeneratePositionBuffer();
+
+	m_SquarePositionData = std::make_shared<CSquarePositionData>();
+	m_SquarePositionData->GeneratePositionBuffer();
+
+	m_SquareColorData = std::make_shared<CSquareColorData>();
+	m_SquareColorData->GenerateTextureCoordBuffer(std::vector<glm::vec3>());
+
+	m_LetterTextureData8x8 = std::make_shared<CSquareColorData>();
+	m_LetterTextureData8x8->m_DivX = 8.f;
+	m_LetterTextureData8x8->m_DivY = 8.f;
+	m_LetterTextureData8x8->GenerateTextureCoordBuffer(std::vector<glm::vec3>());
+
+	m_LetterTextureData8x4 = std::make_shared<CSquareColorData>();
+	m_LetterTextureData8x4->m_DivX = 8.f;
+	m_LetterTextureData8x4->m_DivY = 4.f;
+	m_LetterTextureData8x4->GenerateTextureCoordBuffer(std::vector<glm::vec3>());
+	*/
+	m_BoardTilesPositionData = std::make_shared<CBoardTilesPositionData>(m_RoundedSquarePositionData);
+	m_BoardTilesPositionData->GeneratePositionBuffer();
+
+	m_BoardTilesTextureData = std::make_shared<CBoardTilesTextureData>();
+	m_BoardTilesTextureData->GenerateTextureCoordBuffer(m_RoundedSquarePositionData->GetVertices());
+
+	m_BoardModel = new CBoardBaseModel();
+	m_BoardTiles = new CBoardTiles(m_BoardTilesPositionData, m_BoardTilesTextureData, m_BoardModel);
+
+	m_SelectionModel = new CSelectionModel(m_RoundedSquarePositionData.get());
+	m_SelectionModel->SetParent(m_BoardModel);
+
+	/*
+	m_TextureManager = new CTextureManager();
+	m_TextureManager->AddTexture("letters.bmp");
+	m_TextureManager->AddTexture("boardtex.bmp");
+	m_TextureManager->AddTexture("gridtex.bmp");
+	m_TextureManager->AddTexture("okbutton.bmp");
+	m_TextureManager->AddTexture("backbutton.bmp");
+	m_TextureManager->AddTexture("topviewbutton.bmp");
+	m_TextureManager->AddTexture("font.bmp");
+	m_TextureManager->AddTexture("playerletters.bmp");
+	m_TextureManager->AddTexture("panel.bmp");
+	m_TextureManager->AddTexture("tilecounter.bmp");
+	m_TextureManager->AddTexture("selectcontrol.bmp");
+	m_TextureManager->AddTexture("leftarrow.bmp");
+	m_TextureManager->AddTexture("rightarrow.bmp");
+	*/
+
+	/*
 	AddView("board_perspecive", 0, 0, m_ScreenHeight, m_ScreenHeight);
 	FittBoardToView(false);
 
 	AddView("view_ortho", 0, 0, m_ScreenWidth, m_ScreenHeight);
 	m_Views["view_ortho"]->InitCamera(glm::vec3(m_ScreenWidth / 2, m_ScreenHeight / 2, 10.f), glm::vec3(m_ScreenWidth / 2, m_ScreenHeight / 2, 0.f), glm::vec3(0, 1, 0));
 	m_Views["view_ortho"]->InitOrtho();
-
+	*/
 
 	//	m_LightPosition = glm::vec4(m_Views["board_perspecive"]->GetCameraPosition(), 1.f);
 	m_LightPosition = glm::vec4(-7.f, -7.f, 9.f, 1);
 
+	/*
 	m_ShaderManager = new CShaderManager();
 	m_ShaderManager->AddShader("per_pixel_light_textured", VertexShaderPerPixel, FragmentShaderPerPixel);
 	m_ShaderManager->AddShader("transparent_color", VertexShaderSelection, FragmentShaderSelection);
 	m_ShaderManager->AddShader("textured", VertexShaderTextured, FragmentShaderTextured);
+	*/
 
 	CalculateScreenSpaceGrid();
 

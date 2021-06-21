@@ -49,8 +49,12 @@ public:
 	std::wstring GetID() const {return m_ID;}
 	int GetChildCount() {return m_Children.size();}
 	CUIElement* GetChild(size_t childIdx);
+	CUIElement* GetChild(const wchar_t* childIdx);
+	void Enable(bool enable) { m_Enabled = enable; }
+	bool IsEnabled() { return m_Enabled; }
 
 	virtual void Render(CRenderer* renderer) {};
+	virtual bool HandleEventAtPos(int x, int y) { return false; }
 
 
 protected:
@@ -68,6 +72,7 @@ protected:
 	int m_Width;
 	int m_Height;
 	bool m_Visible = true;
+	bool m_Enabled = true;
 	glm::vec2 m_TexturePosition;
 	std::wstring m_ID;
 

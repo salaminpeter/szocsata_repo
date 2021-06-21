@@ -25,6 +25,9 @@ size_t CUIText::Length() const
 
 void CUIText::Render(CRenderer* renderer)
 {
+	if (!m_Visible)
+		return;
+
 	for (size_t i = 0; i < Length(); ++i)
 	{
 		renderer->SetTexturePos(GetTexturePos(i));
@@ -43,7 +46,7 @@ void CUIText::SetText(const wchar_t* text)
 		size_t from = m_Children.size();
 
 		for (size_t i = from; i < m_Text.length(); ++i)
-			m_Children.push_back(new CUIElement(this, L"", new CModel(false, 2, m_PositionData.get(), m_ColorData.get(), "font.bmp", "textured"), 0, 0, m_Width, m_Height, m_ViewXPosition, m_ViewYPosition, 0, 0));
+			new CUIElement(this, L"", new CModel(false, 2, m_PositionData.get(), m_ColorData.get(), "font.bmp", "textured"), 0, 0, m_Width, m_Height, m_ViewXPosition, m_ViewYPosition, 0, 0);
 	}
 	else
 	{

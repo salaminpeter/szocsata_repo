@@ -40,6 +40,7 @@ public:
 		delete m_ShaderManager;
 	}
 
+	bool PreInit();
 	bool Init();
 	void Render();
 	void AddView(const char* viewId, int x, int y, int w, int h);

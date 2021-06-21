@@ -11,17 +11,15 @@
 CGameManager* gm;
 CInputManager* InputManager;
 
+JavaVM* g_VM;
 
 
-extern "C" JNIEXPORT jstring JNICALL
-Java_com_example_szocsata_1android_MainActivity_stringFromJNI(
-        JNIEnv* env,
-        jobject /* this */) {
-//    GameManager.InitUIManager();
-    std::string hello = "Hello from C++";
-    return env->NewStringUTF(hello.c_str());
+extern "C"
+JNIEXPORT jint JNICALL
+JNI_OnLoad(JavaVM *jvm, void *reserved) {
+    g_VM = jvm;
+    return JNI_VERSION_1_6;
 }
-
 
 extern "C"
 JNIEXPORT void JNICALL
@@ -42,11 +40,11 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_szocsata_1android_OpenGLRenderer_InitGameManager(JNIEnv *env, jobject thiz, jint surface_width, jint surface_height) {
     gm = new CGameManager();
+    gm->m_JavaVM = g_VM;
     InputManager = new CInputManager(gm);
-    gm->InitLetterPool();
-    gm->InitRenderer(surface_width, surface_height);
+    gm->PreInitRenderer(surface_width, surface_height);
     gm->InitUIManager();
-    gm->StartGame();
+    gm->SetGameState(CGameManager::OnStartScreen);
 }
 
 
@@ -96,4 +94,14 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_szocsata_1android_MainActivity_HandleMultyTouchEndEvent(JNIEnv *env, jobject thiz) {
     InputManager->HandleMultyTouchEnd();
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_szocsata_1android_OpenGLRenderer_PostInitRenderer(JNIEnv *env, jobject thiz) {
+    gm->Begin_Game();
+}extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_szocsata_1android_OpenGLRenderer_SetThisInGameManager(JNIEnv *env, jobject thiz, jobject obj) {
+    gm->SetRendererObject(env->NewGlobalRef(obj));
 }

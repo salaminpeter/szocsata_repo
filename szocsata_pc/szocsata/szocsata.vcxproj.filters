@@ -171,6 +171,12 @@
     <ClInclude Include="UIMessageBox.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="UIToast.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="UISelectControl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -306,6 +312,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="UIMessageBox.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="UIToast.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="UISelectControl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

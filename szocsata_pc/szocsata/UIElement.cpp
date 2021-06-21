@@ -14,7 +14,10 @@ CUIElement::CUIElement(CUIElement* parent, const wchar_t* id, CModel* model, int
 	m_ViewYPosition(vy),
 	m_TexturePosition(tx, ty),
 	m_ID(id)
-{}
+{
+	if (parent)
+		parent->AddChild(this);
+}
 
 void CUIElement::HandleEvent()
 {
@@ -75,6 +78,15 @@ CModel* CUIElement::GetModel(size_t idx)
 		return nullptr;
 
 	return m_Children[idx]->GetModel();
+}
+
+CUIElement* CUIElement::GetChild(const wchar_t* childIdx)
+{
+	for (size_t i = 0; i < m_Children.size(); ++i)
+		if (m_Children[i]->GetID() == childIdx)
+			return m_Children[i];
+
+	return nullptr;
 }
 
 CUIElement* CUIElement::GetChild(size_t childIdx) 

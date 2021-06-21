@@ -12,7 +12,7 @@ class CUIPlayerLetters : public CUIElement
 {
 public:
 	
-	CUIPlayerLetters(const wchar_t* id) : CUIElement(nullptr, id, nullptr, 0, 0, 0, 0, 0, 0, 0, 0) {InitLetterTexPositions();}
+	CUIPlayerLetters(CUIElement* parent, const wchar_t* id) : CUIElement(parent, id, nullptr, 0, 0, 0, 0, 0, 0, 0, 0) {InitLetterTexPositions();}
 
 	void InitLetterTexPositions();
 	std::map<wchar_t, glm::vec2> m_LetterTexPos; //TODO ez ne legyen 100 helyen letrehozva!!!!
@@ -31,7 +31,8 @@ public:
 	
 	size_t GetVisibleLetterCount() { return std::count_if(m_Letters.begin(), m_Letters.end(), [](wchar_t c) {return c != L' ';});}
 
-	void Render(CRenderer* renderer);
+	void Render(CRenderer* renderer) override;
+	bool HandleEventAtPos(int x, int y) override;
 
 private:
 

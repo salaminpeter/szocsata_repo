@@ -26,13 +26,6 @@ CGameManager::CGameManager()
 {
 	CConfig::LoadConfigs("config.txt");
 
-	int TileCount;
-	CConfig::GetConfig("tile_count", TileCount);
-
-	m_GameBoard.SetSize(TileCount);
-	m_TmpGameBoard.SetSize(TileCount);
-	CompGameBoard.SetSize(TileCount);
-
 	m_DataBase.LoadDataBase("dic.txt");
 
 	m_TimerEventManager = new CTimerEventManager();
@@ -75,9 +68,45 @@ void CGameManager::InitLetterPool()
 	m_LetterPool.Init();
 }
 
+void CGameManager::FinishRenderInit()
+{
+#ifdef PLATFORM_ANDROID
+	JNIEnv *env;
+	m_JavaVM->GetEnv((void **)&env, JNI_VERSION_1_6);
+	jclass Class = env->FindClass("com/example/szocsata_android/OpenGLRenderer");
+	jmethodID Method = env->GetMethodID(Class, "FinishRenderInit", "()V");
+	env->CallVoidMethod(m_RendererObject, Method);
+#endif
+}
+
+void CGameManager::Begin_Game() {
+
+	int TileCount = m_UIManager->GetBoardSize();
+
+	if (TileCount == 0)
+		TileCount = 7;
+	else if (TileCount == 1)
+		TileCount = 8;
+	else if (TileCount == 2)
+		TileCount = 9;
+	else if (TileCount == 3)
+		TileCount = 10;
+
+	CConfig::AddConfig("tile_count", TileCount);
+
+	m_GameBoard.SetSize(TileCount);
+	m_TmpGameBoard.SetSize(TileCount);
+	CompGameBoard.SetSize(TileCount);
+
+	InitRenderer();
+	InitLetterPool();
+	PositionUIElements();
+	m_UIManager->ActivateStartScreen(false);
+	SetGameState(EGameState::BeginGame);
+}
+
 void CGameManager::StartGame()
 {
-	m_GameEnded = false;
 	m_LetterPool.Init();
 	AddPlayers(1, true);
 	UpdatePlayerScores();
@@ -128,6 +157,27 @@ void CGameManager::StartPlayerTurn(CPlayer* player)
 	m_TmpGameBoard = m_GameBoard;
 }
 
+bool CGameManager::AllPlayersPassed()
+{
+	bool GameEnded = true;
+
+	for (size_t i = 0; i < m_Players.size(); ++i)
+		GameEnded &= m_Players[i]->m_Passed;
+
+	if (GameEnded)
+	{
+		SetGameState(EGameState::GameEnded);
+		return GameEnded;
+	}
+
+	return GameEnded;
+}
+
+int CGameManager::GetDifficulty() 
+{ 
+	return m_UIManager->GetDifficulty(); 
+}
+
 std::wstring CGameManager::GetNextPlayerName()
 {
 	int CurrPlayerIdx = -1;
@@ -159,16 +209,11 @@ void CGameManager::NextPlayerTurn()
 	if (m_CurrentPlayer->GetLetterCount() == 0)
 	{
 		SetGameState(EGameState::GameEnded);
-		m_GameEnded = true;
 		return;
 	}
 
 	//ha mindenki passzolt akkor vege
-	m_GameEnded = true;
-	for (size_t i = 0; i < m_Players.size(); ++i)
-		m_GameEnded &= m_Players[i]->m_Passed;
-	
-	if (m_GameEnded)
+	if (AllPlayersPassed())
 	{
 		SetGameState(EGameState::GameEnded);
 		return;
@@ -197,10 +242,8 @@ bool CGameManager::EndPlayerTurn()
 	//jatekos passz
 	if (m_CurrentPlayer->GetUsedLetterCount() == 0)
 	{
-		SetGameState(EGameState::PlayerPass);
 		m_CurrentPlayer->m_Passed = true;
-		m_UIManager->ShowMessageBox(CUIMessageBox::Ok, GetNextPlayerName().c_str());
-		m_UIManager->EnableGameButtons(true);
+		m_UIManager->ShowMessageBox(CUIMessageBox::NoButton, L"passz");
 		return false;
 	}
 
@@ -304,8 +347,7 @@ bool CGameManager::EndComputerTurn()
 	if (ComputerPass || !ComputerWord.m_Word)
 	{
 		m_CurrentPlayer->m_Passed = true;
-		m_UIManager->ShowMessageBox(CUIMessageBox::Ok, GetNextPlayerName().c_str());
-		m_UIManager->EnableGameButtons(true);
+		m_UIManager->ShowMessageBox(CUIMessageBox::NoButton, L"passz");
 		return false;
 	}
 
@@ -350,8 +392,7 @@ void CGameManager::StartComputerturn()
 	if (m_Computer->BestWordCount() == 0)
 	{
 		m_Computer->m_Passed = true;
-		m_UIManager->ShowMessageBox(CUIMessageBox::Ok, GetNextPlayerName().c_str());
-		m_UIManager->EnableGameButtons(true);
+		m_UIManager->ShowMessageBox(CUIMessageBox::NoButton, L"passz");
 		return;
 	}
 
@@ -360,6 +401,9 @@ void CGameManager::StartComputerturn()
 	int WordCount;
 
 	m_ComputerWordIdx = std::rand() / ((RAND_MAX + 1u) / m_Computer->BestWordCount());
+
+	if (m_UIManager->GetDifficulty() == 3)
+		m_ComputerWordIdx = 0;
 
 	if (m_Computer->BestWordCount() && m_ComputerWordIdx < m_Computer->BestWordCount())
 	{
@@ -372,8 +416,7 @@ void CGameManager::StartComputerturn()
 	{
 		//coputer passz
 		m_Computer->m_Passed = true;
-		m_UIManager->ShowMessageBox(CUIMessageBox::Ok, GetNextPlayerName().c_str());
-		m_UIManager->EnableGameButtons(true);
+		m_UIManager->ShowMessageBox(CUIMessageBox::NoButton, L"passz");
 		return;
 	}
 
@@ -418,7 +461,7 @@ void CGameManager::GameLoop()
 	if (GetGameState() == EGameState::BeginGame)
 		StartGame();
 
-	if (!m_GameEnded)
+	if (GetGameState() != EGameState::GameEnded)
 	{
 		if (GetGameState() == EGameState::WaitingForMessageBox && !CUIMessageBox::m_ActiveMessageBox)
 			SetGameState(EGameState::NextTurn);
@@ -430,6 +473,10 @@ void CGameManager::GameLoop()
 		}
 
 		m_TimerEventManager->Loop();
+	}
+	else
+	{
+		//TODO end game
 	}
 }
 
@@ -685,10 +732,15 @@ void CGameManager::PlayerLetterClicked(unsigned letterIdx)
 		m_Renderer->HideSelection(true);
 }
 
+void CGameManager::PositionUIElements()
+{
+	m_UIManager->PositionUIElements();
+}
+
 void CGameManager::InitUIManager()
 {
-	m_UIManager = new CUIManager(this);
-	m_UIManager->InitUI(m_Renderer->GetSquarePositionData(), m_Renderer->GetSquareColorData(), m_Renderer->GetSquareColorGridData8x8());
+	m_UIManager = new CUIManager(this, m_TimerEventManager);
+	m_UIManager->InitUIElements(m_Renderer->GetSquarePositionData(), m_Renderer->GetSquareColorData(), m_Renderer->GetSquareColorGridData8x8());
 	m_UIManager->SetText(L"ui_fps_text", L"fps : 0");
 	m_UIManager->SetText(L"ui_computer_score", L"computer : 0");
 	m_UIManager->SetText(L"ui_player_score", L"jatekos : 0");
@@ -696,8 +748,7 @@ void CGameManager::InitUIManager()
 	m_TileAnimations->SetUIManager(m_UIManager);
 }
 
-
-void CGameManager::InitRenderer(int surfaceWidth, int surfaceHeight)
+void CGameManager::PreInitRenderer(int surfaceWidth, int surfaceHeight)
 {
 	m_SurfaceWidth = surfaceWidth;
 	m_SurfaceHeigh = surfaceHeight;
@@ -706,6 +757,12 @@ void CGameManager::InitRenderer(int surfaceWidth, int surfaceHeight)
 	CConfig::AddConfig("window_height", surfaceHeight);
 
 	m_Renderer = new CRenderer(surfaceWidth, surfaceHeight, this);
+	m_Renderer->PreInit();
+}
+
+
+void CGameManager::InitRenderer()
+{
 	m_Renderer->Init();
 }
 
@@ -726,7 +783,9 @@ void CGameManager::HandleReleaseEvent(int x, int y)
 
 void CGameManager::HandleReleaseEventFromBoardView(int x, int y)
 {
-//	m_Renderer->ResetZoom();
+	if (GetGameState() == OnStartScreen)
+		return;
+
 	m_Renderer->CalculateScreenSpaceGrid();
 	m_Dragged = false;
 
@@ -791,14 +850,20 @@ void CGameManager::HandleToucheEvent(int x, int y, bool onBoardView)
 
 	m_UIManager->HandleTouchEvent(x, WindowHeigth - y);
 
-	m_Dragged = true;
-	m_LastTouchOnBoardView = onBoardView;
-	m_LastTouchX = x;
-	m_LastTouchY = y;
+	if (GetGameState() != OnStartScreen)
+	{
+		m_Dragged = true;
+		m_LastTouchOnBoardView = onBoardView;
+		m_LastTouchX = x;
+		m_LastTouchY = y;
+	}
 }
 
 void CGameManager::HandleDragEvent(int x, int y)
 {
+	if (GetGameState() == OnStartScreen)
+		return;
+
 	if (m_TouchX == -1)
 	{
 		m_TouchX = x;
@@ -819,6 +884,9 @@ void CGameManager::HandleDragEvent(int x, int y)
 
 void CGameManager::HandleDragFromBoardView(int x, int y)
 {
+	if (GetGameState() == OnStartScreen)
+		return;
+
 	if (m_Dragged)
 	{
 		float ZRotAngle = float(x - m_TouchX) / 3.;
@@ -830,11 +898,17 @@ void CGameManager::HandleDragFromBoardView(int x, int y)
 
 void CGameManager::HandleZoomEndEvent()
 {
+	if (GetGameState() == OnStartScreen)
+		return;
+
 	m_Renderer->ResetZoom();
 }
 
 void CGameManager::HandleZoomEvent(float dist, int origoX, int origoY)
 {
+	if (GetGameState() == OnStartScreen)
+		return;
+
 	//zoom on ui view
 	if (origoX > m_SurfaceHeigh)
 		return;
@@ -845,6 +919,9 @@ void CGameManager::HandleZoomEvent(float dist, int origoX, int origoY)
 
 void CGameManager::HandleZoomEvent(float dist)
 {
+	if (GetGameState() == OnStartScreen)
+		return;
+
 	m_Dragged = false;
 	m_Renderer->ZoomCameraSimple(dist);
 }
@@ -852,6 +929,9 @@ void CGameManager::HandleZoomEvent(float dist)
 
 void CGameManager::HandleMultyDragEvent(int x0, int y0, int x1, int y1)
 {
+	if (GetGameState() == OnStartScreen)
+		return;
+
     m_Dragged = false;
     m_Renderer->DragCamera(x0, y0, x1, y1);
 }
@@ -876,12 +956,16 @@ void CGameManager::RenderUI()
 {
 	glDisable(GL_DEPTH_TEST);
 
+	/*
 	m_UIManager->RenderTileCounter();
 	m_UIManager->RenderTexts();
 	m_UIManager->RenderButtons();
+	m_UIManager->RenderSelectControls();
 
 	if (m_CurrentPlayer)
 		m_UIManager->RenderPlayerLetters(m_CurrentPlayer->GetName().c_str());
+	*/
+	m_UIManager->RenderUI();
 
 	m_UIManager->RenderMessageBox();
 
@@ -925,8 +1009,12 @@ void CGameManager::RenderFrame()
 		{
 			const std::lock_guard<std::recursive_mutex> lock(m_Renderer->GetRenderLock());
 
-			m_Renderer->Render();
-			RenderTileAnimations();
+			if (GetGameState() != OnStartScreen)
+			{
+				m_Renderer->Render();
+				RenderTileAnimations();
+			}
+
 			RenderUI();
 		}
 

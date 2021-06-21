@@ -15,6 +15,9 @@
 #include <sstream>
 #include <mutex>
 
+#ifdef PLATFORM_ANDROID
+#include <jni.h>
+#endif
 
 class CRenderer;
 class CUIManager;
@@ -28,7 +31,7 @@ class CGameManager
 {
 public:
 	
-	enum EGameState { NextTurn, WaintingOnAnimation, WaitingForMessageBox, TurnInProgress, PlayerTurnEnd, ComputerTurnEnd, PlayerPass, ComputerPass, GameEnded, BeginGame, None };
+	enum EGameState { NextTurn, WaintingOnAnimation, WaitingForMessageBox, TurnInProgress, PlayerTurnEnd, ComputerTurnEnd, PlayerPass, ComputerPass, GameEnded, BeginGame, None, OnStartScreen };
 
 	CGameManager();
 
@@ -39,14 +42,18 @@ public:
 
 	void AddPlayers(int playerCount, bool addComputer);
 	void StartGame();
+	void Begin_Game();
 	void InitLetterPool();
 	int CalculateScore(const TWordPos& word, std::vector<TWordPos>* crossingWords = nullptr);
-	void InitRenderer(int surfaceWidth, int surfaceHeight);
+	void PreInitRenderer(int surfaceWidth, int surfaceHeight);
+	void InitRenderer();
 	void InitUIManager();
+	void PositionUIElements();
 	void RenderFrame();
 	void RenderUI();
 	void RenderTileAnimations();
 	void AddWordSelectionAnimation(const std::vector<TWordPos>& wordPos, bool positive);
+	void FinishRenderInit();
 
 	void HandleReleaseEventFromBoardView(int x, int y);
 	void HandleReleaseEventFromUIView(int x, int y);
@@ -72,18 +79,25 @@ public:
 	void SetGameState(int state);
 	void DealComputerLetters();
 	EGameState GetGameState();
-	wchar_t GetCharOnBoard(int x, int y);
 	CLetterModel* AddLetterToBoard(int x, int y, wchar_t c, float height);
 	void AddWordSelectionAnimationForComputer();
 	void UpdatePlayerScores();
 	std::wstring GetNextPlayerName();
 	wchar_t GetChOnBoard(int x, int y) { return m_GameBoard(x, y).m_Char; }
+	int GetDifficulty();
+	bool AllPlayersPassed();
 
 	std::wstring GetWordAtPos(bool horizontal, int& x, int& y);
 
 	CWordTree::TNode* WordTreeRoot(wchar_t c) {return m_DataBase.GetWordTreeRoot(c);}
 	TField& Board(int x, int y) {return m_GameBoard(x, y);}
 	std::wstring CurrentPlayerName() {return m_CurrentPlayer ? m_CurrentPlayer->GetName() : L"";}
+
+#ifdef PLATFORM_ANDROID
+	void SetRendererObject(jobject obj) {
+	    m_RendererObject = obj;
+	}
+#endif
 
 	CRenderer* GetRenderer() {return m_Renderer;}
 	glm::vec2 GetViewPosition(const char* viewId);
@@ -99,7 +113,6 @@ public:
 	#ifndef PLATFORM_ANDROID
 	HWND m_HWND;
 	#endif
-	bool m_GameEnded = false;
 	std::wstring GetScoreString()
 	{
 //		int LetterCount = m_LetterPool.GetLetterCount();
@@ -155,6 +168,11 @@ private:
 	int m_TouchY;
 	int m_SurfaceWidth; //TODO atnevezni surfaceheight ...
 	int m_SurfaceHeigh;
+
+#ifdef PLATFORM_ANDROID
+	JavaVM* m_JavaVM;
+	jobject m_RendererObject = nullptr;
+#endif
 
 	EGameState m_GameState = EGameState::None;
 	std::mutex m_GameStateLock;

@@ -6,6 +6,8 @@ import android.util.AttributeSet;
 
 public class OpenGLView extends GLSurfaceView {
 
+    public Renderer m_Renderer;
+
     public OpenGLView(Context context, AttributeSet attrs) {
         super(context, attrs);
         Init();
@@ -21,6 +23,7 @@ public class OpenGLView extends GLSurfaceView {
         setEGLConfigChooser(true);
         setEGLConfigChooser(8, 8, 8, 8, 24, 0);
         setPreserveEGLContextOnPause(true);
-        setRenderer(new OpenGLRenderer());
+        m_Renderer = new OpenGLRenderer(this);
+        setRenderer(m_Renderer);
     }
 }

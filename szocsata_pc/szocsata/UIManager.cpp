@@ -1,34 +1,44 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include "UIManager.h"
 #include "SquareModelData.h"
 #include "Model.h"
 #include "UIButton.h"
 #include "UIText.h"
+#include "UIToast.h"
 #include "UIPlayerLetters.h"
 #include "UITileCounter.h"
 #include "UIMessageBox.h"
+#include "UISelectControl.h"
 #include "GridLayout.h"
 #include "GameManager.h"
+#include "TimerEventManager.h"
 #include "Renderer.h"
 #include "Config.h"
 
 
-void CUIManager::AddButton(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, float x, float y, float w, float h, const char* ViewID, const char* textureID, const wchar_t* id)
+void CUIManager::AddSelectControl(CUIElement* parent, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData, float x, float y, float w, float h, const char* ViewID, const char* textureID, const wchar_t* id)
 {
 	glm::vec2 ViewPos = m_GameManager->GetViewPosition(ViewID);
-	m_UIButtons.push_back(new CUIButton(nullptr, positionData, colorData, x, y, w, h, ViewPos.x, ViewPos.y, textureID, id));
+	m_SelectControls.push_back(new CUISelectControl(parent, id, positionData, colorData, gridcolorData, x, y, w, h, ViewPos.x, ViewPos.y, "selectcontrol.bmp"));
 }
 
-void CUIManager::AddText(const wchar_t* text, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, float x, float y, float w, float h, const char* ViewID, const char* textureID, const wchar_t* id)
+
+void CUIManager::AddButton(CUIElement* parent, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, float x, float y, float w, float h, const char* ViewID, const char* textureID, const wchar_t* id)
 {
 	glm::vec2 ViewPos = m_GameManager->GetViewPosition(ViewID);
-	m_UITexts.push_back(new CUIText(nullptr, positionData, colorData, text, x, y, w, h, ViewPos.x, ViewPos.y, id));
+	m_UIButtons.push_back(new CUIButton(parent, positionData, colorData, x, y, w, h, ViewPos.x, ViewPos.y, textureID, id));
+}
+
+void CUIManager::AddText(CUIElement* parent, const wchar_t* text, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, float x, float y, float w, float h, const char* ViewID, const char* textureID, const wchar_t* id)
+{
+	glm::vec2 ViewPos = m_GameManager->GetViewPosition(ViewID);
+	m_UITexts.push_back(new CUIText(parent, positionData, colorData, text, x, y, w, h, ViewPos.x, ViewPos.y, id));
 }
 
 void CUIManager::AddPlayerLetters(const wchar_t* playerId, const wchar_t* letters, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, const char* viewID)
 {
 	glm::vec2 ViewPos = m_GameManager->GetViewPosition(viewID);
-	m_UIPlayerLetters.push_back(new CUIPlayerLetters(playerId));
+	m_UIPlayerLetters.push_back(new CUIPlayerLetters(m_RootGameScreen, playerId));
 	m_UIPlayerLetters.back()->InitLetterElements(letters, positionData, colorData, ViewPos.x, ViewPos.y, m_GameManager);
 }
 
@@ -58,8 +68,7 @@ CUIPlayerLetters* CUIManager::GetPlayerLetters(size_t playerLetterIdx)
 	return m_UIPlayerLetters[playerLetterIdx];
 }
 
-
-void CUIManager::InitUI(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData)
+void CUIManager::PositionUIElements()
 {
 	int LetterCount;
 	CConfig::GetConfig("letter_count", LetterCount);
@@ -72,29 +81,97 @@ void CUIManager::InitUI(std::shared_ptr<CSquarePositionData> positionData, std::
 	m_ButtonsLayout = new CGridLayout(m_GameManager->m_SurfaceHeigh, ButtonsLayoutY, m_GameManager->m_SurfaceWidth - m_GameManager->m_SurfaceHeigh, 200, 50.f, 100.f);
 	m_ButtonsLayout->AllignGrid(3, true);
 
-	AddButton(positionData, colorData, 0, 0, 0, 0, "view_ortho", "okbutton.bmp", L"ui_ok_btn");
-	m_UIButtons.back()->SetEvent(m_GameManager, &CGameManager::EndPlayerTurnEvent);
-
-	AddButton(positionData, colorData, 0, 0, 0, 0, "view_ortho", "backbutton.bmp", L"ui_back_btn");
-	m_UIButtons.back()->SetEvent(m_GameManager, &CGameManager::BackSpaceEvent);
-
-	AddButton(positionData, colorData, 0, 0, 0, 0, "view_ortho", "topviewbutton.bmp", L"ui_topview_btn");
-	m_UIButtons.back()->SetEvent(m_GameManager, &CGameManager::TopViewEvent);
-
 	PositionGameButtons();
 
-	auto GridPos = m_ButtonsLayout->GetGridPosition(0);
-	float PlayerScoreY = GridPos.m_Top;
+}
 
-	AddText(L"", positionData, gridcolorData, m_GameManager->m_SurfaceWidth - 150, m_GameManager->m_SurfaceHeigh - 30, 30, 30, "view_ortho", "font.bmp", L"ui_fps_text");
-	AddText(L"", positionData, gridcolorData, GridPos.m_Left, PlayerScoreY - 100, 40, 40, "view_ortho", "font.bmp", L"ui_computer_score");
-	AddText(L"", positionData, gridcolorData, GridPos.m_Left, PlayerScoreY - 50, 40, 40, "view_ortho", "font.bmp", L"ui_player_score");
-
+void CUIManager::InitUIElements(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData)
+{
 	glm::vec2 ViewPos = m_GameManager->GetViewPosition("view_ortho");
-	m_UITileCounter = new CUITileCounter(positionData, colorData, gridcolorData, m_GameManager->m_SurfaceHeigh + (m_GameManager->m_SurfaceWidth - m_GameManager->m_SurfaceHeigh) / 2, PlayerScoreY - 250, 150, 150, ViewPos.x, ViewPos.y);
+	m_RootStartScreen = new CUIElement(nullptr, L"ui_start_screen_root", nullptr, 0.f, 0.f, m_GameManager->m_SurfaceWidth, m_GameManager->m_SurfaceHeigh, ViewPos.x, ViewPos.y, 0.f, 0.f);
+
+	ViewPos = m_GameManager->GetViewPosition("view_ortho");
+	m_RootGameScreen = new CUIElement(nullptr, L"ui_game_screen_root", nullptr, 0.f, 0.f, m_GameManager->m_SurfaceWidth, m_GameManager->m_SurfaceHeigh, ViewPos.x, ViewPos.y, 0.f, 0.f);
+
+	/*
+	int LetterCount;
+	CConfig::GetConfig("letter_count", LetterCount);
+
+	m_PlayerLettersLayout = new CGridLayout(m_GameManager->m_SurfaceHeigh, 0, m_GameManager->m_SurfaceWidth - m_GameManager->m_SurfaceHeigh, m_GameManager->m_SurfaceHeigh / 3, 50.f, 60.f);
+	m_PlayerLettersLayout->AllignGrid(LetterCount, true);
+
+	float ButtonsLayoutY = m_GameManager->m_SurfaceHeigh / 1.3f;
+	ButtonsLayoutY = ButtonsLayoutY < m_GameManager->m_SurfaceHeigh - 90 ? ButtonsLayoutY : m_GameManager->m_SurfaceHeigh - 90;
+	m_ButtonsLayout = new CGridLayout(m_GameManager->m_SurfaceHeigh, ButtonsLayoutY, m_GameManager->m_SurfaceWidth - m_GameManager->m_SurfaceHeigh, 200, 50.f, 100.f);
+	m_ButtonsLayout->AllignGrid(3, true);
+	*/
+
+	AddButton(m_RootGameScreen, positionData, colorData, 0, 0, 0, 0, "view_ortho", "okbutton.bmp", L"ui_ok_btn");
+	m_UIButtons.back()->SetEvent(m_GameManager, &CGameManager::EndPlayerTurnEvent);
+
+	AddButton(m_RootGameScreen, positionData, colorData, 0, 0, 0, 0, "view_ortho", "backbutton.bmp", L"ui_back_btn");
+	m_UIButtons.back()->SetEvent(m_GameManager, &CGameManager::BackSpaceEvent);
+
+	AddButton(m_RootGameScreen, positionData, colorData, 0, 0, 0, 0, "view_ortho", "topviewbutton.bmp", L"ui_topview_btn");
+	m_UIButtons.back()->SetEvent(m_GameManager, &CGameManager::TopViewEvent);
+
+//	PositionGameButtons();
+
+//	auto GridPos = m_ButtonsLayout->GetGridPosition(0);
+//	float PlayerScoreY = GridPos.m_Top;
+
+	AddText(m_RootGameScreen, L"", positionData, gridcolorData, m_GameManager->m_SurfaceWidth - 150, m_GameManager->m_SurfaceHeigh - 30, 30, 30, "view_ortho", "font.bmp", L"ui_fps_text");
+	/*
+	AddText(m_RootGameScreen, L"", positionData, gridcolorData, GridPos.m_Left, PlayerScoreY - 100, 40, 40, "view_ortho", "font.bmp", L"ui_computer_score");
+	AddText(m_RootGameScreen, L"", positionData, gridcolorData, GridPos.m_Left, PlayerScoreY - 50, 40, 40, "view_ortho", "font.bmp", L"ui_player_score");
+
+	m_UITileCounter = new CUITileCounter(m_RootGameScreen, positionData, colorData, gridcolorData, m_GameManager->m_SurfaceHeigh + (m_GameManager->m_SurfaceWidth - m_GameManager->m_SurfaceHeigh) / 2, PlayerScoreY - 250, 150, 150, ViewPos.x, ViewPos.y);
+	*/
+	AddText(m_RootGameScreen, L"", positionData, gridcolorData, 0, 0, 40, 40, "view_ortho", "font.bmp", L"ui_computer_score");
+	AddText(m_RootGameScreen, L"", positionData, gridcolorData, 0, 0, 40, 40, "view_ortho", "font.bmp", L"ui_player_score");
+
+	m_UITileCounter = new CUITileCounter(m_RootGameScreen, positionData, colorData, gridcolorData, m_GameManager->m_SurfaceHeigh + (m_GameManager->m_SurfaceWidth - m_GameManager->m_SurfaceHeigh) / 2, 0, 150, 150, ViewPos.x, ViewPos.y);
 
 	m_MessageBoxOk = new CUIMessageBox(positionData, colorData, gridcolorData, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh / 2, 600, 400, ViewPos.x, ViewPos.y, CUIMessageBox::Ok);
+	m_Toast = new CUIToast(1000, m_TimerEventManager, this, positionData, colorData, gridcolorData, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh / 2, 600, 200, ViewPos.x, ViewPos.y, CUIMessageBox::NoButton);
+
+
+	AddText(m_RootStartScreen, L"nehézség", positionData, gridcolorData, m_GameManager->m_SurfaceWidth / 2 - 200, m_GameManager->m_SurfaceHeigh - (m_GameManager->m_SurfaceHeigh / 6 - 80), 40, 40, "view_ortho", "font.bmp", L"ui_select_difficulty_text");
+	AddSelectControl(m_RootStartScreen, positionData, colorData, gridcolorData, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh - (m_GameManager->m_SurfaceHeigh / 6), 400, 80, "view_ortho", "selectioncontrol.bmp", L"ui_select_difficulty");
+	m_SelectControls.back()->AddOption(L"könnyű");
+	m_SelectControls.back()->AddOption(L"normál");
+	m_SelectControls.back()->AddOption(L"nehéz");
+	m_SelectControls.back()->AddOption(L"lehetetlen");
+	m_SelectControls.back()->SetIndex(1);
+
+	AddText(m_RootStartScreen, L"pálya méret", positionData, gridcolorData, m_GameManager->m_SurfaceWidth / 2 - 200, m_GameManager->m_SurfaceHeigh - (m_GameManager->m_SurfaceHeigh / 6 + 140), 40, 40, "view_ortho", "font.bmp", L"ui_select_board_size_text");
+	AddSelectControl(m_RootStartScreen, positionData, colorData, gridcolorData, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh - (m_GameManager->m_SurfaceHeigh / 6 + 220), 400, 80, "view_ortho", "selectioncontrol.bmp", L"ui_select_board_size");
+	m_SelectControls.back()->AddOption(L"7-7");
+	m_SelectControls.back()->AddOption(L"8-8");
+	m_SelectControls.back()->AddOption(L"9-9");
+	m_SelectControls.back()->AddOption(L"10-10");
+	m_SelectControls.back()->SetIndex(2);
+
+	AddButton(m_RootStartScreen, positionData, colorData, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh - (m_GameManager->m_SurfaceHeigh / 8 + 500), 400, 200, "view_ortho", "okbutton.bmp", L"ui_start_game_btn");
+	m_UIButtons.back()->SetEvent(m_GameManager, &CGameManager::FinishRenderInit);
 }
+
+int CUIManager::GetBoardSize()
+{
+	return static_cast<CUISelectControl*>(m_RootStartScreen->GetChild(L"ui_select_board_size"))->GetIndex();
+}
+
+int CUIManager::GetDifficulty() 
+{ 
+	return static_cast<CUISelectControl*>(m_RootStartScreen->GetChild(L"ui_select_difficulty"))->GetIndex();
+}
+
+
+void CUIManager::ActivateStartScreen(bool activate)
+{
+	m_StartScreenActive = activate;
+}
+
 
 bool CUIManager::IsGameButton(const CUIButton* button) const
 {
@@ -104,6 +181,7 @@ bool CUIManager::IsGameButton(const CUIButton* button) const
 
 void CUIManager::PositionGameButtons()
 {
+	//TODO id alapjan!!!
 	for (size_t i = 0; i < 3; ++i)
 	{
 		auto GridPos = m_ButtonsLayout->GetGridPosition(i);
@@ -113,6 +191,11 @@ void CUIManager::PositionGameButtons()
 
 		m_UIButtons[i]->SetPosAndSize(XPos, YPos, Size, Size);
 	}
+
+	auto GridPos = m_ButtonsLayout->GetGridPosition(0);
+	m_RootGameScreen->GetChild(L"ui_computer_score")->SetPosAndSize(GridPos.m_Left, GridPos.m_Top - 100, 40, 40);
+	m_RootGameScreen->GetChild(L"ui_player_score")->SetPosAndSize(GridPos.m_Left, GridPos.m_Top - 50, 40, 40);
+	((CUITileCounter*)m_RootGameScreen->GetChild(L"ui_tile_counter"))->SetPositionAndSize(m_GameManager->m_SurfaceHeigh + (m_GameManager->m_SurfaceWidth - m_GameManager->m_SurfaceHeigh) / 2, GridPos.m_Top - 300, 150, 150);
 }
 
 void CUIManager::PositionPlayerLetters(const std::wstring& playerId)
@@ -133,12 +216,16 @@ void CUIManager::PositionPlayerLetters(const std::wstring& playerId)
 
 void CUIManager::ShowMessageBox(int type, const wchar_t* text)
 {
-	m_GameManager->SetGameState(CGameManager::WaitingForMessageBox);
-
 	if (type == CUIMessageBox::Ok)
 		CUIMessageBox::m_ActiveMessageBox = m_MessageBoxOk;
+	else if (type == CUIMessageBox::NoButton)
+	{
+		CUIMessageBox::m_ActiveMessageBox = m_Toast;
+		m_Toast->StartTimer();
+	}
 
 	CUIMessageBox::m_ActiveMessageBox->SetText(text);
+	m_GameManager->SetGameState(CGameManager::WaitingForMessageBox);
 }
 
 
@@ -163,19 +250,51 @@ void CUIManager::RenderPlayerLetters(const wchar_t* id)
 {
 	CUIPlayerLetters* PlayerLetters = GetPlayerLetters(id);
 
-	if (PlayerLetters)
+	if (PlayerLetters && PlayerLetters->IsVisible())
 		PlayerLetters->Render(m_GameManager->GetRenderer());
+}
+
+void CUIManager::EnableGameButtons(bool enable)
+{
+	m_RootGameScreen->GetChild(L"ui_ok_btn")->Enable(enable);
+	m_RootGameScreen->GetChild(L"ui_back_btn")->Enable(enable);
+}
+
+
+void CUIManager::CloseToast(double& timeFromStart, double& timeFromPrev)
+{
+	if (1000 < timeFromStart)
+	{
+		m_TimerEventManager->StopTimer("ui_toast_id");
+		ShowMessageBox(CUIMessageBox::Ok, m_GameManager->GetNextPlayerName().c_str());
+		EnableGameButtons(true);
+	}
+}
+
+void CUIManager::RenderUI()
+{
+	CUIElement& Root = m_StartScreenActive ? *m_RootStartScreen : *m_RootGameScreen;
+
+	for (size_t i = 0; i < Root.GetChildCount(); ++i)
+		Root.GetChild(i)->Render(m_GameManager->GetRenderer());
 }
 
 void CUIManager::RenderTileCounter()
 {
-	m_UITileCounter->Render(m_GameManager->GetRenderer());
+	if (!m_StartScreenActive)
+		m_UITileCounter->Render(m_GameManager->GetRenderer());
 }
 
 void CUIManager::RenderMessageBox()
 {
 	if (CUIMessageBox::m_ActiveMessageBox)
 		CUIMessageBox::m_ActiveMessageBox->Render(m_GameManager->GetRenderer());
+}
+
+void CUIManager::RenderSelectControls()
+{
+	for (size_t i = 0; i < m_SelectControls.size(); ++i)
+		m_SelectControls[i]->Render(m_GameManager->GetRenderer());
 }
 
 void CUIManager::RenderButtons()
@@ -200,32 +319,32 @@ void CUIManager::HandleTouchEvent(int x, int y)
 		return;
 	}
 	
-	for (size_t i = 0; i < m_UIButtons.size(); ++i)
-	{
-		if (m_UIButtons[i]->PositionInElement(x, y))
-		{
-			if (!m_GameButtonsDisabled || !IsGameButton(m_UIButtons[i]))
-				m_UIButtons[i]->HandleEvent();
+	CUIElement& Root = m_StartScreenActive ? *m_RootStartScreen : *m_RootGameScreen;
 
+	for (size_t i = 0; i < Root.GetChildCount(); ++i)
+		if (Root.GetChild(i)->HandleEventAtPos(x, y))
 			return;
-		}
-	}
+
+
+/*
+	for (size_t i = 0; i < m_SelectControls.size(); ++i)
+		if (m_SelectControls[i]->HandleEventAtPos(x, y))
+			return;
+
+	
+	for (size_t i = 0; i < m_UIButtons.size(); ++i)
+		if (m_UIButtons[i]->HandleEventAtPos(x, y))
+			return;
 
 	for (size_t i = 0; i < m_UIPlayerLetters.size(); ++i)
 	{
 		if (!m_UIPlayerLetters[i]->IsVisible())
 			continue;
 
-		size_t idx = 0;
-
-		while (CUIButton* Letter = static_cast<CUIButton*>(m_UIPlayerLetters[i]->GetChild(idx++)))
-		{
-			if (Letter->PositionInElement(x, y))
-			{
-				Letter->HandleEvent();
-			}
-		}
+		if (m_UIPlayerLetters[i]->HandleEventAtPos(x, y))
+			return;
 	}
+*/
 }
 
 void CUIManager::SetTileCounterValue(unsigned count)

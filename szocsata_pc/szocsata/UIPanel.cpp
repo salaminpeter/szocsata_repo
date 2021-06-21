@@ -15,13 +15,13 @@ CUIPanel::CUIPanel(CUIElement* parent, const wchar_t* id, std::shared_ptr<CSquar
 void CUIPanel::AddText(const wchar_t* text, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, float x, float y, float w, float h, const char* textureID, const wchar_t* id)
 {
 	//TODO szepen!!!
-	m_Children.push_back(new CUIText(this, positionData, colorData, text, x + m_XPosition, y + m_YPosition, w, h, m_ViewXPosition, m_ViewYPosition, id));
+	new CUIText(this, positionData, colorData, text, x + m_XPosition, y + m_YPosition, w, h, m_ViewXPosition, m_ViewYPosition, id);
 }
 
 void CUIPanel::AddButton(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, float x, float y, float w, float h, const char* textureID, const wchar_t* id)
 {
 	//TODO szepen!!!
-	m_Children.push_back(new CUIButton(this, positionData, colorData, x + m_XPosition, y + m_YPosition, w, h, m_ViewXPosition, m_ViewYPosition, textureID, id));
+	new CUIButton(this, positionData, colorData, x + m_XPosition, y + m_YPosition, w, h, m_ViewXPosition, m_ViewYPosition, textureID, id);
 }
 
 void CUIPanel::HandleTouchEvent(int x, int y)
@@ -40,6 +40,9 @@ void CUIPanel::HandleTouchEvent(int x, int y)
 
 void CUIPanel::Render(CRenderer* renderer)
 {
+	if (!m_Visible)
+		return;
+
 	//draw panel
 	renderer->SetTexturePos(glm::vec2(0.f, 0.f));
 	renderer->DrawModel(m_Model, "view_ortho", "textured", false);
