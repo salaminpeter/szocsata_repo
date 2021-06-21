@@ -178,12 +178,6 @@ bool CGameManager::AllPlayersPassed()
 	for (size_t i = 0; i < m_Players.size(); ++i)
 		GameEnded &= m_Players[i]->m_Passed;
 
-	if (GameEnded)
-	{
-		SetGameState(EGameState::GameEnded);
-		return GameEnded;
-	}
-
 	return GameEnded;
 }
 
@@ -226,13 +220,6 @@ void CGameManager::NextPlayerTurn()
 		return;
 	}
 
-	//ha mindenki passzolt akkor vege
-	if (AllPlayersPassed())
-	{
-		SetGameState(EGameState::GameEnded);
-		return;
-	}
-
 	m_Players[NextPlayerIdx]->m_Passed = false;
 	SetGameState(EGameState::TurnInProgress);
 
@@ -248,6 +235,19 @@ void CGameManager::NextPlayerTurn()
 	}
 }
 
+void CGameManager::HandlePlayerPass()
+{
+	m_CurrentPlayer->m_Passed = true;
+
+	if (AllPlayersPassed())
+	{
+		SetGameState(EGameState::GameEnded);
+		return;
+	}
+
+	//TODO biztos passzolni akarsz msgbox!
+	m_UIManager->ShowMessageBox(CUIMessageBox::NoButton, L"passz");
+}
 
 bool CGameManager::EndPlayerTurn()
 {	
@@ -256,8 +256,7 @@ bool CGameManager::EndPlayerTurn()
 	//jatekos passz
 	if (m_CurrentPlayer->GetUsedLetterCount() == 0)
 	{
-		m_CurrentPlayer->m_Passed = true;
-		m_UIManager->ShowMessageBox(CUIMessageBox::NoButton, L"passz");
+		HandlePlayerPass();
 		return false;
 	}
 
@@ -360,8 +359,7 @@ bool CGameManager::EndComputerTurn()
 	//computer passz
 	if (ComputerPass || !ComputerWord.m_Word)
 	{
-		m_CurrentPlayer->m_Passed = true;
-		m_UIManager->ShowMessageBox(CUIMessageBox::NoButton, L"passz");
+		HandlePlayerPass();
 		return false;
 	}
 
@@ -405,8 +403,7 @@ void CGameManager::StartComputerturn()
 	//computer passz, egy szot sem talalt ami megfelelt a kriteriumoknak
 	if (m_Computer->BestWordCount() == 0)
 	{
-		m_Computer->m_Passed = true;
-		m_UIManager->ShowMessageBox(CUIMessageBox::NoButton, L"passz");
+		HandlePlayerPass();
 		return;
 	}
 
@@ -429,8 +426,7 @@ void CGameManager::StartComputerturn()
 	else
 	{
 		//coputer passz
-		m_Computer->m_Passed = true;
-		m_UIManager->ShowMessageBox(CUIMessageBox::NoButton, L"passz");
+		HandlePlayerPass();
 		return;
 	}
 

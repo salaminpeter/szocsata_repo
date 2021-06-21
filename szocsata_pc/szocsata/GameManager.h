@@ -74,6 +74,7 @@ public:
 	bool EndComputerTurn();
 	bool EndPlayerTurn();
 	void NextPlayerTurn();
+	void HandlePlayerPass();
 	void UndoLastStep();
 	void UndoAllSteps();
 	void PlayerLetterClicked(unsigned letterIdx);
