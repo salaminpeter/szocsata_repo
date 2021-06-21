@@ -74,6 +74,8 @@ public:
 	int GetDifficulty();
 	int GetBoardSize();
 
+	CUIElement* GetActiveScreenUIRoot();
+
 private:
 
 	CUIText* GetText(const wchar_t* id) const;

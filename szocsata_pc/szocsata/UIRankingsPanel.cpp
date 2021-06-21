@@ -6,7 +6,7 @@ CUIRankingsPanel::CUIRankingsPanel(CUIElement* parent, CGameManager* gameManager
 	CUIPanel(parent, id, positionData, colorData, gridColorData, x, y, w, h, vx, vy, textureID, 0.f, 0.f),
 	m_GameManager(gameManager)
 {
-	AddText(L"játék vége", -200, 400, 50, 50, "font.bmp", L"ui_game_ended_text");
+	AddText(L"jatek vege", -200, 400, 50, 50, "font.bmp", L"ui_game_ended_text");
 }
 
 

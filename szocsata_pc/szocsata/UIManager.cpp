@@ -257,10 +257,10 @@ void CUIManager::CloseToast(double& timeFromStart, double& timeFromPrev)
 
 void CUIManager::RenderUI()
 {
-	CUIElement& Root = m_StartScreenActive ? *m_RootStartScreen : *m_RootGameScreen;
+	CUIElement* Root = GetActiveScreenUIRoot();
 
-	for (size_t i = 0; i < Root.GetChildCount(); ++i)
-		Root.GetChild(i)->Render(m_GameManager->GetRenderer());
+	for (size_t i = 0; i < Root->GetChildCount(); ++i)
+		Root->GetChild(i)->Render(m_GameManager->GetRenderer());
 }
 
 void CUIManager::RenderTileCounter()
@@ -299,6 +299,21 @@ void CUIManager::RenderTexts()
 }
 
 
+CUIElement* CUIManager::GetActiveScreenUIRoot()
+{
+	CUIElement* Root = nullptr;
+
+	if (m_GameManager->GetGameState() == CGameManager::OnStartScreen)
+		Root = m_RootStartScreen;
+	else if (m_GameManager->GetGameState() == CGameManager::OnRankingsScreen)
+		Root = m_RootGameEndScreen;
+	else
+		Root = m_RootGameScreen;
+	
+	return Root;
+}
+
+
 void CUIManager::HandleTouchEvent(int x, int y)
 {
 	//ha van aktiv message box csak arra kezeljunk eventeket
@@ -308,14 +323,7 @@ void CUIManager::HandleTouchEvent(int x, int y)
 		return;
 	}
 	
-	CUIElement* Root = nullptr;
-
-	if (m_GameManager->GetGameState() == CGameManager::OnStartScreen)
-		Root = m_RootStartScreen;
-	else if (m_GameManager->GetGameState() == CGameManager::OnRankingsScreen)
-		Root = m_RootGameEndScreen;
-	else
-		Root = m_RootGameScreen;
+	CUIElement* Root = GetActiveScreenUIRoot();
 
 	for (size_t i = 0; i < Root->GetChildCount(); ++i)
 		if (Root->GetChild(i)->HandleEventAtPos(x, y))
