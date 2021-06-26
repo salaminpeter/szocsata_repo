@@ -44,7 +44,7 @@ void CGameManager::AddPlayers(int playerCount, bool addComputer)
 	{
 		m_Players.push_back(new CPlayer(this));
 		m_LetterPool.DealLetters(m_Players.back()->GetLetters());
-		m_UIManager->AddPlayerLetters(m_Players.back()->GetName().c_str(), m_Players.back()->GetLetters().c_str(), m_Renderer->GetSquarePositionData(), m_Renderer->GetSquareColorGridData8x4(), "view_ortho");
+		m_UIManager->AddPlayerLetters(m_Players.back(), m_Renderer->GetSquarePositionData(), m_Renderer->GetSquareColorGridData8x4());
 		m_UIManager->PositionPlayerLetters(m_Players.back()->GetName().c_str());
 		m_UIManager->GetPlayerLetters(m_Players.back()->GetName().c_str())->ShowLetters(false);
 	}
@@ -55,7 +55,7 @@ void CGameManager::AddPlayers(int playerCount, bool addComputer)
 		m_LetterPool.DealLetters(m_Computer->GetLetters());
 		m_Players.push_back(m_Computer);
 		//TODO ezeket a uimanageres fuggvenyeket osszevonni egybe a uimanagerben
-		m_UIManager->AddPlayerLetters(m_Players.back()->GetName().c_str(), m_Computer->GetLetters().c_str(), m_Renderer->GetSquarePositionData(), m_Renderer->GetSquareColorGridData8x4(), "view_ortho");
+		m_UIManager->AddPlayerLetters(m_Players.back(), m_Renderer->GetSquarePositionData(), m_Renderer->GetSquareColorGridData8x4());
 		m_UIManager->PositionPlayerLetters(m_Players.back()->GetName().c_str());
 		m_UIManager->GetPlayerLetters(m_Players.back()->GetName().c_str())->ShowLetters(false);
 	}
@@ -157,8 +157,6 @@ void CGameManager::StartPlayerTurn(CPlayer* player)
 	CUIPlayerLetters* UIPlayerLetters = m_UIManager->GetPlayerLetters(player->GetName().c_str());
 	UIPlayerLetters->SetLetterVisibility();
 	UIPlayerLetters->SetVisible(true);
-
-	player->ResetUsedLetters();
 
 	m_FirstPlayerLetterX = -1;
 	m_FirstPlayerLetterY = -1;
@@ -318,34 +316,33 @@ bool CGameManager::EndPlayerTurn()
 		return false;
 	}
 
+	DealCurrPlayerLetters();
 	AddWordSelectionAnimation(CrossingWords, true);
-	m_CurrentPlayer->AddScore(Score);
-	m_LetterPool.DealLetters(m_CurrentPlayer->GetLetters());
 	m_UIManager->SetTileCounterValue(m_LetterPool.GetRemainingLetterCount());
-	
-	CUIPlayerLetters* PlayerLetters = m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName().c_str());
-	PlayerLetters->RemoveMissingLetters(m_CurrentPlayer->GetLetters());
-	PlayerLetters->OrderLetterElements(this);
-	PlayerLetters->SetLetters(m_CurrentPlayer->GetLetters());
-	PlayerLetters->SetLetterVisibility();
 
-	m_CurrentPlayer->ResetUsedLetters();
-
+	m_CurrentPlayer->AddScore(Score);
 	UpdatePlayerScores();
 	SetGameState(EGameState::WaintingOnAnimation);
 
 	return true;
 }
 
-void CGameManager::DealComputerLetters()
+void CGameManager::DealCurrPlayerLetters()
 {
-	m_LetterPool.DealLetters(m_Computer->GetLetters());
+	CUIPlayerLetters* PlayerLetters = m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName().c_str());
+	m_LetterPool.DealLetters(m_CurrentPlayer->GetLetters());
+	m_CurrentPlayer->GetLetters().erase(remove(m_CurrentPlayer->GetLetters().begin(), m_CurrentPlayer->GetLetters().end(), ' '), m_CurrentPlayer->GetLetters().end());
+	m_CurrentPlayer->ResetUsedLetters();
+	PlayerLetters->SetLetters();
+	m_UIManager->PositionPlayerLetters(m_CurrentPlayer->GetName().c_str());
+	PlayerLetters->SetLetterVisibility();
+	PlayerLetters->OrderLetterElements();
+}
+
+void CGameManager::DealComputerLettersEvent()
+{
+	DealCurrPlayerLetters();
 	m_UIManager->SetTileCounterValue(m_LetterPool.GetRemainingLetterCount());
-	CUIPlayerLetters* ComputerLetters = m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName().c_str());
-	ComputerLetters->RemoveMissingLetters(m_CurrentPlayer->GetLetters());
-	ComputerLetters->OrderLetterElements(this);
-	ComputerLetters->SetLetters(m_CurrentPlayer->GetLetters());
-	ComputerLetters->SetLetterVisibility();
 }
 
 bool CGameManager::EndComputerTurn()
@@ -385,14 +382,10 @@ bool CGameManager::EndComputerTurn()
 
 	CConfig::GetConfig("computer_step_delay", ComputerStepDelay);
 
-	std::vector<size_t> LetterIndices;
 	size_t WordLength = ComputerWord.m_Word->length();
-	LetterIndices.reserve(WordLength);
 
-	for (size_t i = 0; i < WordLength; ++i)
-		LetterIndices.push_back(m_Computer->RemoveLetter(ComputerWord.m_Word->at(i)));
-
-	m_WordAnimation->AddWordAnimation(*ComputerWord.m_Word, LetterIndices, ComputerWord.m_X, TileCount - ComputerWord.m_Y - 1, ComputerWord.m_Horizontal);
+	m_CurrentPlayer->RemoveLetters(*ComputerWord.m_Word);
+	m_WordAnimation->AddWordAnimation(*ComputerWord.m_Word, ComputerWord.m_X, TileCount - ComputerWord.m_Y - 1, ComputerWord.m_Horizontal);
 	m_GameBoard.AddWord(ComputerWord);
 	UpdatePlayerScores();
 
@@ -730,9 +723,9 @@ void CGameManager::PlayerLetterClicked(unsigned letterIdx)
 		return;
 
 	wchar_t PlacedLetter = m_CurrentPlayer->GetLetters()[letterIdx];
-	m_WordAnimation->AddWordAnimation(std::wstring(1, PlacedLetter), std::vector<size_t>{letterIdx}, SelX, SelY, true, false);
+	m_WordAnimation->AddWordAnimation(std::wstring(1, PlacedLetter), SelX, SelY, true, false);
 	CUIPlayerLetters* PlayerLetters = m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName().c_str());
-	PlayerLetters->RemoveLetter(size_t(letterIdx));
+	m_CurrentPlayer->RemoveLetter(size_t(letterIdx));
 	PlayerLetters->SetVisible(false, letterIdx);
 
 	m_PlayerSteps.emplace_back(PlacedLetter, SelX, SelY, letterIdx);
@@ -856,11 +849,9 @@ void CGameManager::UndoLastStep()
 	m_CurrentPlayer->SetLetter(m_PlayerSteps.back().m_LetterIdx, m_PlayerSteps.back().m_Char);
 	m_CurrentPlayer->SetLetterUsed(m_PlayerSteps.back().m_LetterIdx, false);
 
-	m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName().c_str())->SetLetters(m_CurrentPlayer->GetLetters());
 	m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName().c_str())->SetLetterVisibility();
 	
 	m_Renderer->RemoveLastLetter();
-//	m_Renderer->SetLetterVisibility(true, m_CurrentPlayer->GetName(), m_PlayerSteps.back().m_LetterIdx);
 	m_PlayerSteps.pop_back();
 }
 

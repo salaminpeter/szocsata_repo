@@ -22,7 +22,7 @@ struct TWordPos
 	bool m_Horizontal;
 
 	TWordPos() {}
-	TWordPos(std::wstring* word, int x, int y, bool h, int length = 0) : m_Word(word), m_X(x), m_Y(y), m_Horizontal(h), m_WordLength(length) 
+	TWordPos(std::wstring* word, int x, int y, bool h, int length = 0) : m_Word(word), m_X(x), m_Y(y), m_Horizontal(h), m_WordLength(length) //TODO letterindeices move
 	{
 		m_WordLength = word ? word->length() : length;
 	}
@@ -30,7 +30,7 @@ struct TWordPos
 
 struct TComputerStep
 {
-	TComputerStep(std::wstring* word, int x, int y, bool h, int score, CBinaryBoolList usedLetters, std::vector<TWordPos>&crossingWords) : m_Word(word, x, y, h), m_Score(score), m_UsedLetters(usedLetters), m_CrossingWords(crossingWords)
+	TComputerStep(std::wstring* word, int x, int y, bool h, int score, CBinaryBoolList usedLetters, std::vector<TWordPos>& crossingWords) : m_Word(word, x, y, h), m_Score(score), m_UsedLetters(usedLetters), m_CrossingWords(crossingWords)
 	{
 		m_CrossingWords.reserve(word->length());
 	}

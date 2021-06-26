@@ -15,6 +15,7 @@
 #include "TimerEventManager.h"
 #include "Renderer.h"
 #include "Config.h"
+#include "Player.h"
 
 
 void CUIManager::AddSelectControl(CUIElement* parent, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData, float x, float y, float w, float h, const char* ViewID, const char* textureID, const wchar_t* id)
@@ -36,11 +37,11 @@ void CUIManager::AddText(CUIElement* parent, const wchar_t* text, std::shared_pt
 	m_UITexts.push_back(new CUIText(parent, positionData, colorData, text, x, y, w, h, ViewPos.x, ViewPos.y, id));
 }
 
-void CUIManager::AddPlayerLetters(const wchar_t* playerId, const wchar_t* letters, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, const char* viewID)
+void CUIManager::AddPlayerLetters(CPlayer* player, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData)
 {
-	glm::vec2 ViewPos = m_GameManager->GetViewPosition(viewID);
-	m_UIPlayerLetters.push_back(new CUIPlayerLetters(m_GameManager, m_RootGameScreen, playerId));
-	m_UIPlayerLetters.back()->InitLetterElements(letters, positionData, colorData, ViewPos.x, ViewPos.y, m_GameManager);
+	glm::vec2 ViewPos = m_GameManager->GetViewPosition("view_ortho");
+	m_UIPlayerLetters.push_back(new CUIPlayerLetters(m_GameManager, player,  m_RootGameScreen, player->GetName().c_str()));
+	m_UIPlayerLetters.back()->InitLetterElements(positionData, colorData, ViewPos.x, ViewPos.y, m_GameManager);
 }
 
 void CUIManager::PositionPlayerLetter(const std::wstring& playerId, size_t letterIdx, float x, float y, float size)

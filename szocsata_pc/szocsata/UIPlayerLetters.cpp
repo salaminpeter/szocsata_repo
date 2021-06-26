@@ -8,9 +8,10 @@
 #include "Renderer.h"
 
 
-CUIPlayerLetters::CUIPlayerLetters(CGameManager* gameManager, CUIElement* parent, const wchar_t* id) :
+CUIPlayerLetters::CUIPlayerLetters(CGameManager* gameManager, CPlayer* player, CUIElement* parent, const wchar_t* id) :
 	CUIElement(parent, id, nullptr, 0, 0, 0, 0, 0, 0, 0, 0),
-	m_GameManager(gameManager)
+	m_GameManager(gameManager),
+	m_Player(player)
 {
 	InitLetterTexPositions();
 }
@@ -54,27 +55,39 @@ void CUIPlayerLetters::InitLetterTexPositions()
 	m_LetterTexPos[L'z'] = glm::vec2(7, 0);
 }
 
-void CUIPlayerLetters::OrderLetterElements(CGameManager* gameManager)
+void CUIPlayerLetters::OrderLetterElements()
 {
 	for (unsigned i = 0; i < m_Children.size(); ++i)
 	{
-		m_Children[i]->SetEvent(gameManager, &CGameManager::PlayerLetterClicked, std::move(i));
+		m_Children[i]->SetEvent(m_GameManager, &CGameManager::PlayerLetterClicked, std::move(i));
 	}
 }
 
 
-void CUIPlayerLetters::InitLetterElements(const wchar_t* letters, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, float ViewPosX, float ViewPosY, CGameManager* gameManager)
+void CUIPlayerLetters::InitLetterElements(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, float ViewPosX, float ViewPosY, CGameManager* gameManager)
 {
+	m_PositionData = positionData;
+	m_ColorData = colorData;
+	m_ViewPosX = ViewPosX;
+	m_ViewPosY = ViewPosY;
+
 	int LetterCount;
 	CConfig::GetConfig("letter_count", LetterCount);
-	m_Letters = letters;
+	std::wstring& letters = m_Player->GetLetters();
 
-	for (unsigned i = 0; i < LetterCount; ++i)
-	{ 
+	AddUILetters(LetterCount);
+
+	for (size_t i = 0; i < m_Children.size(); ++i)
+		m_Children[i]->SetTexturePosition(m_LetterTexPos[letters[i]]);
+}
+
+void CUIPlayerLetters::AddUILetters(unsigned count)
+{
+	for (unsigned i = 0; i < count; ++i)
+	{
 		CUIElement* NewLetter;
-		AddChild(NewLetter = new CUIButton(nullptr, positionData, colorData, 0, 0, 0, 0, ViewPosX, ViewPosY, "playerletters.bmp", L""));
-		NewLetter->SetTexturePosition(m_LetterTexPos[letters[i]]);
-		NewLetter->SetEvent(gameManager, &CGameManager::PlayerLetterClicked, std::move(i));
+		AddChild(NewLetter = new CUIButton(nullptr, m_PositionData, m_ColorData, 0, 0, 0, 0, m_ViewPosX, m_ViewPosY, "playerletters.bmp", L""));
+		NewLetter->SetEvent(m_GameManager, &CGameManager::PlayerLetterClicked, std::move(i));
 	}
 }
 
@@ -86,65 +99,22 @@ void CUIPlayerLetters::PositionPlayerLetter(size_t lettedIdx, float x, float y, 
 	m_Children[lettedIdx]->SetPosAndSize(x, y, size, size);
 }
 
-wchar_t CUIPlayerLetters::GetLetter(size_t letterIdx)
-{
-	if (letterIdx >= m_Letters.length())
-		return L'\0';
-
-	return m_Letters.at(letterIdx);
-}
-
-//TODO a letterek csak egy helyen legyenek tarolva, vagy a ui0ban vagy a playernel, de igy kavarodas van!!
-int CUIPlayerLetters::RemoveLetter(wchar_t c)
-{
-	for (size_t i = 0; i < m_Letters.length(); ++i)
-	{
-		if (m_Letters[i] == c)
-		{
-			m_Letters[i] = L' ';
-			return i;
-		}
-	}
-
-	return -1;
-}
-
-void CUIPlayerLetters::RemoveLetter(size_t letterIdx)
-{
-	if (letterIdx >= m_Letters.length())
-		return;
-
-	m_Letters[letterIdx] = L' ';
-}
-
-void CUIPlayerLetters::RemoveMissingLetters(std::wstring& letters)
-{
-	const std::lock_guard<std::recursive_mutex> lock(m_GameManager->GetRenderer()->GetRenderLock());
-
-	auto it = m_Children.begin();
-	size_t idx = 0;
-
-	while (it != m_Children.end())
-	{
-		if (letters[idx++] == L' ')
-			it = m_Children.erase(it);
-		else
-			++it;
-	}
-
-	m_Letters.erase(std::remove(m_Letters.begin(), m_Letters.end(), ' '), m_Letters.end());
-	letters.erase(std::remove(letters.begin(), letters.end(), ' '), letters.end());
-}
-
 void CUIPlayerLetters::SetLetterVisibility()
 {
-	for (size_t i = 0; i < m_Letters.length(); ++i)
-		m_Children[i]->SetVisible(m_Letters[i] != L' ');
+	std::wstring& letters = m_Player->GetLetters();
+
+	for (size_t i = 0; i < letters.length(); ++i)
+		m_Children[i]->SetVisible(letters[i] != L' ');
 }
 
-void CUIPlayerLetters::SetLetters(const std::wstring& letters) 
-{ 
-	m_Letters = letters; 
+void CUIPlayerLetters::SetLetters()
+{
+	std::wstring& letters = m_Player->GetLetters();
+
+	if (letters.size() > m_Children.size())
+		AddUILetters(letters.size() - m_Children.size());
+	else if (letters.size() < m_Children.size())
+		m_Children.resize(letters.size()); //TODO delete 
 
 	for (size_t i = 0; i < m_Children.size(); ++i)
 		m_Children[i]->SetTexturePosition(m_LetterTexPos[letters[i]]);
@@ -175,12 +145,10 @@ bool CUIPlayerLetters::HandleEventAtPos(int x, int y)
 
 void CUIPlayerLetters::Render(CRenderer* renderer)
 {
-	int LetterCount = m_Children.size();
-	
 	size_t idx = 0;
-	size_t VisibleLetterCount = GetVisibleLetterCount();
+	size_t VisibleLetterCount = m_Player->GetUnUsedLetterCount();
 
-	for (size_t i = 0; i < LetterCount; ++i)
+	for (size_t i = 0; i < m_Children.size(); ++i)
 	{
 		if (!IsVisible(i))
 			continue;

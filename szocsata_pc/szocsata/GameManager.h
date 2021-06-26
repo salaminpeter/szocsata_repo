@@ -77,10 +77,11 @@ public:
 	void HandlePlayerPass();
 	void UndoLastStep();
 	void UndoAllSteps();
+	void DealCurrPlayerLetters();
 	void PlayerLetterClicked(unsigned letterIdx);
 	void GameLoop();
 	void SetGameState(int state);
-	void DealComputerLetters();
+	void DealComputerLettersEvent();
 	EGameState GetGameState();
 	CLetterModel* AddLetterToBoard(int x, int y, wchar_t c, float height);
 	void AddWordSelectionAnimationForComputer();

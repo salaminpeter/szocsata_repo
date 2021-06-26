@@ -17,14 +17,13 @@ private:
 
 	struct TLetterAnimation
 	{
-		TLetterAnimation(CLetterModel* letterModel, float distance, float height, size_t letterIdx) : m_LetterModel(letterModel), m_Distance(distance), m_DestHeight(height), m_PlayerLetterIdx(letterIdx) {}
+		TLetterAnimation(CLetterModel* letterModel, float distance, float height) : m_LetterModel(letterModel), m_Distance(distance), m_DestHeight(height) {}
 
 		CLetterModel* m_LetterModel;
 		float m_AminationTime = 0.f;
 		float m_Distance;
 		float m_DestHeight;
 		ELetterAnimState m_State = ELetterAnimState::Waiting;
-		size_t m_PlayerLetterIdx;
 	};
 
 	std::vector<TLetterAnimation> m_LetterAnimations;
@@ -45,7 +44,7 @@ public:
 
 	CWordAnimationManager(CTimerEventManager* timerEventMgr, CGameManager* gameManager) : m_TimerEventManager(timerEventMgr), m_GameManager(gameManager) {}
 
-	void AddWordAnimation(std::wstring word, const std::vector<size_t>& letterIndices, int x, int y, bool horizontal, bool nextPlayerIfFinished = true);
+	void AddWordAnimation(std::wstring word, int x, int y, bool horizontal, bool nextPlayerIfFinished = true);
 	void AnimateLettersEvent(double& timeFromStart, double& timeFromPrev);
 	void AnimationFinished();
 };

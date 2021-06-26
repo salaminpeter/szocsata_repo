@@ -20,6 +20,7 @@ class CUIToast;
 class CGridLayout;
 class CUISelectControl;
 class CUIRankingsPanel;
+class CPlayer;
 
 
 class CUIManager
@@ -40,7 +41,7 @@ public:
 	void AddButton(CUIElement* parent, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, float x, float y, float w, float h, const char* ViewID, const char* textureID, const wchar_t* id);
 	void AddSelectControl(CUIElement* parent, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData, float x, float y, float w, float h, const char* ViewID, const char* textureID, const wchar_t* id);
 	void AddText(CUIElement* parent, const wchar_t* text, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, float x, float y, float w, float h, const char* ViewID, const char* textureID, const wchar_t* id);
-	void AddPlayerLetters(const wchar_t* playerId, const wchar_t* letters, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, const char* viewID);
+	void AddPlayerLetters(CPlayer* player, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData);
 	void PositionPlayerLetter(const std::wstring& playerId, size_t letterIdx, float x, float y, float size);
 
 	CUIPlayerLetters* GetPlayerLetters(const std::wstring& playerID);

@@ -7,7 +7,7 @@
 #include "Config.h"
 
 
-void CWordAnimationManager::AddWordAnimation(std::wstring word, const std::vector<size_t>& letterIndices, int x, int y, bool horizontal, bool nextPlayerIfFinished)
+void CWordAnimationManager::AddWordAnimation(std::wstring word, int x, int y, bool horizontal, bool nextPlayerIfFinished)
 {
 	const std::lock_guard<std::mutex> lock(m_AnimListLock);
 
@@ -32,7 +32,7 @@ void CWordAnimationManager::AddWordAnimation(std::wstring word, const std::vecto
 			float DistanceToBoard = 4.f - DestHeight; //TODO config 3
 			CLetterModel* LetterModel = m_GameManager->AddLetterToBoard(x, y, word.at(i), 4.f);  //TODO config 3
 			LetterModel->SetVisibility(false);
-			m_LetterAnimations.emplace_back(LetterModel, DistanceToBoard, DestHeight, letterIndices[i]);
+			m_LetterAnimations.emplace_back(LetterModel, DistanceToBoard, DestHeight);
 		}
 
 		x += horizontal ? 1 : 0;
@@ -92,5 +92,5 @@ void CWordAnimationManager::AnimateLettersEvent(double& timeFromStart, double& t
 void CWordAnimationManager::AnimationFinished()
 {
 	m_GameManager->AddWordSelectionAnimationForComputer();
-	m_GameManager->DealComputerLetters();
+	m_GameManager->DealComputerLettersEvent();
 }
