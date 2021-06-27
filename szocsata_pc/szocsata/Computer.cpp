@@ -83,7 +83,7 @@ void CComputer::AddResult(const TWordPos& wordPos, CBinaryBoolList usedLetters)
 		MaxScore = 1000;
 
 	int WordsWithScore = std::count_if(m_BestWords.begin(), m_BestWords.end(), [&Score](const auto& compStep) {return compStep.m_Score == Score;});
-	bool AddWordWithScore = (Score > MaxScoreOneResult &&  WordsWithScore < 4) || (Score <= MaxScoreOneResult && WordsWithScore == 0);
+	bool AddWordWithScore = (Score > MaxScoreOneResult &&  WordsWithScore < 4) || (Score <= MaxScore && WordsWithScore == 0);
 	bool AddWord = Score != 0 && AddWordWithScore && !FindWord(*wordPos.m_Word, Score); //TODO konstansok konfigba!
 
 	if (AddWord)

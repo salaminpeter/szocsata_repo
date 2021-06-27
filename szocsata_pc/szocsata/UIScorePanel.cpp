@@ -44,7 +44,7 @@ void CUIScorePanel::Init()
 		Id << L"ui_player_score_text_" << Idx;
 
 		int i = m_GameManager->GetPlayerCount() - Idx;
-		AddText(PlayerNameScore.str().c_str(), -100, i * 30 - 55, 30, 30, "font.bmp", Id.str().c_str());
+		AddText(PlayerNameScore.str().c_str(), -100, i * 35 - 55, 35, 35, "font.bmp", Id.str().c_str());
 		Idx++;
 	}
 }
