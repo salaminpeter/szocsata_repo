@@ -17,7 +17,7 @@ friend CUIElement;
 
 public:
 
-	CUIElement(CUIElement*  parent, const wchar_t* id, CModel *model, int x, int y, int w, int h, int vx, int vy, float tx, float ty);
+	CUIElement(CUIElement*  parent, const wchar_t* id, CModel *model, int x, int y, int w, int h, int vx, int vy, float tx, float ty, bool ignoreReleaseEvent = true);
 		
 	template <typename ClassType, typename... ArgTypes>
 	void SetEvent(ClassType* funcClass, typename CEvent<ClassType, ArgTypes...>::TFuncPtrType funcPtr, ArgTypes&&... args)
@@ -49,6 +49,7 @@ public:
 	void SetTexturePosition(glm::vec2 texPos) {m_TexturePosition = texPos;}
 	void SetVisible(bool visible) {m_Visible = visible;}
 	void SetVisible(bool visible, size_t idx) { m_Children[idx]->SetVisible(visible); }
+	void SetTransparent(bool transparent) {m_IsTransparent = transparent;}
 	bool IsVisible() {return m_Visible;}
 	bool IsVisible(size_t idx) { return m_Children[idx]->m_Visible; }
 	std::wstring GetID() const {return m_ID;}
@@ -78,6 +79,8 @@ protected:
 	int m_Height;
 	bool m_Visible = true;
 	bool m_Enabled = true;
+	bool m_IsTransparent = false;
+	bool m_IgnoreReleaseEvent = false;
 	glm::vec2 m_TexturePosition;
 	std::wstring m_ID;
 

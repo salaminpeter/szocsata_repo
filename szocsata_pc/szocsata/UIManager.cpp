@@ -159,6 +159,7 @@ void CUIManager::InitUIElements(std::shared_ptr<CSquarePositionData> positionDat
 
 	AddButton(m_RootGameScreen, positionData, gridcolorData8x4, 0, 0, 0, 0, "view_ortho", "playerletters.bmp", L"ui_dragged_player_letter_btn");
 	m_UIButtons.back()->SetVisible(false);
+	m_UIButtons.back()->SetTransparent(true);
 }
 
 void CUIManager::UpdateScorePanel()
@@ -328,13 +329,14 @@ CUIElement* CUIManager::GetActiveScreenUIRoot()
 	return Root;
 }
 
-void CUIManager::SetDraggedPlayerLetter(bool letterDragged, unsigned letterIdx, const glm::vec2& letterTexPos)
+void CUIManager::SetDraggedPlayerLetter(bool letterDragged, unsigned letterIdx, const glm::vec2& letterTexPos, const glm::vec2& startDragPos)
 {
 	m_PlayerLetterDragged = letterDragged;
 	m_DraggedPlayerLetterIdx = letterIdx;
 
 	if (letterDragged)
 	{
+		m_LastDraggedPlayerLetterPos = startDragPos;
 		CUIElement* DraggedPlayerLetter = m_RootGameScreen->GetChild(L"ui_dragged_player_letter_btn");
 		float TexX = letterTexPos.x / 8.f;
 		float TexY = letterTexPos.y / 4.f;
@@ -366,14 +368,16 @@ void CUIManager::HandleDragEvent(int x, int y)
 		CUIElement* DraggedPlayerLetter = m_RootGameScreen->GetChild(L"ui_dragged_player_letter_btn");
 		DraggedPlayerLetter->SetVisible(true);
 
-		float XPos = x - DraggedPlayerLetter->GetWidth() / 2.f;
-		float YPos = y + DraggedPlayerLetter->GetHeight() / 2.f;
+		float LetterXPos = x - DraggedPlayerLetter->GetWidth() / 2.f;
+		float LetterYPos = y + DraggedPlayerLetter->GetHeight() / 2.f;
+		float BoardXPos = x - DraggedPlayerLetter->GetWidth();
+		float BoardYPos = y + DraggedPlayerLetter->GetHeight();
 
-		DraggedPlayerLetter->SetPosition(XPos, YPos);
+		DraggedPlayerLetter->SetPosition(LetterXPos, LetterYPos);
 
-		if (m_GameManager->PositionOnBoardView(XPos, YPos))
+		if (m_GameManager->PositionOnBoardView(LetterXPos, LetterYPos))
 		{
-			TPosition p = m_GameManager->GetRenderer()->GetTilePos(XPos, YPos);
+			TPosition p = m_GameManager->GetRenderer()->GetTilePos(BoardXPos, BoardYPos);
 
 			if (p.x != -1)
 				m_GameManager->GetRenderer()->SelectField(p.x, p.y);
@@ -390,18 +394,25 @@ void CUIManager::HandleReleaseEvent(int x, int y)
 	//ha egy player lettert draggelunk epp
 	if (m_PlayerLetterDragged)
 	{
-		if (m_GameManager->PositionOnBoardView(x, y))
+		bool NoDrag = glm::length(m_LastDraggedPlayerLetterPos - glm::vec2(x, y)) < 4;
+
+		if (!NoDrag && m_GameManager->PositionOnBoardView(x, y))
 			m_GameManager->PlayerLetterClicked(m_DraggedPlayerLetterIdx);
 
 		m_PlayerLetterDragged = false;
 		m_RootGameScreen->GetChild(L"ui_dragged_player_letter_btn")->SetVisible(false);
+
+		if (!NoDrag)
+			return;
 	}
 
+	
 	CUIElement* Root = GetActiveScreenUIRoot();
 
 	for (size_t i = 0; i < Root->GetChildCount(); ++i)
 		if (Root->GetChild(i)->HandleEventAtPos(x, y, false))
 			return;
+			
 }
 
 

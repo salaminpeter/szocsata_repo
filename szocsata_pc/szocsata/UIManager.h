@@ -81,7 +81,7 @@ public:
 
 	CUIElement* GetActiveScreenUIRoot();
 
-	void SetDraggedPlayerLetter(bool letterDragged, unsigned letterIdx, const glm::vec2& letterTexPos);
+	void SetDraggedPlayerLetter(bool letterDragged, unsigned letterIdx, const glm::vec2& letterTexPos, const glm::vec2& startDragPos);
 
 private:
 
@@ -109,6 +109,8 @@ public: //TODO
 	CUIRankingsPanel* m_RankingsPanel;
 	CGridLayout* m_PlayerLettersLayout;
 	CGridLayout* m_ButtonsLayout;
+
+	glm::vec2 m_LastDraggedPlayerLetterPos;
 
 	size_t m_DraggedPlayerLetterIdx;
 	bool m_PlayerLetterDragged = false;

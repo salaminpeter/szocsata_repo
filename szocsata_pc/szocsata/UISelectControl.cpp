@@ -49,13 +49,10 @@ void CUISelectControl::SetIndex(size_t idx)
 
 bool CUISelectControl::HandleEventAtPos(int x, int y, bool touchEvent) 
 {
-	for (size_t i = 1; i < 3; ++i)
+	for (size_t i = 0; i < m_Children.size(); ++i)
 	{
-		if (m_Children[i]->PositionInElement(x, y))
-		{
-			m_Children[i]->HandleEvent();
+		if (m_Children[i]->HandleEventAtPos(x, y, touchEvent))
 			return true;
-		}
 	}
 
 	return false;

@@ -88,7 +88,7 @@ void CUIPlayerLetters::AddUILetters(unsigned count)
 	for (unsigned i = 0; i < count; ++i)
 	{
 		CUIElement* NewLetter;
-		AddChild(NewLetter = new CUIButton(nullptr, m_PositionData, m_ColorData, 0, 0, 0, 0, m_ViewPosX, m_ViewPosY, "playerletters.bmp", L""));
+		AddChild(NewLetter = new CUIButton(nullptr, m_PositionData, m_ColorData, 0, 0, 0, 0, m_ViewPosX, m_ViewPosY, "playerletters.bmp", L"", false));
 		NewLetter->SetEvent(m_GameManager, &CGameManager::PlayerLetterClicked, std::move(i));
 	}
 }
@@ -142,7 +142,7 @@ bool CUIPlayerLetters::HandleEventAtPos(int x, int y, bool touchEvent)
 				m_Children[i]->HandleEvent();
 			//player letter drag start
 			else
-				m_UIManager->SetDraggedPlayerLetter(true, i, m_Children[i]->GetTexturePos());
+				m_UIManager->SetDraggedPlayerLetter(true, i, m_Children[i]->GetTexturePos(), glm::vec2(x, y));
 				
 			return true;
 		}

@@ -3,7 +3,7 @@
 #include "Model.h"
 
 
-CUIElement::CUIElement(CUIElement* parent, const wchar_t* id, CModel* model, int x, int y, int w, int h, int vx, int vy, float tx, float ty) :
+CUIElement::CUIElement(CUIElement* parent, const wchar_t* id, CModel* model, int x, int y, int w, int h, int vx, int vy, float tx, float ty, bool ignoreReleaseEvent) :
 	m_Parent(parent),
 	m_Model(model),
 	m_XPosition(x),
@@ -13,7 +13,8 @@ CUIElement::CUIElement(CUIElement* parent, const wchar_t* id, CModel* model, int
 	m_ViewXPosition(vx),
 	m_ViewYPosition(vy),
 	m_TexturePosition(tx, ty),
-	m_ID(id)
+	m_ID(id),
+	m_IgnoreReleaseEvent(ignoreReleaseEvent)
 {
 	if (parent)
 		parent->AddChild(this);
