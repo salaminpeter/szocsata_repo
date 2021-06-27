@@ -47,7 +47,7 @@ void CUISelectControl::SetIndex(size_t idx)
 }
 
 
-bool CUISelectControl::HandleEventAtPos(int x, int y) 
+bool CUISelectControl::HandleEventAtPos(int x, int y, bool touchEvent) 
 {
 	for (size_t i = 1; i < 3; ++i)
 	{

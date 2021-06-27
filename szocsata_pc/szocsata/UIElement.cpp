@@ -45,6 +45,14 @@ void CUIElement::PositionElement()
 	//TODO childelements!
 }
 
+void CUIElement::SetPosition(float x, float y)
+{
+	m_XPosition = x;
+	m_YPosition = y;
+
+	PositionElement();
+}
+
 void CUIElement::SetPosAndSize(float x, float y, float w, float h)
 {
 	m_XPosition = x;

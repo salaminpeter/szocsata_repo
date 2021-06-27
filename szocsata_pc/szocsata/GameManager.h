@@ -63,7 +63,7 @@ public:
 	void HandleToucheEvent(int x, int y, bool onBoardView);
 	void HandleDragEvent(int x, int y);
 	void HandleDragFromBoardView(int x, int y);
-	void HandleDragFromUIView(int x, int y) {}
+	void HandleDragFromUIView(int x, int y);
 	void HandleZoomEvent(float dist, int origoX, int origoY);
 	void HandleZoomEvent(float dist);
 	void HandleZoomEndEvent();
@@ -108,7 +108,7 @@ public:
 
 	CRenderer* GetRenderer() {return m_Renderer;}
 	glm::vec2 GetViewPosition(const char* viewId);
-
+	bool PositionOnBoardView(int x, int y);
 
 	void EndPlayerTurnEvent();
 	void BackSpaceEvent();

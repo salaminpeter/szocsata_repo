@@ -5,12 +5,14 @@
 #include "SquareModelData.h"
 #include "Model.h"
 #include "GameManager.h"
+#include "UIManager.h"
 #include "Renderer.h"
 
 
-CUIPlayerLetters::CUIPlayerLetters(CGameManager* gameManager, CPlayer* player, CUIElement* parent, const wchar_t* id) :
+CUIPlayerLetters::CUIPlayerLetters(CGameManager* gameManager, CUIManager* uiManager, CPlayer* player, CUIElement* parent, const wchar_t* id) :
 	CUIElement(parent, id, nullptr, 0, 0, 0, 0, 0, 0, 0, 0),
 	m_GameManager(gameManager),
+	m_UIManager(uiManager),
 	m_Player(player)
 {
 	InitLetterTexPositions();
@@ -64,7 +66,7 @@ void CUIPlayerLetters::OrderLetterElements()
 }
 
 
-void CUIPlayerLetters::InitLetterElements(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, float ViewPosX, float ViewPosY, CGameManager* gameManager)
+void CUIPlayerLetters::InitLetterElements(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, float ViewPosX, float ViewPosY)
 {
 	m_PositionData = positionData;
 	m_ColorData = colorData;
@@ -129,13 +131,19 @@ void CUIPlayerLetters::ShowLetters(bool show)
 }
 
 
-bool CUIPlayerLetters::HandleEventAtPos(int x, int y)
+bool CUIPlayerLetters::HandleEventAtPos(int x, int y, bool touchEvent)
 {
 	for (size_t i = 0; i < m_Children.size(); ++i)
 	{
 		if (m_Children[i]->IsEnabled() && m_Children[i]->PositionInElement(x, y))
 		{
-			m_Children[i]->HandleEvent();
+			//player letter clicked
+			if (!touchEvent)
+				m_Children[i]->HandleEvent();
+			//player letter drag start
+			else
+				m_UIManager->SetDraggedPlayerLetter(true, i, m_Children[i]->GetTexturePos());
+				
 			return true;
 		}
 	}

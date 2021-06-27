@@ -27,15 +27,15 @@ void CUIPanel::AddButton(float x, float y, float w, float h, const char* texture
 	new CUIButton(this, m_PositionData, m_ColorData, x + m_XPosition, y + m_YPosition, w, h, m_ViewXPosition, m_ViewYPosition, textureID, id);
 }
 
-bool CUIPanel::HandleEventAtPos(int x, int y)
+bool CUIPanel::HandleEventAtPos(int x, int y, bool touchEvent)
 {
 	for (size_t i = 1; i < m_Children.size(); ++i)
 	{
 		CUIButton* Button = static_cast<CUIButton*>(m_Children[i]);
 
-		if (Button->PositionInElement(x, y))
+		if (m_Children[i]->PositionInElement(x, y))
 		{
-			Button->HandleEvent();
+			m_Children[i]->HandleEvent();
 			return true;
 		}
 	}

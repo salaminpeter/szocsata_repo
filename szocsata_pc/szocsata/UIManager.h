@@ -35,7 +35,7 @@ public:
 
 	//TODO destruktor delete !!!!!!!!!!!!!!!
 
-	void InitUIElements(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData);
+	void InitUIElements(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData8x8, std::shared_ptr<CSquareColorData> gridcolorData8x4);
 	void PositionUIElements();
 	void InitRankingsPanel();
 
@@ -49,6 +49,8 @@ public:
 	CUIPlayerLetters* GetPlayerLetters(size_t playerLetterIdx);
 
 	void HandleTouchEvent(int x, int y);
+	void HandleReleaseEvent(int x, int y);
+	void HandleDragEvent(int x, int y);
 
 	void SetText(const wchar_t* id, const wchar_t* text);
 	void ShowMessageBox(int type, const wchar_t* text);
@@ -79,12 +81,14 @@ public:
 
 	CUIElement* GetActiveScreenUIRoot();
 
+	void SetDraggedPlayerLetter(bool letterDragged, unsigned letterIdx, const glm::vec2& letterTexPos);
+
 private:
 
 	CUIText* GetText(const wchar_t* id) const;
 	bool IsGameButton(const CUIButton* button) const;
 
-public:
+public: //TODO
 
 	CGameManager* m_GameManager;
 	CTimerEventManager* m_TimerEventManager;
@@ -106,6 +110,8 @@ public:
 	CGridLayout* m_PlayerLettersLayout;
 	CGridLayout* m_ButtonsLayout;
 
+	size_t m_DraggedPlayerLetterIdx;
+	bool m_PlayerLetterDragged = false;
 	bool m_GameButtonsDisabled = false;
 	bool m_StartScreenActive = true;
 };

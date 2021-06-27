@@ -41,8 +41,8 @@ void CUIManager::AddText(CUIElement* parent, const wchar_t* text, std::shared_pt
 void CUIManager::AddPlayerLetters(CPlayer* player, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData)
 {
 	glm::vec2 ViewPos = m_GameManager->GetViewPosition("view_ortho");
-	m_UIPlayerLetters.push_back(new CUIPlayerLetters(m_GameManager, player,  m_RootGameScreen, player->GetName().c_str()));
-	m_UIPlayerLetters.back()->InitLetterElements(positionData, colorData, ViewPos.x, ViewPos.y, m_GameManager);
+	m_UIPlayerLetters.push_back(new CUIPlayerLetters(m_GameManager, this, player,  m_RootGameScreen, player->GetName().c_str()));
+	m_UIPlayerLetters.back()->InitLetterElements(positionData, colorData, ViewPos.x, ViewPos.y);
 }
 
 void CUIManager::PositionPlayerLetter(const std::wstring& playerId, size_t letterIdx, float x, float y, float size)
@@ -91,9 +91,11 @@ void CUIManager::PositionUIElements()
 
 	PositionGameButtons();
 
+	CUIElement* DraggedPlayerLetter = m_RootGameScreen->GetChild(L"ui_dragged_player_letter_btn");
+	DraggedPlayerLetter->SetPosAndSize(0, 0, m_PlayerLettersLayout->GetElemSize(), m_PlayerLettersLayout->GetElemSize());
 }
 
-void CUIManager::InitUIElements(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData)
+void CUIManager::InitUIElements(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData8x8, std::shared_ptr<CSquareColorData> gridcolorData8x4)
 {
 	glm::vec2 ViewPos = m_GameManager->GetViewPosition("view_ortho");
 	m_RootStartScreen = new CUIElement(nullptr, L"ui_start_screen_root", nullptr, 0.f, 0.f, m_GameManager->m_SurfaceWidth, m_GameManager->m_SurfaceHeigh, ViewPos.x, ViewPos.y, 0.f, 0.f);
@@ -110,53 +112,53 @@ void CUIManager::InitUIElements(std::shared_ptr<CSquarePositionData> positionDat
 	AddButton(m_RootGameScreen, positionData, colorData, 0, 0, 0, 0, "view_ortho", "topviewbutton.bmp", L"ui_topview_btn");
 	m_UIButtons.back()->SetEvent(m_GameManager, &CGameManager::TopViewEvent);
 
-	AddText(m_RootGameScreen, L"", positionData, gridcolorData, m_GameManager->m_SurfaceWidth - 150, m_GameManager->m_SurfaceHeigh - 30, 30, 30, "view_ortho", "font.bmp", L"ui_fps_text");
-//	AddText(m_RootGameScreen, L"", positionData, gridcolorData, 0, 0, 40, 40, "view_ortho", "font.bmp", L"ui_computer_score");
-//	AddText(m_RootGameScreen, L"", positionData, gridcolorData, 0, 0, 40, 40, "view_ortho", "font.bmp", L"ui_player_score");
+	AddText(m_RootGameScreen, L"", positionData, gridcolorData8x8, m_GameManager->m_SurfaceWidth - 150, m_GameManager->m_SurfaceHeigh - 30, 30, 30, "view_ortho", "font.bmp", L"ui_fps_text");
 
-	m_ScorePanel = new CUIScorePanel(m_RootGameScreen, m_GameManager, L"ui_score_panel", positionData, colorData, gridcolorData, m_GameManager->m_SurfaceWidth - 200, m_GameManager->m_SurfaceHeigh - 500, 350, 300, ViewPos.x, ViewPos.y, "panel.bmp", 0.f, 0.f);
+	m_ScorePanel = new CUIScorePanel(m_RootGameScreen, m_GameManager, L"ui_score_panel", positionData, colorData, gridcolorData8x8, m_GameManager->m_SurfaceWidth - 200, m_GameManager->m_SurfaceHeigh - 500, 350, 300, ViewPos.x, ViewPos.y, "panel.bmp", 0.f, 0.f);
 
-	m_UITileCounter = new CUITileCounter(m_RootGameScreen, positionData, colorData, gridcolorData, m_GameManager->m_SurfaceHeigh + (m_GameManager->m_SurfaceWidth - m_GameManager->m_SurfaceHeigh) / 3, 0, 150, 150, ViewPos.x, ViewPos.y);
+	m_UITileCounter = new CUITileCounter(m_RootGameScreen, positionData, colorData, gridcolorData8x8, m_GameManager->m_SurfaceHeigh + (m_GameManager->m_SurfaceWidth - m_GameManager->m_SurfaceHeigh) / 3, 0, 150, 150, ViewPos.x, ViewPos.y);
 
-	m_MessageBoxOk = new CUIMessageBox(positionData, colorData, gridcolorData, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh / 2, 600, 400, ViewPos.x, ViewPos.y, CUIMessageBox::Ok);
-	m_Toast = new CUIToast(1000, m_TimerEventManager, this, positionData, colorData, gridcolorData, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh / 2, 600, 200, ViewPos.x, ViewPos.y, CUIMessageBox::NoButton);
+	m_MessageBoxOk = new CUIMessageBox(positionData, colorData, gridcolorData8x8, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh / 2, 600, 400, ViewPos.x, ViewPos.y, CUIMessageBox::Ok);
+	m_Toast = new CUIToast(1000, m_TimerEventManager, this, positionData, colorData, gridcolorData8x8, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh / 2, 600, 200, ViewPos.x, ViewPos.y, CUIMessageBox::NoButton);
 
 	m_RootGameEndScreen = new CUIElement(nullptr, L"ui_game_end_root", nullptr, 0.f, 0.f, m_GameManager->m_SurfaceWidth, m_GameManager->m_SurfaceHeigh, ViewPos.x, ViewPos.y, 0.f, 0.f);
-	m_RankingsPanel = new CUIRankingsPanel(m_RootGameEndScreen, m_GameManager, L"ui_rankings_panel", positionData, colorData, gridcolorData, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh / 2, 600, 1000, ViewPos.x, ViewPos.y, "panel.bmp", 0.f, 0.f);
+	m_RankingsPanel = new CUIRankingsPanel(m_RootGameEndScreen, m_GameManager, L"ui_rankings_panel", positionData, colorData, gridcolorData8x8, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh / 2, 600, 1000, ViewPos.x, ViewPos.y, "panel.bmp", 0.f, 0.f);
 	
-	AddText(m_RootStartScreen, L"nehézség", positionData, gridcolorData, m_GameManager->m_SurfaceWidth / 2 - 200, m_GameManager->m_SurfaceHeigh - (m_GameManager->m_SurfaceHeigh / 6 - 80), 40, 40, "view_ortho", "font.bmp", L"ui_select_difficulty_text");
-	AddSelectControl(m_RootStartScreen, positionData, colorData, gridcolorData, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh - (m_GameManager->m_SurfaceHeigh / 6), 400, 80, "view_ortho", "selectioncontrol.bmp", L"ui_select_difficulty");
+	AddText(m_RootStartScreen, L"nehézség", positionData, gridcolorData8x8, m_GameManager->m_SurfaceWidth / 2 - 200, m_GameManager->m_SurfaceHeigh - (m_GameManager->m_SurfaceHeigh / 6 - 80), 40, 40, "view_ortho", "font.bmp", L"ui_select_difficulty_text");
+	AddSelectControl(m_RootStartScreen, positionData, colorData, gridcolorData8x8, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh - (m_GameManager->m_SurfaceHeigh / 6), 400, 80, "view_ortho", "selectioncontrol.bmp", L"ui_select_difficulty");
 	m_SelectControls.back()->AddOption(L"könnyű");
 	m_SelectControls.back()->AddOption(L"normál");
 	m_SelectControls.back()->AddOption(L"nehéz");
 	m_SelectControls.back()->AddOption(L"lehetetlen");
 	m_SelectControls.back()->SetIndex(1);
 
-	AddText(m_RootStartScreen, L"pálya méret", positionData, gridcolorData, m_GameManager->m_SurfaceWidth / 2 - 200, m_GameManager->m_SurfaceHeigh - (m_GameManager->m_SurfaceHeigh / 6 + 140), 40, 40, "view_ortho", "font.bmp", L"ui_select_board_size_text");
-	AddSelectControl(m_RootStartScreen, positionData, colorData, gridcolorData, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh - (m_GameManager->m_SurfaceHeigh / 6 + 220), 400, 80, "view_ortho", "selectioncontrol.bmp", L"ui_select_board_size");
+	AddText(m_RootStartScreen, L"pálya méret", positionData, gridcolorData8x8, m_GameManager->m_SurfaceWidth / 2 - 200, m_GameManager->m_SurfaceHeigh - (m_GameManager->m_SurfaceHeigh / 6 + 140), 40, 40, "view_ortho", "font.bmp", L"ui_select_board_size_text");
+	AddSelectControl(m_RootStartScreen, positionData, colorData, gridcolorData8x8, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh - (m_GameManager->m_SurfaceHeigh / 6 + 220), 400, 80, "view_ortho", "selectioncontrol.bmp", L"ui_select_board_size");
 	m_SelectControls.back()->AddOption(L"7-7");
 	m_SelectControls.back()->AddOption(L"8-8");
 	m_SelectControls.back()->AddOption(L"9-9");
 	m_SelectControls.back()->AddOption(L"10-10");
 	m_SelectControls.back()->SetIndex(2);
 
-	AddText(m_RootStartScreen, L"játékosok száma", positionData, gridcolorData, m_GameManager->m_SurfaceWidth / 2 - 200, m_GameManager->m_SurfaceHeigh - (m_GameManager->m_SurfaceHeigh / 6 + 360), 40, 40, "view_ortho", "font.bmp", L"ui_select_player_count_text");
-	AddSelectControl(m_RootStartScreen, positionData, colorData, gridcolorData, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh - (m_GameManager->m_SurfaceHeigh / 6 + 440), 400, 80, "view_ortho", "selectioncontrol.bmp", L"ui_select_player_count");
+	AddText(m_RootStartScreen, L"játékosok száma", positionData, gridcolorData8x8, m_GameManager->m_SurfaceWidth / 2 - 200, m_GameManager->m_SurfaceHeigh - (m_GameManager->m_SurfaceHeigh / 6 + 360), 40, 40, "view_ortho", "font.bmp", L"ui_select_player_count_text");
+	AddSelectControl(m_RootStartScreen, positionData, colorData, gridcolorData8x8, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh - (m_GameManager->m_SurfaceHeigh / 6 + 440), 400, 80, "view_ortho", "selectioncontrol.bmp", L"ui_select_player_count");
 	m_SelectControls.back()->AddOption(L"1");
 	m_SelectControls.back()->AddOption(L"2");
 	m_SelectControls.back()->AddOption(L"3");
 	m_SelectControls.back()->AddOption(L"4");
 	m_SelectControls.back()->SetIndex(0);
 
-	AddText(m_RootStartScreen, L"gépi játékos", positionData, gridcolorData, m_GameManager->m_SurfaceWidth / 2 - 200, m_GameManager->m_SurfaceHeigh - (m_GameManager->m_SurfaceHeigh / 6 + 580), 40, 40, "view_ortho", "font.bmp", L"ui_select_computer_opponent_text");
-	AddSelectControl(m_RootStartScreen, positionData, colorData, gridcolorData, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh - (m_GameManager->m_SurfaceHeigh / 6 + 660), 400, 80, "view_ortho", "selectioncontrol.bmp", L"ui_select_computer_opponent");
+	AddText(m_RootStartScreen, L"gépi játékos", positionData, gridcolorData8x8, m_GameManager->m_SurfaceWidth / 2 - 200, m_GameManager->m_SurfaceHeigh - (m_GameManager->m_SurfaceHeigh / 6 + 580), 40, 40, "view_ortho", "font.bmp", L"ui_select_computer_opponent_text");
+	AddSelectControl(m_RootStartScreen, positionData, colorData, gridcolorData8x8, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh - (m_GameManager->m_SurfaceHeigh / 6 + 660), 400, 80, "view_ortho", "selectioncontrol.bmp", L"ui_select_computer_opponent");
 	m_SelectControls.back()->AddOption(L"be");
 	m_SelectControls.back()->AddOption(L"ki");
 	m_SelectControls.back()->SetIndex(0);
 
-
 	AddButton(m_RootStartScreen, positionData, colorData, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh - (m_GameManager->m_SurfaceHeigh / 8 + 820), 400, 100, "view_ortho", "okbutton.bmp", L"ui_start_game_btn");
 	m_UIButtons.back()->SetEvent(m_GameManager, &CGameManager::FinishRenderInit);
+
+	AddButton(m_RootGameScreen, positionData, gridcolorData8x4, 0, 0, 0, 0, "view_ortho", "playerletters.bmp", L"ui_dragged_player_letter_btn");
+	m_UIButtons.back()->SetVisible(false);
 }
 
 void CUIManager::UpdateScorePanel()
@@ -216,8 +218,6 @@ void CUIManager::PositionGameButtons()
 	}
 
 	auto GridPos = m_ButtonsLayout->GetGridPosition(0);
-//	m_RootGameScreen->GetChild(L"ui_computer_score")->SetPosAndSize(GridPos.m_Left, GridPos.m_Top - 100, 40, 40);
-//	m_RootGameScreen->GetChild(L"ui_player_score")->SetPosAndSize(GridPos.m_Left, GridPos.m_Top - 50, 40, 40);
 	((CUITileCounter*)m_RootGameScreen->GetChild(L"ui_tile_counter"))->SetPositionAndSize(m_GameManager->m_SurfaceHeigh + (m_GameManager->m_SurfaceWidth - m_GameManager->m_SurfaceHeigh) / 2, GridPos.m_Top - 300, 150, 150);
 }
 
@@ -328,22 +328,82 @@ CUIElement* CUIManager::GetActiveScreenUIRoot()
 	return Root;
 }
 
+void CUIManager::SetDraggedPlayerLetter(bool letterDragged, unsigned letterIdx, const glm::vec2& letterTexPos)
+{
+	m_PlayerLetterDragged = letterDragged;
+	m_DraggedPlayerLetterIdx = letterIdx;
+
+	if (letterDragged)
+	{
+		CUIElement* DraggedPlayerLetter = m_RootGameScreen->GetChild(L"ui_dragged_player_letter_btn");
+		float TexX = letterTexPos.x / 8.f;
+		float TexY = letterTexPos.y / 4.f;
+		DraggedPlayerLetter->SetTexturePosition(glm::vec2(TexX, TexY));
+	}
+}
+
 
 void CUIManager::HandleTouchEvent(int x, int y)
 {
 	//ha van aktiv message box csak arra kezeljunk eventeket
 	if (CUIMessageBox::m_ActiveMessageBox)
 	{
-		CUIMessageBox::m_ActiveMessageBox->HandleEventAtPos(x, y);
+		CUIMessageBox::m_ActiveMessageBox->HandleEventAtPos(x, y, true);
 		return;
 	}
 	
 	CUIElement* Root = GetActiveScreenUIRoot();
 
 	for (size_t i = 0; i < Root->GetChildCount(); ++i)
-		if (Root->GetChild(i)->HandleEventAtPos(x, y))
+		if (Root->GetChild(i)->HandleEventAtPos(x, y, true))
 			return;
 }
+
+void CUIManager::HandleDragEvent(int x, int y)
+{
+	if (m_PlayerLetterDragged)
+	{
+		CUIElement* DraggedPlayerLetter = m_RootGameScreen->GetChild(L"ui_dragged_player_letter_btn");
+		DraggedPlayerLetter->SetVisible(true);
+
+		float XPos = x - DraggedPlayerLetter->GetWidth() / 2.f;
+		float YPos = y + DraggedPlayerLetter->GetHeight() / 2.f;
+
+		DraggedPlayerLetter->SetPosition(XPos, YPos);
+
+		if (m_GameManager->PositionOnBoardView(XPos, YPos))
+		{
+			TPosition p = m_GameManager->GetRenderer()->GetTilePos(XPos, YPos);
+
+			if (p.x != -1)
+				m_GameManager->GetRenderer()->SelectField(p.x, p.y);
+		}
+	}
+}
+
+void CUIManager::HandleReleaseEvent(int x, int y)
+{
+	//ha van aktiv message box nem kell release eventeket kezelnunk
+	if (CUIMessageBox::m_ActiveMessageBox)
+		return;
+
+	//ha egy player lettert draggelunk epp
+	if (m_PlayerLetterDragged)
+	{
+		if (m_GameManager->PositionOnBoardView(x, y))
+			m_GameManager->PlayerLetterClicked(m_DraggedPlayerLetterIdx);
+
+		m_PlayerLetterDragged = false;
+		m_RootGameScreen->GetChild(L"ui_dragged_player_letter_btn")->SetVisible(false);
+	}
+
+	CUIElement* Root = GetActiveScreenUIRoot();
+
+	for (size_t i = 0; i < Root->GetChildCount(); ++i)
+		if (Root->GetChild(i)->HandleEventAtPos(x, y, false))
+			return;
+}
+
 
 void CUIManager::SetTileCounterValue(unsigned count)
 {

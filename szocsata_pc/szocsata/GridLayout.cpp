@@ -95,3 +95,11 @@ int CGridLayout::GetGridIdxAtPos(int x, int y)
 
 	return -1;
 }
+
+float CGridLayout::GetElemSize()
+{
+	if (!m_GridPositions.size())
+		return -1;
+
+	return m_GridPositions[0].m_Right - m_GridPositions[0].m_Left;
+}

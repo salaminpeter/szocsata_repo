@@ -761,10 +761,8 @@ void CGameManager::PositionUIElements()
 void CGameManager::InitUIManager()
 {
 	m_UIManager = new CUIManager(this, m_TimerEventManager);
-	m_UIManager->InitUIElements(m_Renderer->GetSquarePositionData(), m_Renderer->GetSquareColorData(), m_Renderer->GetSquareColorGridData8x8());
+	m_UIManager->InitUIElements(m_Renderer->GetSquarePositionData(), m_Renderer->GetSquareColorData(), m_Renderer->GetSquareColorGridData8x8(), m_Renderer->GetSquareColorGridData8x4());
 	m_UIManager->SetText(L"ui_fps_text", L"fps : 0");
-//	m_UIManager->SetText(L"ui_computer_score", L"computer : 0");
-//	m_UIManager->SetText(L"ui_player_score", L"jatekos : 0");
 	m_UIManager->SetTileCounterValue(m_LetterPool.GetRemainingLetterCount());
 	m_TileAnimations->SetUIManager(m_UIManager);
 }
@@ -794,12 +792,15 @@ glm::vec2 CGameManager::GetViewPosition(const char* viewId)
 
 void CGameManager::HandleReleaseEvent(int x, int y)
 {
+	int WindowHeigth;
+	CConfig::GetConfig("window_height", WindowHeigth);
+	
     m_TouchX = -1;
 
 	if (m_LastTouchOnBoardView)
-		HandleReleaseEventFromBoardView(x, y);
+		HandleReleaseEventFromBoardView(x, WindowHeigth - y);
 	else
-		HandleReleaseEventFromUIView(x, y);
+		HandleReleaseEventFromUIView(x, WindowHeigth - y);
 }
 
 void CGameManager::HandleReleaseEventFromBoardView(int x, int y)
@@ -815,7 +816,7 @@ void CGameManager::HandleReleaseEventFromBoardView(int x, int y)
 	if (Offset > 3) //TODO configbol
 		return;
 
-	TPosition p = m_Renderer->GetTilePos(m_LastTouchX, m_SurfaceHeigh - m_LastTouchY);
+	TPosition p = m_Renderer->GetTilePos(m_LastTouchX, m_LastTouchY);
 
 	if (p.x != -1)
 		m_Renderer->SelectField(p.x, p.y);
@@ -824,6 +825,7 @@ void CGameManager::HandleReleaseEventFromBoardView(int x, int y)
 void CGameManager::HandleReleaseEventFromUIView(int x, int y)
 {
 	m_Dragged = false;
+	m_UIManager->HandleReleaseEvent(x, y);
 }
 
 void CGameManager::UndoAllSteps()
@@ -861,6 +863,13 @@ void CGameManager::UndoLastStep()
 	m_PlayerSteps.pop_back();
 }
 
+bool CGameManager::PositionOnBoardView(int x, int y)
+{
+	int WindowHeigth;
+	CConfig::GetConfig("window_height", WindowHeigth);
+
+	return x < WindowHeigth;
+}
 
 void CGameManager::HandleToucheEvent(int x, int y, bool onBoardView)
 {
@@ -874,7 +883,7 @@ void CGameManager::HandleToucheEvent(int x, int y, bool onBoardView)
 		m_Dragged = true;
 		m_LastTouchOnBoardView = onBoardView;
 		m_LastTouchX = x;
-		m_LastTouchY = y;
+		m_LastTouchY = WindowHeigth - y;
 	}
 }
 
@@ -882,6 +891,10 @@ void CGameManager::HandleDragEvent(int x, int y)
 {
 	if (GetGameState() == OnStartScreen)
 		return;
+
+	int WindowHeigth;
+	CConfig::GetConfig("window_height", WindowHeigth);
+	y = WindowHeigth - y;
 
 	if (m_TouchX == -1)
 	{
@@ -901,6 +914,15 @@ void CGameManager::HandleDragEvent(int x, int y)
 	m_TouchY = y;
 }
 
+void CGameManager::HandleDragFromUIView(int x, int y) 
+{
+	if (GetGameState() == OnStartScreen)
+		return;
+
+	if (m_Dragged)
+		m_UIManager->HandleDragEvent(x, y);
+}
+
 void CGameManager::HandleDragFromBoardView(int x, int y)
 {
 	if (GetGameState() == OnStartScreen)
@@ -909,7 +931,7 @@ void CGameManager::HandleDragFromBoardView(int x, int y)
 	if (m_Dragged)
 	{
 		float ZRotAngle = float(x - m_TouchX) / 3.;
-		float YRotAngle = float(y - m_TouchY) / 3.;
+		float YRotAngle = float(m_TouchY - y) / 3.;
 
 		m_Renderer->RotateCamera(-ZRotAngle, YRotAngle);
 	}
@@ -1007,7 +1029,6 @@ void CGameManager::BackSpaceEvent()
 
 void CGameManager::TopViewEvent()
 {
-//	m_Renderer->SetTopView(true);
 	m_CameraAnimationManager->StartFitToScreenAnimation();
 }
 

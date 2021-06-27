@@ -31,8 +31,13 @@ public:
 	void AddChild(CUIElement* child);
 	void RemoveLastChild();
 	void SetPosAndSize(float x, float y, float w, float h);
+	void SetPosition(float x, float y);
+
 	CModel* GetModel();
 	CModel* GetModel(size_t idx);
+
+	float GetHeight() { return m_Height; }
+	float GetWidth() { return m_Width; }
 
 	glm::vec2 GetTexturePos() {
 		return m_TexturePosition;
@@ -54,7 +59,7 @@ public:
 	bool IsEnabled() { return m_Enabled; }
 
 	virtual void Render(CRenderer* renderer) {};
-	virtual bool HandleEventAtPos(int x, int y) { return false; }
+	virtual bool HandleEventAtPos(int x, int y, bool touchEvent) { return false; }
 
 
 protected:

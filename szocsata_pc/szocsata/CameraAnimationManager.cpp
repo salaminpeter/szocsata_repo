@@ -57,6 +57,7 @@ void CCameraAnimationManager::AnimateCamera(double& timeFromStart, double& timeF
 	{
 		m_GameManager->GetRenderer()->ResetZoom();
 		m_TimerEventManager->StopTimer("fit_to_view_animation");
+		m_GameManager->GetRenderer()->CalculateScreenSpaceGrid();
 	}
 }
 

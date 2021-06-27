@@ -21,6 +21,7 @@ public:
 
 	void AllignGrid(int gridCount, bool recalcGridSize);
 	int GetGridIdxAtPos(int x, int y);
+	float GetElemSize();
 	
 	const TGridPosition& GetGridPosition(unsigned idx) const {return m_GridPositions[idx];}
 
