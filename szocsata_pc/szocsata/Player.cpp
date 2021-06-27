@@ -66,6 +66,12 @@ void CPlayer::ArrangeLetters()
 		m_Letters.pop_back();
 }
 
+int CPlayer::GetUnUsedLetterCount()
+{
+	return m_Letters.size() - GetUsedLetterCount();
+}
+
+
 int CPlayer::GetUsedLetterCount()
 {
 	int Count = 0;
@@ -79,19 +85,26 @@ int CPlayer::GetUsedLetterCount()
 	return Count;	
 }
 
-int CPlayer::RemoveLetter(wchar_t c)
+void CPlayer::RemoveLetter(size_t idx)
 {
-	for (size_t i = 0; i < m_Letters.size(); ++i)
+	m_Letters[idx] = L' ';
+}
+
+void CPlayer::RemoveLetters(const std::wstring& letters)
+{
+	for (size_t j = 0; j < letters.size(); ++j)
 	{
-		if (m_Letters[i] == c)
+		for (size_t i = 0; i < m_Letters.size(); ++i)
 		{
-			m_Letters[i] = L' ';
-			return i;
+			if (m_Letters.at(i) == letters.at(j))
+			{
+				m_Letters[i] = L' ';
+				break;
+			}
 		}
 	}
-
-	return -1;
 }
+
 
 void CPlayer::SetLetter(int letterIdx, wchar_t c)
 {

@@ -31,7 +31,7 @@ class CGameManager
 {
 public:
 	
-	enum EGameState { NextTurn, WaintingOnAnimation, WaitingForMessageBox, TurnInProgress, GameEnded, BeginGame, OnStartScreen, OnRankingsScreen, None};
+	enum EGameState { NextTurn, WaintingOnAnimation, WaitingForMessageBox, TurnInProgress, GameAboutToEnd, GameEnded, BeginGame, OnStartScreen, OnRankingsScreen, None};
 
 	CGameManager();
 
@@ -79,6 +79,7 @@ public:
 	void UndoAllSteps();
 	void DealCurrPlayerLetters();
 	void PlayerLetterClicked(unsigned letterIdx);
+	void EndGameAfterLastPass();
 	void GameLoop();
 	void SetGameState(int state);
 	void DealComputerLettersEvent();
@@ -97,6 +98,7 @@ public:
 	CWordTree::TNode* WordTreeRoot(wchar_t c) {return m_DataBase.GetWordTreeRoot(c);}
 	TField& Board(int x, int y) {return m_GameBoard(x, y);}
 	std::wstring CurrentPlayerName() {return m_CurrentPlayer ? m_CurrentPlayer->GetName() : L"";}
+	int GetPlayerCount() {return m_Players.size();}
 
 #ifdef PLATFORM_ANDROID
 	void SetRendererObject(jobject obj) {

@@ -17,10 +17,12 @@ public:
 	void ArrangeLetters();
 	void SetLetterUsed(int letterIdx, bool used);
 	bool IsLetterUsed(int letterIdx);
+	int GetUnUsedLetterCount();
 	int GetUsedLetterCount();
 	int GetUsedLetterIdx(wchar_t c);
 	void SetLetter(int letterIdx, wchar_t c);
-	int RemoveLetter(wchar_t c);
+	void RemoveLetter(size_t idx);
+	void RemoveLetters(const std::wstring& letters);
 
 	int GetLetterCount() {return m_Letters.size();}
 	void AddScore(int score) {m_Score += score;}

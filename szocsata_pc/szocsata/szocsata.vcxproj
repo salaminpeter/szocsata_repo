@@ -197,6 +197,7 @@
     <ClInclude Include="UIPanel.h" />
     <ClInclude Include="UIPlayerLetters.h" />
     <ClInclude Include="UIRankingsPanel.h" />
+    <ClInclude Include="UIScorePanel.h" />
     <ClInclude Include="UISelectControl.h" />
     <ClInclude Include="UIText.h" />
     <ClInclude Include="UITileCounter.h" />
@@ -255,6 +256,7 @@
     <ClCompile Include="UIPanel.cpp" />
     <ClCompile Include="UIPlayerLetters.cpp" />
     <ClCompile Include="UIRankingsPanel.cpp" />
+    <ClCompile Include="UIScorePanel.cpp" />
     <ClCompile Include="UISelectControl.cpp" />
     <ClCompile Include="UIText.cpp" />
     <ClCompile Include="UITileCounter.cpp" />

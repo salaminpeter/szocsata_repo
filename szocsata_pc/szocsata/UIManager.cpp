@@ -9,6 +9,7 @@
 #include "UITileCounter.h"
 #include "UIMessageBox.h"
 #include "UIRankingsPanel.h"
+#include "UIScorePanel.h"
 #include "UISelectControl.h"
 #include "GridLayout.h"
 #include "GameManager.h"
@@ -110,10 +111,12 @@ void CUIManager::InitUIElements(std::shared_ptr<CSquarePositionData> positionDat
 	m_UIButtons.back()->SetEvent(m_GameManager, &CGameManager::TopViewEvent);
 
 	AddText(m_RootGameScreen, L"", positionData, gridcolorData, m_GameManager->m_SurfaceWidth - 150, m_GameManager->m_SurfaceHeigh - 30, 30, 30, "view_ortho", "font.bmp", L"ui_fps_text");
-	AddText(m_RootGameScreen, L"", positionData, gridcolorData, 0, 0, 40, 40, "view_ortho", "font.bmp", L"ui_computer_score");
-	AddText(m_RootGameScreen, L"", positionData, gridcolorData, 0, 0, 40, 40, "view_ortho", "font.bmp", L"ui_player_score");
+//	AddText(m_RootGameScreen, L"", positionData, gridcolorData, 0, 0, 40, 40, "view_ortho", "font.bmp", L"ui_computer_score");
+//	AddText(m_RootGameScreen, L"", positionData, gridcolorData, 0, 0, 40, 40, "view_ortho", "font.bmp", L"ui_player_score");
 
-	m_UITileCounter = new CUITileCounter(m_RootGameScreen, positionData, colorData, gridcolorData, m_GameManager->m_SurfaceHeigh + (m_GameManager->m_SurfaceWidth - m_GameManager->m_SurfaceHeigh) / 2, 0, 150, 150, ViewPos.x, ViewPos.y);
+	m_ScorePanel = new CUIScorePanel(m_RootGameScreen, m_GameManager, L"ui_score_panel", positionData, colorData, gridcolorData, m_GameManager->m_SurfaceWidth - 200, m_GameManager->m_SurfaceHeigh - 500, 350, 300, ViewPos.x, ViewPos.y, "panel.bmp", 0.f, 0.f);
+
+	m_UITileCounter = new CUITileCounter(m_RootGameScreen, positionData, colorData, gridcolorData, m_GameManager->m_SurfaceHeigh + (m_GameManager->m_SurfaceWidth - m_GameManager->m_SurfaceHeigh) / 3, 0, 150, 150, ViewPos.x, ViewPos.y);
 
 	m_MessageBoxOk = new CUIMessageBox(positionData, colorData, gridcolorData, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh / 2, 600, 400, ViewPos.x, ViewPos.y, CUIMessageBox::Ok);
 	m_Toast = new CUIToast(1000, m_TimerEventManager, this, positionData, colorData, gridcolorData, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh / 2, 600, 200, ViewPos.x, ViewPos.y, CUIMessageBox::NoButton);
@@ -145,9 +148,27 @@ void CUIManager::InitUIElements(std::shared_ptr<CSquarePositionData> positionDat
 	m_SelectControls.back()->AddOption(L"4");
 	m_SelectControls.back()->SetIndex(0);
 
-	AddButton(m_RootStartScreen, positionData, colorData, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh - (m_GameManager->m_SurfaceHeigh / 8 + 700), 400, 200, "view_ortho", "okbutton.bmp", L"ui_start_game_btn");
+	AddText(m_RootStartScreen, L"gépi játékos", positionData, gridcolorData, m_GameManager->m_SurfaceWidth / 2 - 200, m_GameManager->m_SurfaceHeigh - (m_GameManager->m_SurfaceHeigh / 6 + 580), 40, 40, "view_ortho", "font.bmp", L"ui_select_computer_opponent_text");
+	AddSelectControl(m_RootStartScreen, positionData, colorData, gridcolorData, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh - (m_GameManager->m_SurfaceHeigh / 6 + 660), 400, 80, "view_ortho", "selectioncontrol.bmp", L"ui_select_computer_opponent");
+	m_SelectControls.back()->AddOption(L"be");
+	m_SelectControls.back()->AddOption(L"ki");
+	m_SelectControls.back()->SetIndex(0);
+
+
+	AddButton(m_RootStartScreen, positionData, colorData, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh - (m_GameManager->m_SurfaceHeigh / 8 + 820), 400, 100, "view_ortho", "okbutton.bmp", L"ui_start_game_btn");
 	m_UIButtons.back()->SetEvent(m_GameManager, &CGameManager::FinishRenderInit);
 }
+
+void CUIManager::UpdateScorePanel()
+{
+	m_ScorePanel->Update();
+}
+
+void CUIManager::InitScorePanel()
+{
+	m_ScorePanel->Init();
+}
+
 
 int CUIManager::GetBoardSize()
 {
@@ -157,6 +178,11 @@ int CUIManager::GetBoardSize()
 int CUIManager::GetDifficulty() 
 { 
 	return static_cast<CUISelectControl*>(m_RootStartScreen->GetChild(L"ui_select_difficulty"))->GetIndex();
+}
+
+bool CUIManager::ComputerOpponentEnabled()
+{
+	return static_cast<CUISelectControl*>(m_RootStartScreen->GetChild(L"ui_select_computer_opponent"))->GetIndex() == 0;
 }
 
 int CUIManager::GetPlayerCount()
@@ -190,8 +216,8 @@ void CUIManager::PositionGameButtons()
 	}
 
 	auto GridPos = m_ButtonsLayout->GetGridPosition(0);
-	m_RootGameScreen->GetChild(L"ui_computer_score")->SetPosAndSize(GridPos.m_Left, GridPos.m_Top - 100, 40, 40);
-	m_RootGameScreen->GetChild(L"ui_player_score")->SetPosAndSize(GridPos.m_Left, GridPos.m_Top - 50, 40, 40);
+//	m_RootGameScreen->GetChild(L"ui_computer_score")->SetPosAndSize(GridPos.m_Left, GridPos.m_Top - 100, 40, 40);
+//	m_RootGameScreen->GetChild(L"ui_player_score")->SetPosAndSize(GridPos.m_Left, GridPos.m_Top - 50, 40, 40);
 	((CUITileCounter*)m_RootGameScreen->GetChild(L"ui_tile_counter"))->SetPositionAndSize(m_GameManager->m_SurfaceHeigh + (m_GameManager->m_SurfaceWidth - m_GameManager->m_SurfaceHeigh) / 2, GridPos.m_Top - 300, 150, 150);
 }
 
@@ -211,15 +237,19 @@ void CUIManager::PositionPlayerLetters(const std::wstring& playerId)
 	}
 }
 
+void CUIManager::ShowToast(const wchar_t* text, bool endGame)
+{
+	CUIMessageBox::m_ActiveMessageBox = m_Toast;
+	ShowMessageBox(CUIMessageBox::NoButton, text);
+	m_Toast->SetFinishGame(endGame);
+	m_Toast->StartTimer();
+}
+
+
 void CUIManager::ShowMessageBox(int type, const wchar_t* text)
 {
 	if (type == CUIMessageBox::Ok)
 		CUIMessageBox::m_ActiveMessageBox = m_MessageBoxOk;
-	else if (type == CUIMessageBox::NoButton)
-	{
-		CUIMessageBox::m_ActiveMessageBox = m_Toast;
-		m_Toast->StartTimer();
-	}
 
 	CUIMessageBox::m_ActiveMessageBox->SetText(text);
 	m_GameManager->SetGameState(CGameManager::WaitingForMessageBox);
@@ -254,8 +284,14 @@ void CUIManager::CloseToast(double& timeFromStart, double& timeFromPrev)
 	if (1000 < timeFromStart)
 	{
 		m_TimerEventManager->StopTimer("ui_toast_id");
-		ShowMessageBox(CUIMessageBox::Ok, m_GameManager->GetNextPlayerName().c_str());
-		EnableGameButtons(true);
+
+		if (!m_Toast->FinishGame())
+		{
+			ShowMessageBox(CUIMessageBox::Ok, m_GameManager->GetNextPlayerName().c_str());
+			EnableGameButtons(true);
+		}
+		else
+			m_GameManager->EndGameAfterLastPass();
 	}
 }
 

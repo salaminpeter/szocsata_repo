@@ -20,6 +20,7 @@ class CUIToast;
 class CGridLayout;
 class CUISelectControl;
 class CUIRankingsPanel;
+class CUIScorePanel;
 class CPlayer;
 
 
@@ -51,6 +52,7 @@ public:
 
 	void SetText(const wchar_t* id, const wchar_t* text);
 	void ShowMessageBox(int type, const wchar_t* text);
+	void ShowToast(const wchar_t* text, bool endGame = false);
 
 	void RenderUI();
 	void RenderMessageBox();
@@ -70,6 +72,10 @@ public:
 	int GetDifficulty();
 	int GetBoardSize();
 	int GetPlayerCount();
+	bool ComputerOpponentEnabled();
+
+	void UpdateScorePanel();
+	void InitScorePanel();
 
 	CUIElement* GetActiveScreenUIRoot();
 
@@ -95,6 +101,7 @@ public:
 	CUITileCounter* m_UITileCounter;
 	CUIMessageBox* m_MessageBoxOk;
 	CUIToast* m_Toast;
+	CUIScorePanel* m_ScorePanel;
 	CUIRankingsPanel* m_RankingsPanel;
 	CGridLayout* m_PlayerLettersLayout;
 	CGridLayout* m_ButtonsLayout;

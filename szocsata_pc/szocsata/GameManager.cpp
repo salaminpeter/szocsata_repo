@@ -119,7 +119,8 @@ void CGameManager::InitBasedOnTileCount()
 void CGameManager::InitPlayers()
 {
 	int PlayerCount = m_UIManager->GetPlayerCount() + 1;
-	AddPlayers(PlayerCount, true);
+	AddPlayers(PlayerCount, m_UIManager->ComputerOpponentEnabled());
+	m_UIManager->InitScorePanel();
 	UpdatePlayerScores();
 }
 
@@ -246,19 +247,20 @@ void CGameManager::NextPlayerTurn()
 	}
 }
 
+void CGameManager::EndGameAfterLastPass()
+{
+	m_UIManager->InitRankingsPanel();
+	SetGameState(EGameState::GameEnded);
+}
+
+
 void CGameManager::HandlePlayerPass()
 {
 	m_CurrentPlayer->m_Passed = true;
-
-	if (AllPlayersPassed())
-	{
-		m_UIManager->InitRankingsPanel();
-		SetGameState(EGameState::GameEnded);
-		return;
-	}
+	bool AllPassed = AllPlayersPassed();
 
 	//TODO biztos passzolni akarsz msgbox!
-	m_UIManager->ShowMessageBox(CUIMessageBox::NoButton, L"passz");
+	m_UIManager->ShowToast(L"passz", AllPassed);
 }
 
 bool CGameManager::EndPlayerTurn()
@@ -442,6 +444,9 @@ void CGameManager::StartComputerturn()
 
 void CGameManager::UpdatePlayerScores()
 {
+	m_UIManager->UpdateScorePanel();
+
+	/*
 	std::wstringstream cs;
 	cs << L"computer : " << m_Players.back()->GetScore();// << L"..";
 	m_UIManager->SetText(L"ui_computer_score", cs.str().c_str());
@@ -449,6 +454,7 @@ void CGameManager::UpdatePlayerScores()
 	std::wstringstream ps;
 	ps << L"jatekos : " << m_Players[0]->GetScore();// << L"..";
 	m_UIManager->SetText(L"ui_player_score", ps.str().c_str());
+	*/
 }
 
 CLetterModel* CGameManager::AddLetterToBoard(int x, int y, wchar_t c, float height)
@@ -757,8 +763,8 @@ void CGameManager::InitUIManager()
 	m_UIManager = new CUIManager(this, m_TimerEventManager);
 	m_UIManager->InitUIElements(m_Renderer->GetSquarePositionData(), m_Renderer->GetSquareColorData(), m_Renderer->GetSquareColorGridData8x8());
 	m_UIManager->SetText(L"ui_fps_text", L"fps : 0");
-	m_UIManager->SetText(L"ui_computer_score", L"computer : 0");
-	m_UIManager->SetText(L"ui_player_score", L"jatekos : 0");
+//	m_UIManager->SetText(L"ui_computer_score", L"computer : 0");
+//	m_UIManager->SetText(L"ui_player_score", L"jatekos : 0");
 	m_UIManager->SetTileCounterValue(m_LetterPool.GetRemainingLetterCount());
 	m_TileAnimations->SetUIManager(m_UIManager);
 }
