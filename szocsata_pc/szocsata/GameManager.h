@@ -26,6 +26,7 @@ class CTileAnimationManager;
 class CWordAnimationManager;
 class CLetterModel;
 class CCameraAnimationManager;
+class CPlayerLetterAnimationManager;
 
 class CGameManager
 {
@@ -152,6 +153,7 @@ private:
 	CTileAnimationManager* m_TileAnimations;
 	CWordAnimationManager* m_WordAnimation;
 	CCameraAnimationManager* m_CameraAnimationManager;
+	CPlayerLetterAnimationManager* m_PlayerLetterAnimationManager;
 
 	public: //TODO
 	bool m_Dragged = false;

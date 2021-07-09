@@ -39,6 +39,8 @@ public:
 	float GetHeight() { return m_Height; }
 	float GetWidth() { return m_Width; }
 
+	void Scale(float scale);
+
 	glm::vec2 GetTexturePos() {
 		return m_TexturePosition;
 	}

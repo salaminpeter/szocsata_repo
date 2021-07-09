@@ -14,6 +14,7 @@
 #include "TileAnimationManager.h"
 #include "WordAnimationManager.h"
 #include "CameraAnimationManager.h"
+#include "PlayerLetterAnimationManager.h"
 
 #define GL_GLEXT_PROTOTYPES 1
 #define GL3_PROTOTYPES 1
@@ -32,6 +33,7 @@ CGameManager::CGameManager()
 	m_TileAnimations = new CTileAnimationManager(m_TimerEventManager, this);
 	m_WordAnimation = new CWordAnimationManager(m_TimerEventManager, this); //TODO!!!!!!!!!!!
 	m_CameraAnimationManager = new CCameraAnimationManager(m_TimerEventManager, this); //TODO!!!!!!!!!!!
+	m_PlayerLetterAnimationManager = new CPlayerLetterAnimationManager(m_TimerEventManager); //TODO!!!!!!!!!!!
 }
 
 
@@ -339,11 +341,24 @@ void CGameManager::DealCurrPlayerLetters()
 	CUIPlayerLetters* PlayerLetters = m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName().c_str());
 	m_LetterPool.DealLetters(m_CurrentPlayer->GetLetters());
 	m_CurrentPlayer->GetLetters().erase(remove(m_CurrentPlayer->GetLetters().begin(), m_CurrentPlayer->GetLetters().end(), ' '), m_CurrentPlayer->GetLetters().end());
-	m_CurrentPlayer->ResetUsedLetters();
 	PlayerLetters->SetLetters();
+
 	m_UIManager->PositionPlayerLetters(m_CurrentPlayer->GetName().c_str());
 	PlayerLetters->SetLetterVisibility();
 	PlayerLetters->OrderLetterElements();
+
+	for (size_t i = 0; i < m_CurrentPlayer->GetLetters().length(); ++i)
+	{
+		if (m_CurrentPlayer->LetterUsed(i))
+		{
+			PlayerLetters->GetChild(i)->Scale(0.f);
+			m_PlayerLetterAnimationManager->AddAnimation(PlayerLetters->GetChild(i), PlayerLetters->GetChild(i)->GetWidth());
+			m_PlayerLetterAnimationManager->StartAnimations();
+		}
+	}
+
+	m_CurrentPlayer->ResetUsedLetters();
+
 }
 
 void CGameManager::DealComputerLettersEvent()

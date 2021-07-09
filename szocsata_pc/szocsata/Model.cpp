@@ -107,6 +107,12 @@ void CModel::Scale(glm::vec3 scale)
 	m_ModelMatrix = glm::scale(m_ModelMatrix, scale);
 }
 
+void CModel::SetScale(glm::vec3 scale)
+{
+	m_ModelMatrix = glm::scale(m_ModelMatrixNoScale, scale);
+}
+
+
 void CModel::SetParent(CModel* parent)
 {
 	m_Parent = parent;

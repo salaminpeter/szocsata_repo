@@ -174,6 +174,7 @@
     <ClInclude Include="ModelPositionData.h" />
     <ClInclude Include="opengl.h" />
     <ClInclude Include="Player.h" />
+    <ClInclude Include="PlayerLetterAnimationManager.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="RoundedBoxModelData.h" />
@@ -232,6 +233,7 @@
     <ClCompile Include="ModelPositionData.cpp" />
     <ClCompile Include="opengl.cpp" />
     <ClCompile Include="Player.cpp" />
+    <ClCompile Include="PlayerLetterAnimationManager.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="RoundedBoxModelData.cpp" />
     <ClCompile Include="ShaderManager.cpp" />

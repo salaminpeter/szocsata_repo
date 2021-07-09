@@ -28,6 +28,7 @@ public:
 	void AddScore(int score) {m_Score += score;}
 	void ResetUsedLetters() {m_UsedLetters.Reset();}
 	void SetUsedLetters(CBinaryBoolList usedLetters) {m_UsedLetters = usedLetters;}
+	bool LetterUsed(int i) {return m_UsedLetters.GetFlag(i);}
 	int GetScore() {return m_Score;}
 	std::wstring GetName() {return m_Name;}
 	std::wstring&  GetLetters() {return m_Letters;}

@@ -10,7 +10,7 @@ void CInputManager::HandleTouchEvent(int x, int y, bool onBoardView)
 	const std::lock_guard<std::mutex> lock(m_InputLock);
 
 	//if not on board view just handle touch event
-	if (!onBoardView)
+	if (!m_GameManager->GameScreenActive() || !onBoardView)
 	{
 		m_GameManager->HandleToucheEvent(x, y, onBoardView);
 		return;

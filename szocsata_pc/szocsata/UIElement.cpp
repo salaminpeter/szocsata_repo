@@ -75,6 +75,10 @@ void CUIElement::RemoveLastChild()
 	m_Children.pop_back();
 }
 
+void CUIElement::Scale(float scale) 
+{ 
+	m_Model->SetScale(glm::vec3(scale)); 
+}
 
 CModel* CUIElement::GetModel()
 {

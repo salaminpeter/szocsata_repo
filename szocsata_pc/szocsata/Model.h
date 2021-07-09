@@ -33,6 +33,7 @@ public:
 	void Translate(glm::vec3 offset);
 	void SetPosition(glm::vec3 offset);
 	void Scale(glm::vec3 scale);
+	void SetScale(glm::vec3 scale);
 	void ResetMatrix();
 
 	void SetParent(CModel* parent);
