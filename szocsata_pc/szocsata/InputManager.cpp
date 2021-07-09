@@ -1,12 +1,41 @@
 #include "stdafx.h"
 #include "InputManager.h"
 #include "GameManager.h"
+#include "TimerEventManager.h"
+#include "Config.h"
 
 
 void CInputManager::HandleTouchEvent(int x, int y, bool onBoardView)
 {
 	const std::lock_guard<std::mutex> lock(m_InputLock);
-	m_GameManager->HandleToucheEvent(x, y, onBoardView);
+
+	//if not on board view just handle touch event
+	if (!onBoardView)
+	{
+		m_GameManager->HandleToucheEvent(x, y, onBoardView);
+		return;
+	}
+
+	//wait for double click
+	if (m_FirstTouch && !m_SecondTouch && m_GameManager->GameScreenActive())
+		m_SecondTouch = true;
+
+	int WindowHeigth;
+	CConfig::GetConfig("window_height", WindowHeigth);
+
+	m_FirstTouch = true;
+	m_GameManager->SetLastTouchOnBoardView(true);
+	m_GameManager->SetLastTouchPos(x, WindowHeigth - y);
+
+	//dupla clicket csak board viewra nezunk
+	if (!m_SecondTouch && m_GameManager->GameScreenActive())
+	{
+		m_Touch0X = x;
+		m_Touch0Y = y;
+		m_GameManager->GetTimerEventManager()->AddTimerEvent(this, &CInputManager::CheckDoubleClickEvent, nullptr, "timer_event_double_click");
+		m_GameManager->GetTimerEventManager()->StartTimer("timer_event_double_click");
+		return;
+	}
 }
 
 void CInputManager::HandleZoomEvent(float dist, float origoX, float origoY)
@@ -76,6 +105,16 @@ void CInputManager::HandleMultyTouch(float x0, float y0, float x1, float y1)
 void CInputManager::HandleReleaseEvent(int x, int y)
 {
 	const std::lock_guard<std::mutex> lock(m_InputLock);
+
+	//waiting for duobleclick
+	if (m_FirstTouch)
+	{
+		m_ReleaseTouchHappened = true;
+		m_Touch1X = x;
+		m_Touch1Y = y;
+		return;
+	}
+
 	m_GameManager->HandleReleaseEvent(x, y);
 }
 
@@ -86,3 +125,22 @@ void CInputManager::HandleDragEvent(int x, int y)
 }
 
 
+void CInputManager::CheckDoubleClickEvent(double& timeFromStart, double& timeFromPrev)
+{
+	const std::lock_guard<std::mutex> lock(m_InputLock);
+
+	if (timeFromStart >= 250)  //TODO config
+	{
+		m_GameManager->GetTimerEventManager()->StopTimer("timer_event_double_click");
+
+		if (m_SecondTouch)
+			m_GameManager->TopViewEvent();
+		else
+			m_GameManager->HandleToucheEvent(m_Touch0X, m_Touch0Y, true);
+
+		if (m_ReleaseTouchHappened)
+			m_GameManager->HandleReleaseEvent(m_Touch1X, m_Touch1Y);
+
+		m_FirstTouch = m_SecondTouch = m_ReleaseTouchHappened = false;
+	}
+}

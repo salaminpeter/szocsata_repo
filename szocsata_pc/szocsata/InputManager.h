@@ -8,7 +8,9 @@ class CInputManager
 {
 public:
 
-	CInputManager(CGameManager* gameManager) : m_GameManager(gameManager) {}
+	CInputManager(CGameManager* gameManager) : 
+		m_GameManager(gameManager)
+	{}
 
 	void HandleTouchEvent(int x, int y, bool onBoardView);
 	void HandleReleaseEvent(int x, int y);
@@ -17,6 +19,9 @@ public:
 	void HandleMultyTouchStart(float x0, float y0, float x1, float y1);
 	void HandleMultyTouch(float x0, float y0, float x1, float y1);
 	void HandleMultyTouchEnd();
+
+	void CheckDoubleClickEvent(double& timeFromStart, double& timeFromPrev);
+
 
 private:
 	
@@ -27,6 +32,10 @@ private:
 	float m_TouchCenterX;
 	float m_TouchCenterY;
 	float m_TouchDist;
+
+	bool m_FirstTouch = false;
+	bool m_SecondTouch = false;
+	bool m_ReleaseTouchHappened = false;
 
 	CGameManager* m_GameManager;
 	std::mutex m_InputLock;

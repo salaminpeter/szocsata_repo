@@ -171,6 +171,11 @@ void CGameManager::StartPlayerTurn(CPlayer* player)
 	m_TmpGameBoard = m_GameBoard;
 }
 
+bool CGameManager::GameScreenActive()
+{
+	return (GetGameState() != EGameState::OnRankingsScreen && GetGameState() != EGameState::OnStartScreen);
+}
+
 bool CGameManager::GetPlayerNameScore(size_t idx, std::wstring& name, int& score)
 {
 	if (m_Players.size() <= idx)
@@ -445,16 +450,6 @@ void CGameManager::StartComputerturn()
 void CGameManager::UpdatePlayerScores()
 {
 	m_UIManager->UpdateScorePanel();
-
-	/*
-	std::wstringstream cs;
-	cs << L"computer : " << m_Players.back()->GetScore();// << L"..";
-	m_UIManager->SetText(L"ui_computer_score", cs.str().c_str());
-
-	std::wstringstream ps;
-	ps << L"jatekos : " << m_Players[0]->GetScore();// << L"..";
-	m_UIManager->SetText(L"ui_player_score", ps.str().c_str());
-	*/
 }
 
 CLetterModel* CGameManager::AddLetterToBoard(int x, int y, wchar_t c, float height)
@@ -878,7 +873,7 @@ void CGameManager::HandleToucheEvent(int x, int y, bool onBoardView)
 
 	m_UIManager->HandleTouchEvent(x, WindowHeigth - y);
 
-	if (GetGameState() != OnStartScreen)
+	if (GameScreenActive())
 	{
 		m_Dragged = true;
 		m_LastTouchOnBoardView = onBoardView;

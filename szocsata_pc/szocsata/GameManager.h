@@ -92,6 +92,7 @@ public:
 	int GetDifficulty();
 	bool AllPlayersPassed();
 	bool GetPlayerNameScore(size_t idx, std::wstring& name, int& score);
+	bool GameScreenActive();
 
 	std::wstring GetWordAtPos(bool horizontal, int& x, int& y);
 
@@ -99,6 +100,8 @@ public:
 	TField& Board(int x, int y) {return m_GameBoard(x, y);}
 	std::wstring CurrentPlayerName() {return m_CurrentPlayer ? m_CurrentPlayer->GetName() : L"";}
 	int GetPlayerCount() {return m_Players.size();}
+	void SetLastTouchOnBoardView(bool onBoardView) { m_LastTouchOnBoardView = onBoardView; }
+	void SetLastTouchPos(int x, int y) { m_LastTouchX = x; m_LastTouchY = y; }
 
 #ifdef PLATFORM_ANDROID
 	void SetRendererObject(jobject obj) {
@@ -107,6 +110,8 @@ public:
 #endif
 
 	CRenderer* GetRenderer() {return m_Renderer;}
+	CTimerEventManager* GetTimerEventManager() {return m_TimerEventManager;}
+
 	glm::vec2 GetViewPosition(const char* viewId);
 	bool PositionOnBoardView(int x, int y);
 
@@ -116,26 +121,8 @@ public:
 
 	int frames = 0;
 	std::chrono::high_resolution_clock::time_point LastRenderTime;
+
 	//==============================================================================
-	#ifndef PLATFORM_ANDROID
-	HWND m_HWND;
-	#endif
-	std::wstring GetScoreString()
-	{
-//		int LetterCount = m_LetterPool.GetLetterCount();
-		std::wstringstream ss;
-//		ss << "Jatekos : " << m_Players[0]->GetScore() << "      Computer : " << m_Computer->GetScore() << "       Betuk  : " << LetterCount << "   *********** " << m_CurrentPlayer->GetName() << " ***********";
-		return ss.str();
-	}
-
-	std::wstring GetWinnerString()
-	{
-		std::wstringstream ss;
-		ss << "A Gyoztes " << (m_Players[0]->GetScore() > m_Players[1]->GetScore() ? m_Players[0]->GetName() : m_Players[1]->GetName());
-		return ss.str();
-	}
-
-
 	CGameBoard CompGameBoard;
 	std::wstring CompLetters;
 	void UndoComp()

@@ -155,12 +155,10 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	
    OpenGLFunctions::InitOpenGL(GetDC(hWnd), hWnd);
 
-   GameManager->m_HWND = hWnd;
    GameManager->StartInitRenderer(WindowWidth, WindowHeigth );
    GameManager->InitUIManager();
    GameManager->SetGameState(CGameManager::OnStartScreen);
 
-   SetWindowText(hWnd, GameManager->GetScoreString().c_str());
    SetCursor(LoadCursor(nullptr, IDC_ARROW));
 
    return TRUE;

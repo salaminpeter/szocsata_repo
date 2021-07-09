@@ -48,7 +48,6 @@ void CTileAnimationManager::AnimFinishedEvent()
 	m_UIManager->EnableGameButtons(true);
 }
 
-
 void CTileAnimationManager::UpdateColorEvent(double& timeFromStart, double& timeFromPrev)
 {
 	bool EndAnimation = timeFromStart > m_AnimLength;
