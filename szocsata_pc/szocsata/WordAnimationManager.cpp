@@ -8,7 +8,7 @@
 #include "UIPlayerLetters.h"
 
 
-void CWordAnimationManager::AddWordAnimation(std::wstring word, std::vector<size_t>& uiLetterIndices, CUIPlayerLetters* playerLetters, int x, int y, bool horizontal, bool nextPlayerIfFinished)
+void CWordAnimationManager::AddWordAnimation(std::wstring word, const std::vector<size_t>& uiLetterIndices, CUIPlayerLetters* playerLetters, int x, int y, bool horizontal, bool nextPlayerIfFinished)
 {
 	const std::lock_guard<std::mutex> lock(m_AnimListLock);
 

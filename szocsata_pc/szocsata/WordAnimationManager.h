@@ -47,7 +47,7 @@ public:
 
 	CWordAnimationManager(CTimerEventManager* timerEventMgr, CGameManager* gameManager) : m_TimerEventManager(timerEventMgr), m_GameManager(gameManager) {}
 
-	void AddWordAnimation(std::wstring word, std::vector<size_t>& uiLetterIndices, CUIPlayerLetters* playerLetters, int x, int y, bool horizontal, bool nextPlayerIfFinished = true);
+	void AddWordAnimation(std::wstring word, const std::vector<size_t>& uiLetterIndices, CUIPlayerLetters* playerLetters, int x, int y, bool horizontal, bool nextPlayerIfFinished = true);
 	void AnimateLettersEvent(double& timeFromStart, double& timeFromPrev);
 	void AnimationFinished();
 };
