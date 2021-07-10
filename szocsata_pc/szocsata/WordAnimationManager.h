@@ -8,6 +8,8 @@ class CLetterModel;
 class CTimerEventManager;
 class CGameManager;
 class CPlayer;
+class CUIPlayerLetters;
+class CBinaryBoolList;
 
 class CWordAnimationManager
 {
@@ -17,12 +19,13 @@ private:
 
 	struct TLetterAnimation
 	{
-		TLetterAnimation(CLetterModel* letterModel, float distance, float height) : m_LetterModel(letterModel), m_Distance(distance), m_DestHeight(height) {}
+		TLetterAnimation(CLetterModel* letterModel, float distance, float height, size_t uiLetterIdx) : m_LetterModel(letterModel), m_Distance(distance), m_DestHeight(height), m_UILetterIdx(uiLetterIdx) {}
 
 		CLetterModel* m_LetterModel;
 		float m_AminationTime = 0.f;
 		float m_Distance;
 		float m_DestHeight;
+		size_t m_UILetterIdx;
 		ELetterAnimState m_State = ELetterAnimState::Waiting;
 	};
 
@@ -35,7 +38,7 @@ private:
 
 	CTimerEventManager* m_TimerEventManager;
 	CGameManager* m_GameManager;
-	std::shared_ptr<CPlayer> m_Player;
+	CUIPlayerLetters* m_UIPlayerLetters;
 
 	std::mutex m_AnimListLock;
 
@@ -44,7 +47,7 @@ public:
 
 	CWordAnimationManager(CTimerEventManager* timerEventMgr, CGameManager* gameManager) : m_TimerEventManager(timerEventMgr), m_GameManager(gameManager) {}
 
-	void AddWordAnimation(std::wstring word, int x, int y, bool horizontal, bool nextPlayerIfFinished = true);
+	void AddWordAnimation(std::wstring word, std::vector<size_t>& uiLetterIndices, CUIPlayerLetters* playerLetters, int x, int y, bool horizontal, bool nextPlayerIfFinished = true);
 	void AnimateLettersEvent(double& timeFromStart, double& timeFromPrev);
 	void AnimationFinished();
 };

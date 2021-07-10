@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "PlayerLetterAnimationManager.h"
 #include "TimerEventManager.h"
+#include "GameManager.h"
 #include "UIElement.h"
 
 
@@ -9,14 +10,22 @@ void CPlayerLetterAnimationManager::StartAnimations()
 	if (m_PlayerLetterAnimations.size())
 	{
 		m_CurrentLetterIdx = 0;
-		m_TimerEventManager->AddTimerEvent(this, &CPlayerLetterAnimationManager::AnimatePlayerLetter, nullptr, "player_letter_animation");
+		m_TimerEventManager->AddTimerEvent(this, &CPlayerLetterAnimationManager::AnimatePlayerLetter, &CPlayerLetterAnimationManager::AnimFinishedEvent, "player_letter_animation");
 		m_TimerEventManager->StartTimer("player_letter_animation");
 	}
 }
 
+
+void CPlayerLetterAnimationManager::AnimFinishedEvent()
+{
+	if (m_GameManager->PlayerLetterAnimationFinished())
+		m_GameManager->ShowNextPlayerPopup();
+}
+
+
 void CPlayerLetterAnimationManager::AnimatePlayerLetter(double& timeFromStart, double& timeFromPrev)
 {
-	const double AnimTime = 300.f; //TODO config
+	const double AnimTime = 600.f; //TODO config
 
 	float Scale = std::sinf((timeFromStart / AnimTime) * (90.f * 3.14f / 180.f)) * m_PlayerLetterAnimations[m_CurrentLetterIdx].m_DestScale;
 	m_PlayerLetterAnimations[m_CurrentLetterIdx].m_PlayerLetter->Scale(timeFromStart < AnimTime ? Scale : m_PlayerLetterAnimations[m_CurrentLetterIdx].m_DestScale);

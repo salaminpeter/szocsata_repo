@@ -22,7 +22,7 @@ public:
 	int GetUsedLetterIdx(wchar_t c);
 	void SetLetter(int letterIdx, wchar_t c);
 	void RemoveLetter(size_t idx);
-	void RemoveLetters(const std::wstring& letters);
+	std::vector<size_t> GetLetterIndicesForWord(const std::wstring& word);
 
 	int GetLetterCount() {return m_Letters.size();}
 	void AddScore(int score) {m_Score += score;}
@@ -32,6 +32,7 @@ public:
 	int GetScore() {return m_Score;}
 	std::wstring GetName() {return m_Name;}
 	std::wstring&  GetLetters() {return m_Letters;}
+	CBinaryBoolList GetUsedLetters() {return m_UsedLetters;}
 
 public:
 

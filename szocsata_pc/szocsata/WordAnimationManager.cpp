@@ -5,11 +5,14 @@
 #include "LetterModel.h"
 #include "Timer.h"
 #include "Config.h"
+#include "UIPlayerLetters.h"
 
 
-void CWordAnimationManager::AddWordAnimation(std::wstring word, int x, int y, bool horizontal, bool nextPlayerIfFinished)
+void CWordAnimationManager::AddWordAnimation(std::wstring word, std::vector<size_t>& uiLetterIndices, CUIPlayerLetters* playerLetters, int x, int y, bool horizontal, bool nextPlayerIfFinished)
 {
 	const std::lock_guard<std::mutex> lock(m_AnimListLock);
+
+	m_UIPlayerLetters = playerLetters;
 
 	float LetterHeight;
 	float BoardHeight;
@@ -22,6 +25,7 @@ void CWordAnimationManager::AddWordAnimation(std::wstring word, int x, int y, bo
 	BoardHeight /= 2;
 
 	m_LetterAnimations.reserve(word.length() + 10);
+	int UILetterIdx = 0;
 
 	for (size_t i = 0; i < word.length(); ++i)
 	{
@@ -32,7 +36,8 @@ void CWordAnimationManager::AddWordAnimation(std::wstring word, int x, int y, bo
 			float DistanceToBoard = 4.f - DestHeight; //TODO config 3
 			CLetterModel* LetterModel = m_GameManager->AddLetterToBoard(x, y, word.at(i), 4.f);  //TODO config 3
 			LetterModel->SetVisibility(false);
-			m_LetterAnimations.emplace_back(LetterModel, DistanceToBoard, DestHeight);
+			m_LetterAnimations.emplace_back(LetterModel, DistanceToBoard, DestHeight, uiLetterIndices[UILetterIdx]);
+			UILetterIdx++;
 		}
 
 		x += horizontal ? 1 : 0;
@@ -52,6 +57,8 @@ void CWordAnimationManager::AnimateLettersEvent(double& timeFromStart, double& t
 
 	if (CurrentTime - m_LastAddedLetterTime > m_LetterAddInterval)
 	{
+		m_GameManager->GetCurrentPlayer()->SetLetterUsed(m_LetterAnimations[m_CurrentLetterIdx].m_UILetterIdx, true);
+		m_UIPlayerLetters->SetVisible(false, m_LetterAnimations[m_CurrentLetterIdx].m_UILetterIdx);
 		m_LastAddedLetterTime = CurrentTime;
 		m_LetterAnimations[m_CurrentLetterIdx].m_LetterModel->SetVisibility(true);
 		m_LetterAnimations[m_CurrentLetterIdx].m_State = ELetterAnimState::InProgress;

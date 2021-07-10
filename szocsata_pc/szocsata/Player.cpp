@@ -90,21 +90,25 @@ void CPlayer::RemoveLetter(size_t idx)
 	m_Letters[idx] = L' ';
 }
 
-void CPlayer::RemoveLetters(const std::wstring& letters)
+std::vector<size_t> CPlayer::GetLetterIndicesForWord(const std::wstring& word)
 {
-	for (size_t j = 0; j < letters.size(); ++j)
+	std::vector<size_t> Res;
+	Res.reserve(word.length());
+
+	for (size_t j = 0; j < word.size(); ++j)
 	{
 		for (size_t i = 0; i < m_Letters.size(); ++i)
 		{
-			if (m_Letters.at(i) == letters.at(j))
+			if (m_Letters.at(i) == word.at(j))
 			{
-				m_Letters[i] = L' ';
+				Res.push_back(i);
 				break;
 			}
 		}
 	}
-}
 
+	return Res;
+}
 
 void CPlayer::SetLetter(int letterIdx, wchar_t c)
 {

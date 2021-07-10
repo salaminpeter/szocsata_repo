@@ -33,7 +33,7 @@ CGameManager::CGameManager()
 	m_TileAnimations = new CTileAnimationManager(m_TimerEventManager, this);
 	m_WordAnimation = new CWordAnimationManager(m_TimerEventManager, this); //TODO!!!!!!!!!!!
 	m_CameraAnimationManager = new CCameraAnimationManager(m_TimerEventManager, this); //TODO!!!!!!!!!!!
-	m_PlayerLetterAnimationManager = new CPlayerLetterAnimationManager(m_TimerEventManager); //TODO!!!!!!!!!!!
+	m_PlayerLetterAnimationManager = new CPlayerLetterAnimationManager(this, m_TimerEventManager); //TODO!!!!!!!!!!!
 }
 
 
@@ -157,10 +157,6 @@ void CGameManager::StartPlayerTurn(CPlayer* player)
 {
 	m_PlayerSteps.clear();
 
-	CUIPlayerLetters* UIPlayerLetters = m_UIManager->GetPlayerLetters(player->GetName().c_str());
-	UIPlayerLetters->SetLetterVisibility();
-	UIPlayerLetters->SetVisible(true);
-
 	m_FirstPlayerLetterX = -1;
 	m_FirstPlayerLetterY = -1;
 	m_SecondPlayerLetterX = -1;
@@ -172,6 +168,23 @@ void CGameManager::StartPlayerTurn(CPlayer* player)
 
 	m_TmpGameBoard = m_GameBoard;
 }
+
+bool CGameManager::TileAnimationFinished() 
+{ 
+	return m_TileAnimations->Finished(); 
+}
+
+bool CGameManager::PlayerLetterAnimationFinished() 
+{ 
+	return m_PlayerLetterAnimationManager->Finished(); 
+}
+
+void CGameManager::ShowNextPlayerPopup()
+{
+	m_UIManager->ShowMessageBox(CUIMessageBox::Ok, GetNextPlayerName().c_str());
+	m_UIManager->EnableGameButtons(true);
+}
+
 
 bool CGameManager::GameScreenActive()
 {
@@ -225,7 +238,7 @@ void CGameManager::NextPlayerTurn()
 	}
 	else
 	{ 
-		m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName().c_str())->ShowLetters(false);
+		m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName().c_str())->SetVisible(false);
 		int CurrPlayerIdx = -1;
 		while (m_Players[++CurrPlayerIdx] != m_CurrentPlayer);
 		NextPlayerIdx = CurrPlayerIdx == m_Players.size() - 1 ? 0 : CurrPlayerIdx + 1;
@@ -241,6 +254,11 @@ void CGameManager::NextPlayerTurn()
 
 	m_Players[NextPlayerIdx]->m_Passed = false;
 	SetGameState(EGameState::TurnInProgress);
+
+	m_CurrentPlayer = m_Players[NextPlayerIdx];
+
+	m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName().c_str())->SetLetterVisibility(CBinaryBoolList());
+	m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName().c_str())->SetVisible(true);
 
 	if (m_Players[NextPlayerIdx]->GetName() == L"computer")
 	{
@@ -344,7 +362,6 @@ void CGameManager::DealCurrPlayerLetters()
 	PlayerLetters->SetLetters();
 
 	m_UIManager->PositionPlayerLetters(m_CurrentPlayer->GetName().c_str());
-	PlayerLetters->SetLetterVisibility();
 	PlayerLetters->OrderLetterElements();
 
 	for (size_t i = 0; i < m_CurrentPlayer->GetLetters().length(); ++i)
@@ -353,10 +370,11 @@ void CGameManager::DealCurrPlayerLetters()
 		{
 			PlayerLetters->GetChild(i)->Scale(0.f);
 			m_PlayerLetterAnimationManager->AddAnimation(PlayerLetters->GetChild(i), PlayerLetters->GetChild(i)->GetWidth());
-			m_PlayerLetterAnimationManager->StartAnimations();
 		}
 	}
 
+	PlayerLetters->SetLetterVisibility(CBinaryBoolList());
+	m_PlayerLetterAnimationManager->StartAnimations();
 	m_CurrentPlayer->ResetUsedLetters();
 
 }
@@ -387,6 +405,7 @@ bool CGameManager::EndComputerTurn()
 		ComputerStep = m_Computer->BestWord(m_ComputerWordIdx);
 		ComputerWord = ComputerStep.m_Word;
 		CrossingWords = &ComputerStep.m_CrossingWords;
+		m_Computer->ResetUsedLetters();
 	}
 
 	//computer passz
@@ -406,8 +425,8 @@ bool CGameManager::EndComputerTurn()
 
 	size_t WordLength = ComputerWord.m_Word->length();
 
-	m_CurrentPlayer->RemoveLetters(*ComputerWord.m_Word);
-	m_WordAnimation->AddWordAnimation(*ComputerWord.m_Word, ComputerWord.m_X, TileCount - ComputerWord.m_Y - 1, ComputerWord.m_Horizontal);
+	std::vector<size_t> LetterIndices = m_CurrentPlayer->GetLetterIndicesForWord(*ComputerWord.m_Word);
+	m_WordAnimation->AddWordAnimation(*ComputerWord.m_Word, LetterIndices, m_UIManager->GetPlayerLetters(m_Computer->GetName()), ComputerWord.m_X, TileCount - ComputerWord.m_Y - 1, ComputerWord.m_Horizontal);
 	m_GameBoard.AddWord(ComputerWord);
 	UpdatePlayerScores();
 
@@ -416,14 +435,9 @@ bool CGameManager::EndComputerTurn()
 
 void CGameManager::StartComputerturn()
 {
-	m_UIManager->GetPlayerLetters(m_Computer->GetName().c_str())->SetLetterVisibility();
-	m_UIManager->GetPlayerLetters(m_Computer->GetName().c_str())->SetVisible(true);
-
 	//	CompGameBoard = m_GameBoard;
 	//	CompLetters = m_Computer->m_Letters;	
 	m_TmpGameBoard = m_GameBoard;
-
-	m_CurrentPlayer = m_Computer;
 	m_Computer->CalculateStep();
 
 	int GameDifficulty;
@@ -739,14 +753,10 @@ void CGameManager::PlayerLetterClicked(unsigned letterIdx)
 		return;
 
 	wchar_t PlacedLetter = m_CurrentPlayer->GetLetters()[letterIdx];
-	m_WordAnimation->AddWordAnimation(std::wstring(1, PlacedLetter), SelX, SelY, true, false);
+	m_WordAnimation->AddWordAnimation(std::wstring(1, PlacedLetter), std::vector<size_t>{letterIdx}, m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName()), SelX, SelY, true, false);
 	CUIPlayerLetters* PlayerLetters = m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName().c_str());
-	m_CurrentPlayer->RemoveLetter(size_t(letterIdx));
-	PlayerLetters->SetVisible(false, letterIdx);
 
 	m_PlayerSteps.emplace_back(PlacedLetter, SelX, SelY, letterIdx);
-
-	m_CurrentPlayer->SetLetterUsed(letterIdx, true);
 
 	int BoardY = TileCount - SelY - 1;
 	m_GameBoard(SelX, BoardY).m_Char = PlacedLetter;
@@ -867,7 +877,7 @@ void CGameManager::UndoLastStep()
 	m_CurrentPlayer->SetLetter(m_PlayerSteps.back().m_LetterIdx, m_PlayerSteps.back().m_Char);
 	m_CurrentPlayer->SetLetterUsed(m_PlayerSteps.back().m_LetterIdx, false);
 
-	m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName().c_str())->SetLetterVisibility();
+	m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName().c_str())->SetLetterVisibility(m_CurrentPlayer->GetUsedLetters());
 	
 	m_Renderer->RemoveLastLetter();
 	m_PlayerSteps.pop_back();
@@ -899,7 +909,7 @@ void CGameManager::HandleToucheEvent(int x, int y, bool onBoardView)
 
 void CGameManager::HandleDragEvent(int x, int y)
 {
-	if (GetGameState() == OnStartScreen)
+	if (!GameScreenActive())
 		return;
 
 	int WindowHeigth;
@@ -926,16 +936,17 @@ void CGameManager::HandleDragEvent(int x, int y)
 
 void CGameManager::HandleDragFromUIView(int x, int y) 
 {
-	if (GetGameState() == OnStartScreen)
+	if (!GameScreenActive())
 		return;
 
-	if (m_Dragged)
+	//only let drag ui letter if previously dragged letter is placed
+	if (m_Dragged && PlayerLetterAnimationFinished())
 		m_UIManager->HandleDragEvent(x, y);
 }
 
 void CGameManager::HandleDragFromBoardView(int x, int y)
 {
-	if (GetGameState() == OnStartScreen)
+	if (!GameScreenActive())
 		return;
 
 	if (m_Dragged)
@@ -949,7 +960,7 @@ void CGameManager::HandleDragFromBoardView(int x, int y)
 
 void CGameManager::HandleZoomEndEvent()
 {
-	if (GetGameState() == OnStartScreen)
+	if (!GameScreenActive())
 		return;
 
 	m_Renderer->ResetZoom();
@@ -957,7 +968,7 @@ void CGameManager::HandleZoomEndEvent()
 
 void CGameManager::HandleZoomEvent(float dist, int origoX, int origoY)
 {
-	if (GetGameState() == OnStartScreen)
+	if (!GameScreenActive())
 		return;
 
 	//zoom on ui view
@@ -980,7 +991,7 @@ void CGameManager::HandleZoomEvent(float dist)
 
 void CGameManager::HandleMultyDragEvent(int x0, int y0, int x1, int y1)
 {
-	if (GetGameState() == OnStartScreen)
+	if (!GameScreenActive())
 		return;
 
     m_Dragged = false;

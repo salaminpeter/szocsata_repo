@@ -1,6 +1,8 @@
 #pragma once
 
 #include "UIElement.h"
+#include "BinaryBoolList.h"
+
 #include <map>
 #include <algorithm>
 
@@ -27,7 +29,7 @@ public:
  //   void RemoveLetter(size_t letterIdx);
 	void ShowLetters(bool show);
 	void SetLetters();
-	void SetLetterVisibility();
+	void SetLetterVisibility(CBinaryBoolList usedLetters);
 	
 	void Render(CRenderer* renderer) override;
 	bool HandleEventAtPos(int x, int y, bool touchEvent) override;

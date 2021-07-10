@@ -101,12 +101,10 @@ void CUIPlayerLetters::PositionPlayerLetter(size_t lettedIdx, float x, float y, 
 	m_Children[lettedIdx]->SetPosAndSize(x, y, size, size);
 }
 
-void CUIPlayerLetters::SetLetterVisibility()
+void CUIPlayerLetters::SetLetterVisibility(CBinaryBoolList usedLetters)
 {
-	std::wstring& letters = m_Player->GetLetters();
-
-	for (size_t i = 0; i < letters.length(); ++i)
-		m_Children[i]->SetVisible(letters[i] != L' ');
+	for (size_t i = 0; i < m_Children.size(); ++i)
+		m_Children[i]->SetVisible(!usedLetters.GetFlag(i));
 }
 
 void CUIPlayerLetters::SetLetters()
@@ -153,6 +151,9 @@ bool CUIPlayerLetters::HandleEventAtPos(int x, int y, bool touchEvent)
 
 void CUIPlayerLetters::Render(CRenderer* renderer)
 {
+	if (!m_Visible)
+		return;
+
 	size_t idx = 0;
 	size_t VisibleLetterCount = m_Player->GetUnUsedLetterCount();
 

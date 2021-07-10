@@ -43,6 +43,7 @@ void CUIManager::AddPlayerLetters(CPlayer* player, std::shared_ptr<CSquarePositi
 	glm::vec2 ViewPos = m_GameManager->GetViewPosition("view_ortho");
 	m_UIPlayerLetters.push_back(new CUIPlayerLetters(m_GameManager, this, player,  m_RootGameScreen, player->GetName().c_str()));
 	m_UIPlayerLetters.back()->InitLetterElements(positionData, colorData, ViewPos.x, ViewPos.y);
+	m_UIPlayerLetters.back()->SetVisible(false);
 }
 
 void CUIManager::PositionPlayerLetter(const std::wstring& playerId, size_t letterIdx, float x, float y, float size)
@@ -282,9 +283,11 @@ void CUIManager::EnableGameButtons(bool enable)
 
 void CUIManager::CloseToast(double& timeFromStart, double& timeFromPrev)
 {
-	if (1000 < timeFromStart)
+	if (1000 < timeFromStart) //TODO config
 	{
 		m_TimerEventManager->StopTimer("ui_toast_id");
+
+		CUIMessageBox::m_ActiveMessageBox = nullptr;
 
 		if (!m_Toast->FinishGame())
 		{

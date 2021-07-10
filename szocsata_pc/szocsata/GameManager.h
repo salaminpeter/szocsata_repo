@@ -94,6 +94,10 @@ public:
 	bool AllPlayersPassed();
 	bool GetPlayerNameScore(size_t idx, std::wstring& name, int& score);
 	bool GameScreenActive();
+	void ShowNextPlayerPopup();
+	bool TileAnimationFinished();
+	bool PlayerLetterAnimationFinished();
+
 
 	std::wstring GetWordAtPos(bool horizontal, int& x, int& y);
 
@@ -103,6 +107,7 @@ public:
 	int GetPlayerCount() {return m_Players.size();}
 	void SetLastTouchOnBoardView(bool onBoardView) { m_LastTouchOnBoardView = onBoardView; }
 	void SetLastTouchPos(int x, int y) { m_LastTouchX = x; m_LastTouchY = y; }
+	CPlayer* GetCurrentPlayer() {return m_CurrentPlayer;}
 
 #ifdef PLATFORM_ANDROID
 	void SetRendererObject(jobject obj) {

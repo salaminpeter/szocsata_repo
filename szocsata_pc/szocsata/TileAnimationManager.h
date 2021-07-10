@@ -32,6 +32,7 @@ public:
 
 	void SetUIManager(CUIManager* uiManager) {m_UIManager = uiManager;}
 
+	bool Finished() {return (m_TilePositions.size() == 0);}
 
 private:
 
