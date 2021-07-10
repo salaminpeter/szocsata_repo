@@ -35,11 +35,15 @@ public:
 	void SetPosition(float x, float y);
 	void DeleteRecursive();
 
+	glm::vec2 GetAbsolutePosition();
+
 	CModel* GetModel();
 	CModel* GetModel(size_t idx);
 
 	float GetHeight() { return m_Height; }
 	float GetWidth() { return m_Width; }
+	float GetXPosition() { return m_XPosition; }
+	float GetYPosition() { return m_YPosition; }
 
 	void Scale(float scale);
 
@@ -59,6 +63,7 @@ public:
 	int GetChildCount() {return m_Children.size();}
 	CUIElement* GetChild(size_t childIdx);
 	CUIElement* GetChild(const wchar_t* childIdx);
+	CUIElement* GetParent() {return m_Parent.get();}
 	void Enable(bool enable) { m_Enabled = enable; }
 	bool IsEnabled() { return m_Enabled; }
 

@@ -17,14 +17,12 @@ CUIPanel::CUIPanel(CUIElement* parent, const wchar_t* id, std::shared_ptr<CSquar
 
 void CUIPanel::AddText(const wchar_t* text, float x, float y, float w, float h, const char* textureID, const wchar_t* id)
 {
-	//TODO szepen!!!
-	new CUIText(this, m_PositionData, m_GridColorData, text, x + m_XPosition, y + m_YPosition, w, h, m_ViewXPosition, m_ViewYPosition, id);
+	new CUIText(this, m_PositionData, m_GridColorData, text, x, y, w, h, m_ViewXPosition, m_ViewYPosition, id);
 }
 
 void CUIPanel::AddButton(float x, float y, float w, float h, const char* textureID, const wchar_t* id)
 {
-	//TODO szepen!!!
-	new CUIButton(this, m_PositionData, m_ColorData, x + m_XPosition, y + m_YPosition, w, h, m_ViewXPosition, m_ViewYPosition, textureID, id);
+	new CUIButton(this, m_PositionData, m_ColorData, x, y, w, h, m_ViewXPosition, m_ViewYPosition, textureID, id);
 }
 
 bool CUIPanel::HandleEventAtPos(int x, int y, bool touchEvent)

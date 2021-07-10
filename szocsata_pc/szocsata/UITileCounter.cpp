@@ -14,7 +14,7 @@ void CUITileCounter::SetPositionAndSize(float x, float y, float w, float h)
 {
 	SetPosAndSize(x, y, w, h);
 	CUIElement* Counter = GetChild(L"ui_tile_counter_text");
-	Counter->SetPosAndSize(x, y, 50, 50);
+	Counter->SetPosAndSize(0, 0, 50, 50);
 }
 
 void CUITileCounter::SetCounter(unsigned count)

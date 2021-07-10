@@ -83,7 +83,7 @@ void CUIText::SetText(const wchar_t* text)
 			Offset += 10; //TODO space
 		else
 		{
-			m_Children[idx]->SetPosAndSize(m_XPosition + Offset, m_YPosition, m_Width, m_Height);
+			m_Children[idx]->SetPosAndSize(Offset, 0.f, m_Width, m_Height);
 			Offset += m_FontCharWidth[m_Text.at(i)] * (m_Width / 64.) + 10. * (m_Width / 64.); //TODO betukoz konfigbol
 			idx++;
 		}

@@ -39,7 +39,6 @@ CUISelectControl* CUIManager::AddSelectControl(CUIElement* parent, std::shared_p
 
 	glm::vec2 ViewPos = m_GameManager->GetViewPosition(ViewID);
 	CUISelectControl* NewSelControl = new CUISelectControl(parent, id, positionData, colorData, gridcolorData, x, y, w, h, ViewPos.x, ViewPos.y, "selectcontrol.bmp");
-	parent->AddChild(NewSelControl);
 
 	return NewSelControl;
 }
@@ -52,7 +51,6 @@ CUIButton* CUIManager::AddButton(CUIElement* parent, std::shared_ptr<CSquarePosi
 
 	glm::vec2 ViewPos = m_GameManager->GetViewPosition(ViewID);
 	CUIButton* NewButton = new CUIButton(parent, positionData, colorData, x, y, w, h, ViewPos.x, ViewPos.y, textureID, id);
-	parent->AddChild(NewButton);
 
 	return NewButton;
 }
@@ -64,7 +62,6 @@ CUIText* CUIManager::AddText(CUIElement* parent, const wchar_t* text, std::share
 
 	glm::vec2 ViewPos = m_GameManager->GetViewPosition(ViewID);
 	CUIText* NewText = new CUIText(parent, positionData, colorData, text, x, y, w, h, ViewPos.x, ViewPos.y, id);
-	parent->AddChild(NewText);
 
 	return NewText;
 }

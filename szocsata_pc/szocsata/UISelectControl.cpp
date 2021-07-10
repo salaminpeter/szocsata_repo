@@ -23,7 +23,7 @@ void CUISelectControl::SetTextAndPos(const wchar_t* text)
 {
 	CUIText* Text = static_cast<CUIText*>(GetChild(L"ui_select_control_text"));
 	int TextWidth = CUIText::GetTextLengthInPixels(text, m_TextSize);
-	Text->SetPosAndSize(m_XPosition - TextWidth / 2.f + m_Height / 2.f, m_YPosition, m_TextSize, m_TextSize);
+	Text->SetPosAndSize(-TextWidth / 2.f + m_Height / 2.f, 0.f, m_TextSize, m_TextSize);
 	Text->SetText(text);
 }
 

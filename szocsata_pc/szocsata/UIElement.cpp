@@ -31,15 +31,35 @@ bool CUIElement::PositionInElement(int x, int y)
 	x -= m_ViewXPosition;
 	y -= m_ViewYPosition;
 
-	return x >= m_XPosition - m_Width / 2 && x <= m_XPosition + m_Width / 2 && y >= m_YPosition - m_Height / 2 && y <= m_YPosition + m_Height / 2; //TODO check child elements!
+	glm::vec2 AbsPos = GetAbsolutePosition();
+
+	return x >= AbsPos.x - m_Width / 2 && x <= AbsPos.x + m_Width / 2 && y >= AbsPos.y - m_Height / 2 && y <= AbsPos.y + m_Height / 2; //TODO check child elements!
 }
+
+glm::vec2 CUIElement::GetAbsolutePosition()
+{
+	glm::vec2 AbsPos(m_XPosition, m_YPosition);
+	CUIElement* Parent = m_Parent.get();
+
+	while (Parent)
+	{
+		AbsPos.x += Parent->GetXPosition();
+		AbsPos.y += Parent->GetYPosition();
+		Parent = Parent->GetParent();
+	}
+
+	return AbsPos;
+}
+
 
 void CUIElement::PositionElement()
 {
 	if (m_Model)
 	{
+		glm::vec2 AbsPos = GetAbsolutePosition();
+
 		m_Model->ResetMatrix();
-		m_Model->Translate(glm::vec3(m_XPosition, m_YPosition, 0.f));
+		m_Model->Translate(glm::vec3(AbsPos, 0.f));
 		m_Model->Scale(glm::vec3(m_Width, m_Height, 1.f));
 	}
 
