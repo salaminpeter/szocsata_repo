@@ -56,6 +56,7 @@ public:
 	void InitLetterTexPositions();
 	void CalculateScreenSpaceGrid();
 	void GetSelectionPos(int& x, int& y);
+	void DisableSelection();
 	void RemoveLastLetter();
 	void SetTexturePos(glm::vec2 texturePos);
 	void DrawModel(CModel* model, const char* viewID, const char* shaderID, bool setLightPos, bool bindBuffers = true, bool bindTexture = true, bool unbindBuffers = true, bool setTextureVertexAttrib = true, int textureOffset = 0);

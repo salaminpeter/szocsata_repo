@@ -188,7 +188,7 @@ void CGameManager::ShowNextPlayerPopup()
 
 bool CGameManager::GameScreenActive()
 {
-	return (GetGameState() != EGameState::OnRankingsScreen && GetGameState() != EGameState::OnStartScreen);
+	return (GetGameState() != EGameState::OnRankingsScreen && GetGameState() != EGameState::OnStartGameScreen && GetGameState() != EGameState::OnStartScreen);
 }
 
 bool CGameManager::GetPlayerNameScore(size_t idx, std::wstring& name, int& score)
@@ -832,7 +832,7 @@ void CGameManager::HandleReleaseEvent(int x, int y)
 
 void CGameManager::HandleReleaseEventFromBoardView(int x, int y)
 {
-	if (GetGameState() == OnStartScreen)
+	if (!GameScreenActive())
 		return;
 
 	m_Renderer->CalculateScreenSpaceGrid();
@@ -988,7 +988,7 @@ void CGameManager::HandleZoomEvent(float dist, int origoX, int origoY)
 
 void CGameManager::HandleZoomEvent(float dist)
 {
-	if (GetGameState() == OnStartScreen)
+	if (!GameScreenActive())
 		return;
 
 	m_Dragged = false;
@@ -1036,6 +1036,11 @@ void CGameManager::RenderUI()
 	glEnable(GL_DEPTH_TEST);
 }
 
+void CGameManager::GoToStartGameScrEvent()
+{
+	SetGameState(CGameManager::OnStartGameScreen);
+}
+
 void CGameManager::EndPlayerTurnEvent()
 {
 	if (EndPlayerTurn())
@@ -1076,7 +1081,7 @@ void CGameManager::RenderFrame()
 		{
 			const std::lock_guard<std::recursive_mutex> lock(m_Renderer->GetRenderLock());
 
-			if (GetGameState() != OnStartScreen && GetGameState() != OnRankingsScreen)
+			if (GameScreenActive())
 			{
 				m_Renderer->Render();
 				RenderTileAnimations();

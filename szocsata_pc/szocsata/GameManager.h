@@ -32,7 +32,7 @@ class CGameManager
 {
 public:
 	
-	enum EGameState { NextTurn, WaintingOnAnimation, WaitingForMessageBox, TurnInProgress, GameAboutToEnd, GameEnded, BeginGame, OnStartScreen, OnRankingsScreen, None};
+	enum EGameState { NextTurn, WaintingOnAnimation, WaitingForMessageBox, TurnInProgress, GameAboutToEnd, GameEnded, BeginGame, OnStartGameScreen, OnStartScreen, OnRankingsScreen, None};
 
 	CGameManager();
 
@@ -98,7 +98,6 @@ public:
 	bool TileAnimationFinished();
 	bool PlayerLetterAnimationFinished();
 
-
 	std::wstring GetWordAtPos(bool horizontal, int& x, int& y);
 
 	CWordTree::TNode* WordTreeRoot(wchar_t c) {return m_DataBase.GetWordTreeRoot(c);}
@@ -124,6 +123,7 @@ public:
 	void EndPlayerTurnEvent();
 	void BackSpaceEvent();
 	void TopViewEvent();
+	void GoToStartGameScrEvent();
 
 	int frames = 0;
 	std::chrono::high_resolution_clock::time_point LastRenderTime;

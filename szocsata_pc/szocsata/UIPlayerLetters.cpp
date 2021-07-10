@@ -140,10 +140,7 @@ bool CUIPlayerLetters::HandleEventAtPos(int x, int y, bool touchEvent)
 				m_Children[i]->HandleEvent();
 			//player letter drag start
 			else
-			{
-				m_GameManager->GetRenderer()->DisableSelection();
-				m_UIManager->SetDraggedPlayerLetter(true, i, m_Children[i]->GetTexturePos(), glm::vec2(x, y));
-			}
+				m_UIManager->SetDraggedPlayerLetter(false, i, m_Children[i]->GetTexturePos(), glm::vec2(x, y));
 				
 			return true;
 		}

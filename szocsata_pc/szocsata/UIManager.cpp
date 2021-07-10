@@ -123,15 +123,29 @@ void CUIManager::InitUIElements(std::shared_ptr<CSquarePositionData> positionDat
 	//start screen ui elements
 	m_RootStartScreen = new CUIElement(nullptr, L"ui_start_screen_root", nullptr, 0.f, 0.f, m_GameManager->m_SurfaceWidth, m_GameManager->m_SurfaceHeigh, ViewPos.x, ViewPos.y, 0.f, 0.f);
 
-	AddText(m_RootStartScreen, L"szócsata3d", positionData, gridcolorData8x8, m_GameManager->m_SurfaceWidth / 2 - 200, m_GameManager->m_SurfaceHeigh - 90, 70, 70, "view_ortho", "font.bmp", L"ui_logo_text");
-	Button = AddButton(m_RootStartScreen, positionData, colorData, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh / 2, 50, 50, "view_ortho", "okbutton.bmp", L"ui_new_game_btn");
+	AddText(m_RootStartScreen, L"szócsata3d", positionData, gridcolorData8x8, m_GameManager->m_SurfaceWidth / 2 - 350, m_GameManager->m_SurfaceHeigh - 90, 130, 130, "view_ortho", "font.bmp", L"ui_logo_text");
+
+	Button = AddButton(m_RootStartScreen, positionData, colorData, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh - 300, 800, 90, "view_ortho", "okbutton.bmp", L"ui_new_game_btn");
+	Button->SetText(L"új játék", 0.8f, positionData, gridcolorData8x8);
 	Button->SetEvent(m_GameManager, &CGameManager::GoToStartGameScrEvent);
 
+	Button = AddButton(m_RootStartScreen, positionData, colorData, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh - 440, 800, 90, "view_ortho", "okbutton.bmp", L"ui_rules_game_btn");
+	Button->SetText(L"szabályok", 0.8f, positionData, gridcolorData8x8);
+	Button->SetEvent(m_GameManager, &CGameManager::GoToStartGameScrEvent);
+
+	Button = AddButton(m_RootStartScreen, positionData, colorData, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh - 580, 800, 90, "view_ortho", "okbutton.bmp", L"ui_guide_game_btn");
+	Button->SetText(L"kezelés", 0.8f, positionData, gridcolorData8x8);
+	Button->SetEvent(m_GameManager, &CGameManager::GoToStartGameScrEvent);
+
+	Button = AddButton(m_RootStartScreen, positionData, colorData, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh - 720, 800, 90, "view_ortho", "okbutton.bmp", L"ui_settings_game_btn");
+	Button->SetText(L"beállítások", 0.8f, positionData, gridcolorData8x8);
+	Button->SetEvent(m_GameManager, &CGameManager::GoToStartGameScrEvent);
 
 	//game screen ui elements
 	m_RootGameScreen = new CUIElement(nullptr, L"ui_game_screen_root", nullptr, 0.f, 0.f, m_GameManager->m_SurfaceWidth, m_GameManager->m_SurfaceHeigh, ViewPos.x, ViewPos.y, 0.f, 0.f);
 
-	AddButton(m_RootGameScreen, positionData, gridcolorData8x4, 0, 0, 0, 0, "view_ortho", "playerletters.bmp", L"ui_dragged_player_letter_btn");
+	Button = AddButton(m_RootGameScreen, positionData, gridcolorData8x4, 0, 0, 0, 0, "view_ortho", "playerletters.bmp", L"ui_dragged_player_letter_btn");
+	Button->SetVisible(false);
 
 	Button = AddButton(m_RootGameScreen, positionData, colorData, 0, 0, 0, 0, "view_ortho", "okbutton.bmp", L"ui_ok_btn");
 	Button->SetEvent(m_GameManager, &CGameManager::EndPlayerTurnEvent);
@@ -391,15 +405,12 @@ void CUIManager::SetDraggedPlayerLetter(bool letterDragged, unsigned letterIdx, 
 {
 	m_PlayerLetterDragged = letterDragged;
 	m_DraggedPlayerLetterIdx = letterIdx;
+	m_LastDraggedPlayerLetterPos = startDragPos;
+	float TexX = letterTexPos.x / 8.f;
+	float TexY = letterTexPos.y / 4.f;
 
-	if (letterDragged)
-	{
-		m_LastDraggedPlayerLetterPos = startDragPos;
-		CUIElement* DraggedPlayerLetter = m_RootGameScreen->GetChild(L"ui_dragged_player_letter_btn");
-		float TexX = letterTexPos.x / 8.f;
-		float TexY = letterTexPos.y / 4.f;
-		DraggedPlayerLetter->SetTexturePosition(glm::vec2(TexX, TexY));
-	}
+	CUIElement* DraggedPlayerLetter = m_RootGameScreen->GetChild(L"ui_dragged_player_letter_btn");
+	DraggedPlayerLetter->SetTexturePosition(glm::vec2(TexX, TexY));
 }
 
 
@@ -421,6 +432,12 @@ void CUIManager::HandleTouchEvent(int x, int y)
 
 void CUIManager::HandleDragEvent(int x, int y)
 {
+	bool tmp = m_PlayerLetterDragged;
+	m_PlayerLetterDragged = glm::length(m_LastDraggedPlayerLetterPos - glm::vec2(x, y)) >= 4;
+
+	if (!tmp && m_PlayerLetterDragged)
+		m_GameManager->GetRenderer()->DisableSelection();
+
 	if (m_PlayerLetterDragged)
 	{
 		CUIElement* DraggedPlayerLetter = m_RootGameScreen->GetChild(L"ui_dragged_player_letter_btn");
