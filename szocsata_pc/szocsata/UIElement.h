@@ -18,6 +18,7 @@ friend CUIElement;
 public:
 
 	CUIElement(CUIElement*  parent, const wchar_t* id, CModel *model, int x, int y, int w, int h, int vx, int vy, float tx, float ty, bool ignoreReleaseEvent = true);
+	//TODO destructor!!!!
 		
 	template <typename ClassType, typename... ArgTypes>
 	void SetEvent(ClassType* funcClass, typename CEvent<ClassType, ArgTypes...>::TFuncPtrType funcPtr, ArgTypes&&... args)

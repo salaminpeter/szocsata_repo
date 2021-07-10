@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "UIButton.h"
+#include "UIText.h"
 #include "SquareModelData.h"
 #include "Model.h"
 #include "Renderer.h"
@@ -9,6 +10,16 @@ CUIButton::CUIButton(CUIElement* parent, std::shared_ptr<CSquarePositionData> po
 	CUIElement(parent, id, new CModel(false, 2, positionData.get(), colorData.get(), textureID, "textured"), x, y, w, h, vx, vy, 0.f, 0.f, ignoreReleaseEvent)
 {
 	PositionElement();
+}
+
+void CUIButton::SetText(const wchar_t* buttonText, float relTextHeight, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> gridcolorData8x8)
+{
+	float TextSize = m_Height * relTextHeight;
+	CUIText* ButtonText = new CUIText(this, positionData, gridcolorData8x8, buttonText, 0, 0, TextSize, TextSize, m_ViewXPosition, m_ViewYPosition, L"ui_button_text");
+	AddChild(ButtonText);
+	float TextWidth = ButtonText->GetTextLengthInPixels(buttonText, TextSize);
+	ButtonText->SetPosAndSize(m_XPosition - TextWidth / 2.f, m_YPosition, TextSize, TextSize);
+	ButtonText->SetText(buttonText);
 }
 
 bool CUIButton::HandleEventAtPos(int x, int y, bool touchEvent)
@@ -30,4 +41,8 @@ void CUIButton::Render(CRenderer* renderer)
 
 	renderer->SetTexturePos(m_TexturePosition);
 	renderer->DrawModel(m_Model, "view_ortho", "textured", false);
+
+	//draw button text
+	if (m_Children.size())
+		m_Children[0]->Render(renderer);
 }
