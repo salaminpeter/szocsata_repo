@@ -113,7 +113,12 @@ void CUIManager::InitUIElements(std::shared_ptr<CSquarePositionData> positionDat
 	AddButton(m_RootGameScreen, positionData, colorData, 0, 0, 0, 0, "view_ortho", "topviewbutton.bmp", L"ui_topview_btn");
 	m_UIButtons.back()->SetEvent(m_GameManager, &CGameManager::TopViewEvent);
 
-	AddText(m_RootGameScreen, L"", positionData, gridcolorData8x8, m_GameManager->m_SurfaceWidth - 150, m_GameManager->m_SurfaceHeigh - 30, 30, 30, "view_ortho", "font.bmp", L"ui_fps_text");
+	int ShowFps;
+	bool ConfigFound = CConfig::GetConfig("show_fps", ShowFps);
+	ShowFps &= ConfigFound;
+
+	if (ShowFps)
+		AddText(m_RootGameScreen, L"", positionData, gridcolorData8x8, m_GameManager->m_SurfaceWidth - 150, m_GameManager->m_SurfaceHeigh - 30, 30, 30, "view_ortho", "font.bmp", L"ui_fps_text");
 
 	m_ScorePanel = new CUIScorePanel(m_RootGameScreen, m_GameManager, L"ui_score_panel", positionData, colorData, gridcolorData8x8, m_GameManager->m_SurfaceWidth - 200, m_GameManager->m_SurfaceHeigh - 500, 350, 300, ViewPos.x, ViewPos.y, "panel.bmp", 0.f, 0.f);
 

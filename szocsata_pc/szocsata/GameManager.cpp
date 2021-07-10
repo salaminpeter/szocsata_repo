@@ -780,9 +780,16 @@ void CGameManager::PositionUIElements()
 
 void CGameManager::InitUIManager()
 {
+	int ShowFps;
+	bool ConfigFound = CConfig::GetConfig("show_fps", ShowFps);
+	ShowFps &= ConfigFound;
+
 	m_UIManager = new CUIManager(this, m_TimerEventManager);
 	m_UIManager->InitUIElements(m_Renderer->GetSquarePositionData(), m_Renderer->GetSquareColorData(), m_Renderer->GetSquareColorGridData8x8(), m_Renderer->GetSquareColorGridData8x4());
-	m_UIManager->SetText(L"ui_fps_text", L"fps : 0");
+
+	if (ShowFps)
+		m_UIManager->SetText(L"ui_fps_text", L"fps : 0");
+
 	m_UIManager->SetTileCounterValue(m_LetterPool.GetRemainingLetterCount());
 	m_TileAnimations->SetUIManager(m_UIManager);
 }
@@ -1055,11 +1062,15 @@ void CGameManager::TopViewEvent()
 
 void CGameManager::RenderFrame()
 {
+	int ShowFps;
+	bool ConfigFound = CConfig::GetConfig("show_fps", ShowFps);
+	ShowFps &= ConfigFound;
+
 	typedef std::chrono::high_resolution_clock Clock;
 	
 	if (m_Renderer && m_Renderer->IsInited())
 	{
-		if (frames == 0)
+		if (ShowFps && frames == 0)
 			LastRenderTime = Clock::now();
 		
 		{
@@ -1076,27 +1087,29 @@ void CGameManager::RenderFrame()
 			RenderUI();
 		}
 
-		std::chrono::high_resolution_clock::time_point RenderTime = Clock::now();
-		std::chrono::duration<double, std::milli> TimeSpan = RenderTime - LastRenderTime;
-
-		if (TimeSpan.count() != 0)
+		if (ShowFps)
 		{
-			frames++;
+			std::chrono::high_resolution_clock::time_point RenderTime = Clock::now();
+			std::chrono::duration<double, std::milli> TimeSpan = RenderTime - LastRenderTime;
 
-			if (frames > 500)
+			if (TimeSpan.count() != 0)
 			{
-				float fps = (1000. / double(TimeSpan.count())) * double(frames);
+				frames++;
 
-				std::wstringstream ss;
-				ss << L"fps : " << int(fps);
-				m_UIManager->SetText(L"ui_fps_text", ss.str().c_str());
-				//OutputDebugString(str);
-				frames = 0;
+				if (frames > 500)
+				{
+					float fps = (1000. / double(TimeSpan.count())) * double(frames);
+
+					std::wstringstream ss;
+					ss << L"fps : " << int(fps);
+					m_UIManager->SetText(L"ui_fps_text", ss.str().c_str());
+					frames = 0;
+				}
 			}
-		}
-		else
-		{
-			frames++;
+			else
+			{
+				frames++;
+			}
 		}
 #ifndef PLATFORM_ANDROID
 		OpenGLFunctions::SwapBuffers();
