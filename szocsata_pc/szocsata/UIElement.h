@@ -32,6 +32,7 @@ public:
 	void RemoveLastChild();
 	void SetPosAndSize(float x, float y, float w, float h);
 	void SetPosition(float x, float y);
+	void DeleteRecursive();
 
 	CModel* GetModel();
 	CModel* GetModel(size_t idx);
@@ -51,7 +52,6 @@ public:
 	void SetTexturePosition(glm::vec2 texPos) {m_TexturePosition = texPos;}
 	void SetVisible(bool visible) {m_Visible = visible;}
 	void SetVisible(bool visible, size_t idx) { m_Children[idx]->SetVisible(visible); }
-	void SetTransparent(bool transparent) {m_IsTransparent = transparent;}
 	bool IsVisible() {return m_Visible;}
 	bool IsVisible(size_t idx) { return m_Children[idx]->m_Visible; }
 	std::wstring GetID() const {return m_ID;}
@@ -81,7 +81,6 @@ protected:
 	int m_Height;
 	bool m_Visible = true;
 	bool m_Enabled = true;
-	bool m_IsTransparent = false;
 	bool m_IgnoreReleaseEvent = false;
 	glm::vec2 m_TexturePosition;
 	std::wstring m_ID;

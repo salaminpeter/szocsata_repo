@@ -29,9 +29,5 @@ void CUIButton::Render(CRenderer* renderer)
 		return;
 
 	renderer->SetTexturePos(m_TexturePosition);
-	
-	if (!m_IsTransparent)
-		renderer->DrawModel(m_Model, "view_ortho", "textured", false);
-	else
-		renderer->DrawModel(m_Model, "view_ortho", "transparent_textured", false);
+	renderer->DrawModel(m_Model, "view_ortho", "textured", false);
 }

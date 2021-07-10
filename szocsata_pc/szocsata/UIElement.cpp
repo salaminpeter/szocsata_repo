@@ -46,6 +46,15 @@ void CUIElement::PositionElement()
 	//TODO childelements!
 }
 
+void CUIElement::DeleteRecursive()
+{
+	for (size_t i = 0; i < m_Children.size(); ++i)
+		m_Children[i]->DeleteRecursive();
+
+	delete this;
+}
+
+
 void CUIElement::SetPosition(float x, float y)
 {
 	m_XPosition = x;

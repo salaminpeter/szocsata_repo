@@ -33,20 +33,20 @@ public:
 		m_TimerEventManager(timerEventManager)
 	{}
 
-	//TODO destruktor delete !!!!!!!!!!!!!!!
+	~CUIManager();
 
 	void InitUIElements(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData8x8, std::shared_ptr<CSquareColorData> gridcolorData8x4);
 	void PositionUIElements();
 	void InitRankingsPanel();
 
-	void AddButton(CUIElement* parent, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, float x, float y, float w, float h, const char* ViewID, const char* textureID, const wchar_t* id);
-	void AddSelectControl(CUIElement* parent, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData, float x, float y, float w, float h, const char* ViewID, const char* textureID, const wchar_t* id);
-	void AddText(CUIElement* parent, const wchar_t* text, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, float x, float y, float w, float h, const char* ViewID, const char* textureID, const wchar_t* id);
-	void AddPlayerLetters(CPlayer* player, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData);
+	CUIButton* AddButton(CUIElement* parent, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, float x, float y, float w, float h, const char* ViewID, const char* textureID, const wchar_t* id);
+	CUISelectControl* AddSelectControl(CUIElement* parent, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData, float x, float y, float w, float h, const char* ViewID, const char* textureID, const wchar_t* id);
+	CUIText* AddText(CUIElement* parent, const wchar_t* text, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, float x, float y, float w, float h, const char* ViewID, const char* textureID, const wchar_t* id);
+	CUIPlayerLetters* AddPlayerLetters(CPlayer* player, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData);
+	
 	void PositionPlayerLetter(const std::wstring& playerId, size_t letterIdx, float x, float y, float size);
 
 	CUIPlayerLetters* GetPlayerLetters(const std::wstring& playerID);
-	CUIPlayerLetters* GetPlayerLetters(size_t playerLetterIdx);
 
 	void HandleTouchEvent(int x, int y);
 	void HandleReleaseEvent(int x, int y);
@@ -93,12 +93,10 @@ public: //TODO
 	CGameManager* m_GameManager;
 	CTimerEventManager* m_TimerEventManager;
 
-	std::vector<CUIButton*> m_UIButtons;  //TODO emplace !!!
-	std::vector<CUIText*> m_UITexts;
-	std::vector<CUIPlayerLetters*> m_UIPlayerLetters;
-	std::vector<CUISelectControl*> m_SelectControls;
+	std::vector<CUIElement*> m_UIRoots;
 
 	CUIElement* m_RootStartScreen;
+	CUIElement* m_RootStartGameScreen;
 	CUIElement* m_RootGameScreen;
 	CUIElement* m_RootGameEndScreen;
 
