@@ -1,6 +1,8 @@
 #pragma once
 
 #include "UIElement.h"
+
+#include <glm/glm.hpp>
 #include <map>
 #include <algorithm>
 
@@ -19,7 +21,7 @@ public:
 
 	void Render(CRenderer* renderer) override;
 
-	static int GetTextLengthInPixels(const std::wstring& text, int size);
+	static glm::vec2 GetTextSizeInPixels(const std::wstring& text, int size);
 
 private:
 
@@ -29,6 +31,7 @@ private:
 
 	std::map<wchar_t, glm::vec2> m_FontTexPos; //TODO kulon font osztaly!!!!!!!!!!
 	static std::map<wchar_t, int> m_FontCharWidth;
+	static std::map<wchar_t, float> m_FontDesc;
 
 private:
 

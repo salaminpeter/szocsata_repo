@@ -6,6 +6,8 @@
 #include "SquareModelData.h"
 
 std::map<wchar_t, int> CUIText::m_FontCharWidth;
+std::map<wchar_t, float> CUIText::m_FontDesc;
+
 
 CUIText::CUIText(CUIElement* parent, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, const wchar_t* text, int x, int y, int w, int h, int vx, int vy, const wchar_t* id) :
 	CUIElement(parent, id, nullptr, x, y, w, h, vx, vy, 0.f, 0.f),
@@ -35,21 +37,30 @@ void CUIText::Render(CRenderer* renderer)
 	}
 }
 
-int CUIText::GetTextLengthInPixels(const std::wstring& text, int size)
+glm::vec2 CUIText::GetTextSizeInPixels(const std::wstring& text, int size)
 {
-	float SizeInPixels = 0.f;
+	glm::vec2 SizeInPixels(0.f, 0.f);
 	size_t idx = 0;
+	float MaxDescent = 0.f;
 
 	for (size_t i = 0; i < text.length(); ++i)
 	{
 		if (text.at(i) == L' ')
-			SizeInPixels += 10; //TODO space
+			SizeInPixels.x += 10; //TODO space
 		else
 		{
-			SizeInPixels += m_FontCharWidth[text.at(i)] * (size / 64.) + 7. * (size / 64.); //TODO betukoz konfigbol
+			if (m_FontDesc.find(text.at(i)) != m_FontDesc.end())
+			{
+				float FontDesc = size * m_FontDesc[text.at(i)];
+				MaxDescent = MaxDescent < FontDesc ? FontDesc : MaxDescent;
+			}
+
+			SizeInPixels.x += m_FontCharWidth[text.at(i)] * (size / 64.) + 7. * (size / 64.); //TODO betukoz konfigbol
 			idx++;
 		}
 	}
+
+	SizeInPixels.y = MaxDescent;
 
 	return SizeInPixels;
 }
@@ -83,7 +94,11 @@ void CUIText::SetText(const wchar_t* text)
 			Offset += 10; //TODO space
 		else
 		{
-			m_Children[idx]->SetPosAndSize(Offset, 0.f, m_Width, m_Height);
+			float FontDesc = 0.f;
+			if (m_FontDesc.find(m_Text.at(i)) != m_FontDesc.end())
+				FontDesc = m_Height * m_FontDesc[m_Text.at(i)];
+
+			m_Children[idx]->SetPosAndSize(Offset, -FontDesc, m_Width, m_Height);
 			Offset += m_FontCharWidth[m_Text.at(i)] * (m_Width / 64.) + 7. * (m_Width / 64.); //TODO betukoz konfigbol
 			idx++;
 		}
@@ -229,10 +244,10 @@ void CUIText::InitFontTexPositions()
 	m_FontCharWidth[L's'] = 22;
 	m_FontCharWidth[L't'] = 22;
 	m_FontCharWidth[L'v'] = 32;
-	m_FontCharWidth[L'u'] = 32;
-	m_FontCharWidth[L'ú'] = 32;
-	m_FontCharWidth[L'ü'] = 32;
-	m_FontCharWidth[L'ű'] = 32;
+	m_FontCharWidth[L'u'] = 28;
+	m_FontCharWidth[L'ú'] = 28;
+	m_FontCharWidth[L'ü'] = 28;
+	m_FontCharWidth[L'ű'] = 28;
 	m_FontCharWidth[L'y'] = 32;
 	m_FontCharWidth[L'z'] = 27;
 	m_FontCharWidth[L'A'] = 46;
@@ -274,4 +289,10 @@ void CUIText::InitFontTexPositions()
 	m_FontCharWidth[L'('] = 18;
 	m_FontCharWidth[L')'] = 18;
 	m_FontCharWidth[L'?'] = 27;
+
+	m_FontDesc[L'f'] = 0.5f;
+	m_FontDesc[L'g'] = 0.2f;
+	m_FontDesc[L'j'] = 0.3f;
+	m_FontDesc[L'p'] = 0.2f;
+	m_FontDesc[L'y'] = 0.3f;
 }

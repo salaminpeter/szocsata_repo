@@ -22,8 +22,8 @@ CUISelectControl::CUISelectControl(CUIElement* parent, const wchar_t* id, std::s
 void CUISelectControl::SetTextAndPos(const wchar_t* text)
 {
 	CUIText* Text = static_cast<CUIText*>(GetChild(L"ui_select_control_text"));
-	int TextWidth = CUIText::GetTextLengthInPixels(text, m_TextSize);
-	Text->SetPosAndSize(-TextWidth / 2.f + m_Height / 2.f, 0.f, m_TextSize, m_TextSize);
+	glm::vec2 TextSize = CUIText::GetTextSizeInPixels(text, m_TextSize);
+	Text->SetPosAndSize(-TextSize.x / 2.f + m_Height / 2.f, TextSize.y, m_TextSize, m_TextSize);
 	Text->SetText(text);
 }
 
