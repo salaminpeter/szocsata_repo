@@ -120,21 +120,21 @@ void CUIManager::InitUIElements(std::shared_ptr<CSquarePositionData> positionDat
 	//start screen ui elements
 	m_RootStartScreen = new CUIElement(nullptr, L"ui_start_screen_root", nullptr, 0.f, 0.f, m_GameManager->m_SurfaceWidth, m_GameManager->m_SurfaceHeigh, ViewPos.x, ViewPos.y, 0.f, 0.f);
 
-	AddText(m_RootStartScreen, L"szócsata3d", positionData, gridcolorData8x8, m_GameManager->m_SurfaceWidth / 2 - 350, m_GameManager->m_SurfaceHeigh - 90, 130, 130, "view_ortho", "font.bmp", L"ui_logo_text");
+	AddText(m_RootStartScreen, L"Szócsata 3D", positionData, gridcolorData8x8, m_GameManager->m_SurfaceWidth / 2 - 350, m_GameManager->m_SurfaceHeigh - 90, 130, 130, "view_ortho", "font.bmp", L"ui_logo_text");
 
-	Button = AddButton(m_RootStartScreen, positionData, colorData, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh - 300, 800, 90, "view_ortho", "okbutton.bmp", L"ui_new_game_btn");
+	Button = AddButton(m_RootStartScreen, positionData, colorData, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh - 300, 800, 90, "view_ortho", "textbutton.bmp", L"ui_new_game_btn");
 	Button->SetText(L"új játék", 0.8f, positionData, gridcolorData8x8);
 	Button->SetEvent(m_GameManager, &CGameManager::GoToStartGameScrEvent);
 
-	Button = AddButton(m_RootStartScreen, positionData, colorData, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh - 440, 800, 90, "view_ortho", "okbutton.bmp", L"ui_rules_game_btn");
+	Button = AddButton(m_RootStartScreen, positionData, colorData, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh - 440, 800, 90, "view_ortho", "textbutton.bmp", L"ui_rules_game_btn");
 	Button->SetText(L"szabályok", 0.8f, positionData, gridcolorData8x8);
 	Button->SetEvent(m_GameManager, &CGameManager::GoToStartGameScrEvent);
 
-	Button = AddButton(m_RootStartScreen, positionData, colorData, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh - 580, 800, 90, "view_ortho", "okbutton.bmp", L"ui_guide_game_btn");
+	Button = AddButton(m_RootStartScreen, positionData, colorData, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh - 580, 800, 90, "view_ortho", "textbutton.bmp", L"ui_guide_game_btn");
 	Button->SetText(L"kezelés", 0.8f, positionData, gridcolorData8x8);
 	Button->SetEvent(m_GameManager, &CGameManager::GoToStartGameScrEvent);
 
-	Button = AddButton(m_RootStartScreen, positionData, colorData, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh - 720, 800, 90, "view_ortho", "okbutton.bmp", L"ui_settings_game_btn");
+	Button = AddButton(m_RootStartScreen, positionData, colorData, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh - 720, 800, 90, "view_ortho", "textbutton.bmp", L"ui_settings_game_btn");
 	Button->SetText(L"beállítások", 0.8f, positionData, gridcolorData8x8);
 	Button->SetEvent(m_GameManager, &CGameManager::GoToStartGameScrEvent);
 

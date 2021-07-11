@@ -141,6 +141,12 @@ void CRenderer::SelectField(int x, int y)
 	m_SelectionY = y;
 }
 
+void CRenderer::DisableSelection()
+{
+	m_SelectionX = m_SelectionY = -1;
+	m_SelectionVisible = false;
+}
+
 void CRenderer::GetSelectionPos(int& x, int& y)
 {
 	x = m_SelectionX;
@@ -681,8 +687,8 @@ bool CRenderer::StartInit()
 	m_SquareColorData->GenerateTextureCoordBuffer(std::vector<glm::vec3>());
 
 	m_LetterTextureData8x8 = std::make_shared<CSquareColorData>();
-	m_LetterTextureData8x8->m_DivX = 8.f;
-	m_LetterTextureData8x8->m_DivY = 8.f;
+	m_LetterTextureData8x8->m_DivX = 16.f;
+	m_LetterTextureData8x8->m_DivY = 6.f;
 	m_LetterTextureData8x8->GenerateTextureCoordBuffer(std::vector<glm::vec3>());
 
 	m_LetterTextureData8x4 = std::make_shared<CSquareColorData>();
@@ -716,6 +722,7 @@ bool CRenderer::StartInit()
 	m_TextureManager->AddTexture("selectcontrol.bmp");
 	m_TextureManager->AddTexture("leftarrow.bmp");
 	m_TextureManager->AddTexture("rightarrow.bmp");
+	m_TextureManager->AddTexture("textbutton.bmp");
 
 
 	return true;
@@ -838,14 +845,12 @@ void CRenderer::DrawModel(CModel* model, const char* viewID, const char* shaderI
 		SetLightPosition();
 		glm::vec4 LightPosition = glm::inverse(model->GetModelMatrixNoScale()) * m_LightPosition;
 		GLuint LightPosId = m_ShaderManager->GetShaderVariableID(model->GetShaderId(), "LightPosition");
-		//		GLuint LightPosId = glGetUniformLocation(m_ShaderManager->GetProgramID(shaderID), "LightPosition");
 		glUniform4fv(LightPosId, 1, &LightPosition[0]);
 	}
 
 	glm::mat4 ProjectionView = m_Views[viewID]->GetProjectionView();
 	glm::mat4 MVP = ProjectionView * model->GetModelMatrix();
 	GLint MatrixID = m_ShaderManager->GetShaderVariableID(model->GetShaderId(), "MVP");
-	//	GLuint MatrixID = glGetUniformLocation(m_ShaderManager->GetProgramID(shaderID), "MVP");
 	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
 
 	double t2 = CTimer::GetTime();
@@ -877,7 +882,6 @@ void CRenderer::Render()
 	CTimer::Start();
 
 	GLuint DistanceDividerID = m_ShaderManager->GetShaderVariableID("per_pixel_light_textured", "DistanceDivider");
-	//	GLuint DistanceDividerID = glGetUniformLocation(m_ShaderManager->GetProgramID("per_pixel_light_textured"), "DistanceDivider");
 	glDepthMask(GL_FALSE);
 	glUniform1f(DistanceDividerID, 10.f);
 	DrawModel(m_BoardModel, "board_perspecive", "per_pixel_light_textured", true);
