@@ -467,9 +467,15 @@ void CUIManager::HandleReleaseEvent(int x, int y)
 	if (m_PlayerLetterDragged)
 	{
 		bool NoDrag = glm::length(m_LastDraggedPlayerLetterPos - glm::vec2(x, y)) < 4;
+		int SelX;
+		int SelY;
 
-		if (!NoDrag && m_GameManager->PositionOnBoardView(x, y))
+		m_GameManager->GetRenderer()->GetSelectionPos(SelX, SelY);
+
+		if (!NoDrag && !m_GameManager->SelectionPosIllegal(SelX, SelY))
 			m_GameManager->PlayerLetterClicked(m_DraggedPlayerLetterIdx);
+		else 
+			m_GameManager->GetRenderer()->DisableSelection();
 
 		m_PlayerLetterDragged = false;
 		m_RootGameScreen->GetChild(L"ui_dragged_player_letter_btn")->SetVisible(false);

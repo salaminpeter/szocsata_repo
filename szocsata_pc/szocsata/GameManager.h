@@ -97,6 +97,7 @@ public:
 	void ShowNextPlayerPopup();
 	bool TileAnimationFinished();
 	bool PlayerLetterAnimationFinished();
+	bool SelectionPosIllegal(int x, int y);
 
 	std::wstring GetWordAtPos(bool horizontal, int& x, int& y);
 

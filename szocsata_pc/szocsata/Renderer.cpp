@@ -906,6 +906,12 @@ void CRenderer::Render()
 	if (m_SelectionVisible)
 	{
 		PositionSelection();
-		DrawSelection(glm::vec4(0.4, 0.4, 1, 0.5), m_SelectionX, m_SelectionY);
+
+		glm::vec4 Color(0.4, 0.4, 1, 0.5);
+
+		if (m_GameManager->SelectionPosIllegal(m_SelectionX, m_SelectionY))
+			Color = glm::vec4(1.f, 0.f, 0.f, 0.5f);
+
+		DrawSelection(Color, m_SelectionX, m_SelectionY);
 	}
 }

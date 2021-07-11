@@ -292,7 +292,7 @@ void CUIText::InitFontTexPositions()
 
 	m_FontDesc[L'f'] = 0.5f;
 	m_FontDesc[L'g'] = 0.2f;
-	m_FontDesc[L'j'] = 0.3f;
+	m_FontDesc[L'j'] = 0.2f;
 	m_FontDesc[L'p'] = 0.2f;
-	m_FontDesc[L'y'] = 0.3f;
+	m_FontDesc[L'y'] = 0.2f;
 }

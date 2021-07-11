@@ -174,6 +174,33 @@ bool CGameManager::TileAnimationFinished()
 	return m_TileAnimations->Finished(); 
 }
 
+bool CGameManager::SelectionPosIllegal(int x, int y)
+{
+	//ha csak egy betu van leteve, es a selection nem abba a sorba es oszlopba van
+	if (m_FirstPlayerLetterY != -1 && m_SecondPlayerLetterY == -1 && x != m_FirstPlayerLetterX && y != m_FirstPlayerLetterY)
+		return true;
+
+	//ha mar ket betu van leteve, es a selection nem abba a sorba es oszlopba van
+	if (m_FirstPlayerLetterY != -1 && m_SecondPlayerLetterY != -1 && !(m_FirstPlayerLetterX == m_SecondPlayerLetterX && x == m_FirstPlayerLetterX || m_FirstPlayerLetterY == m_SecondPlayerLetterY && y == m_FirstPlayerLetterY))
+		return true;
+
+	int TileCount;
+	CConfig::GetConfig("tile_count", TileCount);
+
+	//ha mar 5 elemes a torony amire rakni akarunk	
+	if (m_GameBoard(x, TileCount - y - 1).m_Height == 5)
+		return true;
+	
+	//ha mar egy elhelyezett beture akarubk rakni
+	for (size_t i = 0; i < m_PlayerSteps.size(); ++i)
+	{
+		if (m_PlayerSteps[i].m_XPosition == x && m_PlayerSteps[i].m_YPosition == y)
+			return true;
+	}
+
+	return false;
+}
+
 bool CGameManager::PlayerLetterAnimationFinished() 
 { 
 	return m_PlayerLetterAnimationManager->Finished(); 
