@@ -16,16 +16,20 @@ void CUIScorePanel::Update()
 	std::wstring Name;
 	int Score;
 
-	while (m_GameManager->GetPlayerNameScore(Idx++, Name, Score))
+	while (m_GameManager->GetPlayerNameScore(Idx, Name, Score))
 	{
 		std::wstringstream Id;
-		Id << L"ui_player_score_text_" << Idx - 1;
+		Id << L"ui_player_score_text_" << Idx;
 
 		std::wstringstream PlayerNameScore;
 		PlayerNameScore << Name << L" : " << Score;
 
 		CUIText* PlayerText = static_cast<CUIText*>(GetChild(Id.str().c_str()));
+		float TextSize = 35;
+		float TextWidth = CUIText::GetTextWidthInPixels(PlayerNameScore.str().c_str(), TextSize);
+		PlayerText->SetPosAndSize((TextSize - TextWidth) / 2.f, (m_Height / 2.f - 40) - static_cast<float>(Idx * 50), TextSize, TextSize);
 		PlayerText->SetText(PlayerNameScore.str().c_str());
+		Idx++;
 	}
 }
 
@@ -42,10 +46,10 @@ void CUIScorePanel::Init()
 
 		std::wstringstream Id;
 		Id << L"ui_player_score_text_" << Idx;
-
-		int i = m_GameManager->GetPlayerCount() - Idx;
-		AddText(PlayerNameScore.str().c_str(), -100, i * 35 - 55, 35, 35, "font.bmp", Id.str().c_str());
+		AddText(L"", 0, 0, 35, 35, "font.bmp", Id.str().c_str());
 		Idx++;
 	}
+
+	Update();
 }
 

@@ -10,7 +10,7 @@ CUIMessageBox::CUIMessageBox(std::shared_ptr<CSquarePositionData> positionData, 
 	CUIPanel(nullptr, L"ui_message_box", positionData, colorData, gridColorData, x, y, w, h, vx, vy, "panel.bmp", 0.f, 0.f),
 	m_Type(type)
 {
-	AddText(L"",-120.f, 0.f, 40.f, 40.f, "font.bmp", L"ui_message_box_text");
+	AddText(L"", 0.f, 0.f, 40.f, 40.f, "font.bmp", L"ui_message_box_text");
 
 	if (m_Type == Ok)
 	{ 
@@ -35,5 +35,9 @@ void CUIMessageBox::ButtonPressed(int ret)
 
 void CUIMessageBox::SetText(const wchar_t* text)
 {
-	static_cast<CUIText*>(m_Children[0])->SetText(text);
+	CUIText* Text = static_cast<CUIText*>(m_Children[0]);
+	float TextSize = 40;
+	float TextWidth = CUIText::GetTextWidthInPixels(text, TextSize);
+	Text->SetPosAndSize((TextSize - TextWidth) / 2.f, 70, TextSize, TextSize);
+	Text->SetText(text);
 }

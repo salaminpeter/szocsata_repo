@@ -63,7 +63,8 @@ void CUIElement::PositionElement()
 		m_Model->Scale(glm::vec3(m_Width, m_Height, 1.f));
 	}
 
-	//TODO childelements!
+	for (size_t i = 0; i < m_Children.size(); ++i)
+		m_Children[i]->PositionElement();
 }
 
 void CUIElement::DeleteRecursive()

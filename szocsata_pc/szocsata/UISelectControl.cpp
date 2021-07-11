@@ -8,7 +8,7 @@ CUISelectControl::CUISelectControl(CUIElement* parent, const wchar_t* id, std::s
 	CUIPanel(parent, id, positionData, colorData, gridcolorData, x, y, w, h, vx, vy, "selectcontrol.bmp", 0.f, 0.f),
 	m_CurrSelection(idx)
 {
-	m_TextSize = h - 20.f;
+	m_TextSize = h - 34.f;
 
 	AddText(L"", 0.f, 0.f, m_TextSize, m_TextSize, "font.bmp", L"ui_select_control_text");
 
@@ -22,8 +22,9 @@ CUISelectControl::CUISelectControl(CUIElement* parent, const wchar_t* id, std::s
 void CUISelectControl::SetTextAndPos(const wchar_t* text)
 {
 	CUIText* Text = static_cast<CUIText*>(GetChild(L"ui_select_control_text"));
-	glm::vec2 TextSize = CUIText::GetTextSizeInPixels(text, m_TextSize);
-	Text->SetPosAndSize(-TextSize.x / 2.f + m_Height / 2.f, TextSize.y, m_TextSize, m_TextSize);
+	float TextWidth = CUIText::GetTextWidthInPixels(text, m_TextSize);
+	glm::vec2 TextTopBottom = CUIText::GetTextTopBottom(text, m_TextSize);
+	Text->SetPosAndSize((m_TextSize - TextWidth) / 2.f, (m_TextSize - TextTopBottom.x) / 2.f, m_TextSize, m_TextSize);
 	Text->SetText(text);
 }
 

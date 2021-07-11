@@ -176,6 +176,10 @@ bool CGameManager::TileAnimationFinished()
 
 bool CGameManager::SelectionPosIllegal(int x, int y)
 {
+	//nem a tablara tettuk a betut
+	if (x == -1 || y == -1)
+		return true;
+
 	//ha csak egy betu van leteve, es a selection nem abba a sorba es oszlopba van
 	if (m_FirstPlayerLetterY != -1 && m_SecondPlayerLetterY == -1 && x != m_FirstPlayerLetterX && y != m_FirstPlayerLetterY)
 		return true;

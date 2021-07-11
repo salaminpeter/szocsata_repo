@@ -16,9 +16,9 @@ void CUIButton::SetText(const wchar_t* buttonText, float relTextHeight, std::sha
 {
 	float TextSize = m_Height * relTextHeight;
 	CUIText* ButtonText = new CUIText(this, positionData, gridcolorData8x8, buttonText, 0, 0, TextSize, TextSize, m_ViewXPosition, m_ViewYPosition, L"ui_button_text");
-	glm::vec2 TextDim = ButtonText->GetTextSizeInPixels(buttonText, TextSize);
-	ButtonText->SetPosAndSize(-TextDim.x / 2.f, TextDim.y, TextSize, TextSize);
-	ButtonText->SetText(buttonText);
+	float TextWidth = CUIText::GetTextWidthInPixels(buttonText, TextSize);
+	glm::vec2 TextTopBottom = CUIText::GetTextTopBottom(buttonText, TextSize);
+	ButtonText->SetPosAndSize((TextSize - TextWidth) / 2.f, (TextSize - TextTopBottom.x) / 2.f, TextSize, TextSize);
 }
 
 bool CUIButton::HandleEventAtPos(int x, int y, bool touchEvent)

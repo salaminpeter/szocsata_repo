@@ -6,6 +6,7 @@
 #include "SquareModelData.h"
 
 std::map<wchar_t, int> CUIText::m_FontCharWidth;
+std::map<wchar_t, int> CUIText::m_FontCharHeight;
 std::map<wchar_t, float> CUIText::m_FontDesc;
 
 
@@ -37,30 +38,49 @@ void CUIText::Render(CRenderer* renderer)
 	}
 }
 
-glm::vec2 CUIText::GetTextSizeInPixels(const std::wstring& text, int size)
+glm::vec2 CUIText::GetTextTopBottom(const std::wstring& text, int size)
 {
-	glm::vec2 SizeInPixels(0.f, 0.f);
-	size_t idx = 0;
-	float MaxDescent = 0.f;
+	//x a top, y a bottom
+	glm::vec2 TopBottom(0.f, 0.f); 
+	bool DescentSet = false;
 
 	for (size_t i = 0; i < text.length(); ++i)
 	{
 		if (text.at(i) == L' ')
-			SizeInPixels.x += 10; //TODO space
-		else
-		{
-			if (m_FontDesc.find(text.at(i)) != m_FontDesc.end())
-			{
-				float FontDesc = size * m_FontDesc[text.at(i)];
-				MaxDescent = MaxDescent < FontDesc ? FontDesc : MaxDescent;
-			}
+			continue;
 
-			SizeInPixels.x += m_FontCharWidth[text.at(i)] * (size / 64.) + 7. * (size / 64.); //TODO betukoz konfigbol
-			idx++;
+		float Descent = 0.f;
+
+		if (m_FontDesc.find(text.at(i)) != m_FontDesc.end())
+			Descent = m_FontDesc[text.at(i)] * size;
+
+		if (TopBottom.y > -Descent || !DescentSet)
+		{
+			TopBottom.y = -Descent;
+			DescentSet = true;
 		}
+
+		float Ascent = m_FontCharHeight[text.at(i)] * (size / 64.) - Descent;
+
+		if (TopBottom.x < Ascent)
+			TopBottom.x = Ascent;
 	}
 
-	SizeInPixels.y = MaxDescent;
+	return TopBottom;
+}
+
+
+float CUIText::GetTextWidthInPixels(const std::wstring& text, int size)
+{
+	float SizeInPixels = 0.f;
+
+	for (size_t i = 0; i < text.length(); ++i)
+	{
+		if (text.at(i) == L' ')
+			SizeInPixels += 18. * (size / 64.); //TODO space
+		else
+			SizeInPixels += m_FontCharWidth[text.at(i)] * (size / 64.) + 7. * (size / 64.); //TODO betukoz konfigbol
+	}
 
 	return SizeInPixels;
 }
@@ -75,7 +95,10 @@ void CUIText::SetText(const wchar_t* text)
 		size_t from = m_Children.size();
 
 		for (size_t i = from; i < m_Text.length(); ++i)
-			new CUIElement(this, L"", new CModel(false, 2, m_PositionData.get(), m_ColorData.get(), "font.bmp", "textured"), 0, 0, m_Width, m_Height, m_ViewXPosition, m_ViewYPosition, 0, 0);
+		{
+			if (m_Text[i] != L' ')
+				new CUIElement(this, L"", new CModel(false, 2, m_PositionData.get(), m_ColorData.get(), "font.bmp", "textured"), 0, 0, m_Width, m_Height, m_ViewXPosition, m_ViewYPosition, 0, 0);
+		}
 	}
 	else
 	{
@@ -91,7 +114,7 @@ void CUIText::SetText(const wchar_t* text)
 	for (size_t i = 0; i < m_Text.length(); ++i)
 	{
 		if (m_Text.at(i) == L' ')
-			Offset += 10; //TODO space
+			Offset += 18. * (m_Height / 64.); //TODO space
 		else
 		{
 			float FontDesc = 0.f;
@@ -230,11 +253,11 @@ void CUIText::InitFontTexPositions()
 	m_FontCharWidth[L'h'] = 32;
 	m_FontCharWidth[L'i'] = 12;
 	m_FontCharWidth[L'í'] = 12;
-	m_FontCharWidth[L'j'] = 14;
+	m_FontCharWidth[L'j'] = 16;
 	m_FontCharWidth[L'k'] = 32;
 	m_FontCharWidth[L'l'] = 12;
 	m_FontCharWidth[L'm'] = 52;
-	m_FontCharWidth[L'n'] = 36;
+	m_FontCharWidth[L'n'] = 34;
 	m_FontCharWidth[L'o'] = 30;
 	m_FontCharWidth[L'ó'] = 30;
 	m_FontCharWidth[L'ö'] = 30;
@@ -289,6 +312,94 @@ void CUIText::InitFontTexPositions()
 	m_FontCharWidth[L'('] = 18;
 	m_FontCharWidth[L')'] = 18;
 	m_FontCharWidth[L'?'] = 27;
+
+	m_FontCharHeight[L'0'] = 44;
+	m_FontCharHeight[L'1'] = 44;
+	m_FontCharHeight[L'2'] = 44;
+	m_FontCharHeight[L'3'] = 44;
+	m_FontCharHeight[L'4'] = 44;
+	m_FontCharHeight[L'5'] = 44;
+	m_FontCharHeight[L'6'] = 44;
+	m_FontCharHeight[L'7'] = 44;
+	m_FontCharHeight[L'8'] = 44;
+	m_FontCharHeight[L'9'] = 44;
+	m_FontCharHeight[L','] = 20;
+	m_FontCharHeight[L':'] = 31;
+	m_FontCharHeight[L'-'] = 27;
+	m_FontCharHeight[L'!'] = 46;
+	m_FontCharHeight[L'.'] = 10;
+	m_FontCharHeight[L'/'] = 46;
+	m_FontCharHeight[L'a'] = 35;
+	m_FontCharHeight[L'á'] = 47;
+	m_FontCharHeight[L'b'] = 47;
+	m_FontCharHeight[L'c'] = 35;
+	m_FontCharHeight[L'd'] = 46;
+	m_FontCharHeight[L'e'] = 35;
+	m_FontCharHeight[L'é'] = 50;
+	m_FontCharHeight[L'f'] = 47;
+	m_FontCharHeight[L'g'] = 47;
+	m_FontCharHeight[L'h'] = 45;
+	m_FontCharHeight[L'i'] = 46;
+	m_FontCharHeight[L'í'] = 46;
+	m_FontCharHeight[L'j'] = 62;
+	m_FontCharHeight[L'k'] = 45;
+	m_FontCharHeight[L'l'] = 45;
+	m_FontCharHeight[L'm'] = 31;
+	m_FontCharHeight[L'n'] = 31;
+	m_FontCharHeight[L'o'] = 33;
+	m_FontCharHeight[L'ó'] = 46;
+	m_FontCharHeight[L'ö'] = 44;
+	m_FontCharHeight[L'ő'] = 46;
+	m_FontCharHeight[L'p'] = 46;
+	m_FontCharHeight[L'r'] = 31;
+	m_FontCharHeight[L's'] = 33;
+	m_FontCharHeight[L't'] = 42;
+	m_FontCharHeight[L'v'] = 31;
+	m_FontCharHeight[L'u'] = 31;
+	m_FontCharHeight[L'ú'] = 46;
+	m_FontCharHeight[L'ü'] = 46;
+	m_FontCharHeight[L'ű'] = 48;
+	m_FontCharHeight[L'y'] = 44;
+	m_FontCharHeight[L'z'] = 31;
+	m_FontCharHeight[L'A'] = 44;
+	m_FontCharHeight[L'Á'] = 59;
+	m_FontCharHeight[L'B'] = 44;
+	m_FontCharHeight[L'C'] = 44;
+	m_FontCharHeight[L'D'] = 44;
+	m_FontCharHeight[L'E'] = 44;
+	m_FontCharHeight[L'É'] = 59;
+	m_FontCharHeight[L'F'] = 44;
+	m_FontCharHeight[L'G'] = 44;
+	m_FontCharHeight[L'H'] = 44;
+	m_FontCharHeight[L'I'] = 44;
+	m_FontCharHeight[L'Í'] = 59;
+	m_FontCharHeight[L'J'] = 47;
+	m_FontCharHeight[L'K'] = 44;
+	m_FontCharHeight[L'L'] = 44;
+	m_FontCharHeight[L'M'] = 44;
+	m_FontCharHeight[L'N'] = 44;
+	m_FontCharHeight[L'O'] = 44;
+	m_FontCharHeight[L'Ó'] = 59;
+	m_FontCharHeight[L'Ö'] = 55;
+	m_FontCharHeight[L'Ő'] = 59;
+	m_FontCharHeight[L'P'] = 44;
+	m_FontCharHeight[L'R'] = 44;
+	m_FontCharHeight[L'S'] = 44;
+	m_FontCharHeight[L'T'] = 44;
+	m_FontCharHeight[L'V'] = 44;
+	m_FontCharHeight[L'U'] = 44;
+	m_FontCharHeight[L'Ú'] = 59;
+	m_FontCharHeight[L'Ü'] = 55;
+	m_FontCharHeight[L'Ű'] = 59;
+	m_FontCharHeight[L'Y'] = 44;
+	m_FontCharHeight[L'Z'] = 44;
+	m_FontCharHeight[L'x'] = 31;
+	m_FontCharHeight[L'X'] = 44;
+	m_FontCharHeight[L'<'] = 31;
+	m_FontCharHeight[L'>'] = 31;
+	m_FontCharHeight[L'('] = 56;
+	m_FontCharHeight[L')'] = 56;
+	m_FontCharHeight[L'?'] = 44;
 
 	m_FontDesc[L'f'] = 0.5f;
 	m_FontDesc[L'g'] = 0.2f;
