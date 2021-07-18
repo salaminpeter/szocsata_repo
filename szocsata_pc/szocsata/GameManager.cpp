@@ -467,19 +467,22 @@ void CGameManager::DealCurrPlayerLetters()
 	m_UIManager->PositionPlayerLetters(m_CurrentPlayer->GetName().c_str());
 	PlayerLetters->OrderLetterElements();
 
-	glm::vec2 TileCounterPos = m_UIManager->GetTileCounterPos();
-
-	for (size_t i = 0; i < m_CurrentPlayer->GetLetters().length(); ++i)
+	if (m_LetterPool.GetRemainingLetterCount() != 0)
 	{
-		if (m_CurrentPlayer->LetterUsed(i))
+		glm::vec2 TileCounterPos = m_UIManager->GetTileCounterPos();
+
+		for (size_t i = 0; i < m_CurrentPlayer->GetLetters().length(); ++i)
 		{
-			PlayerLetters->GetChild(i)->Scale(0.f);
-			m_PlayerLetterAnimationManager->AddAnimation(PlayerLetters->GetChild(i), PlayerLetters->GetChild(i)->GetWidth(), TileCounterPos.x, TileCounterPos.y, PlayerLetters->GetChild(i)->GetXPosition(), PlayerLetters->GetChild(i)->GetYPosition());
+			if (m_CurrentPlayer->LetterUsed(i))
+			{
+				PlayerLetters->GetChild(i)->Scale(0.f);
+				m_PlayerLetterAnimationManager->AddAnimation(PlayerLetters->GetChild(i), PlayerLetters->GetChild(i)->GetWidth(), TileCounterPos.x, TileCounterPos.y, PlayerLetters->GetChild(i)->GetXPosition(), PlayerLetters->GetChild(i)->GetYPosition());
+			}
 		}
+		m_PlayerLetterAnimationManager->StartAnimations();
 	}
 
 	PlayerLetters->SetLetterVisibility(CBinaryBoolList());
-	m_PlayerLetterAnimationManager->StartAnimations();
 	m_CurrentPlayer->ResetUsedLetters();
 
 }

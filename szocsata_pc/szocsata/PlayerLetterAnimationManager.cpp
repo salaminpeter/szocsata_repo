@@ -39,7 +39,10 @@ void CPlayerLetterAnimationManager::AnimatePlayerLetter(double& timeFromStart, d
 	{
 		m_TimerEventManager->StopTimer("player_letter_animation");
 
-		m_GameManager->GetUIManager()->SetTileCounterValue(m_GameManager->GetUIManager()->GetTileCounterValue() - 1);
+		if (m_GameManager->GetUIManager()->GetTileCounterValue() - 1 >= 0)
+			m_GameManager->GetUIManager()->SetTileCounterValue(m_GameManager->GetUIManager()->GetTileCounterValue() - 1);
+		else 
+			m_GameManager->GetUIManager()->SetTileCounterValue(0);
 
 		if (m_CurrentLetterIdx + 1 == m_PlayerLetterAnimations.size())
 		{
