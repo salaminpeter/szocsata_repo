@@ -19,6 +19,7 @@ void CUITileCounter::SetPositionAndSize(float x, float y, float w, float h)
 
 void CUITileCounter::SetCounter(unsigned count)
 {
+	m_Count = count;
 	std::wstringstream StrStream;
 
 	StrStream << count;

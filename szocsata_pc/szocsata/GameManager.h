@@ -73,7 +73,7 @@ public:
 	void StartPlayerTurn(CPlayer* player);
 	void StartComputerturn();
 	bool EndComputerTurn();
-	bool EndPlayerTurn();
+	bool EndPlayerTurn(bool allowPass = true, bool allowNegativeSelection = true);
 	void NextPlayerTurn();
 	void HandlePlayerPass();
 	void UndoLastStep();
@@ -98,6 +98,8 @@ public:
 	bool TileAnimationFinished();
 	bool PlayerLetterAnimationFinished();
 	bool SelectionPosIllegal(int x, int y);
+	void CheckAndUpdateTime(double& timeFromStart, double& timeFromPrev);
+	std::wstring GetTimeStr(int msec);
 
 	std::wstring GetWordAtPos(bool horizontal, int& x, int& y);
 
@@ -115,7 +117,8 @@ public:
 	}
 #endif
 
-	CRenderer* GetRenderer() {return m_Renderer;}
+	CRenderer* GetRenderer() { return m_Renderer; }
+	CUIManager* GetUIManager() { return m_UIManager; }
 	CTimerEventManager* GetTimerEventManager() {return m_TimerEventManager;}
 
 	glm::vec2 GetViewPosition(const char* viewId);
@@ -187,5 +190,8 @@ private:
 	int m_SecondPlayerLetterY = -1;
 
 	int m_ComputerWordIdx = -1;
+
+	int m_LastTurnTimeChanged = 0;
+	int m_TurnTimeStart = 0;
 };
 

@@ -50,4 +50,5 @@ public:
 	void AddWordAnimation(std::wstring word, const std::vector<size_t>& uiLetterIndices, CUIPlayerLetters* playerLetters, int x, int y, bool horizontal, bool nextPlayerIfFinished = true);
 	void AnimateLettersEvent(double& timeFromStart, double& timeFromPrev);
 	void AnimationFinished();
+	void Cancel();
 };

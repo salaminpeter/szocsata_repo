@@ -133,7 +133,7 @@ bool CUIPlayerLetters::HandleEventAtPos(int x, int y, bool touchEvent)
 {
 	for (size_t i = 0; i < m_Children.size(); ++i)
 	{
-		if (m_Children[i]->IsEnabled() && m_Children[i]->PositionInElement(x, y))
+		if (m_Children[i]->IsEnabled() && m_Children[i]->IsVisible() && m_Children[i]->PositionInElement(x, y))
 		{
 			//player letter clicked
 			if (!touchEvent)

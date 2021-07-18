@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <glm/glm.hpp>
 
 
 class CGridLayout
@@ -22,8 +23,10 @@ public:
 	void AllignGrid(int gridCount, bool recalcGridSize);
 	int GetGridIdxAtPos(int x, int y);
 	float GetElemSize();
-	
+
 	const TGridPosition& GetGridPosition(unsigned idx) const {return m_GridPositions[idx];}
+	int GridCount() {return m_GridPositions.size();}
+	glm::vec2 GetPosition() {return glm::vec2(m_XPosition, m_YPosition);}
 
 private:
 

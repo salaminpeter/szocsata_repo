@@ -22,7 +22,9 @@ public:
 	void Render(CRenderer* renderer) override;
 
 	static float GetTextWidthInPixels(const std::wstring& text, int size);
+	static float GetTextSize(const std::wstring& text, int textWidth);
 	static glm::vec2 GetTextTopBottom(const std::wstring& text, int size);
+	static void InitFontTexPositions();
 
 private:
 
@@ -30,12 +32,8 @@ private:
 	std::shared_ptr<CSquarePositionData> m_PositionData;
 	std::shared_ptr<CSquareColorData> m_ColorData;
 
-	std::map<wchar_t, glm::vec2> m_FontTexPos; //TODO kulon font osztaly!!!!!!!!!!
+	static std::map<wchar_t, glm::vec2> m_FontTexPos; //TODO kulon font osztaly!!!!!!!!!!
 	static std::map<wchar_t, int> m_FontCharWidth;
 	static std::map<wchar_t, int> m_FontCharHeight;
 	static std::map<wchar_t, float> m_FontDesc;
-
-private:
-
-	void InitFontTexPositions();
 };

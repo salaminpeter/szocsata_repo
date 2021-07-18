@@ -134,7 +134,10 @@ void CInputManager::CheckDoubleClickEvent(double& timeFromStart, double& timeFro
 		m_GameManager->GetTimerEventManager()->StopTimer("timer_event_double_click");
 
 		if (m_SecondTouch)
+		{ 
 			m_GameManager->TopViewEvent();
+			m_ReleaseTouchHappened = false; //ne legyen kijeloles a masodik klikknel
+		}
 		else
 			m_GameManager->HandleToucheEvent(m_Touch0X, m_Touch0Y, true);
 

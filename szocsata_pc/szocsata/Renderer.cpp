@@ -600,6 +600,8 @@ TPosition CRenderer::GetTilePos(int x, int y)
 	int h0 = -1;
 	int h1 = -1;
 
+	CalculateScreenSpaceGrid();
+
 	int TileCount;
 	CConfig::GetConfig("tile_count", TileCount);
 
@@ -616,11 +618,11 @@ TPosition CRenderer::GetTilePos(int x, int y)
 				continue;
 
 			float m = (p1.y - p0.y) / (p1.x - p0.x);
-			TPosition pi(x, p0.y + (x - p0.x) * m);
+			glm::vec2 pi(x, p0.y + (x - p0.x) * m);
 
-			int d0 = std::sqrtf((p1.x - p0.x) * (p1.x - p0.x) + (p1.y - p0.y) * (p1.y - p0.y));
-			int d1 = std::sqrtf((p1.x - pi.x) * (p1.x - pi.x) + (p1.y - pi.y) * (p1.y - pi.y));
-			int d2 = std::sqrtf((p0.x - pi.x) * (p0.x - pi.x) + (p0.y - pi.y) * (p0.y - pi.y));
+			float d0 = std::sqrtf((p1.x - p0.x) * (p1.x - p0.x) + (p1.y - p0.y) * (p1.y - p0.y));
+			float d1 = std::sqrtf((p1.x - pi.x) * (p1.x - pi.x) + (p1.y - pi.y) * (p1.y - pi.y));
+			float d2 = std::sqrtf((p0.x - pi.x) * (p0.x - pi.x) + (p0.y - pi.y) * (p0.y - pi.y));
 
 			if (d1 < d0 && d2 < d0)
 			{

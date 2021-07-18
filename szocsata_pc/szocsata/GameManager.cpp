@@ -128,7 +128,8 @@ void CGameManager::InitPlayers()
 
 void CGameManager::StartGame()
 {
-	m_UIManager->ShowMessageBox(CUIMessageBox::Ok, m_Players[0]->GetName().c_str());
+	//m_UIManager->ShowMessageBox(CUIMessageBox::Ok, m_Players[0]->GetName().c_str());
+	ShowNextPlayerPopup();
 }
 
 void CGameManager::AddWordSelectionAnimation(const std::vector<TWordPos>& wordPos, bool positive)
@@ -174,6 +175,54 @@ bool CGameManager::TileAnimationFinished()
 	return m_TileAnimations->Finished(); 
 }
 
+std::wstring CGameManager::GetTimeStr(int msec)
+{
+	int Minutes = msec / 60000;
+	int Seconds = (msec % 60000) / 1000;
+
+	std::wstringstream ss;
+
+	if (Minutes)
+		ss << Minutes << ":";
+	
+	if (Seconds < 10)
+		ss << "0";
+
+	ss << Seconds;
+
+	return ss.str().c_str();
+}
+
+void CGameManager::CheckAndUpdateTime(double& timeFromStart, double& timeFromPrev)
+{
+	int TimeLimit = m_UIManager->GetTimeLimit();
+
+	//update time
+	if (m_LastTurnTimeChanged >= 1000 || m_LastTurnTimeChanged == 0)
+	{
+		m_LastTurnTimeChanged = 0;
+		std::wstring RemainingTimeStr = GetTimeStr(TimeLimit - timeFromStart);
+		m_UIManager->SetRemainingTimeStr(RemainingTimeStr.c_str());
+	}
+	else
+		m_LastTurnTimeChanged += timeFromPrev;
+
+
+	//lejart az ido uj jatekos jon
+	if (timeFromStart >= TimeLimit)
+	{
+		m_TimerEventManager->StopTimer("time_limit_event");
+
+		//ha jatekos kore volt, megnezzuk hogy a lerakott betuk ervenyesek e
+		if (m_CurrentPlayer->GetName() != L"computer" && !EndPlayerTurn(true, false))
+			UndoAllSteps();
+		else 
+			ShowNextPlayerPopup();
+
+		m_Renderer->DisableSelection();
+	}
+}
+
 bool CGameManager::SelectionPosIllegal(int x, int y)
 {
 	//nem a tablara tettuk a betut
@@ -181,11 +230,11 @@ bool CGameManager::SelectionPosIllegal(int x, int y)
 		return true;
 
 	//ha csak egy betu van leteve, es a selection nem abba a sorba es oszlopba van
-	if (m_FirstPlayerLetterY != -1 && m_SecondPlayerLetterY == -1 && x != m_FirstPlayerLetterX && y != m_FirstPlayerLetterY)
+	if (m_FirstPlayerLetterX != -1 && m_SecondPlayerLetterX == -1 && x != m_FirstPlayerLetterX && y != m_FirstPlayerLetterY)
 		return true;
 
 	//ha mar ket betu van leteve, es a selection nem abba a sorba es oszlopba van
-	if (m_FirstPlayerLetterY != -1 && m_SecondPlayerLetterY != -1 && !(m_FirstPlayerLetterX == m_SecondPlayerLetterX && x == m_FirstPlayerLetterX || m_FirstPlayerLetterY == m_SecondPlayerLetterY && y == m_FirstPlayerLetterY))
+	if (m_FirstPlayerLetterX != -1 && m_SecondPlayerLetterX != -1 && !(m_FirstPlayerLetterX == m_SecondPlayerLetterX && x == m_FirstPlayerLetterX || m_FirstPlayerLetterY == m_SecondPlayerLetterY && y == m_FirstPlayerLetterY))
 		return true;
 
 	int TileCount;
@@ -212,8 +261,9 @@ bool CGameManager::PlayerLetterAnimationFinished()
 
 void CGameManager::ShowNextPlayerPopup()
 {
-	m_UIManager->ShowMessageBox(CUIMessageBox::Ok, GetNextPlayerName().c_str());
 	m_UIManager->EnableGameButtons(true);
+	m_UIManager->SetRemainingTimeStr(GetTimeStr(m_UIManager->GetTimeLimit()).c_str());
+	m_UIManager->ShowMessageBox(CUIMessageBox::Ok, GetNextPlayerName().c_str());
 }
 
 
@@ -250,9 +300,16 @@ int CGameManager::GetDifficulty()
 
 std::wstring CGameManager::GetNextPlayerName()
 {
-	int CurrPlayerIdx = -1;
-	while (m_Players[++CurrPlayerIdx] != m_CurrentPlayer);
-	int NextPlayerIdx = CurrPlayerIdx == m_Players.size() - 1 ? 0 : CurrPlayerIdx + 1;
+	int NextPlayerIdx;
+
+	if (m_CurrentPlayer)
+	{
+		int CurrPlayerIdx = -1;
+		while (m_Players[++CurrPlayerIdx] != m_CurrentPlayer);
+		NextPlayerIdx = CurrPlayerIdx == m_Players.size() - 1 ? 0 : CurrPlayerIdx + 1;
+	}
+	else
+		NextPlayerIdx = 0;
 	
 	return m_Players[NextPlayerIdx]->GetName();
 }
@@ -285,6 +342,13 @@ void CGameManager::NextPlayerTurn()
 
 	m_Players[NextPlayerIdx]->m_Passed = false;
 	SetGameState(EGameState::TurnInProgress);
+
+	if (m_UIManager->GetTimeLimit() != -1)
+	{ 
+		m_TimerEventManager->AddTimerEvent(this, &CGameManager::CheckAndUpdateTime, nullptr, "time_limit_event");
+		m_TimerEventManager->StartTimer("time_limit_event");
+		m_LastTurnTimeChanged = 0;
+	}
 
 	m_CurrentPlayer = m_Players[NextPlayerIdx];
 
@@ -319,14 +383,16 @@ void CGameManager::HandlePlayerPass()
 	m_UIManager->ShowToast(L"passz", AllPassed);
 }
 
-bool CGameManager::EndPlayerTurn()
+bool CGameManager::EndPlayerTurn(bool allowPass, bool allowNegativeSelection)
 {	
 	m_Renderer->HideSelection(true);
 
 	//jatekos passz
 	if (m_CurrentPlayer->GetUsedLetterCount() == 0)
 	{
-		HandlePlayerPass();
+		if (allowPass)
+			HandlePlayerPass();
+		
 		return false;
 	}
 
@@ -360,8 +426,11 @@ bool CGameManager::EndPlayerTurn()
 
 	if (PlayerWord.empty() || !m_DataBase.WordExists(PlayerWord)) //TODO miert lehet PlayerWord.empty()!!!!
 	{ 
-		CrossingWords.push_back(WordPos);
-		AddWordSelectionAnimation(CrossingWords, false);
+		if (allowNegativeSelection)
+		{
+			CrossingWords.push_back(WordPos);
+			AddWordSelectionAnimation(CrossingWords, false);
+		}
 		return false;
 	}
 
@@ -370,13 +439,16 @@ bool CGameManager::EndPlayerTurn()
 
 	if (Score == 0)
 	{
-		AddWordSelectionAnimation(CrossingWords, false);
+		if (allowNegativeSelection)
+			AddWordSelectionAnimation(CrossingWords, false);
+
 		return false;
 	}
 
 	DealCurrPlayerLetters();
 	AddWordSelectionAnimation(CrossingWords, true);
-	m_UIManager->SetTileCounterValue(m_LetterPool.GetRemainingLetterCount());
+
+	m_TimerEventManager->StopTimer("time_limit_event");
 
 	m_CurrentPlayer->AddScore(Score);
 	UpdatePlayerScores();
@@ -395,12 +467,14 @@ void CGameManager::DealCurrPlayerLetters()
 	m_UIManager->PositionPlayerLetters(m_CurrentPlayer->GetName().c_str());
 	PlayerLetters->OrderLetterElements();
 
+	glm::vec2 TileCounterPos = m_UIManager->GetTileCounterPos();
+
 	for (size_t i = 0; i < m_CurrentPlayer->GetLetters().length(); ++i)
 	{
 		if (m_CurrentPlayer->LetterUsed(i))
 		{
 			PlayerLetters->GetChild(i)->Scale(0.f);
-			m_PlayerLetterAnimationManager->AddAnimation(PlayerLetters->GetChild(i), PlayerLetters->GetChild(i)->GetWidth());
+			m_PlayerLetterAnimationManager->AddAnimation(PlayerLetters->GetChild(i), PlayerLetters->GetChild(i)->GetWidth(), TileCounterPos.x, TileCounterPos.y, PlayerLetters->GetChild(i)->GetXPosition(), PlayerLetters->GetChild(i)->GetYPosition());
 		}
 	}
 
@@ -413,14 +487,12 @@ void CGameManager::DealCurrPlayerLetters()
 void CGameManager::DealComputerLettersEvent()
 {
 	DealCurrPlayerLetters();
-	m_UIManager->SetTileCounterValue(m_LetterPool.GetRemainingLetterCount());
+	//m_UIManager->SetTileCounterValue(m_LetterPool.GetRemainingLetterCount());
 }
 
 bool CGameManager::EndComputerTurn()
 {
-	static unsigned long PrevTickCount = 0;
-	static int LetterIdx = 0;
-	static int LettersAdded = 0;
+	m_TimerEventManager->StopTimer("time_limit_event");
 
 	int TileCount;
 
@@ -445,9 +517,6 @@ bool CGameManager::EndComputerTurn()
 		HandlePlayerPass();
 		return false;
 	}
-
-	if (PrevTickCount == 0)
-		PrevTickCount = CTimer::GetCurrentTime();
 
 	bool LetterAdded = false;
 	int ComputerStepDelay;
@@ -821,7 +890,7 @@ void CGameManager::InitUIManager()
 	if (ShowFps)
 		m_UIManager->SetText(L"ui_fps_text", L"fps : 0");
 
-	m_UIManager->SetTileCounterValue(m_LetterPool.GetRemainingLetterCount());
+//	m_UIManager->SetTileCounterValue(m_LetterPool.GetRemainingLetterCount());
 	m_TileAnimations->SetUIManager(m_UIManager);
 }
 
@@ -891,7 +960,7 @@ void CGameManager::UndoAllSteps()
 	while (m_PlayerSteps.size())
 		UndoLastStep();
 
-	StartPlayerTurn(m_CurrentPlayer);
+	//StartPlayerTurn(m_CurrentPlayer);
 }
 
 void CGameManager::UndoLastStep()
@@ -903,9 +972,9 @@ void CGameManager::UndoLastStep()
 	CConfig::GetConfig("tile_count", TileCount);
 	
 	if (m_PlayerSteps.size() == 2)
-		m_SecondPlayerLetterX = -1;
+		m_SecondPlayerLetterX = m_SecondPlayerLetterY = -1;
 	else if (m_PlayerSteps.size() == 1)
-		m_FirstPlayerLetterX = -1;
+		m_FirstPlayerLetterX = m_FirstPlayerLetterY = -1;
 
 	int BoardY = TileCount - m_PlayerSteps.back().m_YPosition - 1;
 

@@ -55,7 +55,7 @@ void CWordAnimationManager::AnimateLettersEvent(double& timeFromStart, double& t
 {
 	double CurrentTime = CTimer::GetCurrentTime();
 
-	if (CurrentTime - m_LastAddedLetterTime > m_LetterAddInterval)
+	if (CurrentTime - m_LastAddedLetterTime > m_LetterAddInterval && m_CurrentLetterIdx < m_LetterAnimations.size())
 	{
 		m_GameManager->GetCurrentPlayer()->SetLetterUsed(m_LetterAnimations[m_CurrentLetterIdx].m_UILetterIdx, true);
 		m_UIPlayerLetters->SetVisible(false, m_LetterAnimations[m_CurrentLetterIdx].m_UILetterIdx);
@@ -100,4 +100,14 @@ void CWordAnimationManager::AnimationFinished()
 {
 	m_GameManager->AddWordSelectionAnimationForComputer();
 	m_GameManager->DealComputerLettersEvent();
+}
+
+void CWordAnimationManager::Cancel()
+{
+	m_TimerEventManager->StopTimer("add_word_animation");
+
+	for (size_t i = 0; i < m_LetterAnimations.size(); ++i)
+		delete m_LetterAnimations[i].m_LetterModel;
+
+	m_LetterAnimations.clear();
 }

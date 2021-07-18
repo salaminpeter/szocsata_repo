@@ -39,6 +39,9 @@ public:
 	void PositionUIElements();
 	void InitRankingsPanel();
 
+	glm::vec2 GetTileCounterPos();
+	glm::vec2 GetPlayerLetterPos(size_t idx);
+
 	CUIButton* AddButton(CUIElement* parent, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, float x, float y, float w, float h, const char* ViewID, const char* textureID, const wchar_t* id);
 	CUISelectControl* AddSelectControl(CUIElement* parent, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData, float x, float y, float w, float h, const char* ViewID, const char* textureID, const wchar_t* id);
 	CUIText* AddText(CUIElement* parent, const wchar_t* text, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, float x, float y, float w, float h, const char* ViewID, const char* textureID, const wchar_t* id);
@@ -61,6 +64,7 @@ public:
 	void RenderRankingsPanel();
 
 	void SetTileCounterValue(unsigned count);
+	int GetTileCounterValue();
 
 	void ActivateStartScreen(bool activate);
 
@@ -74,6 +78,7 @@ public:
 	int GetDifficulty();
 	int GetBoardSize();
 	int GetPlayerCount();
+	int GetTimeLimit();
 	bool ComputerOpponentEnabled();
 
 	void UpdateScorePanel();
@@ -82,6 +87,8 @@ public:
 	CUIElement* GetActiveScreenUIRoot();
 
 	void SetDraggedPlayerLetter(bool letterDragged, unsigned letterIdx, const glm::vec2& letterTexPos, const glm::vec2& startDragPos);
+
+	void SetRemainingTimeStr(const wchar_t* timeStr);
 
 private:
 

@@ -5,6 +5,7 @@
 #include "Renderer.h"
 #include "SquareModelData.h"
 
+std::map<wchar_t, glm::vec2> CUIText::m_FontTexPos;
 std::map<wchar_t, int> CUIText::m_FontCharWidth;
 std::map<wchar_t, int> CUIText::m_FontCharHeight;
 std::map<wchar_t, float> CUIText::m_FontDesc;
@@ -67,6 +68,15 @@ glm::vec2 CUIText::GetTextTopBottom(const std::wstring& text, int size)
 	}
 
 	return TopBottom;
+}
+
+float CUIText::GetTextSize(const std::wstring& text, int textWidth)
+{
+	int TextSize = 1.f;
+
+	while (GetTextWidthInPixels(text, TextSize++) < textWidth);
+
+	return TextSize - 1;
 }
 
 
