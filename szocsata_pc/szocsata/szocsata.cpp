@@ -212,7 +212,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		int MouseX = GET_X_LPARAM(lParam);
 		int MouseY = GET_Y_LPARAM(lParam);
 
-		InputManager->HandleTouchEvent(MouseX, MouseY, MouseX <= WindowHeigth);
+		InputManager->HandleTouchEvent(MouseX, MouseY);
 		break;
 	}
 	case WM_LBUTTONUP:

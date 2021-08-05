@@ -5,23 +5,25 @@
 #include "Config.h"
 
 
-void CInputManager::HandleTouchEvent(int x, int y, bool onBoardView)
+void CInputManager::HandleTouchEvent(int x, int y)
 {
 	const std::lock_guard<std::mutex> lock(m_InputLock);
 
+	int WindowHeigth;
+	CConfig::GetConfig("window_height", WindowHeigth);
+
+	bool OnBoardView = m_GameManager->GameScreenActive() && x <= WindowHeigth;
+
 	//if not on board view just handle touch event
-	if (!m_GameManager->GameScreenActive() || !onBoardView)
+	if (!OnBoardView)
 	{
-		m_GameManager->HandleToucheEvent(x, y, onBoardView);
+		m_GameManager->HandleToucheEvent(x, y);
 		return;
 	}
 
 	//wait for double click
 	if (m_FirstTouch && !m_SecondTouch && m_GameManager->GameScreenActive())
 		m_SecondTouch = true;
-
-	int WindowHeigth;
-	CConfig::GetConfig("window_height", WindowHeigth);
 
 	m_FirstTouch = true;
 	m_GameManager->SetLastTouchOnBoardView(true);
@@ -139,7 +141,7 @@ void CInputManager::CheckDoubleClickEvent(double& timeFromStart, double& timeFro
 			m_ReleaseTouchHappened = false; //ne legyen kijeloles a masodik klikknel
 		}
 		else
-			m_GameManager->HandleToucheEvent(m_Touch0X, m_Touch0Y, true);
+			m_GameManager->HandleToucheEvent(m_Touch0X, m_Touch0Y);
 
 		if (m_ReleaseTouchHappened)
 			m_GameManager->HandleReleaseEvent(m_Touch1X, m_Touch1Y);

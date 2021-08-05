@@ -44,13 +44,13 @@ CUISelectControl* CUIManager::AddSelectControl(CUIElement* parent, std::shared_p
 }
 
 
-CUIButton* CUIManager::AddButton(CUIElement* parent, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, float x, float y, float w, float h, const char* ViewID, const char* textureID, const wchar_t* id)
+CUIButton* CUIManager::AddButton(CUIElement* parent, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, float x, float y, float w, float h, const char* ViewID, const char* textureID, const wchar_t* id, const char* shaderID)
 {
 	if (!parent)
 		return nullptr;
 
 	glm::vec2 ViewPos = m_GameManager->GetViewPosition(ViewID);
-	CUIButton* NewButton = new CUIButton(parent, positionData, colorData, x, y, w, h, ViewPos.x, ViewPos.y, textureID, id);
+	CUIButton* NewButton = new CUIButton(parent, positionData, colorData, x, y, w, h, ViewPos.x, ViewPos.y, textureID, id, true, shaderID);
 
 	return NewButton;
 }
@@ -118,7 +118,7 @@ void CUIManager::PositionUIElements()
 
 	PositionGameButtons();
 
-	CUIElement* DraggedPlayerLetter = m_RootGameScreen->GetChild(L"ui_dragged_player_letter_btn");
+	CUIElement* DraggedPlayerLetter = m_RootDraggedLetterScreen->GetChild(L"ui_dragged_player_letter_btn");
 	DraggedPlayerLetter->SetPosAndSize(0, 0, m_PlayerLettersLayout->GetElemSize(), m_PlayerLettersLayout->GetElemSize());
 }
 
@@ -165,9 +165,6 @@ void CUIManager::InitUIElements(std::shared_ptr<CSquarePositionData> positionDat
 	//game screen ui elements
 	m_RootGameScreen = new CUIElement(nullptr, L"ui_game_screen_root", nullptr, 0.f, 0.f, m_GameManager->m_SurfaceWidth, m_GameManager->m_SurfaceHeigh, ViewPos.x, ViewPos.y, 0.f, 0.f);
 
-	Button = AddButton(m_RootGameScreen, positionData, gridcolorData8x4, 0, 0, 0, 0, "view_ortho", "playerletters.bmp", L"ui_dragged_player_letter_btn");
-	Button->SetVisible(false);
-
 	Button = AddButton(m_RootGameScreen, positionData, colorData, 0, 0, 0, 0, "view_ortho", "okbutton.bmp", L"ui_ok_btn");
 	Button->SetEvent(m_GameManager, &CGameManager::EndPlayerTurnEvent);
 
@@ -190,6 +187,12 @@ void CUIManager::InitUIElements(std::shared_ptr<CSquarePositionData> positionDat
 
 	m_MessageBoxOk = new CUIMessageBox(positionData, colorData, gridcolorData8x8, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh / 2, 600, 400, ViewPos.x, ViewPos.y, CUIMessageBox::Ok);
 	m_Toast = new CUIToast(1000, m_TimerEventManager, this, positionData, colorData, gridcolorData8x8, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh / 2, 600, 200, ViewPos.x, ViewPos.y, CUIMessageBox::NoButton);
+
+	//dragged letter root
+	m_RootDraggedLetterScreen = new CUIElement(nullptr, L"ui_dragged_letter_root", nullptr, 0.f, 0.f, m_GameManager->m_SurfaceWidth, m_GameManager->m_SurfaceHeigh, ViewPos.x, ViewPos.y, 0.f, 0.f);
+
+	Button = AddButton(m_RootDraggedLetterScreen, positionData, gridcolorData8x4, 0, 0, 0, 0, "view_ortho", "playerletters.bmp", L"ui_dragged_player_letter_btn", "textured_transparent");
+	Button->SetVisible(false);
 
 	//end screen ui elements
 	m_RootGameEndScreen = new CUIElement(nullptr, L"ui_game_end_root", nullptr, 0.f, 0.f, m_GameManager->m_SurfaceWidth, m_GameManager->m_SurfaceHeigh, ViewPos.x, ViewPos.y, 0.f, 0.f);
@@ -281,6 +284,7 @@ void CUIManager::InitUIElements(std::shared_ptr<CSquarePositionData> positionDat
 	m_UIRoots.push_back(m_RootStartGameScreen);
 	m_UIRoots.push_back(m_RootGameScreen);
 	m_UIRoots.push_back(m_RootGameEndScreen);
+	m_UIRoots.push_back(m_RootDraggedLetterScreen);
 }
 
 void CUIManager::UpdateScorePanel()
@@ -474,6 +478,11 @@ void CUIManager::RenderUI()
 		Root->GetChild(i)->Render(m_GameManager->GetRenderer());
 }
 
+void CUIManager::RenderDraggedLetter()
+{
+	m_RootDraggedLetterScreen->GetChild(size_t(0))->Render(m_GameManager->GetRenderer());
+}
+
 void CUIManager::RenderRankingsPanel()
 {
 	m_RankingsPanel->Render(m_GameManager->GetRenderer());
@@ -501,7 +510,7 @@ CUIElement* CUIManager::GetActiveScreenUIRoot()
 	return Root;
 }
 
-void CUIManager::SetDraggedPlayerLetter(bool letterDragged, unsigned letterIdx, const glm::vec2& letterTexPos, const glm::vec2& startDragPos)
+void CUIManager::SetDraggedPlayerLetter(bool letterDragged, unsigned letterIdx, const glm::vec2& letterTexPos, const glm::vec2& startDragPos, bool disable)
 {
 	m_PlayerLetterDragged = letterDragged;
 	m_DraggedPlayerLetterIdx = letterIdx;
@@ -509,8 +518,9 @@ void CUIManager::SetDraggedPlayerLetter(bool letterDragged, unsigned letterIdx, 
 	float TexX = letterTexPos.x / 8.f;
 	float TexY = letterTexPos.y / 4.f;
 
-	CUIElement* DraggedPlayerLetter = m_RootGameScreen->GetChild(L"ui_dragged_player_letter_btn");
-	DraggedPlayerLetter->Enable(true);
+	CUIElement* DraggedPlayerLetter = m_RootDraggedLetterScreen->GetChild(L"ui_dragged_player_letter_btn");
+	DraggedPlayerLetter->Enable(!disable);
+	DraggedPlayerLetter->SetVisible(!disable && letterDragged);
 	DraggedPlayerLetter->SetTexturePosition(glm::vec2(TexX, TexY));
 }
 
@@ -537,7 +547,7 @@ void CUIManager::HandleDragEvent(int x, int y)
 	if (CUIMessageBox::m_ActiveMessageBox)
 		return;
 
-	CUIElement* DraggedPlayerLetter = m_RootGameScreen->GetChild(L"ui_dragged_player_letter_btn");
+	CUIElement* DraggedPlayerLetter = m_RootDraggedLetterScreen->GetChild(L"ui_dragged_player_letter_btn");
 
 	if (!DraggedPlayerLetter->IsEnabled())
 		return;
@@ -552,10 +562,39 @@ void CUIManager::HandleDragEvent(int x, int y)
 	{
 		DraggedPlayerLetter->SetVisible(true);
 
-		float LetterXPos = x - DraggedPlayerLetter->GetWidth() / 2.f;
-		float LetterYPos = y + DraggedPlayerLetter->GetHeight() / 2.f;
-		float BoardXPos = x - DraggedPlayerLetter->GetWidth();
-		float BoardYPos = y + DraggedPlayerLetter->GetHeight();
+		int WindowWidth;
+		int WindowHeigth;
+		CConfig::GetConfig("window_width", WindowWidth);
+		CConfig::GetConfig("window_height", WindowHeigth);
+		int BoardViewWidth = WindowWidth - WindowHeigth;
+		int BoardViewHeigth = WindowHeigth;
+		float LetterSize = DraggedPlayerLetter->GetWidth();
+
+		float MulX = 0.f;
+		float MulY = 0.f;
+
+		if (x <= BoardViewWidth && (x < LetterSize * 2  || y < LetterSize * 2 || y > BoardViewHeigth - LetterSize * 2))
+		{
+			float MinX = (x <= BoardViewWidth / 2) ? LetterSize * 2 : BoardViewWidth - LetterSize * 2;
+			float MinY = (y <= BoardViewHeigth / 2) ? LetterSize * 2 : BoardViewHeigth - LetterSize * 2;
+
+			if (x < LetterSize * 2)
+			{
+				MulX = std::fabs(x - MinX) / (LetterSize * 2 + LetterSize / 2);//std::sinf((std::fabs(x - MinX) / MinX) * glm::radians(90.f));
+				MulY = MulX;
+			}
+
+			if (y < LetterSize * 2 || y > BoardViewHeigth - LetterSize * 2)
+			{
+				MulY = std::fabs(y - MinY) / (LetterSize * 2 + LetterSize / 2);//std::sinf((std::fabs(y - MinY) / MinY) * glm::radians(90.f));
+				MulX = MulY;
+			}
+		}
+
+		float LetterXPos = x - ((LetterSize / 2) - (LetterSize / 2) * MulX);
+		float LetterYPos = y + ((LetterSize / 2) - (LetterSize / 2) * MulY);
+		float BoardXPos = LetterXPos ;//- ((LetterSize / 2) - (LetterSize / 2) * MulX);
+		float BoardYPos = LetterYPos ;//+ ((LetterSize / 2) - (LetterSize / 2) * MulY);
 
 		DraggedPlayerLetter->SetPosition(LetterXPos, LetterYPos);
 
@@ -579,8 +618,8 @@ void CUIManager::HandleReleaseEvent(int x, int y)
 	if (CUIMessageBox::m_ActiveMessageBox)
 		return;
 
-	m_RootGameScreen->GetChild(L"ui_dragged_player_letter_btn")->SetVisible(false);
-	m_RootGameScreen->GetChild(L"ui_dragged_player_letter_btn")->Enable(false);
+	m_RootDraggedLetterScreen->GetChild(L"ui_dragged_player_letter_btn")->SetVisible(false);
+	m_RootDraggedLetterScreen->GetChild(L"ui_dragged_player_letter_btn")->Enable(false);
 
 	//ha egy player lettert draggelunk epp
 	if (m_PlayerLetterDragged)
@@ -619,4 +658,9 @@ int CUIManager::GetTileCounterValue()
 void CUIManager::SetTileCounterValue(unsigned count)
 {
 	m_UITileCounter->SetCounter(count);
+}
+
+void CUIManager::SetTileCounterValue()
+{
+	m_UITileCounter->SetCounter();
 }

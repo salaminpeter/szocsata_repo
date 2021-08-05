@@ -50,8 +50,8 @@ Java_com_example_szocsata_1android_OpenGLRenderer_InitGameManager(JNIEnv *env, j
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_szocsata_1android_MainActivity_HandleTouchEvent(JNIEnv *env, jobject thiz, jint x, jint y, jboolean on_board_view) {
-    InputManager->HandleTouchEvent(x, y, on_board_view);
+Java_com_example_szocsata_1android_MainActivity_HandleTouchEvent(JNIEnv *env, jobject thiz, jint x, jint y) {
+    InputManager->HandleTouchEvent(x, y);
 }
 
 

@@ -6,8 +6,8 @@
 #include "Renderer.h"
 
 
-CUIButton::CUIButton(CUIElement* parent, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, float x, float y, float w, float h, float vx, float vy, const char* textureID, const wchar_t* id, bool ignoreReleaseEvent) :
-	CUIElement(parent, id, new CModel(false, 2, positionData.get(), colorData.get(), textureID, "textured"), x, y, w, h, vx, vy, 0.f, 0.f, ignoreReleaseEvent)
+CUIButton::CUIButton(CUIElement* parent, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, float x, float y, float w, float h, float vx, float vy, const char* textureID, const wchar_t* id, bool ignoreReleaseEvent, const char* shaderID) :
+	CUIElement(parent, id, new CModel(false, 2, positionData.get(), colorData.get(), textureID, shaderID), x, y, w, h, vx, vy, 0.f, 0.f, ignoreReleaseEvent)
 {
 	PositionElement();
 }
@@ -62,8 +62,13 @@ void CUIButton::Render(CRenderer* renderer)
 	if (!m_Visible)
 		return;
 
-	renderer->SetTexturePos(m_TexturePosition);
-	renderer->DrawModel(m_Model, "view_ortho", "textured", false);
+	bool Transparent = false;
+	//TODO ocsmany igy! egy texture shader legyen kivulrol allithato alfaval!
+	if (std::wstring(m_ID) == L"ui_dragged_player_letter_btn")
+		Transparent = true;
+	
+	renderer->SetTexturePos(m_TexturePosition, Transparent);
+	renderer->DrawModel(m_Model, "view_ortho", m_Model->GetShaderId(), false);
 
 	//draw button text
 	if (m_Children.size())

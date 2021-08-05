@@ -216,9 +216,9 @@ void CGameManager::CheckAndUpdateTime(double& timeFromStart, double& timeFromPre
 		//ha jatekos kore volt, megnezzuk hogy a lerakott betuk ervenyesek e
 		if (m_CurrentPlayer->GetName() != L"computer" && !EndPlayerTurn(true, false))
 			UndoAllSteps();
-		else 
-			ShowNextPlayerPopup();
 
+		m_UIManager->SetDraggedPlayerLetter(false, 0, glm::vec2(0.f, 0.f), glm::vec2(0.f, 0.f), true);
+		ShowNextPlayerPopup();
 		m_Renderer->DisableSelection();
 	}
 }
@@ -490,7 +490,6 @@ void CGameManager::DealCurrPlayerLetters()
 void CGameManager::DealComputerLettersEvent()
 {
 	DealCurrPlayerLetters();
-	//m_UIManager->SetTileCounterValue(m_LetterPool.GetRemainingLetterCount());
 }
 
 bool CGameManager::EndComputerTurn()
@@ -893,7 +892,6 @@ void CGameManager::InitUIManager()
 	if (ShowFps)
 		m_UIManager->SetText(L"ui_fps_text", L"fps : 0");
 
-//	m_UIManager->SetTileCounterValue(m_LetterPool.GetRemainingLetterCount());
 	m_TileAnimations->SetUIManager(m_UIManager);
 }
 
@@ -1001,20 +999,22 @@ bool CGameManager::PositionOnBoardView(int x, int y)
 	return x < WindowHeigth;
 }
 
-void CGameManager::HandleToucheEvent(int x, int y, bool onBoardView)
+void CGameManager::HandleToucheEvent(int x, int y)
 {
 	int WindowHeigth;
 	CConfig::GetConfig("window_height", WindowHeigth);
 
-	m_UIManager->HandleTouchEvent(x, WindowHeigth - y);
-
-	if (GameScreenActive())
+	if (GameScreenActive() && !CUIMessageBox::m_ActiveMessageBox)
 	{
+		bool OnBoardView = (x <= WindowHeigth);
 		m_Dragged = true;
-		m_LastTouchOnBoardView = onBoardView;
+		m_LastTouchOnBoardView = OnBoardView;
 		m_LastTouchX = x;
 		m_LastTouchY = WindowHeigth - y;
 	}
+
+	m_UIManager->HandleTouchEvent(x, WindowHeigth - y);
+
 }
 
 void CGameManager::HandleDragEvent(int x, int y)
@@ -1131,6 +1131,11 @@ void CGameManager::RenderUI()
 	if (GetGameState() != EGameState::OnRankingsScreen)
 	{
 		m_UIManager->RenderUI();
+		
+		glEnable(GL_BLEND);
+		m_UIManager->RenderDraggedLetter();
+		glDisable(GL_BLEND);
+
 		m_UIManager->RenderMessageBox();
 	}
 	else

@@ -54,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
                                                     m_FingerPos0.x = x;
                                                     m_FingerPos0.y = y;
                                                     if (!m_MultyTouch)
-                                                        HandleTouchEvent(x, y, x <= v.getHeight());
+                                                        HandleTouchEvent(x, y);
                                                     return true;
                                                 }
 
@@ -78,8 +78,8 @@ public class MainActivity extends AppCompatActivity {
                                                         m_MultyTouch = false;
                                                     }
                                                     else {
-                                                        int x = (int) event.getRawX();
-                                                        int y = (int) event.getRawY();
+                                                        int x = (int)event.getX(0);
+                                                        int y = (int)event.getY(0);
                                                         Log.i("dist", "HandleRelease x : " + x + " y : " + y );
                                                         HandleReleaseEvent(x, y);
                                                     }
@@ -130,8 +130,8 @@ public class MainActivity extends AppCompatActivity {
                                                     }
 
                                                     else {
-                                                        int x = (int)event.getRawX();
-                                                        int y = (int)event.getRawY();
+                                                        int x = (int)event.getX(0);
+                                                        int y = (int)event.getY(0);
                                                         Log.i("dist", "HandleDrag x : " + x + " y : " + y );
                                                        HandleDragEvent(x, y);
                                                     }
@@ -180,7 +180,7 @@ public class MainActivity extends AppCompatActivity {
      * which is packaged with this application.
      */
     public native void SetAssetManager(Object assetManager);
-    public native void HandleTouchEvent(int x, int y, boolean onBoardView);
+    public native void HandleTouchEvent(int x, int y);
     public native void HandleReleaseEvent(int x, int y);
     public native void HandleDragEvent(int x, int y);
     public native void HandleMultyTouchStartEvent(int x0, int y0, int x1, int y1);

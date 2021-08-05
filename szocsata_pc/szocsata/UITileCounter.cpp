@@ -26,3 +26,7 @@ void CUITileCounter::SetCounter(unsigned count)
 	static_cast<CUIText*>(m_Children[0])->SetText(StrStream.str().c_str());  //TODO Legyen egy gettext/getbutton fuggveny!!!!!!!!!!!!
 }
 
+void CUITileCounter::SetCounter()
+{
+	SetCounter(m_Count);
+}

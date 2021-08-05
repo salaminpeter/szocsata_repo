@@ -42,7 +42,7 @@ public:
 	glm::vec2 GetTileCounterPos();
 	glm::vec2 GetPlayerLetterPos(size_t idx);
 
-	CUIButton* AddButton(CUIElement* parent, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, float x, float y, float w, float h, const char* ViewID, const char* textureID, const wchar_t* id);
+	CUIButton* AddButton(CUIElement* parent, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, float x, float y, float w, float h, const char* ViewID, const char* textureID, const wchar_t* id, const char* shaderID = "textured");
 	CUISelectControl* AddSelectControl(CUIElement* parent, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData, float x, float y, float w, float h, const char* ViewID, const char* textureID, const wchar_t* id);
 	CUIText* AddText(CUIElement* parent, const wchar_t* text, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, float x, float y, float w, float h, const char* ViewID, const char* textureID, const wchar_t* id);
 	CUIPlayerLetters* AddPlayerLetters(CPlayer* player, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData);
@@ -62,8 +62,10 @@ public:
 	void RenderUI();
 	void RenderMessageBox();
 	void RenderRankingsPanel();
+	void RenderDraggedLetter();
 
 	void SetTileCounterValue(unsigned count);
+	void SetTileCounterValue();
 	int GetTileCounterValue();
 
 	void ActivateStartScreen(bool activate);
@@ -86,7 +88,7 @@ public:
 
 	CUIElement* GetActiveScreenUIRoot();
 
-	void SetDraggedPlayerLetter(bool letterDragged, unsigned letterIdx, const glm::vec2& letterTexPos, const glm::vec2& startDragPos);
+	void SetDraggedPlayerLetter(bool letterDragged, unsigned letterIdx, const glm::vec2& letterTexPos, const glm::vec2& startDragPos, bool disable = false);
 
 	void SetRemainingTimeStr(const wchar_t* timeStr);
 
@@ -105,6 +107,7 @@ public: //TODO
 	CUIElement* m_RootStartScreen;
 	CUIElement* m_RootStartGameScreen;
 	CUIElement* m_RootGameScreen;
+	CUIElement* m_RootDraggedLetterScreen;
 	CUIElement* m_RootGameEndScreen;
 
 	CUITileCounter* m_UITileCounter;

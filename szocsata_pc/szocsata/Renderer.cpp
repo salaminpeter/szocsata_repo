@@ -199,10 +199,11 @@ CLetterModel* CRenderer::AddLetterToBoard(int x, int y, wchar_t c, float height,
 }
 
 
-void CRenderer::SetTexturePos(glm::vec2 texturePos)
+void CRenderer::SetTexturePos(glm::vec2 texturePos, bool transparent)
 {
-	m_ShaderManager->ActivateShader("textured");
-	GLuint TexturePosId = m_ShaderManager->GetShaderVariableID("textured", "TexturePos");
+	const char* ShaderID = transparent ? "textured_transparent" : "textured";
+	m_ShaderManager->ActivateShader(ShaderID);
+	GLuint TexturePosId = m_ShaderManager->GetShaderVariableID(ShaderID, "TexturePos");
 	glUniform2fv(TexturePosId, 1, &texturePos[0]);
 }
 
@@ -526,6 +527,7 @@ void CRenderer::CameraFitToViewAnim(float tilt, float rotation, float zoom, floa
 void CRenderer::CalculateScreenSpaceGrid()
 {
 	float BoardSize;
+	float BoardHeight;
 	float LetterHeight;
 	float TileGap;
 	float TileHeight;
@@ -534,6 +536,7 @@ void CRenderer::CalculateScreenSpaceGrid()
 
 	CConfig::GetConfig("tile_size", TileSize);
 	CConfig::GetConfig("board_size", BoardSize);
+	CConfig::GetConfig("board_height", BoardHeight);
 	CConfig::GetConfig("tile_gap", TileGap);
 	CConfig::GetConfig("tile_height", TileHeight);
 	CConfig::GetConfig("tile_count", TileCount);
@@ -545,7 +548,7 @@ void CRenderer::CalculateScreenSpaceGrid()
 
 	float XPos;
 	float YPos = -BoardSize + TileGap;
-	float ZPos = 0.1f + TileHeight;
+	float ZPos = BoardHeight / 2 + TileHeight;
 	float GridSize = TileSize;
 
 	for (int y = 0; y < TileCount; ++y)
@@ -554,12 +557,12 @@ void CRenderer::CalculateScreenSpaceGrid()
 
 		for (int x = 0; x < TileCount; ++x)
 		{
-			int BoardHeight = m_GameManager->Board(x, TileCount - y - 1).m_Height;
+			int FieldHeight = m_GameManager->Board(x, TileCount - y - 1).m_Height;
 
-			if (BoardHeight == 0)
-				ZPos = 0.1f + TileHeight;
+			if (FieldHeight == 0)
+				ZPos = BoardHeight / 2 + TileHeight;
 			else
-				ZPos = 0.1f + TileHeight + BoardHeight * LetterHeight;
+				ZPos = BoardHeight / 2 + TileHeight + FieldHeight * LetterHeight;
 
 			glm::vec4 p0(XPos, YPos, ZPos, 1);
 			glm::vec4 p1(XPos + GridSize, YPos, ZPos, 1);
@@ -702,6 +705,7 @@ bool CRenderer::StartInit()
 	m_ShaderManager->AddShader("per_pixel_light_textured", VertexShaderPerPixel, FragmentShaderPerPixel);
 	m_ShaderManager->AddShader("transparent_color", VertexShaderSelection, FragmentShaderSelection);
 	m_ShaderManager->AddShader("textured", VertexShaderTextured, FragmentShaderTextured);
+	m_ShaderManager->AddShader("textured_transparent", VertexShaderTextured, FragmentShaderTexturedTransparent);
 
 	AddView("board_perspecive", 0, 0, m_ScreenHeight, m_ScreenHeight);
 	FittBoardToView(false);

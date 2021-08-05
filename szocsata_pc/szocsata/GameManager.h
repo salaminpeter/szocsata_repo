@@ -61,7 +61,7 @@ public:
 	void HandleReleaseEventFromBoardView(int x, int y);
 	void HandleReleaseEventFromUIView(int x, int y);
 	void HandleReleaseEvent(int x, int y);
-	void HandleToucheEvent(int x, int y, bool onBoardView);
+	void HandleToucheEvent(int x, int y);
 	void HandleDragEvent(int x, int y);
 	void HandleDragFromBoardView(int x, int y);
 	void HandleDragFromUIView(int x, int y);
@@ -120,6 +120,7 @@ public:
 	CRenderer* GetRenderer() { return m_Renderer; }
 	CUIManager* GetUIManager() { return m_UIManager; }
 	CTimerEventManager* GetTimerEventManager() {return m_TimerEventManager;}
+	int GetLetterPoolCount() {return m_LetterPool.GetRemainingLetterCount(); }
 
 	glm::vec2 GetViewPosition(const char* viewId);
 	bool PositionOnBoardView(int x, int y);

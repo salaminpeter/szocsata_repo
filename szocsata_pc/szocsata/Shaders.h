@@ -110,5 +110,17 @@ char FragmentShaderTextured[] =
 "out vec4 fragColour;\n"
 "uniform sampler2D texSampler;\n"
 "void main() {\n"
-"	fragColour = texture(texSampler, fTexCoord);\n"
+"   fragColour = vec4(texture(texSampler,fTexCoord).xyz,1);\n"
+"}";
+
+char FragmentShaderTexturedTransparent[] =
+"#version 300 es\n"
+"#ifdef GL_ES\n"
+"precision highp float;\n"
+"#endif\n"
+"in vec2 fTexCoord;\n"
+"out vec4 fragColour;\n"
+"uniform sampler2D texSampler;\n"
+"void main() {\n"
+"   fragColour = vec4(texture(texSampler,fTexCoord).xyz,0.5);\n"
 "}";

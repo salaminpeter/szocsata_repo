@@ -12,7 +12,7 @@ public:
 		m_GameManager(gameManager)
 	{}
 
-	void HandleTouchEvent(int x, int y, bool onBoardView);
+	void HandleTouchEvent(int x, int y);
 	void HandleReleaseEvent(int x, int y);
 	void HandleDragEvent(int x, int y);
 	void HandleZoomEvent(float dist, float origoX, float origoY);
