@@ -865,12 +865,19 @@ void CGameManager::PlayerLetterClicked(unsigned letterIdx)
 	m_GameBoard(SelX, BoardY).m_Char = PlacedLetter;
 	m_GameBoard(SelX, BoardY).m_Height++;
 
+
 	if (m_SecondPlayerLetterX != -1 && (Horizontal && SelX < TileCount - 1 || !Horizontal && SelY > 0))
 	{
 		SelX += Horizontal ? 1 : 0;
 		SelY -= Horizontal ? 0 : 1;
-		m_Renderer->HideSelection(false);
-		m_Renderer->SelectField(SelX, SelY);
+	
+		if (!SelectionPosIllegal(SelX, SelY))
+		{
+			m_Renderer->HideSelection(false);
+			m_Renderer->SelectField(SelX, SelY);
+		}
+		else
+			m_Renderer->HideSelection(true);
 	}
 	else
 		m_Renderer->HideSelection(true);
