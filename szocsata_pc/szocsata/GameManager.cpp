@@ -459,6 +459,7 @@ bool CGameManager::EndPlayerTurn(bool allowPass, bool allowNegativeSelection)
 
 void CGameManager::DealCurrPlayerLetters()
 {
+	bool LetterPoolEmpty = m_LetterPool.GetRemainingLetterCount() != 0;
 	CUIPlayerLetters* PlayerLetters = m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName().c_str());
 	m_LetterPool.DealLetters(m_CurrentPlayer->GetLetters());
 	m_CurrentPlayer->GetLetters().erase(remove(m_CurrentPlayer->GetLetters().begin(), m_CurrentPlayer->GetLetters().end(), ' '), m_CurrentPlayer->GetLetters().end());
@@ -467,7 +468,7 @@ void CGameManager::DealCurrPlayerLetters()
 	m_UIManager->PositionPlayerLetters(m_CurrentPlayer->GetName().c_str());
 	PlayerLetters->OrderLetterElements();
 
-	if (m_LetterPool.GetRemainingLetterCount() != 0)
+	if (LetterPoolEmpty)
 	{
 		glm::vec2 TileCounterPos = m_UIManager->GetTileCounterPos();
 
