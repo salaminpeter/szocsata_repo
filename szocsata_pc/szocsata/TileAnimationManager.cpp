@@ -44,7 +44,7 @@ void CTileAnimationManager::StartAnimation(bool positive)
 
 void CTileAnimationManager::AnimFinishedEvent()
 {
-	if (m_GameManager->PlayerLetterAnimationFinished())
+	if (m_GameManager->PlayerLetterAnimationFinished(true))
 		m_GameManager->ShowNextPlayerPopup();
 }
 

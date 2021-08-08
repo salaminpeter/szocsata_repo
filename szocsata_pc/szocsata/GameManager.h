@@ -96,7 +96,7 @@ public:
 	bool GameScreenActive();
 	void ShowNextPlayerPopup();
 	bool TileAnimationFinished();
-	bool PlayerLetterAnimationFinished();
+	bool PlayerLetterAnimationFinished(bool checkMsgBox = false);
 	bool SelectionPosIllegal(int x, int y);
 	void CheckAndUpdateTime(double& timeFromStart, double& timeFromPrev);
 	std::wstring GetTimeStr(int msec);
@@ -172,8 +172,9 @@ private:
 	int m_LastTouchY;
 	int m_TouchX = -1;
 	int m_TouchY;
-	int m_SurfaceWidth; //TODO atnevezni surfaceheight ...
+	int m_SurfaceWidth;
 	int m_SurfaceHeigh;
+	bool m_NextPlayerPopupShown = false;
 
 #ifdef PLATFORM_ANDROID
 	JavaVM* m_JavaVM;
@@ -181,8 +182,8 @@ private:
 #endif
 
 	EGameState m_GameState = EGameState::None;
-	std::mutex m_GameStateLock;
 
+	std::mutex m_GameStateLock;
 	CPlayer* m_CurrentPlayer = nullptr;
 
 	int m_FirstPlayerLetterX = -1;

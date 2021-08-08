@@ -254,13 +254,30 @@ bool CGameManager::SelectionPosIllegal(int x, int y)
 	return false;
 }
 
-bool CGameManager::PlayerLetterAnimationFinished() 
+bool CGameManager::PlayerLetterAnimationFinished(bool checkMsgBox)
 { 
-	return m_PlayerLetterAnimationManager->Finished(); 
+	bool AnimFinished = m_PlayerLetterAnimationManager->Finished();
+
+	if (!checkMsgBox)
+		return AnimFinished;
+	else 
+	{ 
+		if (m_NextPlayerPopupShown)
+		{
+			m_NextPlayerPopupShown = false;
+			return false;
+		}
+		else
+		{
+			m_NextPlayerPopupShown = !CUIMessageBox::m_ActiveMessageBox && AnimFinished;
+			return m_NextPlayerPopupShown;
+		}
+	}
 }
 
 void CGameManager::ShowNextPlayerPopup()
 {
+	bool brk = GetNextPlayerName() == L"jatekos 1";
 	m_UIManager->EnableGameButtons(true);
 	m_UIManager->SetRemainingTimeStr(GetTimeStr(m_UIManager->GetTimeLimit()).c_str());
 	m_UIManager->ShowMessageBox(CUIMessageBox::Ok, GetNextPlayerName().c_str());

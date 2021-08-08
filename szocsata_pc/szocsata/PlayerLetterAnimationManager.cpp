@@ -19,7 +19,7 @@ void CPlayerLetterAnimationManager::StartAnimations()
 
 void CPlayerLetterAnimationManager::AnimFinishedEvent()
 {
-	if (m_GameManager->PlayerLetterAnimationFinished())
+	if (m_GameManager->PlayerLetterAnimationFinished(true))
 		m_GameManager->ShowNextPlayerPopup();
 }
 
@@ -59,4 +59,9 @@ void CPlayerLetterAnimationManager::AnimatePlayerLetter(double& timeFromStart, d
 void CPlayerLetterAnimationManager::AddAnimation(CUIElement* playerLEtter, float destScale, float startX, float startY, float destX, float destY)
 {
 	m_PlayerLetterAnimations.emplace_back(playerLEtter, destScale, startX, startY, destX, destY);
+}
+
+bool CPlayerLetterAnimationManager::Finished()
+{
+	return (m_PlayerLetterAnimations.size() == 0);
 }

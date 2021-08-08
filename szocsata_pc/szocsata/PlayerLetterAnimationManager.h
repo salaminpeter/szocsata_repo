@@ -36,8 +36,7 @@ public:
 
 	void StartAnimations();
 	void AddAnimation(CUIElement* playerLEtter, float destScale, float startX, float startY, float destX, float destY);
-
-	bool Finished() {return (m_PlayerLetterAnimations.size() == 0);}
+	bool Finished();
 
 private:
 
@@ -47,6 +46,7 @@ private:
 private:
 
 	std::vector<TPlayerLetterAnimation> m_PlayerLetterAnimations;
+
 	size_t m_CurrentLetterIdx;
 	CTimerEventManager* m_TimerEventManager;
 	CGameManager* m_GameManager;
