@@ -94,9 +94,9 @@ public:
 	bool AllPlayersPassed();
 	bool GetPlayerNameScore(size_t idx, std::wstring& name, int& score);
 	bool GameScreenActive();
-	void ShowNextPlayerPopup();
+	void ShowNextPlayerPopup(bool forceShow = false);
 	bool TileAnimationFinished();
-	bool PlayerLetterAnimationFinished(bool checkMsgBox = false);
+	bool PlayerLetterAnimationFinished();
 	bool SelectionPosIllegal(int x, int y);
 	void CheckAndUpdateTime(double& timeFromStart, double& timeFromPrev);
 	std::wstring GetTimeStr(int msec);
@@ -184,6 +184,8 @@ private:
 	EGameState m_GameState = EGameState::None;
 
 	std::mutex m_GameStateLock;
+	std::mutex m_PlayerPopupLock;
+
 	CPlayer* m_CurrentPlayer = nullptr;
 
 	int m_FirstPlayerLetterX = -1;

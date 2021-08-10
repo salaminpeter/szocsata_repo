@@ -461,10 +461,7 @@ void CUIManager::CloseToast(double& timeFromStart, double& timeFromPrev)
 		CUIMessageBox::m_ActiveMessageBox = nullptr;
 
 		if (!m_Toast->FinishGame())
-		{
-			ShowMessageBox(CUIMessageBox::Ok, m_GameManager->GetNextPlayerName().c_str());
-			EnableGameButtons(true);
-		}
+			m_GameManager->ShowNextPlayerPopup(true);
 		else
 			m_GameManager->EndGameAfterLastPass();
 	}

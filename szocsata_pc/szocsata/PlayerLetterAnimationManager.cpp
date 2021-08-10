@@ -19,8 +19,7 @@ void CPlayerLetterAnimationManager::StartAnimations()
 
 void CPlayerLetterAnimationManager::AnimFinishedEvent()
 {
-	if (m_GameManager->PlayerLetterAnimationFinished(true))
-		m_GameManager->ShowNextPlayerPopup();
+	m_GameManager->ShowNextPlayerPopup();
 }
 
 

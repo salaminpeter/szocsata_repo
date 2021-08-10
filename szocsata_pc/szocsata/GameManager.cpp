@@ -214,11 +214,11 @@ void CGameManager::CheckAndUpdateTime(double& timeFromStart, double& timeFromPre
 		m_TimerEventManager->StopTimer("time_limit_event");
 
 		//ha jatekos kore volt, megnezzuk hogy a lerakott betuk ervenyesek e
-		if (m_CurrentPlayer->GetName() != L"computer" && !EndPlayerTurn(true, false))
+		if (m_CurrentPlayer->GetName() != L"computer" && !EndPlayerTurn(false, false))
 			UndoAllSteps();
 
 		m_UIManager->SetDraggedPlayerLetter(false, 0, glm::vec2(0.f, 0.f), glm::vec2(0.f, 0.f), true);
-		ShowNextPlayerPopup();
+		ShowNextPlayerPopup(true);
 		m_Renderer->DisableSelection();
 	}
 }
@@ -254,33 +254,24 @@ bool CGameManager::SelectionPosIllegal(int x, int y)
 	return false;
 }
 
-bool CGameManager::PlayerLetterAnimationFinished(bool checkMsgBox)
+bool CGameManager::PlayerLetterAnimationFinished()
 { 
-	bool AnimFinished = m_PlayerLetterAnimationManager->Finished();
-
-	if (!checkMsgBox)
-		return AnimFinished;
-	else 
-	{ 
-		if (m_NextPlayerPopupShown)
-		{
-			m_NextPlayerPopupShown = false;
-			return false;
-		}
-		else
-		{
-			m_NextPlayerPopupShown = !CUIMessageBox::m_ActiveMessageBox && AnimFinished;
-			return m_NextPlayerPopupShown;
-		}
-	}
+	return m_PlayerLetterAnimationManager->Finished();
 }
 
-void CGameManager::ShowNextPlayerPopup()
+void CGameManager::ShowNextPlayerPopup(bool forceShow)
 {
-	bool brk = GetNextPlayerName() == L"jatekos 1";
-	m_UIManager->EnableGameButtons(true);
-	m_UIManager->SetRemainingTimeStr(GetTimeStr(m_UIManager->GetTimeLimit()).c_str());
-	m_UIManager->ShowMessageBox(CUIMessageBox::Ok, GetNextPlayerName().c_str());
+	const std::lock_guard<std::mutex> lock(m_PlayerPopupLock);
+
+	bool ShowPopup = !m_NextPlayerPopupShown && m_PlayerLetterAnimationManager->Finished() && m_TileAnimations->Finished();
+
+	if (ShowPopup || forceShow)
+	{
+		m_NextPlayerPopupShown = true;
+		m_UIManager->EnableGameButtons(true);
+		m_UIManager->SetRemainingTimeStr(GetTimeStr(m_UIManager->GetTimeLimit()).c_str());
+		m_UIManager->ShowMessageBox(CUIMessageBox::Ok, GetNextPlayerName().c_str());
+	}
 }
 
 
@@ -288,6 +279,7 @@ bool CGameManager::GameScreenActive()
 {
 	return (GetGameState() != EGameState::OnRankingsScreen && GetGameState() != EGameState::OnStartGameScreen && GetGameState() != EGameState::OnStartScreen);
 }
+
 
 bool CGameManager::GetPlayerNameScore(size_t idx, std::wstring& name, int& score)
 {
@@ -469,6 +461,7 @@ bool CGameManager::EndPlayerTurn(bool allowPass, bool allowNegativeSelection)
 
 	m_CurrentPlayer->AddScore(Score);
 	UpdatePlayerScores();
+	m_NextPlayerPopupShown = false;
 	SetGameState(EGameState::WaintingOnAnimation);
 
 	return true;
@@ -549,6 +542,9 @@ bool CGameManager::EndComputerTurn()
 	m_WordAnimation->AddWordAnimation(*ComputerWord.m_Word, LetterIndices, m_UIManager->GetPlayerLetters(m_Computer->GetName()), ComputerWord.m_X, TileCount - ComputerWord.m_Y - 1, ComputerWord.m_Horizontal);
 	m_GameBoard.AddWord(ComputerWord);
 	UpdatePlayerScores();
+	m_NextPlayerPopupShown = false;
+	SetGameState(EGameState::WaintingOnAnimation);
+
 
 	return false;
 }

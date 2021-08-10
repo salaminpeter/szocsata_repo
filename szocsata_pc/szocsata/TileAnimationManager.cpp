@@ -44,8 +44,7 @@ void CTileAnimationManager::StartAnimation(bool positive)
 
 void CTileAnimationManager::AnimFinishedEvent()
 {
-	if (m_UIManager->GetTileCounterValue() == 0 || m_GameManager->PlayerLetterAnimationFinished(true))
-		m_GameManager->ShowNextPlayerPopup();
+	m_GameManager->ShowNextPlayerPopup();
 }
 
 void CTileAnimationManager::UpdateColorEvent(double& timeFromStart, double& timeFromPrev)
