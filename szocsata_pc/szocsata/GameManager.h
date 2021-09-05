@@ -89,6 +89,7 @@ public:
 	void GameLoop();
 	void SetGameState(int state);
 	void DealComputerLettersEvent();
+	int PlayerWordHorizontal();
 	EGameState GetGameState();
 	CLetterModel* AddLetterToBoard(int x, int y, wchar_t c, float height);
 	void AddWordSelectionAnimationForComputer();
@@ -198,11 +199,6 @@ private:
 	std::mutex m_PlayerPopupLock;
 
 	CPlayer* m_CurrentPlayer = nullptr;
-
-	int m_FirstPlayerLetterX = -1;
-	int m_FirstPlayerLetterY = -1;
-	int m_SecondPlayerLetterX = -1;
-	int m_SecondPlayerLetterY = -1;
 
 	int m_ComputerWordIdx = -1;
 

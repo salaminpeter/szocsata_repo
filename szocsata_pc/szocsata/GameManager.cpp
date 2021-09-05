@@ -157,16 +157,8 @@ void CGameManager::AddWordSelectionAnimation(const std::vector<TWordPos>& wordPo
 void CGameManager::StartPlayerTurn(CPlayer* player)
 {
 	m_PlayerSteps.clear();
-
-	m_FirstPlayerLetterX = -1;
-	m_FirstPlayerLetterY = -1;
-	m_SecondPlayerLetterX = -1;
-	m_SecondPlayerLetterY = -1;
-
 	m_CurrentPlayer = player;
-
 	SetGameState(EGameState::TurnInProgress);
-
 	m_TmpGameBoard = m_GameBoard;
 }
 
@@ -229,11 +221,11 @@ bool CGameManager::SelectionPosIllegal(int x, int y)
 		return true;
 
 	//ha csak egy betu van leteve, es a selection nem abba a sorba es oszlopba van
-	if (m_FirstPlayerLetterX != -1 && m_SecondPlayerLetterX == -1 && x != m_FirstPlayerLetterX && y != m_FirstPlayerLetterY)
+	if (m_PlayerSteps.size() == 1 && x != m_PlayerSteps[0].m_XPosition && y != m_PlayerSteps[0].m_YPosition)
 		return true;
 
 	//ha mar ket betu van leteve, es a selection nem abba a sorba es oszlopba van
-	if (m_FirstPlayerLetterX != -1 && m_SecondPlayerLetterX != -1 && !(m_FirstPlayerLetterX == m_SecondPlayerLetterX && x == m_FirstPlayerLetterX || m_FirstPlayerLetterY == m_SecondPlayerLetterY && y == m_FirstPlayerLetterY))
+	if (m_PlayerSteps.size() == 2 && !(m_PlayerSteps[0].m_XPosition == m_PlayerSteps[1].m_XPosition && x == m_PlayerSteps[0].m_XPosition || m_PlayerSteps[0].m_YPosition == m_PlayerSteps[1].m_YPosition && y == m_PlayerSteps[0].m_YPosition))
 		return true;
 
 	int TileCount;
@@ -392,6 +384,18 @@ void CGameManager::HandlePlayerPass()
 	m_UIManager->ShowToast(L"passz", AllPassed);
 }
 
+//ret 1 - horizontal 0 - not horizontal -1 - undefined
+int CGameManager::PlayerWordHorizontal()
+{
+	if (m_PlayerSteps.size() < 2)
+		return -1;
+
+	if (m_PlayerSteps[0].m_YPosition == m_PlayerSteps[1].m_YPosition)
+		return 1;
+
+	return 0;
+}
+
 bool CGameManager::EndPlayerTurn(bool stillHaveTime)
 {	
 	m_NextPlayerPopupShown = false;
@@ -407,15 +411,17 @@ bool CGameManager::EndPlayerTurn(bool stillHaveTime)
 	int TileCount;
 	CConfig::GetConfig("tile_count", TileCount);
 
-	bool HorizUndefined = (m_SecondPlayerLetterX == -1); //ha csak egy betut tettunk le
-	bool Horizontal = !HorizUndefined && m_FirstPlayerLetterY == m_SecondPlayerLetterY;
-	int BoardX = m_FirstPlayerLetterX;
-	int BoardY = TileCount - m_FirstPlayerLetterY - 1;
+	int Horizontal = PlayerWordHorizontal();
+	int BoardX = m_PlayerSteps[0].m_XPosition;
+	int BoardY = TileCount - m_PlayerSteps[0].m_YPosition - 1;
 
 	std::wstring PlayerWord;
 
-	if (!HorizUndefined)
+	//ha mar 2 betut letettunk tudjuk a szo orientaciojat
+	if (Horizontal != -1)
 		PlayerWord = GetWordAtPos(Horizontal, BoardX, BoardY);
+
+	//ha csak 1 betut tettunk le leteszteljuk vizszintesen v fuggolegesen ertelmes e a szo
 	else
 	{
 		PlayerWord = GetWordAtPos(true, BoardX, BoardY);
@@ -663,7 +669,6 @@ std::wstring CGameManager::GetWordAtPos(bool horizontal, int& x, int& y)
 		{
 			if (m_GameBoard(x, i).m_Char == L'*')
 				break;
-
 			y--;
 			res = m_GameBoard(x, i).m_Char + res;
 		}
@@ -845,7 +850,7 @@ void CGameManager::PlayerLetterClicked(unsigned letterIdx)
 	if (SelX == -1 || SelY == -1)
 		return;
 
-	if (m_PlayerSteps.size() == 1 && SelX != m_FirstPlayerLetterX && SelY != m_FirstPlayerLetterY)
+	if (m_PlayerSteps.size() == 1 && SelX != m_PlayerSteps[0].m_XPosition && SelY != m_PlayerSteps[0].m_YPosition)
 		return;
 
 	int TileCount;
@@ -860,20 +865,9 @@ void CGameManager::PlayerLetterClicked(unsigned letterIdx)
 			return;
 	}
 
-	bool Horizontal = m_FirstPlayerLetterY == m_SecondPlayerLetterY;
+	int Horizontal = PlayerWordHorizontal();
 
-	if (m_FirstPlayerLetterX == -1)
-	{
-		m_FirstPlayerLetterX = SelX;
-		m_FirstPlayerLetterY = SelY;
-	}
-	else if (m_SecondPlayerLetterX == -1)
-	{
-		m_SecondPlayerLetterX = SelX;
-		m_SecondPlayerLetterY = SelY;
-		Horizontal = m_FirstPlayerLetterY == m_SecondPlayerLetterY;
-	}
-	else if (Horizontal && SelY != m_FirstPlayerLetterY || !Horizontal && SelX != m_FirstPlayerLetterX)
+	if (Horizontal == 1 && SelY != m_PlayerSteps[0].m_YPosition || Horizontal == 0 && SelX != m_PlayerSteps[0].m_XPosition)
 		return;
 
 	wchar_t PlacedLetter = m_CurrentPlayer->GetLetters()[letterIdx];
@@ -886,8 +880,7 @@ void CGameManager::PlayerLetterClicked(unsigned letterIdx)
 	m_GameBoard(SelX, BoardY).m_Char = PlacedLetter;
 	m_GameBoard(SelX, BoardY).m_Height++;
 
-
-	if (m_SecondPlayerLetterX != -1 && (Horizontal && SelX < TileCount - 1 || !Horizontal && SelY > 0))
+	if ((Horizontal == 1 && SelX < TileCount - 1 || Horizontal == 0 && SelY > 0))
 	{
 		SelX += Horizontal ? 1 : 0;
 		SelY -= Horizontal ? 0 : 1;
@@ -1034,11 +1027,6 @@ void CGameManager::UndoStep(size_t idx)
 
 	int TileCount;
 	CConfig::GetConfig("tile_count", TileCount);
-
-	if (m_PlayerSteps.size() == 2)
-		m_SecondPlayerLetterX = m_SecondPlayerLetterY = -1;
-	else if (m_PlayerSteps.size() == 1)
-		m_FirstPlayerLetterX = m_FirstPlayerLetterY = -1;
 
 	int BoardY = TileCount - m_PlayerSteps[idx].m_YPosition - 1;
 	int BoardX = m_PlayerSteps[idx].m_XPosition;
