@@ -94,10 +94,13 @@ char VertexShaderTextured[] =
 "layout(location = 0) in vec4 vPosition;\n"
 "layout(location = 1) in vec2 vTexCoord;\n"
 "out vec2 fTexCoord;\n"
+"out vec4 modColor;\n"
 "uniform mat4 MVP; \n"
 "uniform vec2 TexturePos; \n"
+"uniform vec4 ModifyColor;\n"
 "void main() {\n"
 "	fTexCoord = vTexCoord + TexturePos;\n"
+"	modColor = ModifyColor;\n"
 "	gl_Position = MVP * vPosition;\n"
 "}";
 
@@ -107,10 +110,11 @@ char FragmentShaderTextured[] =
 "precision highp float;\n"
 "#endif\n"
 "in vec2 fTexCoord;\n"
+"in vec4 modColor;\n"
 "out vec4 fragColour;\n"
 "uniform sampler2D texSampler;\n"
 "void main() {\n"
-"   fragColour = vec4(texture(texSampler,fTexCoord).xyz,1);\n"
+"   fragColour = texture(texSampler,fTexCoord) * modColor;\n"
 "}";
 
 char FragmentShaderTexturedTransparent[] =

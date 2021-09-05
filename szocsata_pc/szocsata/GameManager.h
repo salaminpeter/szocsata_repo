@@ -73,7 +73,7 @@ public:
 	void StartPlayerTurn(CPlayer* player);
 	void StartComputerturn();
 	bool EndComputerTurn();
-	bool EndPlayerTurn(bool allowPass = true, bool allowNegativeSelection = true);
+	bool EndPlayerTurn(bool stillHaveTime = true);
 	void NextPlayerTurn();
 	void HandlePlayerPass();
 	void UndoLastStep();

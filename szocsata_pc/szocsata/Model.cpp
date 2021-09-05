@@ -13,7 +13,6 @@
 
 void CModel::Draw(bool bindVertexBuffer, bool bindColorBuffer, bool unbindBuffers, bool setTextureVertexAttrib, bool preRender, int textureOffset)
 {
-	CTimer::Start();
 	if (bindVertexBuffer)
 	{
 		if (m_UseNormals)
@@ -21,40 +20,26 @@ void CModel::Draw(bool bindVertexBuffer, bool bindColorBuffer, bool unbindBuffer
 		else
 			m_PositionData->BindVertexBuffer(0, -1);
 	}
-	double t0 = CTimer::GetTime();
-
-	CTimer::Start();
 	if (m_ColorData && bindColorBuffer)
 		m_ColorData->BindBuffer(1, textureOffset, setTextureVertexAttrib);
-	double t1 = CTimer::GetTime();
 
-	CTimer::Start();
 	if (m_ColorData && setTextureVertexAttrib && !bindColorBuffer)
 		m_ColorData->SetVertexAttribs(1, textureOffset);
-	double t2 = CTimer::GetTime();
 
-	CTimer::Start();
 	if (bindVertexBuffer)
 		m_PositionData->BindIndexBuffer();
-	double t3 = CTimer::GetTime();
 
-	CTimer::Start();
 	if (bindVertexBuffer || bindColorBuffer)
 		EnableVertexAttributes(true);
-	double t4 = CTimer::GetTime();
 
-	CTimer::Start();
 	glDrawElements(GL_TRIANGLES, m_PositionData->GetIndexCount(), GL_UNSIGNED_INT, 0);
-	double t5 = CTimer::GetTime();
 
-	CTimer::Start();
 	if (unbindBuffers)
 	{
 		EnableVertexAttributes(false);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	}
-	double t6 = CTimer::GetTime();
 }
 
 void CModel::ResetMatrix()

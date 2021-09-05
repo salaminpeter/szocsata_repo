@@ -214,11 +214,10 @@ void CGameManager::CheckAndUpdateTime(double& timeFromStart, double& timeFromPre
 		m_TimerEventManager->StopTimer("time_limit_event");
 
 		//ha jatekos kore volt, megnezzuk hogy a lerakott betuk ervenyesek e
-		if (m_CurrentPlayer->GetName() != L"computer" && !EndPlayerTurn(false, false))
+		if (m_CurrentPlayer->GetName() != L"computer" && !EndPlayerTurn(false))
 			UndoAllSteps();
-
+	
 		m_UIManager->SetDraggedPlayerLetter(false, 0, glm::vec2(0.f, 0.f), glm::vec2(0.f, 0.f), true);
-		ShowNextPlayerPopup(true);
 		m_Renderer->DisableSelection();
 	}
 }
@@ -392,16 +391,15 @@ void CGameManager::HandlePlayerPass()
 	m_UIManager->ShowToast(L"passz", AllPassed);
 }
 
-bool CGameManager::EndPlayerTurn(bool allowPass, bool allowNegativeSelection)
+bool CGameManager::EndPlayerTurn(bool stillHaveTime)
 {	
+	m_NextPlayerPopupShown = false;
 	m_Renderer->HideSelection(true);
 
 	//jatekos passz
 	if (m_CurrentPlayer->GetUsedLetterCount() == 0)
 	{
-		if (allowPass)
-			HandlePlayerPass();
-		
+		HandlePlayerPass();
 		return false;
 	}
 
@@ -435,11 +433,16 @@ bool CGameManager::EndPlayerTurn(bool allowPass, bool allowNegativeSelection)
 
 	if (PlayerWord.empty() || !m_DataBase.WordExists(PlayerWord)) //TODO miert lehet PlayerWord.empty()!!!!
 	{ 
-		if (allowNegativeSelection)
+		//ha meg nem telt le az ido jeloljuk ki pirossal a hibas crossingword szot
+		if (stillHaveTime)
 		{
 			CrossingWords.push_back(WordPos);
 			AddWordSelectionAnimation(CrossingWords, false);
 		}
+		//ha letelt az ido jatekos passz
+		else
+			HandlePlayerPass();
+
 		return false;
 	}
 
@@ -448,8 +451,12 @@ bool CGameManager::EndPlayerTurn(bool allowPass, bool allowNegativeSelection)
 
 	if (Score == 0)
 	{
-		if (allowNegativeSelection)
+		//ha meg nem telt le az ido jeloljuk ki pirossal a hibas szot
+		if (stillHaveTime)
 			AddWordSelectionAnimation(CrossingWords, false);
+		//ha letelt az ido jatekos passz
+		else
+			HandlePlayerPass();
 
 		return false;
 	}
@@ -461,7 +468,6 @@ bool CGameManager::EndPlayerTurn(bool allowPass, bool allowNegativeSelection)
 
 	m_CurrentPlayer->AddScore(Score);
 	UpdatePlayerScores();
-	m_NextPlayerPopupShown = false;
 	SetGameState(EGameState::WaintingOnAnimation);
 
 	return true;
@@ -505,6 +511,7 @@ void CGameManager::DealComputerLettersEvent()
 
 bool CGameManager::EndComputerTurn()
 {
+	m_NextPlayerPopupShown = false;
 	m_TimerEventManager->StopTimer("time_limit_event");
 
 	int TileCount;
@@ -542,7 +549,6 @@ bool CGameManager::EndComputerTurn()
 	m_WordAnimation->AddWordAnimation(*ComputerWord.m_Word, LetterIndices, m_UIManager->GetPlayerLetters(m_Computer->GetName()), ComputerWord.m_X, TileCount - ComputerWord.m_Y - 1, ComputerWord.m_Horizontal);
 	m_GameBoard.AddWord(ComputerWord);
 	UpdatePlayerScores();
-	m_NextPlayerPopupShown = false;
 	SetGameState(EGameState::WaintingOnAnimation);
 
 
