@@ -9,6 +9,20 @@
 #define GL3_PROTOTYPES 1
 #include <GLES3\gl3.h>
 
+CTexture::CTexture(const char* fileName, uint8_t* imageData, int width, int height, int colorDepth) : 
+	mName(fileName), 
+	m_ColorDepth(colorDepth),
+	m_Width(width),
+	m_Height(height)
+{
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageData);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); //scale linearly when image bigger than texture
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); //scale linearly when image smalled than texture
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+}
 
 
 int CTexture::ImageLoad(const char *filename, Image *image)
@@ -27,6 +41,8 @@ int CTexture::ImageLoad(const char *filename, Image *image)
 	uint32_t  bfOffBits = *(uint32_t*)(&MemBuffer.m_Buffer.get()[10]);
 	int32_t biWidth = *(int32_t*)(&MemBuffer.m_Buffer.get()[18]);
 	int32_t biHeight = *(int32_t*)(&MemBuffer.m_Buffer.get()[22]);
+	int32_t ColorDepth = *(int32_t*)(&MemBuffer.m_Buffer.get()[28]);
+
 	// Check if the file is an actual BMP file
 	if (bfType != 0x4D42)
 	{
@@ -40,7 +56,9 @@ int CTexture::ImageLoad(const char *filename, Image *image)
 	// .bmp files store image data in the BGR format, and we have to convert it to RGB.
 	// Since we have the value in bytes, this shouldn't be to hard to accomplish
 	uint8_t tmpRGB = 0; // Swap buffer
-	for (unsigned long i = 0; i < biSizeImage; i += 3)
+	int add = m_ColorDepth;
+
+	for (unsigned long i = 0; i < biSizeImage; i += add)
 	{
 		tmpRGB = image->data[i];
 		image->data[i] = image->data[i + 2];
@@ -54,7 +72,7 @@ int CTexture::ImageLoad(const char *filename, Image *image)
 	return 1;
 }
 
-void CTexture::InitTexture(int textureEnum)
+void CTexture::InitTexture()
 {
 	Image *image1 = loadTexture();
 
@@ -66,22 +84,29 @@ void CTexture::InitTexture(int textureEnum)
 
 	}
 
-
-	//	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-	// Create Texture
-
 	glGenTextures(1, &texture);
 
 	glBindTexture(GL_TEXTURE_2D, texture);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image1->sizeX, image1->sizeY, 0, GL_RGB, GL_UNSIGNED_BYTE, image1->data);
+	bool alpha = m_ColorDepth == 4;
+	int format = alpha ? GL_RGBA : GL_RGB;
+	glTexImage2D(GL_TEXTURE_2D, 0, format, image1->sizeX, image1->sizeY, 0, format, GL_UNSIGNED_BYTE, image1->data);
 
-	//GL_LINEAR_MIPMAP_LINEAR
-	glGenerateMipmap(GL_TEXTURE_2D);
+	if (!alpha)
+		glGenerateMipmap(GL_TEXTURE_2D);
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); //scale linearly when image bigger than texture
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); //scale linearly when image smalled than texture
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	if (!alpha)
+	{
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); //scale linearly when image bigger than texture
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); //scale linearly when image smalled than texture
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,  GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,  GL_REPEAT);
+	}
+	else
+	{
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); //scale linearly when image bigger than texture
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); //scale linearly when image smalled than texture
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	}
 }

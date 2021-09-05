@@ -10,6 +10,10 @@
 class CTexture
 {
 	public:
+
+	CTexture(const char* fileName, int colorDepth = 3) : mName(fileName), m_ColorDepth(colorDepth) {}
+	CTexture(const char* fileName, uint8_t* imageData, int width, int height, int colorDepth = 3);
+
 	unsigned texture;
 	std::string mName;
 	int m_Width;
@@ -28,7 +32,6 @@ class CTexture
 
 	int ImageLoad(const char *filename, Image *image);
 
-
 	Image * loadTexture() {
 
 		Image *image1;
@@ -45,6 +48,7 @@ class CTexture
 
 		}
 
+
 		if (!ImageLoad(mName.c_str(), image1)) {
 
 			exit(1);
@@ -55,6 +59,8 @@ class CTexture
 
 	}
 
-	void InitTexture(int textureEnum);
+	void InitTexture();
+
+	int m_ColorDepth;
 };
 

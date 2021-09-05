@@ -59,6 +59,7 @@ public:
 	void DisableSelection();
 	void RemoveLastLetter();
 	void SetTexturePos(glm::vec2 texturePos, bool transparent = false);
+	void SetTextColor(float r, float g, float b);
 	void DrawModel(CModel* model, const char* viewID, const char* shaderID, bool setLightPos, bool bindBuffers = true, bool bindTexture = true, bool unbindBuffers = true, bool setTextureVertexAttrib = true, int textureOffset = 0);
 	TPosition GetTilePos(int x, int y);
 	void FittBoardToView(bool topView);

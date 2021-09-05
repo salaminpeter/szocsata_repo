@@ -5,6 +5,11 @@
 #include "Renderer.h"
 #include "SquareModelData.h"
 
+#define GL_GLEXT_PROTOTYPES 1
+#define GL3_PROTOTYPES 1
+#include <GLES3\gl3.h>
+
+
 std::map<wchar_t, glm::vec2> CUIText::m_FontTexPos;
 std::map<wchar_t, int> CUIText::m_FontCharWidth;
 std::map<wchar_t, int> CUIText::m_FontCharHeight;
@@ -32,11 +37,21 @@ void CUIText::Render(CRenderer* renderer)
 	if (!m_Visible)
 		return;
 
+	glEnable(GL_BLEND); //TODO!!
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	renderer->SetTextColor(0.97, 0.93, 0.86);
+
 	for (size_t i = 0; i < Length(); ++i)
 	{
 		renderer->SetTexturePos(GetTexturePos(i));
 		renderer->DrawModel(GetModel(i), "view_ortho", "textured", false, i == 0, i == 0, i == Length() - 1, i == 0);
 	}
+
+	renderer->SetTextColor(1, 1, 1);
+
+	glDisable(GL_BLEND); //TODO!!
+
 }
 
 glm::vec2 CUIText::GetTextTopBottom(const std::wstring& text, int size)
@@ -61,7 +76,8 @@ glm::vec2 CUIText::GetTextTopBottom(const std::wstring& text, int size)
 			DescentSet = true;
 		}
 
-		float Ascent = m_FontCharHeight[text.at(i)] * (size / 64.) - Descent;
+		float FontHeight = 103; // TODO ne beegetve legyen, texturameretbol es betukpersor bol szamolja
+		float Ascent = m_FontCharHeight[text.at(i)] * (size / FontHeight) - Descent;
 
 		if (TopBottom.x < Ascent)
 			TopBottom.x = Ascent;
@@ -118,13 +134,17 @@ void CUIText::SetText(const wchar_t* text)
 			m_Children.pop_back();
 	}
 
+	float FontWidth = 69; // TODO ne beegetve legyen, texturameretbol es betukperoszlop bol szamolja
+	float FontHeight = 103; // TODO ne beegetve legyen, texturameretbol es betukpersor bol szamolja
+	float FontCharGap = 7. * (m_Width / FontWidth); //TODO a 7 configbol!
+	float FontSpace = 18. * (m_Height / FontHeight); //TODO a 18 configbol!
 	float Offset = 0.f;
 	size_t idx = 0;
 
 	for (size_t i = 0; i < m_Text.length(); ++i)
 	{
 		if (m_Text.at(i) == L' ')
-			Offset += 18. * (m_Height / 64.); //TODO space
+			Offset += FontSpace;
 		else
 		{
 			float FontDesc = 0.f;
@@ -132,7 +152,7 @@ void CUIText::SetText(const wchar_t* text)
 				FontDesc = m_Height * m_FontDesc[m_Text.at(i)];
 
 			m_Children[idx]->SetPosAndSize(Offset, -FontDesc, m_Width, m_Height);
-			Offset += m_FontCharWidth[m_Text.at(i)] * (m_Width / 64.) + 7. * (m_Width / 64.); //TODO betukoz konfigbol
+			Offset += m_FontCharWidth[m_Text.at(i)] * (m_Width / FontWidth) + FontCharGap; 
 			idx++;
 		}
 	}
@@ -141,7 +161,7 @@ void CUIText::SetText(const wchar_t* text)
 
 	for (size_t i = 0; i < m_Text.length(); ++i)
 		if (m_Text.at(i) != L' ')
-			m_Children[idx++]->SetTexturePosition(glm::vec2((1.f / 16.f) * m_FontTexPos[m_Text.at(i)].x, (1.f / 6.f) * m_FontTexPos[m_Text.at(i)].y));
+			m_Children[idx++]->SetTexturePosition(glm::vec2((1.f / 16.f) * m_FontTexPos[m_Text.at(i)].x - 0.0015f, (1.f / 6.f) * m_FontTexPos[m_Text.at(i)].y) + 0.00089f);
 }
 
 void CUIText::InitFontTexPositions()
@@ -234,186 +254,185 @@ void CUIText::InitFontTexPositions()
 	m_FontTexPos[L')'] = glm::vec2(8, 1);
 	m_FontTexPos[L'?'] = glm::vec2(10, 1);
 
-
-	m_FontCharWidth[L'0'] = 32;
-	m_FontCharWidth[L'1'] = 25;
-	m_FontCharWidth[L'2'] = 34;
-	m_FontCharWidth[L'3'] = 30;
-	m_FontCharWidth[L'4'] = 36;
-	m_FontCharWidth[L'5'] = 30;
-	m_FontCharWidth[L'6'] = 30;
-	m_FontCharWidth[L'7'] = 30;
-	m_FontCharWidth[L'8'] = 30;
-	m_FontCharWidth[L'9'] = 30;
-	m_FontCharWidth[L','] = 10;
-	m_FontCharWidth[L':'] = 10;
-	m_FontCharWidth[L'-'] = 16;
-	m_FontCharWidth[L'!'] = 12;
-	m_FontCharWidth[L'.'] = 10;
-	m_FontCharWidth[L'/'] = 24;
-	m_FontCharWidth[L'a'] = 30;
-	m_FontCharWidth[L'á'] = 30;
-	m_FontCharWidth[L'b'] = 32;
-	m_FontCharWidth[L'c'] = 28;
-	m_FontCharWidth[L'd'] = 32;
-	m_FontCharWidth[L'e'] = 28;
-	m_FontCharWidth[L'é'] = 28;
+	m_FontCharWidth[L'0'] = 51;
+	m_FontCharWidth[L'1'] = 22;
+	m_FontCharWidth[L'2'] = 49;
+	m_FontCharWidth[L'3'] = 49;
+	m_FontCharWidth[L'4'] = 54;
+	m_FontCharWidth[L'5'] = 47;
+	m_FontCharWidth[L'6'] = 46;
+	m_FontCharWidth[L'7'] = 46;
+	m_FontCharWidth[L'8'] = 49;
+	m_FontCharWidth[L'9'] = 46;
+	m_FontCharWidth[L','] = 9;
+	m_FontCharWidth[L':'] = 7;
+	m_FontCharWidth[L'-'] = 34;
+	m_FontCharWidth[L'!'] = 7;
+	m_FontCharWidth[L'.'] = 8;
+	m_FontCharWidth[L'/'] = 39;
+	m_FontCharWidth[L'a'] = 40;
+	m_FontCharWidth[L'á'] = 40;
+	m_FontCharWidth[L'b'] = 48;
+	m_FontCharWidth[L'c'] = 41;
+	m_FontCharWidth[L'd'] = 48;
+	m_FontCharWidth[L'e'] = 47;
+	m_FontCharWidth[L'é'] = 47;
 	m_FontCharWidth[L'f'] = 24;
-	m_FontCharWidth[L'g'] = 30;
-	m_FontCharWidth[L'h'] = 32;
-	m_FontCharWidth[L'i'] = 12;
-	m_FontCharWidth[L'í'] = 12;
-	m_FontCharWidth[L'j'] = 16;
-	m_FontCharWidth[L'k'] = 32;
-	m_FontCharWidth[L'l'] = 12;
-	m_FontCharWidth[L'm'] = 52;
-	m_FontCharWidth[L'n'] = 34;
-	m_FontCharWidth[L'o'] = 30;
-	m_FontCharWidth[L'ó'] = 30;
-	m_FontCharWidth[L'ö'] = 30;
-	m_FontCharWidth[L'ő'] = 30;
-	m_FontCharWidth[L'p'] = 32;
-	m_FontCharWidth[L'r'] = 22;
-	m_FontCharWidth[L's'] = 22;
-	m_FontCharWidth[L't'] = 22;
-	m_FontCharWidth[L'v'] = 32;
-	m_FontCharWidth[L'u'] = 28;
-	m_FontCharWidth[L'ú'] = 28;
-	m_FontCharWidth[L'ü'] = 28;
-	m_FontCharWidth[L'ű'] = 28;
-	m_FontCharWidth[L'y'] = 32;
-	m_FontCharWidth[L'z'] = 27;
-	m_FontCharWidth[L'A'] = 46;
-	m_FontCharWidth[L'Á'] = 46;
-	m_FontCharWidth[L'B'] = 37;
-	m_FontCharWidth[L'C'] = 38;
-	m_FontCharWidth[L'D'] = 42;
-	m_FontCharWidth[L'E'] = 37;
-	m_FontCharWidth[L'É'] = 37;
-	m_FontCharWidth[L'F'] = 33;
-	m_FontCharWidth[L'G'] = 45;
-	m_FontCharWidth[L'H'] = 42;
-	m_FontCharWidth[L'I'] = 17;
-	m_FontCharWidth[L'Í'] = 17;
-	m_FontCharWidth[L'J'] = 26;
-	m_FontCharWidth[L'K'] = 45;
-	m_FontCharWidth[L'L'] = 36;
-	m_FontCharWidth[L'M'] = 54;
-	m_FontCharWidth[L'N'] = 42;
-	m_FontCharWidth[L'O'] = 46;
-	m_FontCharWidth[L'Ó'] = 46;
-	m_FontCharWidth[L'Ö'] = 46;
-	m_FontCharWidth[L'Ő'] = 46;
-	m_FontCharWidth[L'P'] = 36;
-	m_FontCharWidth[L'R'] = 42;
-	m_FontCharWidth[L'S'] = 32;
-	m_FontCharWidth[L'T'] = 38;
-	m_FontCharWidth[L'V'] = 44;
-	m_FontCharWidth[L'U'] = 42;
-	m_FontCharWidth[L'Ú'] = 42;
-	m_FontCharWidth[L'Ü'] = 42;
-	m_FontCharWidth[L'Ű'] = 42;
-	m_FontCharWidth[L'Y'] = 45;
-	m_FontCharWidth[L'Z'] = 36;
-	m_FontCharWidth[L'x'] = 32;
-	m_FontCharWidth[L'X'] = 46;
-	m_FontCharWidth[L'<'] = 35;
-	m_FontCharWidth[L'>'] = 35;
-	m_FontCharWidth[L'('] = 18;
-	m_FontCharWidth[L')'] = 18;
-	m_FontCharWidth[L'?'] = 27;
+	m_FontCharWidth[L'g'] = 48;
+	m_FontCharWidth[L'h'] = 42;
+	m_FontCharWidth[L'i'] = 6;
+	m_FontCharWidth[L'í'] = 9;
+	m_FontCharWidth[L'j'] = 17;
+	m_FontCharWidth[L'k'] = 38;
+	m_FontCharWidth[L'l'] = 4;
+	m_FontCharWidth[L'm'] = 66;
+	m_FontCharWidth[L'n'] = 41;
+	m_FontCharWidth[L'o'] = 49;
+	m_FontCharWidth[L'ó'] = 49;
+	m_FontCharWidth[L'ö'] = 49;
+	m_FontCharWidth[L'ő'] = 49;
+	m_FontCharWidth[L'p'] = 49;
+	m_FontCharWidth[L'r'] = 26;
+	m_FontCharWidth[L's'] = 33;
+	m_FontCharWidth[L't'] = 24;
+	m_FontCharWidth[L'v'] = 44;
+	m_FontCharWidth[L'u'] = 41;
+	m_FontCharWidth[L'ú'] = 41;
+	m_FontCharWidth[L'ü'] = 41;
+	m_FontCharWidth[L'ű'] = 41;
+	m_FontCharWidth[L'y'] = 44;
+	m_FontCharWidth[L'z'] = 38;
+	m_FontCharWidth[L'A'] = 60;
+	m_FontCharWidth[L'Á'] = 60;
+	m_FontCharWidth[L'B'] = 48;
+	m_FontCharWidth[L'C'] = 58;
+	m_FontCharWidth[L'D'] = 58;
+	m_FontCharWidth[L'E'] = 46;
+	m_FontCharWidth[L'É'] = 46;
+	m_FontCharWidth[L'F'] = 46;
+	m_FontCharWidth[L'G'] = 59;
+	m_FontCharWidth[L'H'] = 59;
+	m_FontCharWidth[L'I'] = 4;
+	m_FontCharWidth[L'Í'] = 8;
+	m_FontCharWidth[L'J'] = 29;
+	m_FontCharWidth[L'K'] = 43;
+	m_FontCharWidth[L'L'] = 49;
+	m_FontCharWidth[L'M'] = 66;
+	m_FontCharWidth[L'N'] = 59;
+	m_FontCharWidth[L'O'] = 69;
+	m_FontCharWidth[L'Ó'] = 69;
+	m_FontCharWidth[L'Ö'] = 69;
+	m_FontCharWidth[L'Ő'] = 69;
+	m_FontCharWidth[L'P'] = 46;
+	m_FontCharWidth[L'R'] = 47;
+	m_FontCharWidth[L'S'] = 47;
+	m_FontCharWidth[L'T'] = 57;
+	m_FontCharWidth[L'V'] = 61;
+	m_FontCharWidth[L'U'] = 59;
+	m_FontCharWidth[L'Ú'] = 59;
+	m_FontCharWidth[L'Ü'] = 59;
+	m_FontCharWidth[L'Ű'] = 59;
+	m_FontCharWidth[L'Y'] = 58;
+	m_FontCharWidth[L'Z'] = 50;
+	m_FontCharWidth[L'x'] = 42;
+	m_FontCharWidth[L'X'] = 56;
+	m_FontCharWidth[L'<'] = 49;
+	m_FontCharWidth[L'>'] = 49;
+	m_FontCharWidth[L'('] = 24;
+	m_FontCharWidth[L')'] = 24;
+	m_FontCharWidth[L'?'] = 44;
 
-	m_FontCharHeight[L'0'] = 44;
-	m_FontCharHeight[L'1'] = 44;
-	m_FontCharHeight[L'2'] = 44;
-	m_FontCharHeight[L'3'] = 44;
-	m_FontCharHeight[L'4'] = 44;
-	m_FontCharHeight[L'5'] = 44;
-	m_FontCharHeight[L'6'] = 44;
-	m_FontCharHeight[L'7'] = 44;
-	m_FontCharHeight[L'8'] = 44;
-	m_FontCharHeight[L'9'] = 44;
-	m_FontCharHeight[L','] = 20;
-	m_FontCharHeight[L':'] = 31;
-	m_FontCharHeight[L'-'] = 27;
-	m_FontCharHeight[L'!'] = 46;
-	m_FontCharHeight[L'.'] = 10;
-	m_FontCharHeight[L'/'] = 46;
-	m_FontCharHeight[L'a'] = 35;
-	m_FontCharHeight[L'á'] = 47;
-	m_FontCharHeight[L'b'] = 47;
-	m_FontCharHeight[L'c'] = 35;
-	m_FontCharHeight[L'd'] = 46;
-	m_FontCharHeight[L'e'] = 35;
-	m_FontCharHeight[L'é'] = 50;
-	m_FontCharHeight[L'f'] = 47;
-	m_FontCharHeight[L'g'] = 47;
-	m_FontCharHeight[L'h'] = 45;
-	m_FontCharHeight[L'i'] = 46;
-	m_FontCharHeight[L'í'] = 46;
-	m_FontCharHeight[L'j'] = 62;
-	m_FontCharHeight[L'k'] = 45;
-	m_FontCharHeight[L'l'] = 45;
-	m_FontCharHeight[L'm'] = 31;
-	m_FontCharHeight[L'n'] = 31;
-	m_FontCharHeight[L'o'] = 33;
-	m_FontCharHeight[L'ó'] = 46;
-	m_FontCharHeight[L'ö'] = 44;
-	m_FontCharHeight[L'ő'] = 46;
-	m_FontCharHeight[L'p'] = 46;
-	m_FontCharHeight[L'r'] = 31;
-	m_FontCharHeight[L's'] = 33;
-	m_FontCharHeight[L't'] = 42;
-	m_FontCharHeight[L'v'] = 31;
-	m_FontCharHeight[L'u'] = 31;
-	m_FontCharHeight[L'ú'] = 46;
-	m_FontCharHeight[L'ü'] = 46;
-	m_FontCharHeight[L'ű'] = 48;
-	m_FontCharHeight[L'y'] = 44;
-	m_FontCharHeight[L'z'] = 31;
-	m_FontCharHeight[L'A'] = 44;
-	m_FontCharHeight[L'Á'] = 59;
-	m_FontCharHeight[L'B'] = 44;
-	m_FontCharHeight[L'C'] = 44;
-	m_FontCharHeight[L'D'] = 44;
-	m_FontCharHeight[L'E'] = 44;
-	m_FontCharHeight[L'É'] = 59;
-	m_FontCharHeight[L'F'] = 44;
-	m_FontCharHeight[L'G'] = 44;
-	m_FontCharHeight[L'H'] = 44;
-	m_FontCharHeight[L'I'] = 44;
-	m_FontCharHeight[L'Í'] = 59;
-	m_FontCharHeight[L'J'] = 47;
-	m_FontCharHeight[L'K'] = 44;
-	m_FontCharHeight[L'L'] = 44;
-	m_FontCharHeight[L'M'] = 44;
-	m_FontCharHeight[L'N'] = 44;
-	m_FontCharHeight[L'O'] = 44;
-	m_FontCharHeight[L'Ó'] = 59;
-	m_FontCharHeight[L'Ö'] = 55;
-	m_FontCharHeight[L'Ő'] = 59;
-	m_FontCharHeight[L'P'] = 44;
-	m_FontCharHeight[L'R'] = 44;
-	m_FontCharHeight[L'S'] = 44;
-	m_FontCharHeight[L'T'] = 44;
-	m_FontCharHeight[L'V'] = 44;
-	m_FontCharHeight[L'U'] = 44;
-	m_FontCharHeight[L'Ú'] = 59;
-	m_FontCharHeight[L'Ü'] = 55;
-	m_FontCharHeight[L'Ű'] = 59;
-	m_FontCharHeight[L'Y'] = 44;
-	m_FontCharHeight[L'Z'] = 44;
-	m_FontCharHeight[L'x'] = 31;
-	m_FontCharHeight[L'X'] = 44;
-	m_FontCharHeight[L'<'] = 31;
-	m_FontCharHeight[L'>'] = 31;
-	m_FontCharHeight[L'('] = 56;
-	m_FontCharHeight[L')'] = 56;
-	m_FontCharHeight[L'?'] = 44;
+	m_FontCharHeight[L'0'] = 84;
+	m_FontCharHeight[L'1'] = 81;
+	m_FontCharHeight[L'2'] = 82;
+	m_FontCharHeight[L'3'] = 84;
+	m_FontCharHeight[L'4'] = 81;
+	m_FontCharHeight[L'5'] = 83;
+	m_FontCharHeight[L'6'] = 84;
+	m_FontCharHeight[L'7'] = 81;
+	m_FontCharHeight[L'8'] = 84;
+	m_FontCharHeight[L'9'] = 84;
+	m_FontCharHeight[L','] = 19;
+	m_FontCharHeight[L':'] = 77;
+	m_FontCharHeight[L'-'] = 43;
+	m_FontCharHeight[L'!'] = 83;
+	m_FontCharHeight[L'.'] = 12;
+	m_FontCharHeight[L'/'] = 98;
+	m_FontCharHeight[L'a'] = 58;
+	m_FontCharHeight[L'á'] = 78;
+	m_FontCharHeight[L'b'] = 90;
+	m_FontCharHeight[L'c'] = 58;
+	m_FontCharHeight[L'd'] = 90;
+	m_FontCharHeight[L'e'] = 58;
+	m_FontCharHeight[L'é'] = 78;
+	m_FontCharHeight[L'f'] = 88;
+	m_FontCharHeight[L'g'] = 81;
+	m_FontCharHeight[L'h'] = 88;
+	m_FontCharHeight[L'i'] = 77;
+	m_FontCharHeight[L'í'] = 76;
+	m_FontCharHeight[L'j'] = 103;
+	m_FontCharHeight[L'k'] = 88;
+	m_FontCharHeight[L'l'] = 88;
+	m_FontCharHeight[L'm'] = 56;
+	m_FontCharHeight[L'n'] = 56;
+	m_FontCharHeight[L'o'] = 58;
+	m_FontCharHeight[L'ó'] = 78;
+	m_FontCharHeight[L'ö'] = 72;
+	m_FontCharHeight[L'ő'] = 80;
+	m_FontCharHeight[L'p'] = 81;
+	m_FontCharHeight[L'r'] = 56;
+	m_FontCharHeight[L's'] = 58;
+	m_FontCharHeight[L't'] = 72;
+	m_FontCharHeight[L'v'] = 55;
+	m_FontCharHeight[L'u'] = 58;
+	m_FontCharHeight[L'ú'] = 78;
+	m_FontCharHeight[L'ü'] = 72;
+	m_FontCharHeight[L'ű'] = 81;
+	m_FontCharHeight[L'y'] = 82;
+	m_FontCharHeight[L'z'] = 55;
+	m_FontCharHeight[L'A'] = 81;
+	m_FontCharHeight[L'Á'] = 98;
+	m_FontCharHeight[L'B'] = 81;
+	m_FontCharHeight[L'C'] = 84;
+	m_FontCharHeight[L'D'] = 81;
+	m_FontCharHeight[L'E'] = 81;
+	m_FontCharHeight[L'É'] = 98;
+	m_FontCharHeight[L'F'] = 81;
+	m_FontCharHeight[L'G'] = 84;
+	m_FontCharHeight[L'H'] = 81;
+	m_FontCharHeight[L'I'] = 81;
+	m_FontCharHeight[L'Í'] = 98;
+	m_FontCharHeight[L'J'] = 82;
+	m_FontCharHeight[L'K'] = 81;
+	m_FontCharHeight[L'L'] = 81;
+	m_FontCharHeight[L'M'] = 81;
+	m_FontCharHeight[L'N'] = 81;
+	m_FontCharHeight[L'O'] = 84;
+	m_FontCharHeight[L'Ó'] = 100;
+	m_FontCharHeight[L'Ö'] = 95;
+	m_FontCharHeight[L'Ő'] = 103;
+	m_FontCharHeight[L'P'] = 81;
+	m_FontCharHeight[L'R'] = 81;
+	m_FontCharHeight[L'S'] = 84;
+	m_FontCharHeight[L'T'] = 81;
+	m_FontCharHeight[L'V'] = 81;
+	m_FontCharHeight[L'U'] = 83;
+	m_FontCharHeight[L'Ú'] = 100;
+	m_FontCharHeight[L'Ü'] = 95;
+	m_FontCharHeight[L'Ű'] = 103;
+	m_FontCharHeight[L'Y'] = 81;
+	m_FontCharHeight[L'Z'] = 81;
+	m_FontCharHeight[L'x'] = 55;
+	m_FontCharHeight[L'X'] = 81;
+	m_FontCharHeight[L'<'] = 41;
+	m_FontCharHeight[L'>'] = 41;
+	m_FontCharHeight[L'('] = 98;
+	m_FontCharHeight[L')'] = 98;
+	m_FontCharHeight[L'?'] = 83;
 
-	m_FontDesc[L'f'] = 0.5f;
-	m_FontDesc[L'g'] = 0.2f;
-	m_FontDesc[L'j'] = 0.2f;
-	m_FontDesc[L'p'] = 0.2f;
-	m_FontDesc[L'y'] = 0.2f;
+	m_FontDesc[L'f'] = 0.25f;
+	m_FontDesc[L'g'] = 0.25f;
+	m_FontDesc[L'j'] = 0.25f;
+	m_FontDesc[L'p'] = 0.25f;
+	m_FontDesc[L'y'] = 0.25;
 }

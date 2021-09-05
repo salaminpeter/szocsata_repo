@@ -9,8 +9,13 @@ class CTextureManager
 {
 public:
 
-	void AddTexture(const char* path);
+	void AddTexture(const char* path, int colorDepth = 3);
 	void ActivateTexture(const char* texId);
+	void GenerateTextures();
+
+private:
+	
+	void GenerateHeaderTexture();
 
 private:
 	

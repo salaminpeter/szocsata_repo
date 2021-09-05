@@ -207,6 +207,14 @@ void CRenderer::SetTexturePos(glm::vec2 texturePos, bool transparent)
 	glUniform2fv(TexturePosId, 1, &texturePos[0]);
 }
 
+void CRenderer::SetTextColor(float r, float g, float b)
+{
+	m_ShaderManager->ActivateShader("textured");
+	GLuint TextColorID = m_ShaderManager->GetShaderVariableID("textured", "ModifyColor");
+	glm::vec4 Color(r, g, b, 1);
+	glUniform4fv(TextColorID, 1, &Color[0]);
+}
+
 void CRenderer::FittBoardToView(bool topView)
 {
 	m_FitToTopView = topView;
@@ -707,6 +715,8 @@ bool CRenderer::StartInit()
 	m_ShaderManager->AddShader("textured", VertexShaderTextured, FragmentShaderTextured);
 	m_ShaderManager->AddShader("textured_transparent", VertexShaderTextured, FragmentShaderTexturedTransparent);
 
+	SetTextColor(1, 1, 1);
+
 	AddView("board_perspecive", 0, 0, m_ScreenHeight, m_ScreenHeight);
 	FittBoardToView(false);
 
@@ -721,7 +731,6 @@ bool CRenderer::StartInit()
 	m_TextureManager->AddTexture("okbutton.bmp");
 	m_TextureManager->AddTexture("backbutton.bmp");
 	m_TextureManager->AddTexture("topviewbutton.bmp");
-	m_TextureManager->AddTexture("font.bmp");
 	m_TextureManager->AddTexture("playerletters.bmp");
 	m_TextureManager->AddTexture("panel.bmp");
 	m_TextureManager->AddTexture("tilecounter.bmp");
@@ -729,6 +738,13 @@ bool CRenderer::StartInit()
 	m_TextureManager->AddTexture("leftarrow.bmp");
 	m_TextureManager->AddTexture("rightarrow.bmp");
 	m_TextureManager->AddTexture("textbutton.bmp");
+	m_TextureManager->AddTexture("background.bmp");
+
+	m_TextureManager->AddTexture("font.bmp", 4);
+	m_TextureManager->AddTexture("icontextbuttontrans.bmp", 4);
+
+	m_TextureManager->GenerateTextures();
+
 
 
 	return true;
@@ -832,19 +848,8 @@ void CRenderer::SetLightPosition()
 
 void CRenderer::DrawModel(CModel* model, const char* viewID, const char* shaderID, bool setLightPos, bool bindVertexBuffer, bool bindTextureBuffer, bool unbindBuffers, bool setTextureVertexAttrib, int textureOffset)
 {
-	CTimer::Start();
-
 	m_ShaderManager->ActivateShader(shaderID);
-
-	double t0 = CTimer::GetTime();
-
-	CTimer::Start();
-
 	m_Views[viewID]->Activate();
-
-	double t1 = CTimer::GetTime();
-
-	CTimer::Start();
 
 	if (setLightPos)
 	{
@@ -859,20 +864,12 @@ void CRenderer::DrawModel(CModel* model, const char* viewID, const char* shaderI
 	GLint MatrixID = m_ShaderManager->GetShaderVariableID(model->GetShaderId(), "MVP");
 	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
 
-	double t2 = CTimer::GetTime();
-
-	CTimer::Start();
-
 	const char* TextureID = model->GetTextureId();
 
 	if (!std::string(TextureID).empty())
 		m_TextureManager->ActivateTexture(TextureID);
 
-	double t3 = CTimer::GetTime();
-
-	CTimer::Start();
 	model->Draw(bindVertexBuffer, bindTextureBuffer, unbindBuffers, setTextureVertexAttrib, true, textureOffset);
-	double t4 = CTimer::GetTime();
 }
 
 void CRenderer::ClearBuffers()
