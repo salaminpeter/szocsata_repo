@@ -55,6 +55,7 @@ public:
 	void RenderFrame();
 	void RenderUI();
 	void RenderTileAnimations();
+	void RenderPlacedLetterSelections();
 	void AddWordSelectionAnimation(const std::vector<TWordPos>& wordPos, bool positive);
 	void FinishRenderInit();
 
@@ -78,6 +79,10 @@ public:
 	void HandlePlayerPass();
 	void UndoLastStep();
 	void UndoAllSteps();
+	void UndoStep(size_t idx);
+	void UndoStepAtPos(int x, int y);
+	void RemovePlacedLetterSelAtPos(int x, int y);
+	int GetPlayerStepIdxAtPos(int x, int y);
 	void DealCurrPlayerLetters();
 	void PlayerLetterClicked(unsigned letterIdx);
 	void EndGameAfterLastPass();
@@ -121,6 +126,7 @@ public:
 	CUIManager* GetUIManager() { return m_UIManager; }
 	CTimerEventManager* GetTimerEventManager() {return m_TimerEventManager;}
 	int GetLetterPoolCount() {return m_LetterPool.GetRemainingLetterCount(); }
+	void AddPlacedLetterSelection(int x, int y) {m_PlacedLetterSelections.push_back(glm::ivec2(x, y));}
 
 	glm::vec2 GetViewPosition(const char* viewId);
 	bool PositionOnBoardView(int x, int y);
@@ -147,10 +153,12 @@ public:
 
 
 private:
+
 	std::vector<CPlayer*> m_Players;
 	CComputer* m_Computer = nullptr; 
 
 	std::vector<TPlayerStep> m_PlayerSteps;
+	std::vector<glm::ivec2> m_PlacedLetterSelections;
 
 	CLetterPool m_LetterPool;
 	CGameBoard m_GameBoard;
@@ -172,6 +180,9 @@ private:
 	int m_LastTouchY;
 	int m_TouchX = -1;
 	int m_TouchY;
+	int m_PlayerStepIdxUndo;
+	int m_PlacedLetterTouchX = -1;
+	int m_PlacedLetterTouchY;
 	int m_SurfaceWidth;
 	int m_SurfaceHeigh;
 	bool m_NextPlayerPopupShown = false;

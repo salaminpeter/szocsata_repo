@@ -30,9 +30,11 @@ public:
 	void ShowLetters(bool show);
 	void SetLetters();
 	void SetLetterVisibility(CBinaryBoolList usedLetters);
+	void SetLetterDragged(size_t letterIdx, int x, int y);
 	
 	void Render(CRenderer* renderer) override;
 	bool HandleEventAtPos(int x, int y, bool touchEvent) override;
+
 
 private:
 

@@ -182,7 +182,7 @@ CLetterModel* CRenderer::AddLetterToBoard(int x, int y, wchar_t c, float height,
 
 	int LetterCount = m_GameManager->Board(x, TileCount - y - 1).m_Height;
 
-	m_LettersOnBoard.push_back(new CLetterModel(CLetterModel(m_LetterColorData->m_Offset * m_LetterTexPos[c].y * 8 + m_LetterColorData->m_Offset * m_LetterTexPos[c].x, x, y, c, m_RoundedBoxPositionData)));
+	m_LettersOnBoard.push_back(new CLetterModel(m_LetterColorData->m_Offset * m_LetterTexPos[c].y * 8 + m_LetterColorData->m_Offset * m_LetterTexPos[c].x, x, y, c, m_RoundedBoxPositionData));
 	m_LettersOnBoard.back()->SetColorData(m_LetterColorData);
 	m_LettersOnBoard.back()->SetParent(m_BoardModel);
 	m_LettersOnBoard.back()->ResetMatrix();
@@ -648,16 +648,7 @@ TPosition CRenderer::GetTilePos(int x, int y)
 
 		int BoardHeight = m_GameManager->Board(m_ScreenSpaceTiles[i].m_X, TileCount - m_ScreenSpaceTiles[i].m_Y - 1).m_Height;
 
-		int mmin = std::min(h0, h1);
-		int mmax = std::max(h0, h1);
-		bool b0 = IntersectionCount == 2;
-		bool b1 = y > mmin;
-		bool b2 = y < mmax;
-		bool b3 = (MaxHeight == -1 || MaxHeight < BoardHeight);
-
-
-		//if (IntersectionCount == 2  && y > std::min(h0, h1) && y < std::max(h0, h1) && (MaxHeight == -1 || MaxHeight < BoardHeight)) TODO vissza !!
-		if (b0 && b1 && b2 && b3)
+		if (IntersectionCount == 2  && y > std::min(h0, h1) && y < std::max(h0, h1) && (MaxHeight == -1 || MaxHeight < BoardHeight)) 
 		{
 			Result.x = m_ScreenSpaceTiles[i].m_X;
 			Result.y = m_ScreenSpaceTiles[i].m_Y;
@@ -831,6 +822,27 @@ void CRenderer::InitLetterTexPositions()
 	m_LetterTexPos[L'ű'] = TPosition(5, 0);
 	m_LetterTexPos[L'y'] = TPosition(6, 0);
 	m_LetterTexPos[L'z'] = TPosition(7, 0);
+}
+
+void CRenderer::RemoveTopLetter(int x, int y)
+{
+	 int Idx = -1;
+	 float MaxHeight = 0.f;
+
+	for (size_t i = 0; i < m_LettersOnBoard.size(); ++i)
+	{
+		if (m_LettersOnBoard[i]->BoardX() == x && m_LettersOnBoard[i]->BoardY() == y && m_LettersOnBoard[i]->ZPos() > MaxHeight)
+		{
+			Idx = i;
+			MaxHeight = m_LettersOnBoard[i]->ZPos();
+		}
+	}
+
+	if (Idx != -1)
+	{
+		m_LettersOnBoard[Idx] = m_LettersOnBoard.back();
+		m_LettersOnBoard.pop_back();
+	}
 }
 
 void CRenderer::RemoveLastLetter()

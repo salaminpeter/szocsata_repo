@@ -386,6 +386,7 @@ void CGameManager::HandlePlayerPass()
 {
 	m_CurrentPlayer->m_Passed = true;
 	bool AllPassed = AllPlayersPassed();
+	m_PlacedLetterSelections.clear();
 
 	//TODO biztos passzolni akarsz msgbox!
 	m_UIManager->ShowToast(L"passz", AllPassed);
@@ -463,6 +464,7 @@ bool CGameManager::EndPlayerTurn(bool stillHaveTime)
 
 	DealCurrPlayerLetters();
 	AddWordSelectionAnimation(CrossingWords, true);
+	m_PlacedLetterSelections.clear();
 
 	m_TimerEventManager->StopTimer("time_limit_event");
 
@@ -968,13 +970,14 @@ void CGameManager::HandleReleaseEventFromBoardView(int x, int y)
 
 	float Offset = std::sqrtf((m_LastTouchX - x) * (m_LastTouchX - x) + (m_LastTouchY - y) * (m_LastTouchY - y));
 
-	if (Offset > 3) //TODO configbol
-		return;
+	if (Offset < 3) //TODO configbol
+	{
+		m_PlacedLetterTouchX = -1;
+		TPosition p = m_Renderer->GetTilePos(m_LastTouchX, m_LastTouchY);
 
-	TPosition p = m_Renderer->GetTilePos(m_LastTouchX, m_LastTouchY);
-
-	if (p.x != -1)
-		m_Renderer->SelectField(p.x, p.y);
+		if (p.x != -1)
+			m_Renderer->SelectField(p.x, p.y);
+	}
 }
 
 void CGameManager::HandleReleaseEventFromUIView(int x, int y)
@@ -987,36 +990,73 @@ void CGameManager::UndoAllSteps()
 {
 	while (m_PlayerSteps.size())
 		UndoLastStep();
-
-	//StartPlayerTurn(m_CurrentPlayer);
 }
 
 void CGameManager::UndoLastStep()
 {
-	if (m_PlayerSteps.size() == 0)
+	UndoStep(m_PlayerSteps.size() - 1);
+}
+
+void CGameManager::UndoStepAtPos(int x, int y)
+{
+	int Idx;
+
+	if ((Idx = GetPlayerStepIdxAtPos(x, y)) != -1)
+		UndoStep(Idx);
+}
+
+void CGameManager::RemovePlacedLetterSelAtPos(int x, int y)
+{
+	for (size_t i = 0; i < m_PlacedLetterSelections.size(); ++i)
+	{
+		if (m_PlacedLetterSelections[i].x == x && m_PlacedLetterSelections[i].y == y)
+		{
+			m_PlacedLetterSelections[i] = m_PlacedLetterSelections.back();
+			m_PlacedLetterSelections.pop_back();
+			return;
+		}
+	}
+}
+
+int CGameManager::GetPlayerStepIdxAtPos(int x, int y)
+{
+	for (size_t i = 0; i < m_PlayerSteps.size(); ++i)
+		if (m_PlayerSteps[i].m_XPosition == x && m_PlayerSteps[i].m_YPosition == y)
+			return i;
+
+	return -1;	
+}
+
+void CGameManager::UndoStep(size_t idx)
+{
+	if (m_PlayerSteps.size() <= idx)
 		return;
 
 	int TileCount;
 	CConfig::GetConfig("tile_count", TileCount);
-	
+
 	if (m_PlayerSteps.size() == 2)
 		m_SecondPlayerLetterX = m_SecondPlayerLetterY = -1;
 	else if (m_PlayerSteps.size() == 1)
 		m_FirstPlayerLetterX = m_FirstPlayerLetterY = -1;
 
-	int BoardY = TileCount - m_PlayerSteps.back().m_YPosition - 1;
+	int BoardY = TileCount - m_PlayerSteps[idx].m_YPosition - 1;
+	int BoardX = m_PlayerSteps[idx].m_XPosition;
 
-	m_GameBoard(m_PlayerSteps.back().m_XPosition, BoardY).m_Char = m_TmpGameBoard(m_PlayerSteps.back().m_XPosition, BoardY).m_Char;
-	m_GameBoard(m_PlayerSteps.back().m_XPosition, BoardY).m_Height--;
+	m_GameBoard(BoardX, BoardY).m_Char = m_TmpGameBoard(BoardX, BoardY).m_Char;
+	m_GameBoard(BoardX, BoardY).m_Height--;
 
-	m_CurrentPlayer->SetLetter(m_PlayerSteps.back().m_LetterIdx, m_PlayerSteps.back().m_Char);
-	m_CurrentPlayer->SetLetterUsed(m_PlayerSteps.back().m_LetterIdx, false);
+	m_CurrentPlayer->SetLetter(m_PlayerSteps[idx].m_LetterIdx, m_PlayerSteps[idx].m_Char);
+	m_CurrentPlayer->SetLetterUsed(m_PlayerSteps[idx].m_LetterIdx, false);
 
 	m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName().c_str())->SetLetterVisibility(m_CurrentPlayer->GetUsedLetters());
-	
-	m_Renderer->RemoveLastLetter();
+
+	m_Renderer->RemoveTopLetter(BoardX, m_PlayerSteps[idx].m_YPosition);
+	m_PlayerSteps[idx] = m_PlayerSteps.back();
 	m_PlayerSteps.pop_back();
+
 }
+
 
 bool CGameManager::PositionOnBoardView(int x, int y)
 {
@@ -1038,6 +1078,16 @@ void CGameManager::HandleToucheEvent(int x, int y)
 		m_LastTouchOnBoardView = OnBoardView;
 		m_LastTouchX = x;
 		m_LastTouchY = WindowHeigth - y;
+		glm::uvec2 ClickedLetterPos = m_Renderer->GetTilePos(m_LastTouchX, m_LastTouchY);
+
+		//placed letter has been clicked
+		if ((m_PlayerStepIdxUndo = GetPlayerStepIdxAtPos(ClickedLetterPos.x, ClickedLetterPos.y)) != -1)
+		{
+			m_PlacedLetterTouchX = ClickedLetterPos.x;
+			m_PlacedLetterTouchY = ClickedLetterPos.y;
+		}
+		else
+			m_PlacedLetterTouchX = -1;
 	}
 
 	m_UIManager->HandleTouchEvent(x, WindowHeigth - y);
@@ -1086,12 +1136,22 @@ void CGameManager::HandleDragFromBoardView(int x, int y)
 	if (!GameScreenActive())
 		return;
 
-	if (m_Dragged)
+	//rotate board
+	if (m_Dragged && m_PlacedLetterTouchX == -1)
 	{
 		float ZRotAngle = float(x - m_TouchX) / 3.;
 		float YRotAngle = float(m_TouchY - y) / 3.;
 
 		m_Renderer->RotateCamera(-ZRotAngle, YRotAngle);
+	}
+	//placed letter back to dragged letter
+	else if (m_Dragged)
+	{
+		RemovePlacedLetterSelAtPos(m_PlacedLetterTouchX, m_PlacedLetterTouchY);
+		m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName())->SetLetterDragged(m_PlayerSteps[m_PlayerStepIdxUndo].m_LetterIdx, x, y);
+		UndoStepAtPos(m_PlacedLetterTouchX, m_PlacedLetterTouchY);
+		m_PlacedLetterTouchX = -1;
+		m_LastTouchOnBoardView = false;
 	}
 }
 
@@ -1133,6 +1193,19 @@ void CGameManager::HandleMultyDragEvent(int x0, int y0, int x1, int y1)
 
     m_Dragged = false;
     m_Renderer->DragCamera(x0, y0, x1, y1);
+}
+
+void CGameManager::RenderPlacedLetterSelections()
+{
+	bool LastTile;
+	bool FirstTile = true;
+
+	for (size_t i = 0; i < m_PlacedLetterSelections.size(); ++i)
+	{
+		LastTile = i == m_PlacedLetterSelections.size() - 1;
+		m_Renderer->DrawSelection(glm::vec4(0.98f, 0.9f, 0.39f, 0.5f), m_PlacedLetterSelections[i].x, m_PlacedLetterSelections[i].y, FirstTile, LastTile);
+		FirstTile = false;
+	}
 }
 
 
@@ -1179,20 +1252,10 @@ void CGameManager::GoToStartGameScrEvent()
 void CGameManager::EndPlayerTurnEvent()
 {
 	if (EndPlayerTurn())
+	{
+		m_PlacedLetterSelections.clear();
 		m_UIManager->EnableGameButtons(false);
-}
-
-void CGameManager::BackSpaceEvent()
-{
-	if (m_PlayerSteps.size() == 0)
-		return;
-	
-	float PrevX = m_PlayerSteps.back().m_XPosition;
-	float PrevY = m_PlayerSteps.back().m_YPosition;
-	
-	UndoLastStep();
-
-	m_Renderer->SelectField(PrevX, PrevY);
+	}
 }
 
 void CGameManager::TopViewEvent()
@@ -1220,6 +1283,7 @@ void CGameManager::RenderFrame()
 			{
 				m_Renderer->Render();
 				RenderTileAnimations();
+				RenderPlacedLetterSelections();
 			}
 			else
 				m_Renderer->ClearBuffers();

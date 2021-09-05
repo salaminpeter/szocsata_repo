@@ -128,6 +128,11 @@ void CUIPlayerLetters::ShowLetters(bool show)
 		m_Children[i]->SetVisible(show);
 }
 
+void CUIPlayerLetters::SetLetterDragged(size_t letterIdx, int x, int y)
+{
+	m_UIManager->SetDraggedPlayerLetter(false, letterIdx, m_Children[letterIdx]->GetTexturePos(), glm::vec2(x, y));
+}
+
 
 bool CUIPlayerLetters::HandleEventAtPos(int x, int y, bool touchEvent)
 {

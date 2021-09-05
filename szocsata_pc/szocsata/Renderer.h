@@ -58,6 +58,7 @@ public:
 	void GetSelectionPos(int& x, int& y);
 	void DisableSelection();
 	void RemoveLastLetter();
+	void RemoveTopLetter(int x, int y);
 	void SetTexturePos(glm::vec2 texturePos, bool transparent = false);
 	void SetTextColor(float r, float g, float b);
 	void DrawModel(CModel* model, const char* viewID, const char* shaderID, bool setLightPos, bool bindBuffers = true, bool bindTexture = true, bool unbindBuffers = true, bool setTextureVertexAttrib = true, int textureOffset = 0);

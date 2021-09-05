@@ -125,7 +125,7 @@ void CUIManager::PositionUIElements()
 	float ButtonsLayoutY = m_GameManager->m_SurfaceHeigh / 1.3f;
 	ButtonsLayoutY = ButtonsLayoutY < m_GameManager->m_SurfaceHeigh - 90 ? ButtonsLayoutY : m_GameManager->m_SurfaceHeigh - 90;
 	m_ButtonsLayout = new CGridLayout(m_GameManager->m_SurfaceHeigh, ButtonsLayoutY, m_GameManager->m_SurfaceWidth - m_GameManager->m_SurfaceHeigh, 200, 50.f, 100.f);
-	m_ButtonsLayout->AllignGrid(3, true);
+	m_ButtonsLayout->AllignGrid(2, true);
 
 	PositionGameButtons();
 
@@ -191,9 +191,6 @@ void CUIManager::InitUIElements(std::shared_ptr<CSquarePositionData> positionDat
 
 	Button = AddButton(m_RootGameScreen, positionData, colorData, 0, 0, 0, 0, "view_ortho", "okbutton.bmp", L"ui_ok_btn");
 	Button->SetEvent(m_GameManager, &CGameManager::EndPlayerTurnEvent);
-
-	Button = AddButton(m_RootGameScreen, positionData, colorData, 0, 0, 0, 0, "view_ortho", "backbutton.bmp", L"ui_back_btn");
-	Button->SetEvent(m_GameManager, &CGameManager::BackSpaceEvent);
 
 	Button = AddButton(m_RootGameScreen, positionData, colorData, 0, 0, 0, 0, "view_ortho", "textbutton.bmp", L"ui_remaining_time_btn");
 	Button->AddText(L"", 0.3f, positionData, gridcolorData8x8);
@@ -372,7 +369,7 @@ void CUIManager::ActivateStartScreen(bool activate)
 
 bool CUIManager::IsGameButton(const CUIButton* button) const
 {
-	return (button->GetID() == L"ui_ok_btn" || button->GetID() == L"ui_back_btn");
+	return (button->GetID() == L"ui_ok_btn");
 }
 
 void CUIManager::SetRemainingTimeStr(const wchar_t* timeStr)
@@ -383,15 +380,13 @@ void CUIManager::SetRemainingTimeStr(const wchar_t* timeStr)
 
 void CUIManager::PositionGameButtons()
 {
-	for (size_t i = 0; i < 3; ++i)
+	for (size_t i = 0; i < 2; ++i)
 	{
 		std::wstring ButtonId;
 
 		if (i == 0)
 			ButtonId = L"ui_ok_btn";
 		else if (i == 1)
-			ButtonId = L"ui_back_btn";
-		else if (i == 2)
 			ButtonId = L"ui_remaining_time_btn";
 
 		CUIElement* CurrentButton = m_RootGameScreen->GetChild(ButtonId.c_str());
@@ -473,7 +468,6 @@ void CUIManager::SetText(const wchar_t* id, const wchar_t* text)
 void CUIManager::EnableGameButtons(bool enable)
 {
 	m_RootGameScreen->GetChild(L"ui_ok_btn")->Enable(enable);
-	m_RootGameScreen->GetChild(L"ui_back_btn")->Enable(enable);
 }
 
 //TODO a toast most csak a passed - re van hasznalva, ha egyszer masra is kell akkor ez szar lesz!!!

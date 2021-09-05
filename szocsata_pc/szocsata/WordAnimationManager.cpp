@@ -79,6 +79,15 @@ void CWordAnimationManager::AnimateLettersEvent(double& timeFromStart, double& t
 
 		if (m_LetterAnimations[i].m_AminationTime > m_LetterAnimTime)
 		{
+			bool ComputerTurn = m_GameManager->GetCurrentPlayer()->GetName() == L"computer"; //TODO legyen fugveny arrol hogy a current player computer e
+
+			if (!ComputerTurn)
+			{
+				int BoardX = m_LetterAnimations[i].m_LetterModel->BoardX();
+				int BoardY = m_LetterAnimations[i].m_LetterModel->BoardY();
+				m_GameManager->AddPlacedLetterSelection(BoardX, BoardY);
+			}
+
 			m_LetterAnimations[i].m_State = ELetterAnimState::Finished;
 			m_LetterAnimations[i].m_AminationTime = m_LetterAnimTime;
 			Position.z = m_LetterAnimations[i].m_DestHeight;
