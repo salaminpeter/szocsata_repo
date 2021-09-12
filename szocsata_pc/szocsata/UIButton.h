@@ -9,11 +9,13 @@ class CSquareColorData;
 class CUIButton : public CUIElement
 {
 public:
+	
+	enum EAlignment {Center, Left, Right};
 
 	CUIButton(CUIElement* parent, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, float x, float y, float w, float h, float vx, float vy, const char* textureID, const wchar_t* id, bool ignoreReleaseEvent = true, const char* shaderID = "textured");
 
-	void AddText(const wchar_t* buttonText, float relTextHeight, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> gridcolorData8x8);
-	void CenterText();
+	void AddText(const wchar_t* buttonText, float relTextHeight, EAlignment textAlignment, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> gridcolorData8x8, float padding = 5.f);
+	void PositionText();
 	void SetText(const wchar_t* buttonText);
 
 	void Render(CRenderer* renderer) override;
@@ -22,5 +24,7 @@ public:
 private:
 
 	float m_RelTextSize;
+	float m_Padding; //only used in case of Left/Right alignment
 	std::wstring m_Text;
+	EAlignment m_TextAlignment = Center;
 };

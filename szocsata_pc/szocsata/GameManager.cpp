@@ -128,7 +128,6 @@ void CGameManager::InitPlayers()
 
 void CGameManager::StartGame()
 {
-	//m_UIManager->ShowMessageBox(CUIMessageBox::Ok, m_Players[0]->GetName().c_str());
 	ShowNextPlayerPopup();
 }
 
@@ -156,7 +155,6 @@ void CGameManager::AddWordSelectionAnimation(const std::vector<TWordPos>& wordPo
 
 void CGameManager::StartPlayerTurn(CPlayer* player)
 {
-	m_PlayerSteps.clear();
 	m_CurrentPlayer = player;
 	SetGameState(EGameState::TurnInProgress);
 	m_TmpGameBoard = m_GameBoard;
@@ -224,8 +222,8 @@ bool CGameManager::SelectionPosIllegal(int x, int y)
 	if (m_PlayerSteps.size() == 1 && x != m_PlayerSteps[0].m_XPosition && y != m_PlayerSteps[0].m_YPosition)
 		return true;
 
-	//ha mar ket betu van leteve, es a selection nem abba a sorba es oszlopba van
-	if (m_PlayerSteps.size() == 2 && !(m_PlayerSteps[0].m_XPosition == m_PlayerSteps[1].m_XPosition && x == m_PlayerSteps[0].m_XPosition || m_PlayerSteps[0].m_YPosition == m_PlayerSteps[1].m_YPosition && y == m_PlayerSteps[0].m_YPosition))
+	//ha mar ketto vagy tobb betu van leteve, es a selection nem abba a sorba es oszlopba van
+	if (m_PlayerSteps.size() >= 2 && !(m_PlayerSteps[0].m_XPosition == m_PlayerSteps[1].m_XPosition && x == m_PlayerSteps[0].m_XPosition || m_PlayerSteps[0].m_YPosition == m_PlayerSteps[1].m_YPosition && y == m_PlayerSteps[0].m_YPosition))
 		return true;
 
 	int TileCount;
@@ -250,13 +248,13 @@ bool CGameManager::PlayerLetterAnimationFinished()
 	return m_PlayerLetterAnimationManager->Finished();
 }
 
-void CGameManager::ShowNextPlayerPopup(bool forceShow)
+void CGameManager::ShowNextPlayerPopup()
 {
 	const std::lock_guard<std::mutex> lock(m_PlayerPopupLock);
 
 	bool ShowPopup = !m_NextPlayerPopupShown && m_PlayerLetterAnimationManager->Finished() && m_TileAnimations->Finished();
 
-	if (ShowPopup || forceShow)
+	if (ShowPopup)
 	{
 		m_NextPlayerPopupShown = true;
 		m_UIManager->EnableGameButtons(true);
@@ -379,6 +377,7 @@ void CGameManager::HandlePlayerPass()
 	m_CurrentPlayer->m_Passed = true;
 	bool AllPassed = AllPlayersPassed();
 	m_PlacedLetterSelections.clear();
+	m_PlayerSteps.clear();
 
 	//TODO biztos passzolni akarsz msgbox!
 	m_UIManager->ShowToast(L"passz", AllPassed);
@@ -438,6 +437,30 @@ bool CGameManager::EndPlayerTurn(bool stillHaveTime)
 	std::vector<TWordPos> CrossingWords;
 	TWordPos WordPos(&PlayerWord, BoardX, BoardY, Horizontal);
 
+
+	//ha az elhelyezett szoban ures mezok vannak
+	int WordStart, WordEnd;
+
+	if (HasEmptyFieldInWord(WordStart, WordEnd))
+	{
+		WordPos.m_WordLength = WordEnd - WordStart + 1;
+		WordPos.m_X = WordPos.m_Horizontal ? WordStart : WordPos.m_X;
+		WordPos.m_Y = !WordPos.m_Horizontal ? TileCount - WordEnd - 1 : WordPos.m_Y;
+
+		//ha meg nem telt le az ido jeloljuk ki pirossal a hibas crossingword szot
+		if (stillHaveTime)
+		{
+			CrossingWords.push_back(WordPos);
+			AddWordSelectionAnimation(CrossingWords, false);
+		}
+		//ha letelt az ido jatekos passz
+		else
+			HandlePlayerPass();
+
+		return false;
+	}
+
+	//ha nem letezik a letett szo
 	if (PlayerWord.empty() || !m_DataBase.WordExists(PlayerWord)) //TODO miert lehet PlayerWord.empty()!!!!
 	{ 
 		//ha meg nem telt le az ido jeloljuk ki pirossal a hibas crossingword szot
@@ -453,6 +476,7 @@ bool CGameManager::EndPlayerTurn(bool stillHaveTime)
 		return false;
 	}
 
+	//ha keresztezo szavakat elrontottunk az elhelyezett szoval
 	CrossingWords.reserve(PlayerWord.length());
 	int Score = CalculateScore(WordPos, &CrossingWords);
 
@@ -471,6 +495,7 @@ bool CGameManager::EndPlayerTurn(bool stillHaveTime)
 	DealCurrPlayerLetters();
 	AddWordSelectionAnimation(CrossingWords, true);
 	m_PlacedLetterSelections.clear();
+	m_PlayerSteps.clear();
 
 	m_TimerEventManager->StopTimer("time_limit_event");
 
@@ -865,16 +890,17 @@ void CGameManager::PlayerLetterClicked(unsigned letterIdx)
 			return;
 	}
 
-	int Horizontal = PlayerWordHorizontal();
-
-	if (Horizontal == 1 && SelY != m_PlayerSteps[0].m_YPosition || Horizontal == 0 && SelX != m_PlayerSteps[0].m_XPosition)
-		return;
-
 	wchar_t PlacedLetter = m_CurrentPlayer->GetLetters()[letterIdx];
 	m_WordAnimation->AddWordAnimation(std::wstring(1, PlacedLetter), std::vector<size_t>{letterIdx}, m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName()), SelX, SelY, true, false);
 	CUIPlayerLetters* PlayerLetters = m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName().c_str());
 
 	m_PlayerSteps.emplace_back(PlacedLetter, SelX, SelY, letterIdx);
+
+	int Horizontal = PlayerWordHorizontal();
+
+	if (Horizontal == 1 && SelY != m_PlayerSteps[0].m_YPosition || Horizontal == 0 && SelX != m_PlayerSteps[0].m_XPosition)
+		return;
+
 
 	int BoardY = TileCount - SelY - 1;
 	m_GameBoard(SelX, BoardY).m_Char = PlacedLetter;
@@ -1045,6 +1071,74 @@ void CGameManager::UndoStep(size_t idx)
 
 }
 
+//a lerakott betuk kozott maradt e ures mezo
+bool CGameManager::HasEmptyFieldInWord(int& min, int& max)
+{
+	min = 10;
+	max = 0;
+
+	int Horizontal = PlayerWordHorizontal();
+
+	if (Horizontal == -1)
+		return false;
+
+	for (size_t i = 0; i < m_PlayerSteps.size(); ++i)
+	{
+		if (Horizontal == 1 && m_PlayerSteps[i].m_XPosition > max || Horizontal == 0 && m_PlayerSteps[i].m_YPosition > max)
+			max = Horizontal ? m_PlayerSteps[i].m_XPosition : m_PlayerSteps[i].m_YPosition;
+
+		if (Horizontal == 1 && m_PlayerSteps[i].m_XPosition < min || Horizontal == 0 && m_PlayerSteps[i].m_YPosition < min)
+			min = Horizontal ? m_PlayerSteps[i].m_XPosition : m_PlayerSteps[i].m_YPosition;
+	}
+
+	int TileCount;
+	CConfig::GetConfig("tile_count", TileCount);
+
+	for (int i = min; i <= max; ++i)
+	{
+		if (Horizontal == 1 && m_GameBoard(i, TileCount - m_PlayerSteps[0].m_YPosition - 1).m_Height == 0)
+			return true;
+		else if (Horizontal == 0 && m_GameBoard(m_PlayerSteps[0].m_XPosition, TileCount - i - 1).m_Height == 0)
+			return true;
+	}
+
+	return false;
+}
+
+
+//ha a lerakott szo utolso karaktere utan, ervenyes mezo van a tablan, amit ki lehet valasztani
+//akkor adjuk vissza a koordinatait
+glm::ivec2 CGameManager::GetSelectionPosition()
+{
+	int Horizontal = PlayerWordHorizontal();
+
+	if (Horizontal == -1)
+		return glm::ivec2(-1, -1);
+
+	int TileCount;
+	CConfig::GetConfig("tile_count", TileCount);
+	int Lim = -1;
+	size_t Idx;
+
+	for (size_t i = 0; i < m_PlayerSteps.size(); ++i)
+	{
+		if (Horizontal == 1 && m_PlayerSteps[i].m_XPosition > Lim || Horizontal == 0 && (m_PlayerSteps[i].m_YPosition < Lim || Lim == -1))
+		{
+			Lim = Horizontal ? m_PlayerSteps[i].m_XPosition : m_PlayerSteps[i].m_YPosition;
+			Idx = i;
+		}
+	}
+
+	if (Lim + 1 >= TileCount || Lim - 1 < 0)
+		return glm::ivec2(-1, -1);
+
+	if (Horizontal && !SelectionPosIllegal(m_PlayerSteps[Idx].m_XPosition + 1, m_PlayerSteps[Idx].m_YPosition))
+		return glm::ivec2(m_PlayerSteps[Idx].m_XPosition + 1, m_PlayerSteps[Idx].m_YPosition);
+	else if (!Horizontal && !SelectionPosIllegal(m_PlayerSteps[Idx].m_XPosition, m_PlayerSteps[Idx].m_YPosition - 1))
+		return glm::ivec2(m_PlayerSteps[Idx].m_XPosition, m_PlayerSteps[Idx].m_YPosition - 1);
+
+	return glm::ivec2(-1, -1);
+}
 
 bool CGameManager::PositionOnBoardView(int x, int y)
 {
@@ -1135,11 +1229,15 @@ void CGameManager::HandleDragFromBoardView(int x, int y)
 	//placed letter back to dragged letter
 	else if (m_Dragged)
 	{
+		int SelX = m_PlayerSteps.back().m_XPosition;
+		int SelY = m_PlayerSteps.back().m_YPosition;
+
 		RemovePlacedLetterSelAtPos(m_PlacedLetterTouchX, m_PlacedLetterTouchY);
 		m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName())->SetLetterDragged(m_PlayerSteps[m_PlayerStepIdxUndo].m_LetterIdx, x, y);
 		UndoStepAtPos(m_PlacedLetterTouchX, m_PlacedLetterTouchY);
 		m_PlacedLetterTouchX = -1;
 		m_LastTouchOnBoardView = false;
+		m_Renderer->SelectField(SelX, SelY);
 	}
 }
 

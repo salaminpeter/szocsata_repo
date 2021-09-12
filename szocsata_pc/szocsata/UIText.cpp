@@ -40,7 +40,7 @@ void CUIText::Render(CRenderer* renderer)
 	glEnable(GL_BLEND); //TODO!!
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	renderer->SetTextColor(0.97, 0.93, 0.86);
+	renderer->SetTextColor(1, 1, 1);
 
 	for (size_t i = 0; i < Length(); ++i)
 	{

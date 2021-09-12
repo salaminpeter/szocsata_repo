@@ -100,7 +100,7 @@ public:
 	bool AllPlayersPassed();
 	bool GetPlayerNameScore(size_t idx, std::wstring& name, int& score);
 	bool GameScreenActive();
-	void ShowNextPlayerPopup(bool forceShow = false);
+	void ShowNextPlayerPopup();
 	bool TileAnimationFinished();
 	bool PlayerLetterAnimationFinished();
 	bool SelectionPosIllegal(int x, int y);
@@ -131,9 +131,11 @@ public:
 
 	glm::vec2 GetViewPosition(const char* viewId);
 	bool PositionOnBoardView(int x, int y);
+	
+	bool HasEmptyFieldInWord(int& min, int& max);
+	glm::ivec2 GetSelectionPosition();
 
 	void EndPlayerTurnEvent();
-	void BackSpaceEvent();
 	void TopViewEvent();
 	void GoToStartGameScrEvent();
 

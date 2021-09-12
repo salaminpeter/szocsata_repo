@@ -16,6 +16,7 @@ public:
 private:
 	
 	void GenerateHeaderTexture();
+	void GenerateStartScreenBtnTexture(int w, int h, int r, glm::vec4 color);
 
 private:
 	

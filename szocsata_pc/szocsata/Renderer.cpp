@@ -720,8 +720,6 @@ bool CRenderer::StartInit()
 	m_TextureManager->AddTexture("boardtex.bmp");
 	m_TextureManager->AddTexture("gridtex.bmp");
 	m_TextureManager->AddTexture("okbutton.bmp");
-	m_TextureManager->AddTexture("backbutton.bmp");
-	m_TextureManager->AddTexture("topviewbutton.bmp");
 	m_TextureManager->AddTexture("playerletters.bmp");
 	m_TextureManager->AddTexture("panel.bmp");
 	m_TextureManager->AddTexture("tilecounter.bmp");
@@ -732,7 +730,10 @@ bool CRenderer::StartInit()
 	m_TextureManager->AddTexture("background.bmp");
 
 	m_TextureManager->AddTexture("font.bmp", 4);
-	m_TextureManager->AddTexture("icontextbuttontrans.bmp", 4);
+	m_TextureManager->AddTexture("play_icon.bmp", 4);
+	m_TextureManager->AddTexture("book_icon.bmp", 4);
+	m_TextureManager->AddTexture("settings_icon.bmp", 4);
+	m_TextureManager->AddTexture("controller_icon.bmp", 4);
 
 	m_TextureManager->GenerateTextures();
 
