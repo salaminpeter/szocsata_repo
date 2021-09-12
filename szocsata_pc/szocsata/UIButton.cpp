@@ -51,7 +51,7 @@ void CUIButton::PositionText()
 		ButtonText->SetPosAndSize(-m_Width / 2.f + CharHeight / 2.f + m_Padding, (CharHeight - TextTopBottom.x) / 2.f, CharHeight, CharHeight);
 }
 
-bool CUIButton::HandleEventAtPos(int x, int y, bool touchEvent)
+bool CUIButton::HandleEventAtPos(int x, int y, bool touchEvent, CUIElement* root, bool checkChildren)
 {
 	if ((touchEvent || !m_IgnoreReleaseEvent) && m_Visible && m_Enabled && PositionInElement(x, y))
 	{

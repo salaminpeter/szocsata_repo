@@ -145,33 +145,33 @@ void CUIManager::InitUIElements(std::shared_ptr<CSquarePositionData> positionDat
 	//start screen ui elements
 	m_RootStartScreen = new CUIElement(nullptr, L"ui_start_screen_root", nullptr, 0.f, 0.f, m_GameManager->m_SurfaceWidth, m_GameManager->m_SurfaceHeigh, ViewPos.x, ViewPos.y, 0.f, 0.f);
 
-	CUIPanel* BackGroundPanel = new CUIPanel(m_RootStartScreen, L"ui_background_panel", positionData, colorData, gridcolorData8x8, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh / 2, m_GameManager->m_SurfaceWidth, m_GameManager->m_SurfaceHeigh, 0, 0, "background.bmp", 0, 0);
+	CUIPanel* BackGroundPanelStartScreen = new CUIPanel(m_RootStartScreen, L"ui_background_panel_start_screen", positionData, colorData, gridcolorData8x8, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh / 2, m_GameManager->m_SurfaceWidth, m_GameManager->m_SurfaceHeigh, 0, 0, "background.bmp", 0, 0);
 
 	float HeaderHeight = m_GameManager->m_SurfaceHeigh / 13;
-	CUIPanel* HeaderPanel = new CUIPanel(m_RootStartScreen, L"ui_header_panel", positionData, colorData, gridcolorData8x8, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh - HeaderHeight / 2, m_GameManager->m_SurfaceWidth, HeaderHeight, 0, 0, "header_texture_generated", 0, 0);
+	CUIPanel* HeaderPanelStartScr = new CUIPanel(m_RootStartScreen, L"ui_header_panel_start_screen", positionData, colorData, gridcolorData8x8, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh - HeaderHeight / 2, m_GameManager->m_SurfaceWidth, HeaderHeight, 0, 0, "header_texture_generated", 0, 0);
 	float LogoCharSize = HeaderHeight * 0.7;
 	float LogoTextWidth = CUIText::GetTextWidthInPixels(L"Szócsata 3D", LogoCharSize);
 	float LogoYGap = (m_GameManager->m_SurfaceHeigh - HeaderHeight) / 6.f;
-	AddText(HeaderPanel, L"SZÓCSATA 3D", positionData, gridcolorData8x8, -LogoTextWidth / 2 + LogoCharSize / 2, 0, LogoCharSize, LogoCharSize, "view_ortho", "font.bmp", L"ui_logo_text");
+	AddText(HeaderPanelStartScr, L"SZÓCSATA 3D", positionData, gridcolorData8x8, -LogoTextWidth / 2 + LogoCharSize / 2, 0, LogoCharSize, LogoCharSize, "view_ortho", "font.bmp", L"ui_logo_text_header");
 
 	float StartScreenBtnWidth = LogoYGap * 4.5f;
 	float StartScreenBtnHeight = LogoYGap;
 	float StartScreenBtnY = (m_GameManager->m_SurfaceHeigh - HeaderHeight - LogoYGap) / 2 - (2 * LogoYGap / 5) * 2;
 	float StartScreenBtnGap = 2 * (LogoYGap / 5) + LogoYGap;
 
-	IconTextButton = AddIconTextButton(BackGroundPanel, L"új játék", positionData, colorData, gridcolorData8x8, 0, StartScreenBtnY, StartScreenBtnWidth, StartScreenBtnHeight, "view_ortho", "start_scr_btn_texture_generated", "play_icon.bmp",  L"ui_new_game_btn_test");
+	IconTextButton = AddIconTextButton(BackGroundPanelStartScreen, L"új játék", positionData, colorData, gridcolorData8x8, 0, StartScreenBtnY, StartScreenBtnWidth, StartScreenBtnHeight, "view_ortho", "start_scr_btn_texture_generated", "play_icon.bmp",  L"ui_new_game_btn_test");
 	IconTextButton->SetEvent(m_GameManager, &CGameManager::GoToStartGameScrEvent);
 	StartScreenBtnY -= StartScreenBtnGap;
 
-	IconTextButton = AddIconTextButton(BackGroundPanel, L"szabályok", positionData, colorData, gridcolorData8x8, 0, StartScreenBtnY, StartScreenBtnWidth, StartScreenBtnHeight, "view_ortho", "start_scr_btn_texture_generated", "book_icon.bmp", L"ui_rules_game_btn");
+	IconTextButton = AddIconTextButton(BackGroundPanelStartScreen, L"szabályok", positionData, colorData, gridcolorData8x8, 0, StartScreenBtnY, StartScreenBtnWidth, StartScreenBtnHeight, "view_ortho", "start_scr_btn_texture_generated", "book_icon.bmp", L"ui_rules_game_btn");
 	IconTextButton->SetEvent(m_GameManager, &CGameManager::GoToStartGameScrEvent);
 	StartScreenBtnY -= StartScreenBtnGap;
 
-	IconTextButton = AddIconTextButton(BackGroundPanel, L"kezelés", positionData, colorData, gridcolorData8x8, 0, StartScreenBtnY, StartScreenBtnWidth, StartScreenBtnHeight, "view_ortho", "start_scr_btn_texture_generated", "controller_icon.bmp", L"ui_guide_game_btn");
+	IconTextButton = AddIconTextButton(BackGroundPanelStartScreen, L"kezelés", positionData, colorData, gridcolorData8x8, 0, StartScreenBtnY, StartScreenBtnWidth, StartScreenBtnHeight, "view_ortho", "start_scr_btn_texture_generated", "controller_icon.bmp", L"ui_guide_game_btn");
 	IconTextButton->SetEvent(m_GameManager, &CGameManager::GoToStartGameScrEvent);
 	StartScreenBtnY -= StartScreenBtnGap;
 
-	IconTextButton = AddIconTextButton(BackGroundPanel, L"beállítások", positionData, colorData, gridcolorData8x8, 0, StartScreenBtnY, StartScreenBtnWidth, StartScreenBtnHeight, "view_ortho", "start_scr_btn_texture_generated", "settings_icon.bmp",  L"ui_settings_game_btn");
+	IconTextButton = AddIconTextButton(BackGroundPanelStartScreen, L"beállítások", positionData, colorData, gridcolorData8x8, 0, StartScreenBtnY, StartScreenBtnWidth, StartScreenBtnHeight, "view_ortho", "start_scr_btn_texture_generated", "settings_icon.bmp",  L"ui_settings_game_btn");
 	IconTextButton->SetEvent(m_GameManager, &CGameManager::GoToStartGameScrEvent);
 
 	//game screen ui elements
@@ -210,21 +210,28 @@ void CUIManager::InitUIElements(std::shared_ptr<CSquarePositionData> positionDat
 	//start game screen ui elements
 	m_RootStartGameScreen = new CUIElement(nullptr, L"ui_start_game_screen_root", nullptr, 0.f, 0.f, m_GameManager->m_SurfaceWidth, m_GameManager->m_SurfaceHeigh, ViewPos.x, ViewPos.y, 0.f, 0.f);
 
+	CUIPanel* BackGroundPanelStartGameScreen = new CUIPanel(m_RootStartGameScreen, L"ui_background_panel_start_game_screen", positionData, colorData, gridcolorData8x8, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh / 2, m_GameManager->m_SurfaceWidth, m_GameManager->m_SurfaceHeigh, 0, 0, "background.bmp", 0, 0);
+
+	CUIPanel* HeaderPanelStartGameScr = new CUIPanel(m_RootStartGameScreen, L"ui_header_panel_start_game_screen", positionData, colorData, gridcolorData8x8, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh - HeaderHeight / 2, m_GameManager->m_SurfaceWidth, HeaderHeight, 0, 0, "header_texture_generated", 0, 0);
+	LogoCharSize = HeaderHeight * 0.7;
+	LogoTextWidth = CUIText::GetTextWidthInPixels(L"JÁTÉK INDÍTÁSA", LogoCharSize);
+	LogoYGap = (m_GameManager->m_SurfaceHeigh - HeaderHeight) / 6.f;
+	AddText(HeaderPanelStartGameScr, L"JÁTÉK INDÍTÁSA", positionData, gridcolorData8x8, -LogoTextWidth / 2 + LogoCharSize / 2, 0, LogoCharSize, LogoCharSize, "view_ortho", "font.bmp", L"ui_start_game_text_header");
+
 	CUISelectControl* SelectControl = nullptr;
 
 	float StartGameScreenTextHeight = m_GameManager->m_SurfaceHeigh * .046f;
 	float StartGameSelHeight = m_GameManager->m_SurfaceHeigh * .074f;
-	float StartGameScreenElemY = m_GameManager->m_SurfaceHeigh - (m_GameManager->m_SurfaceHeigh * .074f);
+	float StartGameScreenElemY = m_GameManager->m_SurfaceHeigh / 2 - (m_GameManager->m_SurfaceHeigh / 6);
 	float StartGameScreenTextSelGap = m_GameManager->m_SurfaceHeigh * .02f + StartGameScreenTextHeight;
 	float StartGameScreenSelTextGap = m_GameManager->m_SurfaceHeigh * .041f + StartGameSelHeight;
 	float StartGameScreenElemWidth = m_GameManager->m_SurfaceWidth * .18f;
 	float StartGameScreenElemBottom;
 
-	Button = AddButton(m_RootStartGameScreen, positionData, colorData, m_GameManager->m_SurfaceWidth / 4, StartGameScreenElemY, StartGameScreenElemWidth, StartGameScreenTextHeight, "view_ortho", "textbutton.bmp", L"ui_settings_game_btn");
+	Button = AddButton(BackGroundPanelStartGameScreen, positionData, colorData, -m_GameManager->m_SurfaceWidth / 2 + m_GameManager->m_SurfaceWidth / 4, StartGameScreenElemY, StartGameScreenElemWidth, StartGameScreenTextHeight, "view_ortho", "textbutton.bmp", L"ui_settings_game_btn");
 	Button->AddText(L"játékosok száma", 0.5f, CUIButton::Center, positionData, gridcolorData8x8);
 	StartGameScreenElemY -= StartGameScreenTextSelGap;
-	//	AddText(m_RootStartGameScreen, L"játékosok száma", positionData, gridcolorData8x8, m_GameManager->m_SurfaceWidth / 2 - 200, m_GameManager->m_SurfaceHeigh - (m_GameManager->m_SurfaceHeigh / 6 + 360), 40, 40, "view_ortho", "font.bmp", L"ui_select_player_count_text");
-	SelectControl = AddSelectControl(m_RootStartGameScreen, positionData, colorData, gridcolorData8x8, m_GameManager->m_SurfaceWidth / 4, StartGameScreenElemY, StartGameScreenElemWidth, StartGameSelHeight, "view_ortho", "selectioncontrol.bmp", L"ui_select_player_count");
+	SelectControl = AddSelectControl(BackGroundPanelStartGameScreen, positionData, colorData, gridcolorData8x8, -m_GameManager->m_SurfaceWidth / 2 + m_GameManager->m_SurfaceWidth / 4, StartGameScreenElemY, StartGameScreenElemWidth, StartGameSelHeight, "view_ortho", "selectioncontrol.bmp", L"ui_select_player_count");
 	SelectControl->AddOption(L"1");
 	SelectControl->AddOption(L"2");
 	SelectControl->AddOption(L"3");
@@ -232,11 +239,10 @@ void CUIManager::InitUIElements(std::shared_ptr<CSquarePositionData> positionDat
 	SelectControl->SetIndex(0);
 	StartGameScreenElemY -= StartGameScreenSelTextGap;
 
-	Button = AddButton(m_RootStartGameScreen, positionData, colorData, m_GameManager->m_SurfaceWidth / 4, StartGameScreenElemY, StartGameScreenElemWidth, StartGameScreenTextHeight, "view_ortho", "textbutton.bmp", L"ui_settings_game_btn");
+	Button = AddButton(BackGroundPanelStartGameScreen, positionData, colorData, -m_GameManager->m_SurfaceWidth / 2 + m_GameManager->m_SurfaceWidth / 4, StartGameScreenElemY, StartGameScreenElemWidth, StartGameScreenTextHeight, "view_ortho", "textbutton.bmp", L"ui_settings_game_btn");
 	Button->AddText(L"pálya méret", 0.5f, CUIButton::Center, positionData, gridcolorData8x8);
 	StartGameScreenElemY -= StartGameScreenTextSelGap;
-	//	AddText(m_RootStartGameScreen, L"pálya méret", positionData, gridcolorData8x8, m_GameManager->m_SurfaceWidth / 2 - 200, m_GameManager->m_SurfaceHeigh - (m_GameManager->m_SurfaceHeigh / 6 + 140), 40, 40, "view_ortho", "font.bmp", L"ui_select_board_size_text");
-	SelectControl = AddSelectControl(m_RootStartGameScreen, positionData, colorData, gridcolorData8x8, m_GameManager->m_SurfaceWidth / 4, StartGameScreenElemY, StartGameScreenElemWidth, StartGameSelHeight, "view_ortho", "selectioncontrol.bmp", L"ui_select_board_size");
+	SelectControl = AddSelectControl(BackGroundPanelStartGameScreen, positionData, colorData, gridcolorData8x8, -m_GameManager->m_SurfaceWidth / 2 + m_GameManager->m_SurfaceWidth / 4, StartGameScreenElemY, StartGameScreenElemWidth, StartGameSelHeight, "view_ortho", "selectioncontrol.bmp", L"ui_select_board_size");
 	SelectControl->AddOption(L"7-7");
 	SelectControl->AddOption(L"8-8");
 	SelectControl->AddOption(L"9-9");
@@ -244,10 +250,10 @@ void CUIManager::InitUIElements(std::shared_ptr<CSquarePositionData> positionDat
 	SelectControl->SetIndex(2);
 	StartGameScreenElemY -= StartGameScreenSelTextGap;
 
-	Button = AddButton(m_RootStartGameScreen, positionData, colorData, m_GameManager->m_SurfaceWidth / 4, StartGameScreenElemY, StartGameScreenElemWidth, StartGameScreenTextHeight, "view_ortho", "textbutton.bmp", L"ui_settings_time_limit_btn");
+	Button = AddButton(BackGroundPanelStartGameScreen, positionData, colorData, -m_GameManager->m_SurfaceWidth / 2 + m_GameManager->m_SurfaceWidth / 4, StartGameScreenElemY, StartGameScreenElemWidth, StartGameScreenTextHeight, "view_ortho", "textbutton.bmp", L"ui_settings_time_limit_btn");
 	Button->AddText(L"idő korlát", 0.5f, CUIButton::Center, positionData, gridcolorData8x8);
 	StartGameScreenElemY -= StartGameScreenTextSelGap;
-	SelectControl = AddSelectControl(m_RootStartGameScreen, positionData, colorData, gridcolorData8x8, m_GameManager->m_SurfaceWidth / 4, StartGameScreenElemY, StartGameScreenElemWidth, StartGameSelHeight, "view_ortho", "selectioncontrol.bmp", L"ui_select_time_limit");
+	SelectControl = AddSelectControl(BackGroundPanelStartGameScreen, positionData, colorData, gridcolorData8x8, -m_GameManager->m_SurfaceWidth / 2 + m_GameManager->m_SurfaceWidth / 4, StartGameScreenElemY, StartGameScreenElemWidth, StartGameSelHeight, "view_ortho", "selectioncontrol.bmp", L"ui_select_time_limit");
 	SelectControl->AddOption(L"nincs");
 	SelectControl->AddOption(L"0:30");
 	SelectControl->AddOption(L"1:00");
@@ -261,23 +267,23 @@ void CUIManager::InitUIElements(std::shared_ptr<CSquarePositionData> positionDat
 	SelectControl->AddOption(L"5:00");
 	SelectControl->SetIndex(0);
 	StartGameScreenElemBottom = StartGameScreenElemY;
-	StartGameScreenElemY = m_GameManager->m_SurfaceHeigh - (m_GameManager->m_SurfaceHeigh * .064f);
+	StartGameScreenElemY = m_GameManager->m_SurfaceHeigh / 2 - (m_GameManager->m_SurfaceHeigh / 6.);
 
-	Button = AddButton(m_RootStartGameScreen, positionData, colorData, m_GameManager->m_SurfaceWidth * 3.f/4.f, StartGameScreenElemY, StartGameScreenElemWidth, StartGameScreenTextHeight, "view_ortho", "textbutton.bmp", L"ui_settings_game_btn");
+	Button = AddButton(BackGroundPanelStartGameScreen, positionData, colorData, m_GameManager->m_SurfaceWidth / 2 - m_GameManager->m_SurfaceWidth * 1.f/4.f, StartGameScreenElemY, StartGameScreenElemWidth, StartGameScreenTextHeight, "view_ortho", "textbutton.bmp", L"ui_settings_game_btn");
 	Button->AddText(L"gépi játékos", 0.5f, CUIButton::Center, positionData, gridcolorData8x8);
 	StartGameScreenElemY -= StartGameScreenTextSelGap;
 	//	AddText(m_RootStartGameScreen, L"gépi játékos", positionData, gridcolorData8x8, m_GameManager->m_SurfaceWidth / 2 - 200, m_GameManager->m_SurfaceHeigh - (m_GameManager->m_SurfaceHeigh / 6 + 580), 40, 40, "view_ortho", "font.bmp", L"ui_select_computer_opponent_text");
-	SelectControl = AddSelectControl(m_RootStartGameScreen, positionData, colorData, gridcolorData8x8, m_GameManager->m_SurfaceWidth * 3.f / 4.f, StartGameScreenElemY, StartGameScreenElemWidth, StartGameSelHeight, "view_ortho", "selectioncontrol.bmp", L"ui_select_computer_opponent");
+	SelectControl = AddSelectControl(BackGroundPanelStartGameScreen, positionData, colorData, gridcolorData8x8, m_GameManager->m_SurfaceWidth / 2 - m_GameManager->m_SurfaceWidth * 1.f / 4.f, StartGameScreenElemY, StartGameScreenElemWidth, StartGameSelHeight, "view_ortho", "selectioncontrol.bmp", L"ui_select_computer_opponent");
 	SelectControl->AddOption(L"be");
 	SelectControl->AddOption(L"ki");
 	SelectControl->SetIndex(0);
 	StartGameScreenElemY -= StartGameScreenSelTextGap;
 
-	Button = AddButton(m_RootStartGameScreen, positionData, colorData, m_GameManager->m_SurfaceWidth * 3.f / 4.f, StartGameScreenElemY, StartGameScreenElemWidth, StartGameScreenTextHeight, "view_ortho", "textbutton.bmp", L"ui_settings_game_btn");
+	Button = AddButton(BackGroundPanelStartGameScreen, positionData, colorData, m_GameManager->m_SurfaceWidth / 2 - m_GameManager->m_SurfaceWidth * 1.f / 4.f, StartGameScreenElemY, StartGameScreenElemWidth, StartGameScreenTextHeight, "view_ortho", "textbutton.bmp", L"ui_settings_game_btn");
 	Button->AddText(L"nehézség", 0.5f, CUIButton::Center, positionData, gridcolorData8x8);
 	StartGameScreenElemY -= StartGameScreenTextSelGap;
 	//	AddText(m_RootStartGameScreen, L"nehézség", positionData, gridcolorData8x8, m_GameManager->m_SurfaceWidth / 2 - 200, m_GameManager->m_SurfaceHeigh - (m_GameManager->m_SurfaceHeigh / 6 - 80), 400, 60, "view_ortho", "font.bmp", L"ui_select_difficulty_text");
-	SelectControl = AddSelectControl(m_RootStartGameScreen, positionData, colorData, gridcolorData8x8, m_GameManager->m_SurfaceWidth * 3.f / 4.f, StartGameScreenElemY, StartGameScreenElemWidth, StartGameSelHeight, "view_ortho", "selectioncontrol.bmp", L"ui_select_difficulty");
+	SelectControl = AddSelectControl(BackGroundPanelStartGameScreen, positionData, colorData, gridcolorData8x8, m_GameManager->m_SurfaceWidth / 2 - m_GameManager->m_SurfaceWidth * 1.f / 4.f, StartGameScreenElemY, StartGameScreenElemWidth, StartGameSelHeight, "view_ortho", "selectioncontrol.bmp", L"ui_select_difficulty");
 	SelectControl->AddOption(L"könnyű");
 	SelectControl->AddOption(L"normál");
 	SelectControl->AddOption(L"nehéz");
@@ -285,7 +291,7 @@ void CUIManager::InitUIElements(std::shared_ptr<CSquarePositionData> positionDat
 	SelectControl->SetIndex(1);
 
 
-	Button = AddButton(m_RootStartGameScreen, positionData, colorData, m_GameManager->m_SurfaceWidth / 2, StartGameScreenElemBottom / 2, StartGameScreenElemWidth, StartGameScreenElemBottom / 4.9, "view_ortho", "textbutton.bmp", L"ui_start_game_btn");
+	Button = AddButton(BackGroundPanelStartGameScreen, positionData, colorData, 0, -m_GameManager->m_SurfaceHeigh / 3, StartGameScreenElemWidth, 100, "view_ortho", "textbutton.bmp", L"ui_start_game_btn");
 	Button->AddText(L"start!", 0.7f, CUIButton::Center, positionData, gridcolorData8x8);
 	Button->SetEvent(m_GameManager, &CGameManager::FinishRenderInit);
 
@@ -309,22 +315,26 @@ void CUIManager::InitScorePanel()
 
 int CUIManager::GetBoardSize()
 {
-	return static_cast<CUISelectControl*>(m_RootStartGameScreen->GetChild(L"ui_select_board_size"))->GetIndex();
+	CUIElement* Panel = m_RootStartGameScreen->GetChild(L"ui_background_panel_start_game_screen");
+	return static_cast<CUISelectControl*>(Panel->GetChild(L"ui_select_board_size"))->GetIndex();
 }
 
 int CUIManager::GetDifficulty() 
 { 
-	return static_cast<CUISelectControl*>(m_RootStartGameScreen->GetChild(L"ui_select_difficulty"))->GetIndex();
+	CUIElement* Panel = m_RootStartGameScreen->GetChild(L"ui_background_panel_start_game_screen");
+	return static_cast<CUISelectControl*>(Panel->GetChild(L"ui_select_difficulty"))->GetIndex();
 }
 
 bool CUIManager::ComputerOpponentEnabled()
 {
-	return static_cast<CUISelectControl*>(m_RootStartGameScreen->GetChild(L"ui_select_computer_opponent"))->GetIndex() == 0;
+	CUIElement* Panel = m_RootStartGameScreen->GetChild(L"ui_background_panel_start_game_screen");
+	return static_cast<CUISelectControl*>(Panel->GetChild(L"ui_select_computer_opponent"))->GetIndex() == 0;
 }
 
 int CUIManager::GetTimeLimit()
 {
-	int TimeLimitIdx = static_cast<CUISelectControl*>(m_RootStartGameScreen->GetChild(L"ui_select_time_limit"))->GetIndex();
+	CUIElement* Panel = m_RootStartGameScreen->GetChild(L"ui_background_panel_start_game_screen");
+	int TimeLimitIdx = static_cast<CUISelectControl*>(Panel->GetChild(L"ui_select_time_limit"))->GetIndex();
 
 	switch (TimeLimitIdx)
 	{
@@ -346,7 +356,8 @@ int CUIManager::GetTimeLimit()
 
 int CUIManager::GetPlayerCount()
 {
-	return static_cast<CUISelectControl*>(m_RootStartGameScreen->GetChild(L"ui_select_player_count"))->GetIndex();
+	CUIElement* Panel = m_RootStartGameScreen->GetChild(L"ui_background_panel_start_game_screen");
+	return static_cast<CUISelectControl*>(Panel->GetChild(L"ui_select_player_count"))->GetIndex();
 }
 
 void CUIManager::ActivateStartScreen(bool activate)

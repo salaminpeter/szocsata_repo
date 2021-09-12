@@ -136,8 +136,8 @@ void CUIText::SetText(const wchar_t* text)
 
 	float FontWidth = 69; // TODO ne beegetve legyen, texturameretbol es betukperoszlop bol szamolja
 	float FontHeight = 103; // TODO ne beegetve legyen, texturameretbol es betukpersor bol szamolja
-	float FontCharGap = 7. * (m_Width / FontWidth); //TODO a 7 configbol!
-	float FontSpace = 18. * (m_Height / FontHeight); //TODO a 18 configbol!
+	float FontCharGap = 9. * (m_Width / FontWidth); //TODO a 7 configbol!
+	float FontSpace = 60. * (m_Height / FontHeight); //TODO a 18 configbol!
 	float Offset = 0.f;
 	size_t idx = 0;
 
@@ -304,6 +304,8 @@ void CUIText::InitFontTexPositions()
 	m_FontCharWidth[L'z'] = 38;
 	m_FontCharWidth[L'A'] = 60;
 	m_FontCharWidth[L'Á'] = 60;
+	m_FontCharWidth[L'A'] = 57;
+	m_FontCharWidth[L'Á'] = 57;
 	m_FontCharWidth[L'B'] = 48;
 	m_FontCharWidth[L'C'] = 58;
 	m_FontCharWidth[L'D'] = 58;

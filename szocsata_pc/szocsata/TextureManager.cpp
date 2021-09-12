@@ -87,5 +87,5 @@ void CTextureManager::GenerateStartScreenBtnTexture(int w, int h, int r, glm::ve
 void CTextureManager::GenerateTextures()
 {
 	GenerateHeaderTexture();
-	GenerateStartScreenBtnTexture(680, 150, 30, glm::vec4(1, 0.58f, 0.16f, 0.75f));
+	GenerateStartScreenBtnTexture(680, 150, 30, glm::vec4(1, 0.58f, 0.16f, 0.65f));
 }

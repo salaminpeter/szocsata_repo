@@ -18,7 +18,6 @@ public:
 	void AddButton(float x, float y, float w, float h, const char* textureID, const wchar_t* id);
 	void AddText(const wchar_t* text, float x, float y, float w, float h, const char* textureID, const wchar_t* id);
 
-	bool HandleEventAtPos(int x, int y, bool touchEvent) override;
 	void Render(CRenderer* renderer) override;
 
 private:

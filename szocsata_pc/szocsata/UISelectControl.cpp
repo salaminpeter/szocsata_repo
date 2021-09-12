@@ -47,23 +47,6 @@ void CUISelectControl::SetIndex(size_t idx)
 	SetTextAndPos(m_Options[m_CurrSelection].c_str());
 }
 
-
-bool CUISelectControl::HandleEventAtPos(int x, int y, bool touchEvent) 
-{
-	for (size_t i = 0; i < m_Children.size(); ++i)
-	{
-		if (m_Children[i]->HandleEventAtPos(x, y, touchEvent))
-			return true;
-	}
-
-	return false;
-}
-
-void CUISelectControl::Render(CRenderer* renderer)
-{
-	CUIPanel::Render(renderer); //TODO a render virtualis fg kene hogy legyen!!!!
-}
-
 void CUISelectControl::AddOption(const wchar_t* text, bool setText) 
 { 
 	m_Options.push_back(text); 

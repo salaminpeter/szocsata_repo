@@ -26,7 +26,7 @@ public:
 		m_Event = new CEvent<ClassType, ArgTypes...>(funcClass, funcPtr, std::forward<ArgTypes>(args)...);
 	}
 
-	void HandleEvent();
+	bool HandleEvent();
 	bool PositionInElement(int x, int y);
 	void PositionElement();
 	void AddChild(CUIElement* child);
@@ -68,16 +68,16 @@ public:
 	bool IsEnabled() { return m_Enabled; }
 
 	virtual void Render(CRenderer* renderer) {};
-	virtual bool HandleEventAtPos(int x, int y, bool touchEvent) { return false; }
+	virtual bool HandleEventAtPos(int x, int y, bool touchEvent, CUIElement* root = nullptr, bool checkChildren = true);
 
+public:
+	std::vector<CUIElement*> m_Children;
 
 protected:
 
 	std::shared_ptr<CUIElement> m_Parent;
 	CModel* m_Model = nullptr;
 	CEventBase* m_Event = nullptr;
-
-	std::vector<CUIElement*> m_Children;
 
 	int m_ViewXPosition;
 	int m_ViewYPosition;

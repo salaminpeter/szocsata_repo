@@ -134,7 +134,7 @@ void CUIPlayerLetters::SetLetterDragged(size_t letterIdx, int x, int y)
 }
 
 
-bool CUIPlayerLetters::HandleEventAtPos(int x, int y, bool touchEvent)
+bool CUIPlayerLetters::HandleEventAtPos(int x, int y, bool touchEvent, CUIElement* root, bool checkChildren)
 {
 	for (size_t i = 0; i < m_Children.size(); ++i)
 	{

@@ -20,10 +20,15 @@ CUIElement::CUIElement(CUIElement* parent, const wchar_t* id, CModel* model, int
 		parent->AddChild(this);
 }
 
-void CUIElement::HandleEvent()
+bool CUIElement::HandleEvent()
 {
 	if (m_Event)
+	{ 
 		m_Event->HandleEvent();
+		return true;
+	}
+
+	return false;
 }
 
 bool CUIElement::PositionInElement(int x, int y)
@@ -51,6 +56,36 @@ glm::vec2 CUIElement::GetAbsolutePosition()
 	return AbsPos;
 }
 
+bool CUIElement::HandleEventAtPos(int x, int y, bool touchEvent, CUIElement* root, bool checkChildren)
+{ 
+	if (!root)
+		root = this;
+	else if (root == this)
+		return false;
+
+	//gyerek controllokra vegigellenorizzuk tudja e kezelni valamelyik az esemenyt (belulrol kifele)
+	if (checkChildren)
+	{
+		for (size_t i = 0; i < root->m_Children.size(); ++i)
+		{
+			if (HandleEventAtPos(x, y, touchEvent, root->m_Children[i]))
+				return true;
+		}
+	}
+
+	//a control custom lekezelte az esemenyt a sajat HandleEventAtPos fugvenyevel
+	if (root->HandleEventAtPos(x, y, touchEvent, root, false))
+		return true;
+	
+	//ha nincs custom fuggveny megnezzuk hogy a controllban van e a pozicio, es tusjuk e kezelni az esemenyt
+	else if ((touchEvent || !touchEvent && !m_IgnoreReleaseEvent) && root->PositionInElement(x, y))
+	{
+		if (root->HandleEvent())
+			return true;
+	}
+
+	return false;
+}
 
 void CUIElement::PositionElement()
 {
