@@ -232,8 +232,6 @@ void CRenderer::FittBoardToView(bool topView)
 	m_Views["board_perspecive"]->InitPerspective(40.f, 1.f, 25.f);
 }
 
-//TODO fix a masodik betut le lehet tenni rossz sorba/oszlopba
-
 void CRenderer::RotateCamera(float rotateAngle, float tiltAngle, bool intersectWithBoard)
 {
 	const std::lock_guard<std::recursive_mutex> lock(m_RenderLock);
@@ -283,6 +281,8 @@ void CRenderer::RotateCamera(float rotateAngle, float tiltAngle, bool intersectW
 		glm::vec3 CameraPosRotated = glm::rotate(BoardToCamVec, glm::radians(rotateAngle), glm::vec3(0, 0, 1));
 		CameraPos = CameraPosRotated + LookAtBoardIntPos;
 		NeedLookAt = true;
+		m_CameraRotAngle += rotateAngle;
+		m_CameraRotAngle = m_CameraRotAngle > 360.f ? m_CameraRotAngle - 360. : m_CameraRotAngle;
 	}
 
 	
@@ -674,10 +674,10 @@ bool CRenderer::StartInit()
 
 	CConfig::AddConfig("camera_min_height", BoardHeight / 2.f + LetterHeight * 5.f + 2.5f);
 
-	m_RoundedBoxPositionData = new CRoundedBoxPositionData(999, 0.18f);
+	m_RoundedBoxPositionData = std::make_shared<CRoundedBoxPositionData>(5, 0.18f);
 	m_RoundedBoxPositionData->GeneratePositionBuffer();
 
-	m_LetterColorData = new CRoundedBoxColorData(0.f, 1.f / 8.f, 1.f / 8.f, 0, 0.f, .7f, 1.f, .5f, 8, 4);
+	m_LetterColorData = std::make_shared<CRoundedBoxColorData>(0.f, 1.f / 8.f, 1.f / 8.f, 0, 0.f, .7f, 1.f, .5f, 8, 4);
 	m_LetterColorData->GenerateTextureCoordBuffer(m_RoundedBoxPositionData->GetTopVertices());
 
 	m_RoundedSquarePositionData = std::make_shared<CRoundedSquarePositionData>(5, 0.18f);
@@ -737,10 +737,27 @@ bool CRenderer::StartInit()
 
 	m_TextureManager->GenerateTextures();
 
-
-
 	return true;
 }
+
+void CRenderer::ClearResources()
+{
+/*
+	//delete letters on board
+	for (size_t i = 0; i < m_LettersOnBoard.size(); ++i)
+		delete m_LettersOnBoard[i];
+
+	m_LettersOnBoard.clear();
+
+	delete m_RoundedBoxPositionData;
+
+	//delete board tiles / selection
+	delete m_BoardTiles;
+	delete m_SelectionModel;
+	m_BoardTilesPositionData.reset();
+	m_RoundedSquarePositionData.reset();
+	*/
+	}
 
 bool CRenderer::EndInit()
 {
@@ -753,7 +770,7 @@ bool CRenderer::EndInit()
 	m_BoardModel = new CBoardBaseModel();
 	m_BoardTiles = new CBoardTiles(m_BoardTilesPositionData, m_BoardTilesTextureData, m_BoardModel);
 
-	m_SelectionModel = new CSelectionModel(m_RoundedSquarePositionData.get());
+	m_SelectionModel = new CSelectionModel(m_RoundedSquarePositionData);
 	m_SelectionModel->SetParent(m_BoardModel);
 	//	m_LightPosition = glm::vec4(m_Views["board_perspecive"]->GetCameraPosition(), 1.f);
 	m_LightPosition = glm::vec4(-7.f, -7.f, 9.f, 1);

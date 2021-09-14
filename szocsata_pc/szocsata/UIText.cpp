@@ -123,7 +123,7 @@ void CUIText::SetText(const wchar_t* text)
 		for (size_t i = from; i < m_Text.length(); ++i)
 		{
 			if (m_Text[i] != L' ')
-				new CUIElement(this, L"", new CModel(false, 2, m_PositionData.get(), m_ColorData.get(), "font.bmp", "textured"), 0, 0, m_Width, m_Height, m_ViewXPosition, m_ViewYPosition, 0, 0);
+				new CUIElement(this, L"", new CModel(false, 2, m_PositionData, m_ColorData, "font.bmp", "textured"), 0, 0, m_Width, m_Height, m_ViewXPosition, m_ViewYPosition, 0, 0);
 		}
 	}
 	else
@@ -304,8 +304,6 @@ void CUIText::InitFontTexPositions()
 	m_FontCharWidth[L'z'] = 38;
 	m_FontCharWidth[L'A'] = 60;
 	m_FontCharWidth[L'Á'] = 60;
-	m_FontCharWidth[L'A'] = 57;
-	m_FontCharWidth[L'Á'] = 57;
 	m_FontCharWidth[L'B'] = 48;
 	m_FontCharWidth[L'C'] = 58;
 	m_FontCharWidth[L'D'] = 58;

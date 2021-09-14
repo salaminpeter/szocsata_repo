@@ -74,10 +74,12 @@ public:
 	float GetFitToViewDistance(float fovY);
 	float GetOptimalToViewDistance(float fovY);
 	void CameraFitToViewAnim(float tilt, float rotation, float zoom, float move, const glm::vec2& dir);
+	void ClearResources();
 
 	void HideSelection(bool hide) { m_SelectionVisible = !hide; } //TODO setvisibleblabla... atirni
 	bool IsInited() { return m_Inited; }
-	float GetCameraTiltAngle() {return m_CameraTiltAngle;}
+	float GetCameraTiltAngle() { return m_CameraTiltAngle; }
+	float GetCameraRotAngle() { return m_CameraRotAngle; }
 
 	std::recursive_mutex& GetRenderLock() {return m_RenderLock;}
 
@@ -143,8 +145,8 @@ private:
 
 	CGameManager* m_GameManager;
 
-	CRoundedBoxPositionData* m_RoundedBoxPositionData; //TODO shared!
-	CRoundedBoxColorData* m_LetterColorData;
+	std::shared_ptr<CRoundedBoxPositionData> m_RoundedBoxPositionData;
+	std::shared_ptr<CRoundedBoxColorData> m_LetterColorData;
 	std::shared_ptr<CRoundedSquarePositionData> m_RoundedSquarePositionData;
 	std::shared_ptr<CSquarePositionData> m_SquarePositionData;
 	std::shared_ptr<CSquareColorData> m_SquareColorData;
@@ -154,6 +156,7 @@ private:
 	std::shared_ptr<CSquareColorData> m_LetterTextureData8x4;
 
 	float m_CameraTiltAngle = 45.f;
+	float m_CameraRotAngle = 0.f;
 
 	bool m_SelectionVisible = false;
 

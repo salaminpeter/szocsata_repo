@@ -8,7 +8,7 @@
 
 
 CBoardTiles::CBoardTiles(std::shared_ptr<CBoardTilesPositionData> positionData, std::shared_ptr<CBoardTilesTextureData> textureData, CModel* parent) :
-	CModel(true, 3, positionData.get(), textureData.get(), "gridtex.bmp", "per_pixel_light_textured")
+	CModel(true, 3, std::static_pointer_cast<CModelPositionData>(positionData), std::static_pointer_cast<CModelColorData>(textureData), "gridtex.bmp", "per_pixel_light_textured")
 {
 	m_Parent = parent;
 

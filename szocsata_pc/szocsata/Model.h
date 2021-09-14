@@ -3,6 +3,7 @@
 #include "glm\gtc\matrix_transform.hpp"
 
 #include <string>
+#include <memory>
 
 class CTexture;
 class CModelPositionData;
@@ -14,7 +15,7 @@ public:
 
 	friend CModel;
 
-	CModel(bool useNormals, int vertexAttribCount, CModelPositionData* positionData, CModelColorData* colorData = nullptr, const char* textureId = "", const char* shaderId = "") :
+	CModel(bool useNormals, int vertexAttribCount, std::shared_ptr<CModelPositionData> positionData, std::shared_ptr<CModelColorData> colorData, const char* textureId = "", const char* shaderId = "") :
 		m_VertexAttribCount(vertexAttribCount), 
 		m_TextureId(textureId),
 		m_ShaderId(shaderId),
@@ -22,6 +23,8 @@ public:
 		m_ColorData(colorData),
 		m_UseNormals(useNormals)
 	{}
+
+	virtual ~CModel();
 
 	glm::mat4 GetModelMatrix();
 	glm::mat4 GetModelMatrixNoScale();
@@ -45,8 +48,8 @@ public:
 	const char* GetTextureId() { return m_TextureId.c_str(); }
 	const char* GetShaderId() { return m_ShaderId.c_str(); }
 
-	void SetColorData(CModelColorData* colorData) { m_ColorData = colorData; }
-	void SetPositionData(CModelPositionData* positionData) { m_PositionData = positionData; }
+	void SetColorData(std::shared_ptr<CModelColorData> colorData) { m_ColorData = colorData; }
+	void SetPositionData(std::shared_ptr<CModelPositionData> positionData) { m_PositionData = positionData; }
 
 	glm::vec3 GetAxis(unsigned axisID);
 
@@ -61,8 +64,8 @@ protected:
 
 	CModel* m_Parent = nullptr;   //TODO sharedptr
 	
-	CModelPositionData* m_PositionData = nullptr; //TODO sharedptr
-	CModelColorData* m_ColorData = nullptr; //TODO sharedptr
+	std::shared_ptr<CModelPositionData> m_PositionData;
+	std::shared_ptr<CModelColorData> m_ColorData;
 	
 	std::string m_TextureId;
 	std::string m_ShaderId;

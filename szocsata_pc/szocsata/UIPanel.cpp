@@ -3,6 +3,8 @@
 #include "UIText.h"
 #include "UIButton.h"
 #include "Model.h"
+#include "ModelPositionData.h"
+#include "SquareModelData.h"
 #include "Renderer.h"
 
 #define GL_GLEXT_PROTOTYPES 1
@@ -11,7 +13,7 @@
 
 
 CUIPanel::CUIPanel(CUIElement* parent, const wchar_t* id, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridColorData, int x, int y, int w, int h, int vx, int vy, const char* textureID, float tx, float ty) :
-	CUIElement(parent, id, new CModel(false, 2, (CModelPositionData*)(positionData.get()), (CModelColorData*)(colorData.get()), textureID, "textured"), x, y, w, h, vx, vy, 0.f, 0.f),
+	CUIElement(parent, id, new CModel(false, 2, std::static_pointer_cast<CModelPositionData>(positionData), std::static_pointer_cast<CModelColorData>(colorData), textureID, "textured"), x, y, w, h, vx, vy, 0.f, 0.f),
 	m_PositionData(positionData),
 	m_ColorData(colorData),
 	m_GridColorData(gridColorData)

@@ -10,6 +10,11 @@
 #include "RoundedBoxModelData.h"
 #include "Timer.h"
 
+CModel::~CModel()
+{
+	m_PositionData.reset();
+	m_ColorData.reset();
+}
 
 void CModel::Draw(bool bindVertexBuffer, bool bindColorBuffer, bool unbindBuffers, bool setTextureVertexAttrib, bool preRender, int textureOffset)
 {

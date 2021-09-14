@@ -12,7 +12,6 @@
 //TODO a RoundedSquare-t hasznalja ez is!
 std::vector<glm::vec3> CRoundedBoxPositionData::m_TopVertices;
 
-
 void CRoundedBoxPositionData::GenerateRoundedBoxVertices(std::vector<glm::vec2>* sideNormals)
 {
 	if (m_TopVertices.size())

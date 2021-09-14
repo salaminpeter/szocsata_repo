@@ -1,9 +1,13 @@
 #include "stdafx.h"
 #include "ModelPositionData.h"
 
-#define GL_GLEXT_PROTOTYPES 1
-#define GL3_PROTOTYPES 1
-#include <GLES3\gl3.h>
+CModelPositionData::~CModelPositionData()
+{
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	glDeleteBuffers(1, &m_VertexBufferId);
+	glDeleteBuffers(1, &m_IndexBufferId);
+}
 
 
 void CModelPositionData::BindVertexBuffer(int posLocation, int normalLocation) const
@@ -23,3 +27,4 @@ void CModelPositionData::BindIndexBuffer() const
 {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IndexBufferId);
 }
+

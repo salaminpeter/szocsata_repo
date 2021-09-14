@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include "Model.h"
 
 class CRoundedBoxColorData;
@@ -8,7 +9,7 @@ class CRoundedBoxPositionData;
 class CLetterModel : public CModel
 {
 public:
-	CLetterModel(unsigned textureOffset, int bx, int by, wchar_t c, CRoundedBoxPositionData* positionData);
+	CLetterModel(unsigned textureOffset, int bx, int by, wchar_t c, std::shared_ptr<CRoundedBoxPositionData> positionData);
 
 	bool Visible() {return m_Visible;}
 	void SetVisibility(bool visible) {m_Visible = visible;}

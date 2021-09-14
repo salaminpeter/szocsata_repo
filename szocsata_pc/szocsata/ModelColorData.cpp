@@ -5,6 +5,11 @@
 #define GL3_PROTOTYPES 1
 #include <GLES3\gl3.h>
 
+CModelColorData::~CModelColorData()
+{
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glDeleteBuffers(1, &m_TextureCoordBufferId);
+}
 
 void CModelColorData::BindBuffer(int location, int offset, bool setVertexAttrib) const
 {
