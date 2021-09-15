@@ -31,35 +31,6 @@ void CUIPanel::AddButton(float x, float y, float w, float h, const char* texture
 	new CUIButton(this, m_PositionData, m_ColorData, x, y, w, h, m_ViewXPosition, m_ViewYPosition, textureID, id);
 }
 
-/*
-bool CUIPanel::HandleEventAtPos(int x, int y, bool touchEvent, CUIElement* root)
-{
-	if (!root)
-		root = this;
-
-	for (size_t i = 0; i < root->m_Children.size(); ++i)
-	{
-		HandleEventAtPos(x, y, touchEvent, root->m_Children[i]);
-
-		if (root->m_Children[i]->PositionInElement(x, y))
-		{
-			if (m_Children[i]->HandleEvent())
-				return true;
-			else
-				break;
-		}
-	}
-
-	if (PositionInElement(x, y))
-	{
-		if (HandleEvent())
-			return true;
-	}
-
-	return false;
-}
-*/
-
 void CUIPanel::Render(CRenderer* renderer)
 {
 	if (!m_Visible)

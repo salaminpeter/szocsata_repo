@@ -63,6 +63,10 @@ bool CUIElement::HandleEventAtPos(int x, int y, bool touchEvent, CUIElement* roo
 	else if (root == this)
 		return false;
 
+	//ha nem lathato az elem, vagy nincsenengedelyezve vagy nem kezel realeseeventet
+	if ((!touchEvent && m_IgnoreReleaseEvent) || !m_Visible || !m_Enabled)
+		return false;
+
 	//gyerek controllokra vegigellenorizzuk tudja e kezelni valamelyik az esemenyt (belulrol kifele)
 	if (checkChildren)
 	{

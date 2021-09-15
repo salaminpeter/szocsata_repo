@@ -48,8 +48,8 @@ public:
 	const char* GetTextureId() { return m_TextureId.c_str(); }
 	const char* GetShaderId() { return m_ShaderId.c_str(); }
 
-	void SetColorData(std::shared_ptr<CModelColorData> colorData) { m_ColorData = colorData; }
-	void SetPositionData(std::shared_ptr<CModelPositionData> positionData) { m_PositionData = positionData; }
+	std::shared_ptr<CModelColorData> GetColorData() { return m_ColorData; }
+	std::shared_ptr<CModelPositionData> GetPositionData() { return m_PositionData; }
 
 	glm::vec3 GetAxis(unsigned axisID);
 

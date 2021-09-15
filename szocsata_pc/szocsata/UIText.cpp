@@ -17,10 +17,8 @@ std::map<wchar_t, float> CUIText::m_FontDesc;
 
 
 CUIText::CUIText(CUIElement* parent, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, const wchar_t* text, int x, int y, int w, int h, int vx, int vy, const wchar_t* id) :
-	CUIElement(parent, id, nullptr, x, y, w, h, vx, vy, 0.f, 0.f),
-	m_Text(text),
-	m_PositionData(positionData),
-	m_ColorData(colorData)
+	CUIElement(parent, id, new CModel(false, 0, std::static_pointer_cast<CModelPositionData>(positionData), std::static_pointer_cast<CModelColorData>(colorData)), x, y, w, h, vx, vy, 0.f, 0.f),
+	m_Text(text)
 {
 	InitFontTexPositions();
 	SetText(text);
@@ -123,7 +121,7 @@ void CUIText::SetText(const wchar_t* text)
 		for (size_t i = from; i < m_Text.length(); ++i)
 		{
 			if (m_Text[i] != L' ')
-				new CUIElement(this, L"", new CModel(false, 2, m_PositionData, m_ColorData, "font.bmp", "textured"), 0, 0, m_Width, m_Height, m_ViewXPosition, m_ViewYPosition, 0, 0);
+				new CUIElement(this, L"", new CModel(false, 2, m_Model->GetPositionData(), m_Model->GetColorData(), "font.bmp", "textured"), 0, 0, m_Width, m_Height, m_ViewXPosition, m_ViewYPosition, 0, 0);
 		}
 	}
 	else

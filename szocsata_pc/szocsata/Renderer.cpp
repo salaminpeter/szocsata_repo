@@ -182,8 +182,7 @@ CLetterModel* CRenderer::AddLetterToBoard(int x, int y, wchar_t c, float height,
 
 	int LetterCount = m_GameManager->Board(x, TileCount - y - 1).m_Height;
 
-	m_LettersOnBoard.push_back(new CLetterModel(m_LetterColorData->m_Offset * m_LetterTexPos[c].y * 8 + m_LetterColorData->m_Offset * m_LetterTexPos[c].x, x, y, c, m_RoundedBoxPositionData));
-	m_LettersOnBoard.back()->SetColorData(m_LetterColorData);
+	m_LettersOnBoard.push_back(new CLetterModel(m_LetterColorData->m_Offset * m_LetterTexPos[c].y * 8 + m_LetterColorData->m_Offset * m_LetterTexPos[c].x, x, y, c, m_RoundedBoxPositionData, m_LetterColorData));
 	m_LettersOnBoard.back()->SetParent(m_BoardModel);
 	m_LettersOnBoard.back()->ResetMatrix();
 

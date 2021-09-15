@@ -9,7 +9,7 @@ class CRoundedBoxPositionData;
 class CLetterModel : public CModel
 {
 public:
-	CLetterModel(unsigned textureOffset, int bx, int by, wchar_t c, std::shared_ptr<CRoundedBoxPositionData> positionData);
+	CLetterModel(unsigned textureOffset, int bx, int by, wchar_t c, std::shared_ptr<CRoundedBoxPositionData> positionData, std::shared_ptr<CModelColorData> colorData);
 
 	bool Visible() {return m_Visible;}
 	void SetVisibility(bool visible) {m_Visible = visible;}

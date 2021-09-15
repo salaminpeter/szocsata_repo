@@ -646,10 +646,6 @@ void CUIManager::HandleReleaseEvent(int x, int y)
 
 		if (!NoDrag && !m_GameManager->SelectionPosIllegal(SelX, SelY))
 			m_GameManager->PlayerLetterClicked(m_DraggedPlayerLetterIdx);
-		/*
-		else 
-			m_GameManager->GetRenderer()->DisableSelection();
-		*/
 
 		glm::ivec2 NextSelPos = m_GameManager->GetSelectionPosition();
 
@@ -670,7 +666,6 @@ void CUIManager::HandleReleaseEvent(int x, int y)
 	for (size_t i = 0; i < Root->GetChildCount(); ++i)
 		if (Root->GetChild(i)->HandleEventAtPos(x, y, false))
 			return;
-			
 }
 
 int CUIManager::GetTileCounterValue()

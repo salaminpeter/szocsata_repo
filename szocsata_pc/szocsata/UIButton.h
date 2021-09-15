@@ -19,7 +19,6 @@ public:
 	void SetText(const wchar_t* buttonText);
 
 	void Render(CRenderer* renderer) override;
-	bool HandleEventAtPos(int x, int y, bool touchEvent, CUIElement* root, bool checkChildren) override;
 
 private:
 

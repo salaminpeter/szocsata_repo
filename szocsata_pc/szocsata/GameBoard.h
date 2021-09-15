@@ -25,5 +25,6 @@ public:
 	}
 
 private:
+
 	std::vector<std::vector<TField>> mFields;
 };
