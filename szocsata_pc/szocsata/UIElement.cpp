@@ -20,6 +20,13 @@ CUIElement::CUIElement(CUIElement* parent, const wchar_t* id, CModel* model, int
 		parent->AddChild(this);
 }
 
+CUIElement::~CUIElement()
+{
+	delete m_Model;
+	delete m_Event;
+	DeleteRecursive();
+}
+
 bool CUIElement::HandleEvent()
 {
 	if (m_Event)
@@ -44,7 +51,7 @@ bool CUIElement::PositionInElement(int x, int y)
 glm::vec2 CUIElement::GetAbsolutePosition()
 {
 	glm::vec2 AbsPos(m_XPosition, m_YPosition);
-	CUIElement* Parent = m_Parent.get();
+	CUIElement* Parent = m_Parent;
 
 	while (Parent)
 	{
@@ -109,11 +116,10 @@ void CUIElement::PositionElement()
 void CUIElement::DeleteRecursive()
 {
 	for (size_t i = 0; i < m_Children.size(); ++i)
-		m_Children[i]->DeleteRecursive();
+		delete m_Children[i];
 
-	delete this;
+	m_Children.clear();
 }
-
 
 void CUIElement::SetPosition(float x, float y)
 {

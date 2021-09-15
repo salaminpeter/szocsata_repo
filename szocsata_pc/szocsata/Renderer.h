@@ -85,7 +85,7 @@ public:
 
 	std::shared_ptr<CSquarePositionData> GetSquarePositionData() { return m_SquarePositionData; }
 	std::shared_ptr<CSquareColorData> GetSquareColorData() { return m_SquareColorData; }
-	std::shared_ptr<CSquareColorData> GetSquareColorGridData8x8() { return m_LetterTextureData8x8; }
+	std::shared_ptr<CSquareColorData> GetSquareColorGridData16x6() { return m_LetterTextureData16x6; }
 	std::shared_ptr<CSquareColorData> GetSquareColorGridData8x4() { return m_LetterTextureData8x4; }
 
 private:
@@ -152,7 +152,7 @@ private:
 	std::shared_ptr<CSquareColorData> m_SquareColorData;
 	std::shared_ptr<CBoardTilesPositionData> m_BoardTilesPositionData;
 	std::shared_ptr<CBoardTilesTextureData> m_BoardTilesTextureData;
-	std::shared_ptr<CSquareColorData> m_LetterTextureData8x8;
+	std::shared_ptr<CSquareColorData> m_LetterTextureData16x6;
 	std::shared_ptr<CSquareColorData> m_LetterTextureData8x4;
 
 	float m_CameraTiltAngle = 45.f;

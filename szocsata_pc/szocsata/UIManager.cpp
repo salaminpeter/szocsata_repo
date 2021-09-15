@@ -22,12 +22,8 @@
 
 CUIManager::~CUIManager()
 {
-	m_RootStartScreen->DeleteRecursive();
-	m_RootStartGameScreen->DeleteRecursive();
-	m_RootGameScreen->DeleteRecursive();
+	ClearUIElements();
 
-	delete m_MessageBoxOk;
-	delete m_Toast;
 	delete m_PlayerLettersLayout;
 	delete m_ButtonsLayout;
 }
@@ -301,6 +297,18 @@ void CUIManager::InitUIElements(std::shared_ptr<CSquarePositionData> positionDat
 	m_UIRoots.push_back(m_RootGameEndScreen);
 	m_UIRoots.push_back(m_RootDraggedLetterScreen);
 }
+
+void CUIManager::ClearUIElements()
+{
+	std::vector<CUIElement*> MainPanels { m_RootStartScreen, m_RootStartGameScreen, m_RootGameScreen, m_RootDraggedLetterScreen, m_RootGameEndScreen };
+
+	for (size_t i = 0; i < MainPanels.size(); ++i)
+		delete MainPanels[i];
+
+	delete m_MessageBoxOk;
+	delete m_Toast;
+}
+
 
 void CUIManager::UpdateScorePanel()
 {

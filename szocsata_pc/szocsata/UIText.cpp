@@ -129,7 +129,10 @@ void CUIText::SetText(const wchar_t* text)
 		int to = m_Children.size() - TextCharCount;
 
 		for (size_t i = 0; i < to; ++i)
+		{
+			delete m_Children[i];
 			m_Children.pop_back();
+		}
 	}
 
 	float FontWidth = 69; // TODO ne beegetve legyen, texturameretbol es betukperoszlop bol szamolja

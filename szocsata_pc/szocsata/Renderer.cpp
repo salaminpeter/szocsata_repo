@@ -7,6 +7,7 @@
 #include "View.h"
 #include "Shaders.h"
 #include "GameManager.h"
+#include "UIManager.h"
 #include "TileAnimationManager.h"
 #include "Config.h"
 #include "GridLayout.h"
@@ -689,10 +690,10 @@ bool CRenderer::StartInit()
 	m_SquareColorData = std::make_shared<CSquareColorData>();
 	m_SquareColorData->GenerateTextureCoordBuffer(std::vector<glm::vec3>());
 
-	m_LetterTextureData8x8 = std::make_shared<CSquareColorData>();
-	m_LetterTextureData8x8->m_DivX = 16.f;
-	m_LetterTextureData8x8->m_DivY = 6.f;
-	m_LetterTextureData8x8->GenerateTextureCoordBuffer(std::vector<glm::vec3>());
+	m_LetterTextureData16x6 = std::make_shared<CSquareColorData>();
+	m_LetterTextureData16x6->m_DivX = 16.f;
+	m_LetterTextureData16x6->m_DivY = 6.f;
+	m_LetterTextureData16x6->GenerateTextureCoordBuffer(std::vector<glm::vec3>());
 
 	m_LetterTextureData8x4 = std::make_shared<CSquareColorData>();
 	m_LetterTextureData8x4->m_DivX = 8.f;
@@ -741,22 +742,29 @@ bool CRenderer::StartInit()
 
 void CRenderer::ClearResources()
 {
-/*
-	//delete letters on board
+	//delete letters on board //TODO wordanimationban meg van egy hivatkozas a CLettermodellre!!!
 	for (size_t i = 0; i < m_LettersOnBoard.size(); ++i)
 		delete m_LettersOnBoard[i];
 
 	m_LettersOnBoard.clear();
 
-	delete m_RoundedBoxPositionData;
+	m_RoundedBoxPositionData.reset();
+	m_LetterColorData.reset();
 
-	//delete board tiles / selection
+	//delete board / board tiles / selection
 	delete m_BoardTiles;
 	delete m_SelectionModel;
+	delete m_BoardModel;
+
 	m_BoardTilesPositionData.reset();
 	m_RoundedSquarePositionData.reset();
-	*/
-	}
+	
+	//remove ui elements
+	m_GameManager->GetUIManager()->ClearUIElements();
+
+	m_SquarePositionData.reset();
+	m_SquareColorData.reset();
+}
 
 bool CRenderer::EndInit()
 {

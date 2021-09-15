@@ -6,5 +6,5 @@ class CSelectionModel : public CModel
 {
 public:
 
-	CSelectionModel(std::shared_ptr<CModelPositionData> positionData) : CModel(false, 1, positionData, nullptr, "", "transparent_color") {}
+	CSelectionModel(std::shared_ptr<CRoundedSquarePositionData> positionData) : CModel(false, 1, std::static_pointer_cast<CModelPositionData>(positionData), nullptr, "", "transparent_color") {}
 };

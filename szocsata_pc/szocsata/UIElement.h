@@ -18,7 +18,7 @@ friend CUIElement;
 public:
 
 	CUIElement(CUIElement*  parent, const wchar_t* id, CModel *model, int x, int y, int w, int h, int vx, int vy, float tx, float ty, bool ignoreReleaseEvent = true);
-	//TODO destructor!!!!
+	virtual ~CUIElement();
 		
 	template <typename ClassType, typename... ArgTypes>
 	void SetEvent(ClassType* funcClass, typename CEvent<ClassType, ArgTypes...>::TFuncPtrType funcPtr, ArgTypes&&... args)
@@ -63,7 +63,7 @@ public:
 	int GetChildCount() {return m_Children.size();}
 	CUIElement* GetChild(size_t childIdx);
 	CUIElement* GetChild(const wchar_t* childIdx);
-	CUIElement* GetParent() {return m_Parent.get();}
+	CUIElement* GetParent() {return m_Parent;}
 	void Enable(bool enable) { m_Enabled = enable; }
 	bool IsEnabled() { return m_Enabled; }
 
@@ -75,7 +75,7 @@ public:
 
 protected:
 
-	std::shared_ptr<CUIElement> m_Parent;
+	CUIElement* m_Parent = nullptr;
 	CModel* m_Model = nullptr;
 	CEventBase* m_Event = nullptr;
 

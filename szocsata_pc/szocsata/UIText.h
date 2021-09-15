@@ -15,7 +15,6 @@ class CUIText : public CUIElement
 public:
 
 	CUIText(CUIElement* parent, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, const wchar_t* text, int x, int y, int w, int h, int vx, int vy, const wchar_t* id);
-	~CUIText();
 
 	void SetText(const wchar_t* text);
 	size_t Length() const;

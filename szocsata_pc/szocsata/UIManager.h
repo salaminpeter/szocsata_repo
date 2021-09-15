@@ -88,6 +88,8 @@ public:
 	void UpdateScorePanel();
 	void InitScorePanel();
 
+	void ClearUIElements();
+
 	CUIElement* GetActiveScreenUIRoot();
 
 	void SetDraggedPlayerLetter(bool letterDragged, unsigned letterIdx, const glm::vec2& letterTexPos, const glm::vec2& startDragPos, bool disable = false);
