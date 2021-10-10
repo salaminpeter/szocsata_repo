@@ -130,7 +130,7 @@ void CUIText::SetText(const wchar_t* text)
 
 		for (size_t i = 0; i < to; ++i)
 		{
-			delete m_Children[i];
+			delete m_Children.back();
 			m_Children.pop_back();
 		}
 	}

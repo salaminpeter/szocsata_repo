@@ -107,9 +107,10 @@ void CRoundedBoxPositionData::GeneratePositionBuffer()
 		EdgeArchRadiusVec = glm::vec3(glm::vec4(EdgeArchRadiusVec, 1.0f) * rot_mat);
 	}
 
-	/*
-	//bottom vertex attributes
+	
+	//side vertex attributes
 	int Offset = Vertices.size() - m_TopVertices.size() * 6;
+	std::vector<float> TopVertices;
 	std::vector<float> BottomVertices;
 
 	for (size_t i = Offset; i < Vertices.size(); i += 6)
@@ -117,14 +118,21 @@ void CRoundedBoxPositionData::GeneratePositionBuffer()
 		BottomVertices.push_back(Vertices[i]);
 		BottomVertices.push_back(Vertices[i + 1]);
 		BottomVertices.push_back(-0.5f);
-
 		BottomVertices.push_back(Vertices[i + 3]);
 		BottomVertices.push_back(Vertices[i + 4]);
 		BottomVertices.push_back(0.f);
+
+		TopVertices.push_back(Vertices[i]);
+		TopVertices.push_back(Vertices[i + 1]);
+		TopVertices.push_back(0.5f);
+		TopVertices.push_back(Vertices[i + 3]);
+		TopVertices.push_back(Vertices[i + 4]);
+		TopVertices.push_back(0.f);
 	}
 
+	Vertices.insert(Vertices.end(), std::make_move_iterator(TopVertices.begin()), std::make_move_iterator(TopVertices.end()));
 	Vertices.insert(Vertices.end(), std::make_move_iterator(BottomVertices.begin()), std::make_move_iterator(BottomVertices.end()));
-	*/
+	
 	std::vector<unsigned int> Indices;
 
 	//top indices
@@ -134,17 +142,19 @@ void CRoundedBoxPositionData::GeneratePositionBuffer()
 		Indices.push_back(i);
 		Indices.push_back(0);
 	}
-
 	
 	Indices.push_back(1);
 	Indices.push_back(m_TopVertices.size());
 	Indices.push_back(0);
+
+	int CurrRowOffset;
+	int NextRowOffset;
 	
 	//rounded edge indices
 	for (size_t j = 0; j < m_EdgeLod; ++j)
 	{
-		int CurrRowOffset = j * m_TopVertices.size() + 1;
-		int NextRowOffset = (j + 1) * m_TopVertices.size() + 1;
+		CurrRowOffset = j * m_TopVertices.size() + 1;
+		NextRowOffset = (j + 1) * m_TopVertices.size() + 1;
 
 		for (size_t i = 0; i < m_TopVertices.size() - 1; ++i)
 		{
@@ -165,6 +175,30 @@ void CRoundedBoxPositionData::GeneratePositionBuffer()
 		Indices.push_back(NextRowOffset);
 		Indices.push_back(NextRowOffset + 1 + m_TopVertices.size() - 2);
 	}
+	
+	//side indices
+	CurrRowOffset = (m_EdgeLod + 1) * m_TopVertices.size() + 1;
+	NextRowOffset = (m_EdgeLod + 2) * m_TopVertices.size() + 1;
+
+	for (size_t i = 0; i < m_TopVertices.size() - 1; ++i)
+	{
+		Indices.push_back(i + CurrRowOffset);
+		Indices.push_back(i + CurrRowOffset + 1);
+		Indices.push_back(i + NextRowOffset + 1);
+		
+		Indices.push_back(i + NextRowOffset + 1);
+		Indices.push_back(i + NextRowOffset);
+		Indices.push_back(i + CurrRowOffset);
+		
+	}
+	
+	Indices.push_back(NextRowOffset + 1 + m_TopVertices.size() - 2);
+	Indices.push_back(CurrRowOffset + 1 + m_TopVertices.size() - 2);
+	Indices.push_back(CurrRowOffset);
+	
+	Indices.push_back(CurrRowOffset);
+	Indices.push_back(NextRowOffset);
+	Indices.push_back(NextRowOffset + 1 + m_TopVertices.size() - 2);
 	
 	m_IndexCount = Indices.size();
 
@@ -224,7 +258,6 @@ void CRoundedBoxColorData::GenerateTextureCoordBuffer(const std::vector<glm::vec
 	std::vector<glm::vec3> PrevVertexList;
 	std::vector<glm::vec3> PrevVertexListTmp;
 
-
 	for (size_t j = 0; j <= EdgeLOD; ++j)
 	{
 		PrevVertexListTmp = PrevVertexList;
@@ -282,38 +315,45 @@ void CRoundedBoxColorData::GenerateTextureCoordBuffer(const std::vector<glm::vec
 					TexCoordBuffer.push_back(m_TopTextureBottom + float(y) * TextHeight +  (OffsetVecDir.y + .5f) * TextHeight);
 				}
 			}
-			if (m_Offset == 0)
-				m_Offset = TexCoordBuffer.size();
-
-			/*
+			
 			//tex coordinates for side
-			float CurrLength = 0;
-			float SideLength = 0;
-
-			for (size_t i = 0; i < vertexPositions.size() / 4; ++i)
-				SideLength += std::sqrtf((vertexPositions[i].x - vertexPositions[i + 1].x) * (vertexPositions[i].x - vertexPositions[i + 1].x) + (vertexPositions[i].y - vertexPositions[i + 1].y) * (vertexPositions[i].y - vertexPositions[i + 1].y));
+			std::vector<float> SideDistList;
 
 			for (size_t i = 0; i <= vertexPositions.size(); ++i)
 			{
-				float SideTexX;
-				int idx = i < vertexPositions.size() ? i : 0;
+				size_t vidx = i + 1 < vertexPositions.size() - 2 ? i + 1 : 0;
+				size_t didx0 = i + 1 < vertexPositions.size() - 2 ? i + 1 : DistFromOrigo.size() - 1;
+				size_t didx1 = i < vertexPositions.size() - 1 ? i : DistFromOrigo.size() - 1;
 
-				for (int j = 0; j < 2; ++j)
-				{
-					if (i != 0 && j == 0)
-						CurrLength += std::sqrtf((vertexPositions[idx].x - vertexPositions[i - 1].x) * (vertexPositions[idx].x - vertexPositions[i - 1].x) + (vertexPositions[idx].y - vertexPositions[i - 1].y) * (vertexPositions[idx].y - vertexPositions[i - 1].y));
-
-					if (j == 0)
-						SideTexX = m_SideTextureLeft + (CurrLength / SideLength) * (m_SideTextureRight - m_SideTextureLeft);
-
-					TexCoordBuffer.push_back(SideTexX);
-					TexCoordBuffer.push_back(j == 0 ? m_SideTextureTop : m_SideTextureBottom);
-				}
+				glm::vec2 CurrVertex = glm::normalize(vertexPositions[didx1]) * DistFromOrigo[didx1];
+				glm::vec2 NextVertex = glm::normalize(vertexPositions[vidx]) * DistFromOrigo[didx0];
+				float PrevDist = SideDistList.size() ? SideDistList.back() : 0.f;
+				SideDistList.push_back(PrevDist + glm::length(CurrVertex - NextVertex));
 			}
+
+			for (size_t i = 0; i < vertexPositions.size(); ++i)
+			{
+				float SideTexX;
+				
+				SideTexX = m_SideTextureLeft + (SideDistList[i] / SideDistList.back()) * (m_SideTextureRight - m_SideTextureLeft);
+				TexCoordBuffer.push_back(SideTexX);
+				TexCoordBuffer.push_back(m_SideTextureTop);
+			}
+
+			std::vector<float> BottomTexCoords;
+			size_t Offset = TexCoordBuffer.size() - vertexPositions.size() * 2;
+
+			for (size_t i = 0; i < vertexPositions.size() * 2; i += 2)
+			{
+				BottomTexCoords.push_back(TexCoordBuffer[i + Offset]);
+				BottomTexCoords.push_back(m_SideTextureBottom);
+			}
+
+			TexCoordBuffer.insert(TexCoordBuffer.end(), std::make_move_iterator(BottomTexCoords.begin()), std::make_move_iterator(BottomTexCoords.end()));
 
 			if (m_Offset == 0)
 				m_Offset = TexCoordBuffer.size();
-*/
+
 		}
 
 	}
