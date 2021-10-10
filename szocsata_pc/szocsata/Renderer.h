@@ -18,8 +18,8 @@ class CGameManager;
 class CTileAnimationManager;
 class CGridLayout;
 class CTextureManager;
-class CRoundedBoxPositionData;
-class CRoundedBoxColorData;
+class CRoundedBoxPositionDataTop;
+class CRoundedBoxColorDataTop;
 class CRoundedSquarePositionData;
 class CSquarePositionData;
 class CSquareColorData;
@@ -145,8 +145,8 @@ private:
 
 	CGameManager* m_GameManager;
 
-	std::shared_ptr<CRoundedBoxPositionData> m_RoundedBoxPositionData;
-	std::shared_ptr<CRoundedBoxColorData> m_LetterColorData;
+	std::shared_ptr<CRoundedBoxPositionDataTop> m_RoundedBoxPositionData;
+	std::shared_ptr<CRoundedBoxColorDataTop> m_LetterColorData;
 	std::shared_ptr<CRoundedSquarePositionData> m_RoundedSquarePositionData;
 	std::shared_ptr<CSquarePositionData> m_SquarePositionData;
 	std::shared_ptr<CSquareColorData> m_SquareColorData;

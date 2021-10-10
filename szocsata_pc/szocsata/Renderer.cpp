@@ -675,18 +675,29 @@ bool CRenderer::StartInit()
 	CConfig::AddConfig("camera_min_height", BoardHeight / 2.f + LetterHeight * 5.f + 2.5f);
 
 	CConfig::AddConfig("letter_side_lod", 5);
-	CConfig::AddConfig("letter_side_radius", 0.2f);
+	CConfig::AddConfig("letter_side_radius", 0.1f);
 
 	CConfig::AddConfig("letter_edge_lod", 5);
-	CConfig::AddConfig("letter_edge_radius", 0.1f);
+	CConfig::AddConfig("letter_edge_radius", 0.15f);
 
-	m_RoundedBoxPositionData = std::make_shared<CRoundedBoxPositionData>(5, 0.2f, 5, 0.1f); //TODO config
+	m_RoundedBoxPositionData = std::make_shared<CRoundedBoxPositionDataTop>(5, 0.1f, 5, 0.15f); //TODO config
 	m_RoundedBoxPositionData->GeneratePositionBuffer();
 
-	m_LetterColorData = std::make_shared<CRoundedBoxColorData>(0.f, 1.f / 2.f, 1.f, 0.f, 0.f, .7f, 1.f, .5f, 8, 4);
-	m_LetterColorData->GenerateTextureCoordBuffer(m_RoundedBoxPositionData->GetTopVertices());
+	std::vector<glm::vec3> Inner = m_RoundedBoxPositionData->GetTopVertices(true);
+	std::vector<glm::vec3> Outer = m_RoundedBoxPositionData->GetTopVertices(false);
+	std::vector<glm::vec3> Connected;
 
-	m_RoundedSquarePositionData = std::make_shared<CRoundedSquarePositionData>(5, 0.18f);
+	for (size_t i = 0; i < Inner.size() * 2; ++i)
+	{
+		size_t idx = i < Inner.size() ? i : i - Inner.size();
+		glm::vec3& Vertex = i < Inner.size() ? Inner[i] : Outer[i - Inner.size()];
+		Connected.push_back(Vertex);
+	}
+
+	m_LetterColorData = std::make_shared<CRoundedBoxColorDataTop>(0.f, 1.f / 2.f, 1.f, 0.f, 0.f, .7f, 1.f, .5f, 8, 4);
+	m_LetterColorData->GenerateTextureCoordBuffer(Connected);
+
+	m_RoundedSquarePositionData = std::make_shared<CRoundedSquarePositionData>(5, 0.15f);
 	m_RoundedSquarePositionData->GenerateRoundedBoxVertices();
 	m_RoundedSquarePositionData->GeneratePositionBuffer();
 

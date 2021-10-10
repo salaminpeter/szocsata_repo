@@ -6,11 +6,11 @@
 
 #include <vector>
 
-class CRoundedBoxPositionData : public CModelPositionData
+class CRoundedBoxPositionDataTop : public CModelPositionData
 {
 public:
 	
-	CRoundedBoxPositionData(int sideLod, float sideRadius, int edgeLod, float edgeRadius) :
+	CRoundedBoxPositionDataTop(int sideLod, float sideRadius, int edgeLod, float edgeRadius) :
 		m_SideLOD(sideLod),
 		m_SideRadius(sideRadius),
 		m_EdgeLod(edgeLod),
@@ -20,7 +20,7 @@ public:
 	void GeneratePositionBuffer() override;
 	void GenerateRoundedBoxVertices();
 
-	std::vector<glm::vec3>& GetTopVertices() { return m_TopVertices; }
+	std::vector<glm::vec3> GetTopVertices(bool inner);
 
 private:
 
@@ -29,15 +29,22 @@ private:
 	float m_SideRadius;
 	float m_EdgeRadius;
 
-	static std::vector<glm::vec3> m_TopVertices;
+	static std::vector<glm::vec2> m_TopVerticesInner;
+	static std::vector<glm::vec2> m_TopVerticesOuter;
+};
+
+class CRoundedBoxPositionDataSide : public CModelPositionData
+{
+public:
 };
 
 
-class CRoundedBoxColorData : public CModelColorData
+
+class CRoundedBoxColorDataTop : public CModelColorData
 {
 public:
 
-	CRoundedBoxColorData(float topTextLeft, float topTextTop, float topTextRight, float topTextBottom, float sideTextLeft, float sideTextTop, float sideTextRight, float sideTextBottom, unsigned gridX, unsigned gridY) :
+	CRoundedBoxColorDataTop(float topTextLeft, float topTextTop, float topTextRight, float topTextBottom, float sideTextLeft, float sideTextTop, float sideTextRight, float sideTextBottom, unsigned gridX, unsigned gridY) :
 		m_TopTextureLeft(topTextLeft),
 		m_TopTextureTop(topTextTop),
 		m_TopTextureRight(topTextRight),
@@ -50,7 +57,7 @@ public:
 		m_GridYSize(gridY)
 	{} //TODO kell ez a konstruktor??
 
-	CRoundedBoxColorData() {}
+	CRoundedBoxColorDataTop() {}
 
 	void SetTexturePositions(float topTextLeft, float topTextTop, float topTextRight, float topTextBottom, float sideTextLeft, float sideTextTop, float sideTextRight, float sideTextBottom);
 	void GenerateTextureCoordBuffer(const std::vector<glm::vec3>& vertexPositions) override;
