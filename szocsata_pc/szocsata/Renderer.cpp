@@ -468,7 +468,7 @@ void CRenderer::ZoomCameraCentered(float dist, float origoX, float origoY)
 
 		m_ZoomInited = true;
 	}
-
+	
 	if (std::fabs(m_CameraCurrZoomDistance + dist) > m_CameraZoomDistance)
 	{
 		bool ZoomOut = dist < 0;
@@ -674,10 +674,16 @@ bool CRenderer::StartInit()
 
 	CConfig::AddConfig("camera_min_height", BoardHeight / 2.f + LetterHeight * 5.f + 2.5f);
 
-	m_RoundedBoxPositionData = std::make_shared<CRoundedBoxPositionData>(5, 0.18f);
+	CConfig::AddConfig("letter_side_lod", 5);
+	CConfig::AddConfig("letter_side_radius", 0.2f);
+
+	CConfig::AddConfig("letter_edge_lod", 5);
+	CConfig::AddConfig("letter_edge_radius", 0.1f);
+
+	m_RoundedBoxPositionData = std::make_shared<CRoundedBoxPositionData>(5, 0.2f, 5, 0.1f); //TODO config
 	m_RoundedBoxPositionData->GeneratePositionBuffer();
 
-	m_LetterColorData = std::make_shared<CRoundedBoxColorData>(0.f, 1.f / 8.f, 1.f / 8.f, 0, 0.f, .7f, 1.f, .5f, 8, 4);
+	m_LetterColorData = std::make_shared<CRoundedBoxColorData>(0.f, 1.f / 2.f, 1.f, 0.f, 0.f, .7f, 1.f, .5f, 8, 4);
 	m_LetterColorData->GenerateTextureCoordBuffer(m_RoundedBoxPositionData->GetTopVertices());
 
 	m_RoundedSquarePositionData = std::make_shared<CRoundedSquarePositionData>(5, 0.18f);
@@ -783,10 +789,11 @@ bool CRenderer::EndInit()
 	m_LightPosition = glm::vec4(-7.f, -7.f, 9.f, 1);
 	CalculateScreenSpaceGrid();
 
+//	/*TODO
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 	glFrontFace(GL_CW);
-
+//	*/
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 

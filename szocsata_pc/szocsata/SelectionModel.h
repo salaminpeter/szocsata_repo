@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Model.h"
+#include "SquareModelData.h"
 
 class CSelectionModel : public CModel
 {

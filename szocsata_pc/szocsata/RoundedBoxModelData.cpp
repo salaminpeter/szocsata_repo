@@ -8,32 +8,30 @@
 #include "Config.h"
 
 #include <vector>
+#include <numeric>
 
 //TODO a RoundedSquare-t hasznalja ez is!
 std::vector<glm::vec3> CRoundedBoxPositionData::m_TopVertices;
 
-void CRoundedBoxPositionData::GenerateRoundedBoxVertices(std::vector<glm::vec2>* sideNormals)
+void CRoundedBoxPositionData::GenerateRoundedBoxVertices()
 {
 	if (m_TopVertices.size())
 		return;
 
 	float size = 1.f;
 
-	m_TopVertices.reserve((m_LOD + 2) * 4);
+	m_TopVertices.reserve((m_SideLOD + 2) * 4);
 
-	glm::vec3 ArchOrigo(-0.5f * size + m_Radius, -0.5f * size + m_Radius, 0.f);
-	glm::vec3 ArchRadiusVec = glm::vec3(-m_Radius, 0.f, 0.f);
+	glm::vec3 ArchOrigo(-0.5f * size + m_SideRadius + m_EdgeRadius, -0.5f * size + m_SideRadius + m_EdgeRadius, 0.f);
+	glm::vec3 ArchRadiusVec = glm::vec3(-m_SideRadius, 0.f, 0.f);
 
-	float Angle = glm::radians(90.f / (m_LOD + 1));
+	float Angle = glm::radians(90.f / (m_SideLOD + 1));
 
 	//top left corner
-	for (int i = 0; i < m_LOD + 2; ++i)
+	for (int i = 0; i < m_SideLOD + 2; ++i)
 	{
 		glm::vec3 VertexPos = ArchRadiusVec + ArchOrigo;
 		m_TopVertices.push_back(VertexPos);
-
-		if (sideNormals)
-			sideNormals->push_back(glm::normalize(ArchRadiusVec));
 
 		float NewX = ArchRadiusVec.x * std::cosf(Angle) - ArchRadiusVec.y * std::sinf(Angle);
 		float NewY = ArchRadiusVec.x * std::sinf(Angle) + ArchRadiusVec.y * std::cosf(Angle);
@@ -43,52 +41,32 @@ void CRoundedBoxPositionData::GenerateRoundedBoxVertices(std::vector<glm::vec2>*
 	}
 	
 	//top right corner
-	for (int i = m_LOD + 1; i >= 0; --i)
+	for (int i = m_SideLOD + 1; i >= 0; --i)
 	{
 		glm::vec3 VertexPos = m_TopVertices[i] * glm::vec3(-1.f, 1.f, 0.f);
 		m_TopVertices.push_back(VertexPos);
-
-		if (sideNormals)
-		{ 
-			glm::vec2 VertexNormal = (*sideNormals)[i] * glm::vec2(-1.f, 1.f);
-			sideNormals->push_back(VertexNormal);
-		}
 	}
 	
 	//bottom right corner
 	int From = m_TopVertices.size() - 1;
-	for (int i = From; i >= From - m_LOD - 1; --i)
+	for (int i = From; i >= From - m_SideLOD - 1; --i)
 	{
 		glm::vec3 VertexPos = m_TopVertices[i] * glm::vec3(1.f, -1.f, 0.f);
 		m_TopVertices.push_back(VertexPos);
-
-		if (sideNormals)
-		{
-			glm::vec2 VertexNormal = (*sideNormals)[i] * glm::vec2(1.f, -1.f);
-			sideNormals->push_back(VertexNormal);
-		}
 	}
 	
 	//bottom left corner
 	From = m_TopVertices.size() - 1;
-	for (int i = From; i >= From - m_LOD - 1; --i)
+	for (int i = From; i >= From - m_SideLOD - 1; --i)
 	{
 		glm::vec3 VertexPos = m_TopVertices[i] * glm::vec3(-1.f, 1.f, 0.f);
 		m_TopVertices.push_back(VertexPos);
-
-		if (sideNormals)
-		{
-			glm::vec2 VertexNormal = (*sideNormals)[i] * glm::vec2(-1.f, 1.f);
-			sideNormals->push_back(VertexNormal);
-		}
 	}
 }
 
 void CRoundedBoxPositionData::GeneratePositionBuffer()
 {
-	std::vector<glm::vec2> SideNormals;
-
-	GenerateRoundedBoxVertices(&SideNormals);
+	GenerateRoundedBoxVertices();
 
 	std::vector<float> Vertices;
 	//TODO reserve
@@ -102,60 +80,92 @@ void CRoundedBoxPositionData::GeneratePositionBuffer()
 	Vertices.push_back(0.f);
 	Vertices.push_back(1.f);
 
+
 	//top vertex attributes
-	for (size_t i = 0; i < m_TopVertices.size(); ++i)
+	glm::vec3 EdgeArchRadiusVec = glm::vec3(0.f, 0.f, m_EdgeRadius);
+	float EdgeArchAngle = glm::radians(90.f / m_EdgeLod);
+
+	for (size_t j = 0; j <= m_EdgeLod; ++j)
 	{
-		Vertices.push_back(m_TopVertices[i].x);
-		Vertices.push_back(m_TopVertices[i].y);
-		Vertices.push_back(0.5f);
-
-		Vertices.push_back(0.f);
-		Vertices.push_back(0.f);
-		Vertices.push_back(1.f);
-	}
-
-	//side vertex attributes
-	for (size_t i = 0; i <= m_TopVertices.size(); ++i)
-	{
-		float SideTexX;
-		int idx = i < m_TopVertices.size() ? i : 0;
-
-		for (int j = 0; j < 2; ++j)
+		for (size_t i = 0; i < m_TopVertices.size(); ++i)
 		{
-			Vertices.push_back(m_TopVertices[idx].x);
-			Vertices.push_back(m_TopVertices[idx].y);
-			Vertices.push_back(j == 0 ? 0.5f : -0.5f);
+			glm::vec2 OffsetVecDir = glm::normalize(glm::vec2(m_TopVertices[i].x, m_TopVertices[i].y)) * glm::length(glm::vec2(EdgeArchRadiusVec.x, EdgeArchRadiusVec.y));
 
-			Vertices.push_back(SideNormals[idx].x);
-			Vertices.push_back(SideNormals[idx].y);
-			Vertices.push_back(0.f);
+			Vertices.push_back(m_TopVertices[i].x + OffsetVecDir.x);
+			Vertices.push_back(m_TopVertices[i].y + OffsetVecDir.y);
+			Vertices.push_back(0.5f - m_EdgeRadius  + EdgeArchRadiusVec.z);
+
+			glm::vec3 Normal = glm::normalize(glm::vec3(OffsetVecDir.x, OffsetVecDir.y, EdgeArchRadiusVec.z));
+
+			Vertices.push_back(Normal.x);
+			Vertices.push_back(Normal.y);
+			Vertices.push_back(Normal.z);
 		}
+
+		EdgeArchRadiusVec = glm::vec3(0.f, 0.f, m_EdgeRadius);
+		glm::mat4 rot_mat = glm::rotate(glm::mat4(1.0f), EdgeArchAngle * (j + 1), glm::vec3(0, 1, 0));
+		EdgeArchRadiusVec = glm::vec3(glm::vec4(EdgeArchRadiusVec, 1.0f) * rot_mat);
 	}
-	
+
+	/*
+	//bottom vertex attributes
+	int Offset = Vertices.size() - m_TopVertices.size() * 6;
+	std::vector<float> BottomVertices;
+
+	for (size_t i = Offset; i < Vertices.size(); i += 6)
+	{
+		BottomVertices.push_back(Vertices[i]);
+		BottomVertices.push_back(Vertices[i + 1]);
+		BottomVertices.push_back(-0.5f);
+
+		BottomVertices.push_back(Vertices[i + 3]);
+		BottomVertices.push_back(Vertices[i + 4]);
+		BottomVertices.push_back(0.f);
+	}
+
+	Vertices.insert(Vertices.end(), std::make_move_iterator(BottomVertices.begin()), std::make_move_iterator(BottomVertices.end()));
+	*/
 	std::vector<unsigned int> Indices;
 
 	//top indices
-	for (size_t i = 0; i < m_TopVertices.size(); ++i)
+	for (size_t i = 1; i < m_TopVertices.size(); ++i)
 	{
 		Indices.push_back(i + 1);
 		Indices.push_back(i);
 		Indices.push_back(0);
 	}
+
 	
 	Indices.push_back(1);
 	Indices.push_back(m_TopVertices.size());
 	Indices.push_back(0);
 	
-	//side indices
-	int Offset = m_TopVertices.size() + 1;
-
-	for (size_t i = 0; i < (m_TopVertices.size() - 1) * 2 + 2; ++i)
+	//rounded edge indices
+	for (size_t j = 0; j < m_EdgeLod; ++j)
 	{
-		Indices.push_back((i % 2) ? Offset + i : Offset + i + 2);
-		Indices.push_back(Offset + i + 1);
-		Indices.push_back((i % 2) ? Offset + i + 2 : Offset + i);
-	}
+		int CurrRowOffset = j * m_TopVertices.size() + 1;
+		int NextRowOffset = (j + 1) * m_TopVertices.size() + 1;
 
+		for (size_t i = 0; i < m_TopVertices.size() - 1; ++i)
+		{
+			Indices.push_back(i + CurrRowOffset);
+			Indices.push_back(i + CurrRowOffset + 1);
+			Indices.push_back(i + NextRowOffset);
+
+			Indices.push_back(i + NextRowOffset + 1);
+			Indices.push_back(i + NextRowOffset);
+			Indices.push_back(i + CurrRowOffset + 1);
+		}
+
+		Indices.push_back(CurrRowOffset);
+		Indices.push_back(NextRowOffset + 1 + m_TopVertices.size() - 2);
+		Indices.push_back(CurrRowOffset + 1 + m_TopVertices.size() - 2);
+
+		Indices.push_back(CurrRowOffset);
+		Indices.push_back(NextRowOffset);
+		Indices.push_back(NextRowOffset + 1 + m_TopVertices.size() - 2);
+	}
+	
 	m_IndexCount = Indices.size();
 
 	glGenBuffers(1, (GLuint*)&m_IndexBufferId);
@@ -186,31 +196,96 @@ void CRoundedBoxColorData::SetTexturePositions(float topTextLeft, float topTextT
 void CRoundedBoxColorData::GenerateTextureCoordBuffer(const std::vector<glm::vec3>& vertexPositions)
 {
 	int TileCount;
+	int SideLOD;
+	int EdgeLOD;
+	float SideRadius;
+	float EdgeRadius;
+	
 	CConfig::GetConfig("tile_count", TileCount);
+	CConfig::GetConfig("letter_side_lod", SideLOD);
+	CConfig::GetConfig("letter_side_radius", SideRadius);
+	CConfig::GetConfig("letter_edge_lod", EdgeLOD);
+	CConfig::GetConfig("letter_edge_radius", EdgeRadius);
 
 
 	//TODO a tile texturanal az y - ok tukrozve vannak - javitani (meg kell nezni egy szabalyos texturaval hogy latszodjon a hiba)
 	//TODO reserve texcoordbuffer
 	std::vector<float> TexCoordBuffer;
 
-	float TextWidth = m_TopTextureRight - m_TopTextureLeft;
-	float TextHeight = m_TopTextureTop - m_TopTextureBottom;
+	float TextWidth = (m_TopTextureRight - m_TopTextureLeft) / m_GridXSize;
+	float TextHeight = (m_TopTextureTop - m_TopTextureBottom) / m_GridYSize;
+
+	//calculate top texture distances
+	glm::vec3 EdgeArchRadiusVec = glm::vec3(0.f, 0.f, EdgeRadius);
+	float EdgeArchAngle = glm::radians(90.f / EdgeLOD);
+
+	std::vector<std::vector<float>> DistList(vertexPositions.size());
+	std::vector<float> DistFromOrigo;
+	std::vector<glm::vec3> PrevVertexList;
+	std::vector<glm::vec3> PrevVertexListTmp;
+
+
+	for (size_t j = 0; j <= EdgeLOD; ++j)
+	{
+		PrevVertexListTmp = PrevVertexList;
+		PrevVertexList.clear();
+
+		for (size_t i = 0; i < vertexPositions.size(); ++i)
+		{
+			glm::vec3 PrevVertex;
+
+			if (j == 0)
+				PrevVertex = glm::vec3(0.f, 0.f, .5f);
+			else
+				PrevVertex = PrevVertexListTmp[i];
+
+			glm::vec2 OffsetVecDir = glm::normalize(glm::vec2(vertexPositions[i].x, vertexPositions[i].y)) * glm::length(glm::vec2(EdgeArchRadiusVec.x, EdgeArchRadiusVec.y));
+			glm::vec3 CurrVertex(vertexPositions[i].x + OffsetVecDir.x, vertexPositions[i].y + OffsetVecDir.y, 0.5f - EdgeRadius + EdgeArchRadiusVec.z);
+			float Dist = glm::length(CurrVertex - PrevVertex);
+			float PrevDist = DistList[i].size() ? DistList[i].back() : 0.f;
+			DistList[i].push_back(PrevDist + Dist);
+			PrevVertexList.push_back(CurrVertex);
+
+			//create DistFromOrigo list
+			if (j == EdgeLOD)
+			{
+				OffsetVecDir = glm::normalize(glm::vec2(vertexPositions[i].x, vertexPositions[i].y)) * glm::length(glm::vec2(EdgeArchRadiusVec.x, EdgeArchRadiusVec.y));
+				DistFromOrigo.push_back(glm::length(glm::vec2(vertexPositions[i].x, vertexPositions[i].y) + OffsetVecDir));
+			}
+		}
+
+		EdgeArchRadiusVec = glm::vec3(0.f, 0.f, EdgeRadius);
+		glm::mat4 rot_mat = glm::rotate(glm::mat4(1.0f), EdgeArchAngle * (j + 1), glm::vec3(0, 1, 0));
+		EdgeArchRadiusVec = glm::vec3(glm::vec4(EdgeArchRadiusVec, 1.0f) * rot_mat);
+
+	}
+
 
 	for (unsigned y = 0; y < m_GridYSize; ++y) 
 	{
 		for (unsigned x = 0; x < m_GridXSize; ++x)
 		{
 			//tex coordinates for midle of top side
-			TexCoordBuffer.push_back(x * TextWidth + m_TopTextureLeft + TextWidth / 2.f);
-			TexCoordBuffer.push_back(y * TextHeight + m_TopTextureBottom + TextHeight / 2.f);
+			TexCoordBuffer.push_back(m_TopTextureLeft + x * TextWidth + TextWidth / 2.f);
+			TexCoordBuffer.push_back(m_TopTextureBottom + y * TextHeight + TextHeight / 2.f);
 
 			//tex coordinates for top
-			for (size_t i = 0; i < vertexPositions.size(); ++i)
+			for (size_t j = 0; j <= EdgeLOD; ++j)
 			{
-				TexCoordBuffer.push_back(x * TextWidth + m_TopTextureLeft + TextWidth * (vertexPositions[i].x + .5f));
-				TexCoordBuffer.push_back(y * TextHeight + m_TopTextureBottom + TextHeight * (vertexPositions[i].y + .5f));
-			}
+				for (size_t i = 0; i < vertexPositions.size(); ++i)
+				{
+					float DistSum = DistList[i].back();
+					float CurrDist = (DistList[i][j] / DistSum) * DistFromOrigo[i];
+					glm::vec2 OffsetVecDir = glm::normalize(glm::vec2(vertexPositions[i].x, vertexPositions[i].y)) * CurrDist;
 
+					TexCoordBuffer.push_back(m_TopTextureLeft + float(x) * TextWidth + (OffsetVecDir.x + .5f) * TextWidth);
+					TexCoordBuffer.push_back(m_TopTextureBottom + float(y) * TextHeight +  (OffsetVecDir.y + .5f) * TextHeight);
+				}
+			}
+			if (m_Offset == 0)
+				m_Offset = TexCoordBuffer.size();
+
+			/*
 			//tex coordinates for side
 			float CurrLength = 0;
 			float SideLength = 0;
@@ -238,7 +313,7 @@ void CRoundedBoxColorData::GenerateTextureCoordBuffer(const std::vector<glm::vec
 
 			if (m_Offset == 0)
 				m_Offset = TexCoordBuffer.size();
-
+*/
 		}
 
 	}

@@ -10,20 +10,24 @@ class CRoundedBoxPositionData : public CModelPositionData
 {
 public:
 	
-	CRoundedBoxPositionData(int lod, float radius) :
-		m_LOD(lod), 
-		m_Radius(radius)
+	CRoundedBoxPositionData(int sideLod, float sideRadius, int edgeLod, float edgeRadius) :
+		m_SideLOD(sideLod),
+		m_SideRadius(sideRadius),
+		m_EdgeLod(edgeLod),
+		m_EdgeRadius(edgeRadius)
 	{}
 
 	void GeneratePositionBuffer() override;
-	void GenerateRoundedBoxVertices(std::vector<glm::vec2>* sideNormals = nullptr);
+	void GenerateRoundedBoxVertices();
 
 	std::vector<glm::vec3>& GetTopVertices() { return m_TopVertices; }
 
 private:
 
-	int m_LOD;
-	float m_Radius;
+	int m_SideLOD;
+	int m_EdgeLod;
+	float m_SideRadius;
+	float m_EdgeRadius;
 
 	static std::vector<glm::vec3> m_TopVertices;
 };

@@ -935,7 +935,7 @@ void CGameManager::InitUIManager()
 	ShowFps &= ConfigFound;
 
 	m_UIManager = new CUIManager(this, m_TimerEventManager);
-	m_UIManager->InitUIElements(m_Renderer->GetSquarePositionData(), m_Renderer->GetSquareColorData(), m_Renderer->GetSquareColorGridData8x8(), m_Renderer->GetSquareColorGridData8x4());
+	m_UIManager->InitUIElements(m_Renderer->GetSquarePositionData(), m_Renderer->GetSquareColorData(), m_Renderer->GetSquareColorGridData16x6(), m_Renderer->GetSquareColorGridData8x4());
 
 	if (ShowFps)
 		m_UIManager->SetText(L"ui_fps_text", L"fps : 0");
