@@ -15,7 +15,6 @@
 #include "opengl.h"
 #include "RoundedBoxModelData.h"
 #include "SquareModelData.h"
-#include "BoardTilesModelData.h"
 #include "BoardTiles.h"
 #include "ShaderManager.h"
 #include "Timer.h"
@@ -183,7 +182,7 @@ CLetterModel* CRenderer::AddLetterToBoard(int x, int y, wchar_t c, float height,
 
 	int LetterCount = m_GameManager->Board(x, TileCount - y - 1).m_Height;
 
-	m_LettersOnBoard.push_back(new CLetterModel(m_LetterColorData->m_Offset * m_LetterTexPos[c].y * 8 + m_LetterColorData->m_Offset * m_LetterTexPos[c].x, x, y, c, m_RoundedBoxPositionData, m_LetterColorData));
+	m_LettersOnBoard.push_back(new CLetterModel(m_LetterColorData->m_Offset * m_LetterTexPos[c].y * 8 + m_LetterColorData->m_Offset * m_LetterTexPos[c].x, x, y, c, m_LetterPositionData, m_LetterColorData));
 	m_LettersOnBoard.back()->SetParent(m_BoardModel);
 	m_LettersOnBoard.back()->ResetMatrix();
 
@@ -193,7 +192,6 @@ CLetterModel* CRenderer::AddLetterToBoard(int x, int y, wchar_t c, float height,
 	float SelectionZ = BoardHeight;
 
 	m_LettersOnBoard.back()->Translate(glm::vec3(SelectionX, SelectionY, setHeight ? height : BoardHeight + LetterCount * LetterHeight + LetterHeight / 2));
-	m_LettersOnBoard.back()->Scale(glm::vec3(Size, Size, LetterHeight));
 
 	return m_LettersOnBoard.back();
 }
@@ -668,38 +666,18 @@ bool CRenderer::StartInit()
 
 	float LetterHeight;
 	float BoardHeight;
-
+	
 	CConfig::GetConfig("letter_height", LetterHeight);
 	CConfig::GetConfig("board_height", BoardHeight);
 
 	CConfig::AddConfig("camera_min_height", BoardHeight / 2.f + LetterHeight * 5.f + 2.5f);
-
+	
+	//TODO config!!!!
 	CConfig::AddConfig("letter_side_lod", 5);
 	CConfig::AddConfig("letter_side_radius", 0.1f);
-
 	CConfig::AddConfig("letter_edge_lod", 5);
-	CConfig::AddConfig("letter_edge_radius", 0.15f);
-
-	m_RoundedBoxPositionData = std::make_shared<CRoundedBoxPositionDataTop>(5, 0.1f, 5, 0.15f); //TODO config
-	m_RoundedBoxPositionData->GeneratePositionBuffer();
-
-	std::vector<glm::vec3> Inner = m_RoundedBoxPositionData->GetTopVertices(true);
-	std::vector<glm::vec3> Outer = m_RoundedBoxPositionData->GetTopVertices(false);
-	std::vector<glm::vec3> Connected;
-
-	for (size_t i = 0; i < Inner.size() * 2; ++i)
-	{
-		size_t idx = i < Inner.size() ? i : i - Inner.size();
-		glm::vec3& Vertex = i < Inner.size() ? Inner[i] : Outer[i - Inner.size()];
-		Connected.push_back(Vertex);
-	}
-
-	m_LetterColorData = std::make_shared<CRoundedBoxColorDataTop>(0.f, 1.f / 2.f, 1.f, 0.f, 0.f, .7f, 1.f, .5f, 8, 4);
-	m_LetterColorData->GenerateTextureCoordBuffer(Connected);
-
-	m_RoundedSquarePositionData = std::make_shared<CRoundedSquarePositionData>(5, 0.15f);
-	m_RoundedSquarePositionData->GenerateRoundedBoxVertices();
-	m_RoundedSquarePositionData->GeneratePositionBuffer();
+	CConfig::AddConfig("letter_edge_radius", .09f);
+	
 
 	m_SquarePositionData = std::make_shared<CSquarePositionData>();
 	m_SquarePositionData->GeneratePositionBuffer();
@@ -726,7 +704,6 @@ bool CRenderer::StartInit()
 	SetTextColor(1, 1, 1);
 
 	AddView("board_perspecive", 0, 0, m_ScreenHeight, m_ScreenHeight);
-	FittBoardToView(false);
 
 	AddView("view_ortho", 0, 0, m_ScreenWidth, m_ScreenHeight);
 	m_Views["view_ortho"]->InitCamera(glm::vec3(m_ScreenWidth / 2, m_ScreenHeight / 2, 10.f), glm::vec3(m_ScreenWidth / 2, m_ScreenHeight / 2, 0.f), glm::vec3(0, 1, 0));
@@ -757,6 +734,43 @@ bool CRenderer::StartInit()
 	return true;
 }
 
+float CRenderer::SetBoardSize()
+{
+	float TileGap;
+	float TileSize;
+	int TileCount;
+	float BoardHeight;
+
+	CConfig::GetConfig("board_height", BoardHeight);
+	CConfig::GetConfig("tile_gap", TileGap);
+	CConfig::GetConfig("tile_count", TileCount);
+	CConfig::GetConfig("tile_size", TileSize);
+
+	float BoardSize = ((TileCount + 1) * TileGap + TileCount * TileSize) / 2.f;
+	CConfig::AddConfig("board_size", BoardSize);
+	
+	return BoardSize;
+}
+
+/*
+float CRenderer::SetTileSize()
+{
+	float TileGap;
+	float BoardSize;
+	int TileCount;
+
+	CConfig::GetConfig("tile_gap", TileGap);
+	CConfig::GetConfig("tile_count", TileCount);
+	CConfig::GetConfig("board_size", BoardSize);
+
+	float SquareSize = (2 * BoardSize - ((TileCount + 1) * TileGap)) / TileCount;
+
+	CConfig::AddConfig("tile_size", SquareSize);
+
+	return SquareSize;
+}
+*/
+
 void CRenderer::ClearResources()
 {
 	//delete letters on board //TODO wordanimationban meg van egy hivatkozas a CLettermodellre!!!
@@ -765,7 +779,7 @@ void CRenderer::ClearResources()
 
 	m_LettersOnBoard.clear();
 
-	m_RoundedBoxPositionData.reset();
+	m_LetterPositionData.reset();
 	m_LetterColorData.reset();
 
 	//delete board / board tiles / selection
@@ -773,7 +787,6 @@ void CRenderer::ClearResources()
 	delete m_SelectionModel;
 	delete m_BoardModel;
 
-	m_BoardTilesPositionData.reset();
 	m_RoundedSquarePositionData.reset();
 	
 	//remove ui elements
@@ -785,14 +798,49 @@ void CRenderer::ClearResources()
 
 bool CRenderer::EndInit()
 {
-	m_BoardTilesPositionData = std::make_shared<CBoardTilesPositionData>(m_RoundedSquarePositionData);
-	m_BoardTilesPositionData->GeneratePositionBuffer();
+	float LetterHeight;
+	float TileSize;
 
-	m_BoardTilesTextureData = std::make_shared<CBoardTilesTextureData>();
-	m_BoardTilesTextureData->GenerateTextureCoordBuffer(m_RoundedSquarePositionData->GetVertices());
+	CConfig::GetConfig("letter_height", LetterHeight);
+	CConfig::GetConfig("tile_size", TileSize);
 
+	m_RoundedSquarePositionData = std::make_shared<CRoundedSquarePositionData>(TileSize);
+	m_RoundedSquarePositionData->GeneratePositionBuffer();
+
+	m_LetterPositionData = std::make_shared<CRoundedBoxPositionData>(TileSize, LetterHeight, .09f); 
+	m_LetterPositionData->GeneratePositionBuffer();
+
+	std::vector<glm::vec3> Inner = m_LetterPositionData->GetTopVertices(true);
+	std::vector<glm::vec3> Outer = m_LetterPositionData->GetTopVertices(false);
+	std::vector<glm::vec3> Connected;
+
+	for (size_t i = 0; i < Inner.size() * 2; ++i)
+	{
+		size_t idx = i < Inner.size() ? i : i - Inner.size();
+		glm::vec3& Vertex = i < Inner.size() ? Inner[i] : Outer[i - Inner.size()];
+		Connected.push_back(Vertex);
+	}
+
+	m_LetterColorData = std::make_shared<CRoundedBoxColorData>(0.f, 1.f / 2.f, 1.f, 0.f, 0.f, .7f, 1.f, .5f, 8, 4, .09f);
+	m_LetterColorData->GenerateTextureCoordBuffer(Connected);
+
+	float TileHeight;
+	int TileCount;
+
+	CConfig::GetConfig("tile_height", TileHeight);
+	CConfig::GetConfig("tile_count", TileCount);
+
+	m_TilePositionData = std::make_shared<CRoundedBoxPositionData>(TileSize, TileHeight, .05f);
+	m_TilePositionData->GeneratePositionBuffer();
+
+	m_TileColorData = std::make_shared<CRoundedBoxColorData>(0.f, 1.f, 1.f, 1.f / 8.f, 0.f, 1.f / 8.f, 1.f, .0f, TileCount, TileCount, .02f);
+	m_TileColorData->GenerateTextureCoordBuffer(Connected);
+
+	SetBoardSize();
 	m_BoardModel = new CBoardBaseModel();
-	m_BoardTiles = new CBoardTiles(m_BoardTilesPositionData, m_BoardTilesTextureData, m_BoardModel);
+	m_BoardTiles = new CBoardTiles(TileCount, this, m_GameManager, m_BoardModel);
+
+	FittBoardToView(false);
 
 	m_SelectionModel = new CSelectionModel(m_RoundedSquarePositionData);
 	m_SelectionModel->SetParent(m_BoardModel);
@@ -958,8 +1006,9 @@ void CRenderer::Render()
 	int idx = 0;
 
 	CTimer::Start();
-	DrawModel(m_BoardTiles, "board_perspecive", "per_pixel_light_textured", true);
+	m_BoardTiles->RenderTiles();
 	t = CTimer::GetTime();
+
 
 	if (m_SelectionVisible)
 	{
@@ -972,4 +1021,5 @@ void CRenderer::Render()
 
 		DrawSelection(Color, m_SelectionX, m_SelectionY);
 	}
+
 }

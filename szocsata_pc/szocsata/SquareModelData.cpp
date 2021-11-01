@@ -1,29 +1,32 @@
 #include "stdafx.h"
 #include "SquareModelData.h"
+#include "Config.h"
 
 #define GL_GLEXT_PROTOTYPES 1
 #define GL3_PROTOTYPES 1
 #include <GLES3\gl3.h>
 
-void CRoundedSquarePositionData::GenerateRoundedBoxVertices()
+void CRoundedSquarePositionData::GenerateVertices(std::vector<float>& vertices)
 {
-	m_Vertices.clear();
+	int SideLOD;
+	float SideRadius;
 
-	float size = 1.f;
+	CConfig::GetConfig("letter_side_lod", SideLOD);
+	CConfig::GetConfig("letter_side_radius", SideRadius);
 
-	m_Vertices.reserve((m_LOD + 2) * 4);
+	//TODO vertices reserve!!
+	glm::vec3 ArchOrigo(-0.5f * m_Size + SideRadius, -0.5f * m_Size + SideRadius, 0.f);
+	glm::vec3 ArchRadiusVec = glm::vec3(-SideRadius, 0.f, 0.f);
 
-	glm::vec3 ArchOrigo(-0.5f * size + m_Radius, -0.5f * size + m_Radius, 0.f);
-	glm::vec3 ArchRadiusVec = glm::vec3(-m_Radius, 0.f, 0.f);
-
-	float Angle = glm::radians(90.f / (m_LOD + 1));
+	float Angle = glm::radians(90.f / (SideLOD + 1));
 
 	//top left corner
-	for (int i = 0; i < m_LOD + 2; ++i)
+	for (int i = 0; i < SideLOD + 2; ++i)
 	{
 		glm::vec3 VertexPos = ArchRadiusVec + ArchOrigo;
-		m_Vertices.push_back(VertexPos);
-		m_SideNormals.push_back(glm::normalize(ArchRadiusVec));
+		vertices.push_back(VertexPos.x);
+		vertices.push_back(VertexPos.y);
+		vertices.push_back(VertexPos.z);
 
 		float NewX = ArchRadiusVec.x * std::cosf(Angle) - ArchRadiusVec.y * std::sinf(Angle);
 		float NewY = ArchRadiusVec.x * std::sinf(Angle) + ArchRadiusVec.y * std::cosf(Angle);
@@ -32,59 +35,54 @@ void CRoundedSquarePositionData::GenerateRoundedBoxVertices()
 		ArchRadiusVec.y = NewY;
 	}
 
-
+	
 	//top right corner
-	for (int i = m_LOD + 1; i >= 0; --i)
+	int From = vertices.size() - 1;
+	for (int i = From; i >= 2; i -= 3)
 	{
-		glm::vec3 VertexPos = m_Vertices[i] * glm::vec3(-1.f, 1.f, 0.f);
-		m_Vertices.push_back(VertexPos);
-		glm::vec2 VertexNormal = m_SideNormals[i] * glm::vec2(-1.f, 1.f);
-		m_SideNormals.push_back(VertexNormal);
+		glm::vec3 VertexPos = glm::vec3(vertices[i - 2], vertices[i - 1], vertices[i]) * glm::vec3(-1.f, 1.f, 0.f);
+		vertices.push_back(VertexPos.x);
+		vertices.push_back(VertexPos.y);
+		vertices.push_back(VertexPos.z);
 	}
-
+	
 	//bottom right corner
-	int From = m_Vertices.size() - 1;
-	for (int i = From; i >= From - m_LOD - 1; --i)
+	From = vertices.size() - 1;
+	int To = From - SideLOD * 3;
+	for (int i = From; i >= To; i -= 3)
 	{
-		glm::vec3 VertexPos = m_Vertices[i] * glm::vec3(1.f, -1.f, 0.f);
-		m_Vertices.push_back(VertexPos);
-		glm::vec2 VertexNormal = m_SideNormals[i] * glm::vec2(1.f, -1.f);
-		m_SideNormals.push_back(VertexNormal);
+		glm::vec3 VertexPos = glm::vec3(vertices[i - 2], vertices[i - 1], vertices[i]) * glm::vec3(1.f, -1.f, 0.f);
+		vertices.push_back(VertexPos.x);
+		vertices.push_back(VertexPos.y);
+		vertices.push_back(VertexPos.z);
 	}
-
+	
 	//bottom left corner
-	From = m_Vertices.size() - 1;
-	for (int i = From; i >= From - m_LOD - 1; --i)
+	From = vertices.size() - 1;
+	To = From - SideLOD * 3 - 3;
+	for (int i = From; i >= To; i -= 3)
 	{
-		glm::vec3 VertexPos = m_Vertices[i] * glm::vec3(-1.f, 1.f, 0.f);
-		m_Vertices.push_back(VertexPos);
-		glm::vec2 VertexNormal = m_SideNormals[i] * glm::vec2(-1.f, 1.f);
-		m_SideNormals.push_back(VertexNormal);
+		glm::vec3 VertexPos = glm::vec3(vertices[i - 2], vertices[i - 1], vertices[i]) * glm::vec3(-1.f, 1.f, 0.f);
+		vertices.push_back(VertexPos.x);
+		vertices.push_back(VertexPos.y);
+		vertices.push_back(VertexPos.z);
 	}
+	
+	//origo
+	vertices.insert(vertices.begin(), 0.f);
+	vertices.insert(vertices.begin(), 0.f);
+	vertices.insert(vertices.begin(), 0.f);
 }
 
 void CRoundedSquarePositionData::GeneratePositionBuffer()
 {
 	std::vector<float> Vertices;
-	//TODO reserve
-
-	//origo
-	Vertices.push_back(0.f);
-	Vertices.push_back(0.f);
-	Vertices.push_back(0.f);
-
-	//top vertex attributes
-	for (size_t i = 0; i < m_Vertices.size(); ++i)
-	{
-		Vertices.push_back(m_Vertices[i].x);
-		Vertices.push_back(m_Vertices[i].y);
-		Vertices.push_back(0.f);
-	}
+	GenerateVertices(Vertices);
 
 	std::vector<unsigned int> Indices; //TODO reserve
 
 	//top indices
-	for (size_t i = 0; i < m_Vertices.size(); ++i)
+	for (size_t i = 0; i < Vertices.size(); ++i)
 	{
 		Indices.push_back(i + 1);
 		Indices.push_back(i);
@@ -93,7 +91,7 @@ void CRoundedSquarePositionData::GeneratePositionBuffer()
 
 	
 	Indices.push_back(1);
-	Indices.push_back(m_Vertices.size());
+	Indices.push_back(Vertices.size());
 	Indices.push_back(0);
 	
 	m_IndexCount = Indices.size();

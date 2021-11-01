@@ -35,6 +35,7 @@ char FragmentShaderPerPixel[] =
 "	float LightIntensity = max(dot(LightVector, NormalVector), 0.); \n"
 "	LightIntensity = LightIntensity * (1.0 / (Distance * Distance));\n"
 "	LightIntensity = min(1.0, LightIntensity);\n"
+"	LightIntensity = clamp(LightIntensity, 0.35, 1.0);\n"
 "	fragColour = texture(texSampler, fTexCoord) * LightIntensity;\n"
 "}";
 

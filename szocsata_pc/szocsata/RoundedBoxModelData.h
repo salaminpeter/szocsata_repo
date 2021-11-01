@@ -6,14 +6,13 @@
 
 #include <vector>
 
-class CRoundedBoxPositionDataTop : public CModelPositionData
+class CRoundedBoxPositionData : public CModelPositionData
 {
 public:
 	
-	CRoundedBoxPositionDataTop(int sideLod, float sideRadius, int edgeLod, float edgeRadius) :
-		m_SideLOD(sideLod),
-		m_SideRadius(sideRadius),
-		m_EdgeLod(edgeLod),
+	CRoundedBoxPositionData(float size, float height, float edgeRadius) :
+		m_Size(size),
+		m_Height(height),
 		m_EdgeRadius(edgeRadius)
 	{}
 
@@ -24,27 +23,19 @@ public:
 
 private:
 
-	int m_SideLOD;
-	int m_EdgeLod;
-	float m_SideRadius;
+	float m_Size;
+	float m_Height;
 	float m_EdgeRadius;
 
 	static std::vector<glm::vec2> m_TopVerticesInner;
 	static std::vector<glm::vec2> m_TopVerticesOuter;
 };
 
-class CRoundedBoxPositionDataSide : public CModelPositionData
-{
-public:
-};
-
-
-
-class CRoundedBoxColorDataTop : public CModelColorData
+class CRoundedBoxColorData : public CModelColorData
 {
 public:
 
-	CRoundedBoxColorDataTop(float topTextLeft, float topTextTop, float topTextRight, float topTextBottom, float sideTextLeft, float sideTextTop, float sideTextRight, float sideTextBottom, unsigned gridX, unsigned gridY) :
+	CRoundedBoxColorData(float topTextLeft, float topTextTop, float topTextRight, float topTextBottom, float sideTextLeft, float sideTextTop, float sideTextRight, float sideTextBottom, unsigned gridX, unsigned gridY, float edgeRadius) :
 		m_TopTextureLeft(topTextLeft),
 		m_TopTextureTop(topTextTop),
 		m_TopTextureRight(topTextRight),
@@ -54,10 +45,11 @@ public:
 		m_SideTextureRight(sideTextRight),
 		m_SideTextureBottom(sideTextBottom),
 		m_GridXSize(gridX),
-		m_GridYSize(gridY)
+		m_GridYSize(gridY),
+		m_EdgeRadius(edgeRadius)
 	{} //TODO kell ez a konstruktor??
 
-	CRoundedBoxColorDataTop() {}
+	CRoundedBoxColorData() {}
 
 	void SetTexturePositions(float topTextLeft, float topTextTop, float topTextRight, float topTextBottom, float sideTextLeft, float sideTextTop, float sideTextRight, float sideTextBottom);
 	void GenerateTextureCoordBuffer(const std::vector<glm::vec3>& vertexPositions) override;
@@ -76,4 +68,5 @@ private:
 	float m_SideTextureBottom;
 	unsigned m_GridXSize;
 	unsigned m_GridYSize;
+	float m_EdgeRadius;
 };

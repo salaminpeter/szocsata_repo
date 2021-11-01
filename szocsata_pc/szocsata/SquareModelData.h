@@ -11,24 +11,15 @@ class CRoundedSquarePositionData : public CModelPositionData
 {
 public:
 
-	CRoundedSquarePositionData(int lod, float radius) :
-		m_LOD(lod),
-		m_Radius(radius)
+	CRoundedSquarePositionData(float size) : m_Size(size)
 	{}
 
 	void GeneratePositionBuffer() override;
-	void GenerateRoundedBoxVertices();
-
-	std::vector<glm::vec3>& GetVertices() { return m_Vertices; }
-	std::vector<glm::vec2>& GetNormals() { return m_SideNormals; }
+	void GenerateVertices(std::vector<float>& vertices);
 
 private:
 
-	int m_LOD;
-	float m_Radius;
-
-	std::vector<glm::vec3> m_Vertices;
-	std::vector<glm::vec2> m_SideNormals;
+	float m_Size;
 };
 
 

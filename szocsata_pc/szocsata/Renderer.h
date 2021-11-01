@@ -18,8 +18,8 @@ class CGameManager;
 class CTileAnimationManager;
 class CGridLayout;
 class CTextureManager;
-class CRoundedBoxPositionDataTop;
-class CRoundedBoxColorDataTop;
+class CRoundedBoxPositionData;
+class CRoundedBoxColorData;
 class CRoundedSquarePositionData;
 class CSquarePositionData;
 class CSquareColorData;
@@ -75,6 +75,8 @@ public:
 	float GetOptimalToViewDistance(float fovY);
 	void CameraFitToViewAnim(float tilt, float rotation, float zoom, float move, const glm::vec2& dir);
 	void ClearResources();
+	//float SetTileSize();
+	float SetBoardSize();
 
 	void HideSelection(bool hide) { m_SelectionVisible = !hide; } //TODO setvisibleblabla... atirni
 	bool IsInited() { return m_Inited; }
@@ -87,6 +89,8 @@ public:
 	std::shared_ptr<CSquareColorData> GetSquareColorData() { return m_SquareColorData; }
 	std::shared_ptr<CSquareColorData> GetSquareColorGridData16x6() { return m_LetterTextureData16x6; }
 	std::shared_ptr<CSquareColorData> GetSquareColorGridData8x4() { return m_LetterTextureData8x4; }
+	std::shared_ptr<CRoundedBoxColorData> GetTileColorData() { return m_TileColorData; }
+	std::shared_ptr<CRoundedBoxPositionData> GetTilePositionData() { return m_TilePositionData; }
 
 private:
 
@@ -145,13 +149,13 @@ private:
 
 	CGameManager* m_GameManager;
 
-	std::shared_ptr<CRoundedBoxPositionDataTop> m_RoundedBoxPositionData;
-	std::shared_ptr<CRoundedBoxColorDataTop> m_LetterColorData;
+	std::shared_ptr<CRoundedBoxPositionData> m_LetterPositionData;
+	std::shared_ptr<CRoundedBoxColorData> m_LetterColorData;
+	std::shared_ptr<CRoundedBoxPositionData> m_TilePositionData;
+	std::shared_ptr<CRoundedBoxColorData> m_TileColorData;
 	std::shared_ptr<CRoundedSquarePositionData> m_RoundedSquarePositionData;
 	std::shared_ptr<CSquarePositionData> m_SquarePositionData;
 	std::shared_ptr<CSquareColorData> m_SquareColorData;
-	std::shared_ptr<CBoardTilesPositionData> m_BoardTilesPositionData;
-	std::shared_ptr<CBoardTilesTextureData> m_BoardTilesTextureData;
 	std::shared_ptr<CSquareColorData> m_LetterTextureData16x6;
 	std::shared_ptr<CSquareColorData> m_LetterTextureData8x4;
 

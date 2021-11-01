@@ -11,7 +11,7 @@
 
 #include <vector>
 
-CLetterModel::CLetterModel(unsigned textureOffset, int bx, int by, wchar_t c, std::shared_ptr<CRoundedBoxPositionDataTop> positionData, std::shared_ptr<CModelColorData> colorData) :
+CLetterModel::CLetterModel(unsigned textureOffset, int bx, int by, wchar_t c, std::shared_ptr<CRoundedBoxPositionData> positionData, std::shared_ptr<CModelColorData> colorData) :
 	CModel(true, 3, positionData, colorData, "letters.bmp", "per_pixel_light_textured"),
 	m_BoardX(bx),
 	m_BoardY(by),
@@ -20,10 +20,9 @@ CLetterModel::CLetterModel(unsigned textureOffset, int bx, int by, wchar_t c, st
 {
 }
 
-void CLetterModel::Position(float x, float y, float size)
+void CLetterModel::Position(float x, float y)
 {
 	ResetMatrix();
 	Translate(glm::vec3(x, y, 0.f));
-	Scale(glm::vec3(size, size, 1.f));
 }
 

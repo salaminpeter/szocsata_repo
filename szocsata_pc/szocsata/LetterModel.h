@@ -3,12 +3,12 @@
 #include <memory>
 #include "Model.h"
 
-class CRoundedBoxPositionDataTop;
+class CRoundedBoxPositionData;
 
 class CLetterModel : public CModel
 {
 public:
-	CLetterModel(unsigned textureOffset, int bx, int by, wchar_t c, std::shared_ptr<CRoundedBoxPositionDataTop> positionData, std::shared_ptr<CModelColorData> colorData);
+	CLetterModel(unsigned textureOffset, int bx, int by, wchar_t c, std::shared_ptr<CRoundedBoxPositionData> positionData, std::shared_ptr<CModelColorData> colorData);
 
 	bool Visible() {return m_Visible;}
 	void SetVisibility(bool visible) {m_Visible = visible;}
@@ -18,7 +18,7 @@ public:
 	float ZPos() { return m_ModelMatrixNoScale[3].z; }
 	unsigned TextureOffset() {return m_TextureOffset;}
 
-	void Position(float x, float y, float size);
+	void Position(float x, float y);
 
 	bool operator==(const CLetterModel& l) const {return m_Char == l.m_Char;}
 

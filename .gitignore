@@ -31,3 +31,6 @@ szocsata_pc/.vs/szocsata/v14/.suo
 szocsata_pc/.vs/szocsata/v14/.suo
 *.TMP
 szocsata_pc/.vs/szocsata/v14/.suo
+szocsata_pc/szocsata/GameManager.cpp~
+szocsata_pc/szocsata/BoardTilesModelData.cpp
+szocsata_pc/szocsata/BoardTilesModelData.h
