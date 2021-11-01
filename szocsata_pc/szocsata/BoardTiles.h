@@ -7,6 +7,7 @@
 #include "Model.h"
 
 class CRoundedBoxPositionData;
+class CSquarePositionData;
 class CRenderer;
 class CGameManager;
 
@@ -14,16 +15,21 @@ class CTileModel : public CModel
 {
 public:
 	
-	CTileModel(unsigned textureOffset, int bx, int by, std::shared_ptr<CRoundedBoxPositionData> positionData, std::shared_ptr<CModelColorData> colorData);
+	CTileModel(unsigned textureOffset, std::shared_ptr<CRoundedBoxPositionData> positionData, std::shared_ptr<CModelColorData> colorData);
 
 	unsigned TextureOffset() { return m_TextureOffset; }
 
 private:
 
-	int m_BoardX;
-	int m_BoardY;
-
 	unsigned m_TextureOffset;
+};
+
+
+class CTileShadowModel : public CModel
+{
+public:
+
+	CTileShadowModel(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CModelColorData> colorData);
 };
 
 class CBoardTiles
@@ -37,6 +43,7 @@ public:
 private:
 
 	std::vector<CTileModel> m_BoardTiles;
+	std::vector<CTileShadowModel> m_TileShadows;
 	CRenderer* m_Renderer;
 	CGameManager* m_GameManager;
 };

@@ -70,9 +70,6 @@ protected:
 	std::string m_TextureId;
 	std::string m_ShaderId;
 
-	unsigned long m_VertexBufferId;
-	unsigned long m_IndexBufferId;
-	unsigned m_IndexCount = 0;
 	float m_BoundingSphereRadius;
 	int m_VertexAttribCount;
 	bool m_UseNormals;

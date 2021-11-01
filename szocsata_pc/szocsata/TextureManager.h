@@ -17,6 +17,7 @@ private:
 	
 	void GenerateHeaderTexture();
 	void GenerateStartScreenBtnTexture(int w, int h, int r, glm::vec4 color);
+	void GenerateTileShadowTexture(int blur);
 
 private:
 	

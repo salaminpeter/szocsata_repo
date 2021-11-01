@@ -30,12 +30,12 @@ char FragmentShaderPerPixel[] =
 "uniform vec4 LightPosition; \n"
 "uniform float DistanceDivider; \n"
 "void main() {\n"
-"	float Distance = length(LightPosition - FragmentPosition) / DistanceDivider;\n"
+"	float Distance = length(LightPosition - FragmentPosition) / DistanceDivider;"
 "	vec4 LightVector = normalize(LightPosition - FragmentPosition);\n"
 "	float LightIntensity = max(dot(LightVector, NormalVector), 0.); \n"
 "	LightIntensity = LightIntensity * (1.0 / (Distance * Distance));\n"
 "	LightIntensity = min(1.0, LightIntensity);\n"
-"	LightIntensity = clamp(LightIntensity, 0.35, 1.0);\n"
+"	LightIntensity = clamp(LightIntensity, 0.35, 0.9);\n"
 "	fragColour = texture(texSampler, fTexCoord) * LightIntensity;\n"
 "}";
 
@@ -127,5 +127,5 @@ char FragmentShaderTexturedTransparent[] =
 "out vec4 fragColour;\n"
 "uniform sampler2D texSampler;\n"
 "void main() {\n"
-"   fragColour = vec4(texture(texSampler,fTexCoord).xyz,0.5);\n"
+"   fragColour = vec4(texture(texSampler,fTexCoord).rgb, 0.5);\n"
 "}";
