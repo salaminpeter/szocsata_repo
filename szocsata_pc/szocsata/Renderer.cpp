@@ -94,18 +94,14 @@ void CRenderer::PositionSelection(CModel* selectionModel, int x, int y)
 	CConfig::GetConfig("letter_height", LetterHeight);
 
 	glm::vec2 TilePos = m_BoardTiles->GetTilePosition(x, y);
-	float SizeInc = 0.f;
 	selectionModel->ResetMatrix();
 
 	if (int LettersOnTile = m_GameManager->Board(x, TileCount - y - 1).m_Height)
-	{
-		SizeInc = 0.045f;
 		selectionModel->Translate(glm::vec3(TilePos.x + TileGap, TilePos.y + TileGap, BoardHeight / 2.f + LettersOnTile * LetterHeight));
-	}
 	else
-		selectionModel->Translate(glm::vec3(TilePos.x + TileGap, TilePos.y + TileGap, BoardHeight / 2.f + TileHeight));
+		selectionModel->Translate(glm::vec3(TilePos.x + TileGap, TilePos.y + TileGap, BoardHeight / 2.f + TileHeight)); //ITT a selection hiba, rossz a z ertek!!! TODO
 
-	selectionModel->Scale(glm::vec3(TileSize + SizeInc, TileSize + SizeInc, 1.f));
+	selectionModel->Scale(glm::vec3(TileSize, TileSize, 1.f));
 }
 
 void CRenderer::DrawSelection(glm::vec4 color, int x, int y, bool bindBuffers, bool unbindBuffers)
@@ -114,7 +110,7 @@ void CRenderer::DrawSelection(glm::vec4 color, int x, int y, bool bindBuffers, b
 	{
 		glEnable(GL_BLEND);
 		glEnable(GL_POLYGON_OFFSET_FILL);
-		glPolygonOffset(-1, 1.0);
+		glPolygonOffset(-1, 1.1);
 	}
 
 	GLuint ColorID = m_ShaderManager->GetShaderVariableID("transparent_color", "Color");
@@ -728,6 +724,7 @@ bool CRenderer::StartInit()
 	m_TextureManager->AddTexture("book_icon.bmp", 4);
 	m_TextureManager->AddTexture("settings_icon.bmp", 4);
 	m_TextureManager->AddTexture("controller_icon.bmp", 4);
+	m_TextureManager->AddTexture("shadow.bmp", 4);
 
 	m_TextureManager->GenerateTextures();
 
@@ -830,7 +827,7 @@ bool CRenderer::EndInit()
 	CConfig::GetConfig("tile_height", TileHeight);
 	CConfig::GetConfig("tile_count", TileCount);
 
-	m_TilePositionData = std::make_shared<CRoundedBoxPositionData>(TileSize, TileHeight, .05f);
+	m_TilePositionData = std::make_shared<CRoundedBoxPositionData>(TileSize, TileHeight, .08f);
 	m_TilePositionData->GeneratePositionBuffer();
 
 	m_TileColorData = std::make_shared<CRoundedBoxColorData>(0.f, 1.f, 1.f, 1.f / 8.f, 0.f, 1.f / 8.f, 1.f, .0f, TileCount, TileCount, .02f);
@@ -844,15 +841,13 @@ bool CRenderer::EndInit()
 
 	m_SelectionModel = new CSelectionModel(m_RoundedSquarePositionData);
 	m_SelectionModel->SetParent(m_BoardModel);
-	//	m_LightPosition = glm::vec4(m_Views["board_perspecive"]->GetCameraPosition(), 1.f);
-	m_LightPosition = glm::vec4(-7.f, -7.f, 9.f, 1);
 	CalculateScreenSpaceGrid();
 
-//	/*TODO
+	/*TODO
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 	glFrontFace(GL_CW);
-//	*/
+	*/
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 
@@ -945,8 +940,8 @@ void CRenderer::SetLightPosition()
 {
 	glm::vec3 CameraLookAt = m_Views["board_perspecive"]->GetCameraLookAt();
 	glm::vec3 CameraPos = m_Views["board_perspecive"]->GetCameraPosition();
-	glm::vec3 PosOnBoard = CameraPos + CameraLookAt * std::fabs(CameraPos.z / CameraLookAt.z);
-	m_LightPosition = glm::vec4(PosOnBoard - CameraLookAt * 10.f, 0.f); //15.f config TODO
+	glm::vec3 PosOnBoard = glm::vec3(0.f, 0.f, 0.f);// CameraPos + CameraLookAt * std::fabs(CameraPos.z / CameraLookAt.z);
+	m_LightPosition = glm::vec4(PosOnBoard - CameraLookAt * 13.f, 1.f); //15.f config TODO
 }
 
 void CRenderer::DrawModel(CModel* model, const char* viewID, const char* shaderID, bool setLightPos, bool bindVertexBuffer, bool bindTextureBuffer, bool unbindBuffers, bool setTextureVertexAttrib, int textureOffset)
@@ -956,6 +951,8 @@ void CRenderer::DrawModel(CModel* model, const char* viewID, const char* shaderI
 
 	if (setLightPos)
 	{
+		glm::mat4 mnoscale = model->GetModelMatrixNoScale();
+		glm::mat4 mnoscaleinv = glm::inverse(mnoscale);
 		SetLightPosition();
 		glm::vec4 LightPosition = glm::inverse(model->GetModelMatrixNoScale()) * m_LightPosition;
 		GLuint LightPosId = m_ShaderManager->GetShaderVariableID(model->GetShaderId(), "LightPosition");
@@ -997,10 +994,21 @@ void CRenderer::Render()
 	glDepthMask(GL_TRUE);
 	glUniform1f(DistanceDividerID, 12.f);
 
+	int LastVisibleLetterIdx = 0;
+
+	for (size_t i = 0; i < m_LettersOnBoard.size(); ++i)
+	{
+		if (m_LettersOnBoard[i]->Visible())
+			LastVisibleLetterIdx = i;
+	}
+
+	bool BufferBound = false;
+	bool TextureBound = false;
+
 	for (unsigned i = 0; i < m_LettersOnBoard.size(); ++i)
 	{
 		if (m_LettersOnBoard[i]->Visible())
-			DrawModel(m_LettersOnBoard[i], "board_perspecive", "per_pixel_light_textured", true, i == 0, i == 0, i == m_LettersOnBoard.size() - 1, true, m_LettersOnBoard[i]->TextureOffset());
+			DrawModel(m_LettersOnBoard[i], "board_perspecive", "per_pixel_light_textured", !BufferBound, !BufferBound, !TextureBound, i == LastVisibleLetterIdx, true, m_LettersOnBoard[i]->TextureOffset());
 	}
 
 	int idx = 0;

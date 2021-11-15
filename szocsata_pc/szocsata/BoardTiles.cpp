@@ -15,7 +15,7 @@ CTileModel::CTileModel(unsigned textureOffset, std::shared_ptr<CRoundedBoxPositi
 }
 
 CTileShadowModel::CTileShadowModel(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CModelColorData> colorData) :
-	CModel(false, 3, positionData, colorData, "tile_shadow_generated", "textured")
+	CModel(false, 3, positionData, colorData, "shadow.bmp", "textured")
 {
 }
 
@@ -49,9 +49,9 @@ CBoardTiles::CBoardTiles(int tileCount, CRenderer* renderer, CGameManager* gameM
 			m_BoardTiles.back().ResetMatrix();
 
 			float Size = TileSize;
-			float PosX = -BoardSize + TileGap + TileGap * x + TileSize * x + Size / 2 - 0.02;
-			float PosY = -BoardSize + TileGap + TileGap * y + TileSize * y + Size / 2 - 0.02;
-			float PosZ = BoardHeight;
+			float PosX = -BoardSize + TileGap + TileGap * x + TileSize * x + Size / 2;
+			float PosY = -BoardSize + TileGap + TileGap * y + TileSize * y + Size / 2;
+			float PosZ = BoardHeight - 0.1;
 
 			m_BoardTiles.back().SetPosition(glm::vec3(PosX, PosY, PosZ));
 
@@ -81,8 +81,8 @@ void CBoardTiles::RenderTiles()
 
 	m_Renderer->SetTexturePos(glm::vec2(0.f, 0.f), false);
 
-	for (size_t i = 0; i < m_TileShadows.size(); ++i);
-	//	m_Renderer->DrawModel(&m_TileShadows[i], "board_perspecive", "textured", false);
+	for (size_t i = 0; i < m_TileShadows.size(); ++i)
+		m_Renderer->DrawModel(&m_TileShadows[i], "board_perspecive", "textured", false);
 
 	glDisable(GL_BLEND);
 	glEnable(GL_DEPTH);

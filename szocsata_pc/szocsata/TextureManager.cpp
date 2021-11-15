@@ -83,7 +83,6 @@ void CTextureManager::GenerateStartScreenBtnTexture(int w, int h, int r, glm::ve
 	m_Textures["start_scr_btn_texture_generated"] = NewTexture;
 }
 
-
 void CTextureManager::GenerateTextures()
 {
 	GenerateHeaderTexture();
