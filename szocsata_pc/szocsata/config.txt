@@ -1,12 +1,12 @@
 computer_step_delay = 1000
 tile_gap = 0.11
-tile_height = 0.07
+tile_height = 0.09
 tile_size = 0.87
 letter_height = 0.2
 board_height = 0.3
 best_word_count = 10
 game_difficulty = 0
-board_rotation_min = 20.0
+board_rotation_min = 40.0
 board_rotation_max = 90.0
 window_width = 2140
 window_height = 1080

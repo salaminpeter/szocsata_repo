@@ -51,7 +51,7 @@ CBoardTiles::CBoardTiles(int tileCount, CRenderer* renderer, CGameManager* gameM
 			float Size = TileSize;
 			float PosX = -BoardSize + TileGap + TileGap * x + TileSize * x + Size / 2;
 			float PosY = -BoardSize + TileGap + TileGap * y + TileSize * y + Size / 2;
-			float PosZ = BoardHeight - 0.1;
+			float PosZ = BoardHeight - 0.1; //TODO mi a lofasz ez a -0.1????
 
 			m_BoardTiles.back().SetPosition(glm::vec3(PosX, PosY, PosZ));
 

@@ -10,10 +10,13 @@ class CRoundedBoxPositionData : public CModelPositionData
 {
 public:
 	
-	CRoundedBoxPositionData(float size, float height, float edgeRadius) :
+	CRoundedBoxPositionData(float size, float height, int sideLOD, float sideRadius, int edgeLOD, float edgeRadius) :
 		m_Size(size),
 		m_Height(height),
-		m_EdgeRadius(edgeRadius)
+		m_EdgeRadius(edgeRadius),
+		m_EdgeLOD(edgeLOD),
+		m_SideRadius(sideRadius),
+		m_SideLOD(sideLOD)
 	{}
 
 	void GeneratePositionBuffer() override;
@@ -26,16 +29,19 @@ private:
 	float m_Size;
 	float m_Height;
 	float m_EdgeRadius;
+	int m_EdgeLOD;
+	float m_SideRadius;
+	int m_SideLOD;
 
-	static std::vector<glm::vec2> m_TopVerticesInner;
-	static std::vector<glm::vec2> m_TopVerticesOuter;
+	std::vector<glm::vec2> m_TopVerticesInner;
+	std::vector<glm::vec2> m_TopVerticesOuter;
 };
 
 class CRoundedBoxColorData : public CModelColorData
 {
 public:
 
-	CRoundedBoxColorData(float topTextLeft, float topTextTop, float topTextRight, float topTextBottom, float sideTextLeft, float sideTextTop, float sideTextRight, float sideTextBottom, unsigned gridX, unsigned gridY, float edgeRadius) :
+	CRoundedBoxColorData(float topTextLeft, float topTextTop, float topTextRight, float topTextBottom, float sideTextLeft, float sideTextTop, float sideTextRight, float sideTextBottom, unsigned gridX, unsigned gridY, int sideLOD, float sideRadius, int edgeLOD, float edgeRadius) :
 		m_TopTextureLeft(topTextLeft),
 		m_TopTextureTop(topTextTop),
 		m_TopTextureRight(topTextRight),
@@ -46,8 +52,11 @@ public:
 		m_SideTextureBottom(sideTextBottom),
 		m_GridXSize(gridX),
 		m_GridYSize(gridY),
-		m_EdgeRadius(edgeRadius)
-	{} //TODO kell ez a konstruktor??
+		m_EdgeRadius(edgeRadius),
+		m_EdgeLOD(edgeLOD),
+		m_SideRadius(sideRadius),
+		m_SideLOD(sideLOD)
+		{} //TODO kell ez a konstruktor??
 
 	CRoundedBoxColorData() {}
 
@@ -69,4 +78,7 @@ private:
 	unsigned m_GridXSize;
 	unsigned m_GridYSize;
 	float m_EdgeRadius;
+	int m_EdgeLOD;
+	float m_SideRadius;
+	int m_SideLOD;
 };

@@ -673,7 +673,11 @@ bool CRenderer::StartInit()
 	CConfig::AddConfig("letter_side_radius", 0.1f);
 	CConfig::AddConfig("letter_edge_lod", 5);
 	CConfig::AddConfig("letter_edge_radius", .09f);
-	
+	CConfig::AddConfig("tile_side_lod", 5);
+	CConfig::AddConfig("tile_side_radius", .1f);
+	CConfig::AddConfig("tile_edge_lod", 5);
+	CConfig::AddConfig("tile_edge_radius", .09f);
+
 
 	m_SquarePositionData = std::make_shared<CSquarePositionData>();
 	m_SquarePositionData->GeneratePositionBuffer();
@@ -749,25 +753,6 @@ float CRenderer::SetBoardSize()
 	return BoardSize;
 }
 
-/*
-float CRenderer::SetTileSize()
-{
-	float TileGap;
-	float BoardSize;
-	int TileCount;
-
-	CConfig::GetConfig("tile_gap", TileGap);
-	CConfig::GetConfig("tile_count", TileCount);
-	CConfig::GetConfig("board_size", BoardSize);
-
-	float SquareSize = (2 * BoardSize - ((TileCount + 1) * TileGap)) / TileCount;
-
-	CConfig::AddConfig("tile_size", SquareSize);
-
-	return SquareSize;
-}
-*/
-
 void CRenderer::ClearResources()
 {
 	//delete letters on board //TODO wordanimationban meg van egy hivatkozas a CLettermodellre!!!
@@ -797,14 +782,37 @@ bool CRenderer::EndInit()
 {
 	float LetterHeight;
 	float TileSize;
+	int LetterSideLOD;
+	int LetterEdgeLOD;
+	float LetterSideRadius;
+	float LetterEdgeRadius;
+	int TileSideLOD;
+	int TileEdgeLOD;
+	float TileSideRadius;
+	float TileEdgeRadius;
+	float TileHeight;
+	int TileCount;
+
+	CConfig::GetConfig("tile_height", TileHeight);
+	CConfig::GetConfig("tile_count", TileCount);
 
 	CConfig::GetConfig("letter_height", LetterHeight);
 	CConfig::GetConfig("tile_size", TileSize);
 
+	CConfig::GetConfig("letter_side_lod", LetterSideLOD);
+	CConfig::GetConfig("letter_side_radius", LetterSideRadius);
+	CConfig::GetConfig("letter_edge_lod", LetterEdgeLOD);
+	CConfig::GetConfig("letter_edge_radius", LetterEdgeRadius);
+
+	CConfig::GetConfig("tile_side_lod", TileSideLOD);
+	CConfig::GetConfig("tile_side_radius", TileSideRadius);
+	CConfig::GetConfig("tile_edge_lod", TileEdgeLOD);
+	CConfig::GetConfig("tile_edge_radius", TileEdgeRadius);
+
 	m_RoundedSquarePositionData = std::make_shared<CRoundedSquarePositionData>(TileSize);
 	m_RoundedSquarePositionData->GeneratePositionBuffer();
 
-	m_LetterPositionData = std::make_shared<CRoundedBoxPositionData>(TileSize, LetterHeight, .09f); 
+	m_LetterPositionData = std::make_shared<CRoundedBoxPositionData>(TileSize, LetterHeight, LetterSideLOD, LetterSideRadius, LetterEdgeLOD, LetterEdgeRadius); 
 	m_LetterPositionData->GeneratePositionBuffer();
 
 	std::vector<glm::vec3> Inner = m_LetterPositionData->GetTopVertices(true);
@@ -813,24 +821,27 @@ bool CRenderer::EndInit()
 
 	for (size_t i = 0; i < Inner.size() * 2; ++i)
 	{
-		size_t idx = i < Inner.size() ? i : i - Inner.size();
 		glm::vec3& Vertex = i < Inner.size() ? Inner[i] : Outer[i - Inner.size()];
 		Connected.push_back(Vertex);
 	}
 
-	m_LetterColorData = std::make_shared<CRoundedBoxColorData>(0.f, 1.f / 2.f, 1.f, 0.f, 0.f, .7f, 1.f, .5f, 8, 4, .09f);
+	m_LetterColorData = std::make_shared<CRoundedBoxColorData>(0.f, 8.f / 9.f, 1.f, 0.f, 0.f, 1.f, 1.f, 8.f / 9.f, 8, 4, LetterSideLOD, LetterSideRadius, LetterEdgeLOD, LetterEdgeRadius);
 	m_LetterColorData->GenerateTextureCoordBuffer(Connected);
 
-	float TileHeight;
-	int TileCount;
-
-	CConfig::GetConfig("tile_height", TileHeight);
-	CConfig::GetConfig("tile_count", TileCount);
-
-	m_TilePositionData = std::make_shared<CRoundedBoxPositionData>(TileSize, TileHeight, .08f);
+	m_TilePositionData = std::make_shared<CRoundedBoxPositionData>(TileSize, TileHeight, TileSideLOD, TileSideRadius, TileEdgeLOD, TileEdgeRadius);
 	m_TilePositionData->GeneratePositionBuffer();
 
-	m_TileColorData = std::make_shared<CRoundedBoxColorData>(0.f, 1.f, 1.f, 1.f / 8.f, 0.f, 1.f / 8.f, 1.f, .0f, TileCount, TileCount, .02f);
+	Inner = m_TilePositionData->GetTopVertices(true);
+	Outer = m_TilePositionData->GetTopVertices(false);
+	Connected.clear();
+
+	for (size_t i = 0; i < Inner.size() * 2; ++i)
+	{
+		glm::vec3& Vertex = i < Inner.size() ? Inner[i] : Outer[i - Inner.size()];
+		Connected.push_back(Vertex);
+	}
+
+	m_TileColorData = std::make_shared<CRoundedBoxColorData>(0.f, 1.f, 1.f, 1.f / 8.f, 0.f, 1.f / 8.f, 1.f, .0f, TileCount, TileCount, TileSideLOD, TileSideRadius, TileEdgeLOD, TileEdgeRadius);
 	m_TileColorData->GenerateTextureCoordBuffer(Connected);
 
 	SetBoardSize();
@@ -940,7 +951,7 @@ void CRenderer::SetLightPosition()
 {
 	glm::vec3 CameraLookAt = m_Views["board_perspecive"]->GetCameraLookAt();
 	glm::vec3 CameraPos = m_Views["board_perspecive"]->GetCameraPosition();
-	glm::vec3 PosOnBoard = glm::vec3(0.f, 0.f, 0.f);// CameraPos + CameraLookAt * std::fabs(CameraPos.z / CameraLookAt.z);
+	glm::vec3 PosOnBoard = CameraPos + CameraLookAt * std::fabs(CameraPos.z / CameraLookAt.z);
 	m_LightPosition = glm::vec4(PosOnBoard - CameraLookAt * 13.f, 1.f); //15.f config TODO
 }
 
