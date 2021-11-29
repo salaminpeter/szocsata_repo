@@ -99,7 +99,7 @@ void CRenderer::PositionSelection(CModel* selectionModel, int x, int y)
 	if (int LettersOnTile = m_GameManager->Board(x, TileCount - y - 1).m_Height)
 		selectionModel->Translate(glm::vec3(TilePos.x + TileGap, TilePos.y + TileGap, BoardHeight / 2.f + LettersOnTile * LetterHeight));
 	else
-		selectionModel->Translate(glm::vec3(TilePos.x + TileGap, TilePos.y + TileGap, BoardHeight / 2.f + TileHeight)); //ITT a selection hiba, rossz a z ertek!!! TODO
+		selectionModel->Translate(glm::vec3(TilePos.x + TileGap, TilePos.y + TileGap, BoardHeight / 2.f + TileHeight + 0.005f)); //ITT a selection hiba, rossz a z ertek!!! TODO
 
 	selectionModel->Scale(glm::vec3(TileSize, TileSize, 1.f));
 }
@@ -110,7 +110,7 @@ void CRenderer::DrawSelection(glm::vec4 color, int x, int y, bool bindBuffers, b
 	{
 		glEnable(GL_BLEND);
 		glEnable(GL_POLYGON_OFFSET_FILL);
-		glPolygonOffset(-1, 1.1);
+		glPolygonOffset(-4.0, -0.9);
 	}
 
 	GLuint ColorID = m_ShaderManager->GetShaderVariableID("transparent_color", "Color");
@@ -714,7 +714,6 @@ bool CRenderer::StartInit()
 	m_TextureManager->AddTexture("boardtex.bmp");
 	m_TextureManager->AddTexture("gridtex.bmp");
 	m_TextureManager->AddTexture("okbutton.bmp");
-	m_TextureManager->AddTexture("playerletters.bmp");
 	m_TextureManager->AddTexture("panel.bmp");
 	m_TextureManager->AddTexture("tilecounter.bmp");
 	m_TextureManager->AddTexture("selectcontrol.bmp");
@@ -723,6 +722,7 @@ bool CRenderer::StartInit()
 	m_TextureManager->AddTexture("textbutton.bmp");
 	m_TextureManager->AddTexture("background.bmp");
 
+	m_TextureManager->AddTexture("playerletters.bmp");
 	m_TextureManager->AddTexture("font.bmp", 4);
 	m_TextureManager->AddTexture("play_icon.bmp", 4);
 	m_TextureManager->AddTexture("book_icon.bmp", 4);
@@ -734,6 +734,12 @@ bool CRenderer::StartInit()
 
 	return true;
 }
+
+void CRenderer::SetTileVisible(int x, int y, bool visible)
+{
+	m_BoardTiles->SetTileVisible(x, y, visible);
+}
+
 
 float CRenderer::SetBoardSize()
 {
@@ -854,11 +860,10 @@ bool CRenderer::EndInit()
 	m_SelectionModel->SetParent(m_BoardModel);
 	CalculateScreenSpaceGrid();
 
-	/*TODO
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 	glFrontFace(GL_CW);
-	*/
+
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 
@@ -949,10 +954,13 @@ void CRenderer::RemoveLastLetter()
 
 void CRenderer::SetLightPosition()
 {
+	float BoardHeight;
+	CConfig::GetConfig("board_height", BoardHeight);
+
 	glm::vec3 CameraLookAt = m_Views["board_perspecive"]->GetCameraLookAt();
 	glm::vec3 CameraPos = m_Views["board_perspecive"]->GetCameraPosition();
-	glm::vec3 PosOnBoard = CameraPos + CameraLookAt * std::fabs(CameraPos.z / CameraLookAt.z);
-	m_LightPosition = glm::vec4(PosOnBoard - CameraLookAt * 13.f, 1.f); //15.f config TODO
+	glm::vec3 PosOnBoard = CameraPos + CameraLookAt * std::fabs((CameraPos.z - BoardHeight / 2) / CameraLookAt.z);
+	m_LightPosition = glm::vec4(PosOnBoard - CameraLookAt * 13.f, 1.f); //13.f config TODO
 }
 
 void CRenderer::DrawModel(CModel* model, const char* viewID, const char* shaderID, bool setLightPos, bool bindVertexBuffer, bool bindTextureBuffer, bool unbindBuffers, bool setTextureVertexAttrib, int textureOffset)

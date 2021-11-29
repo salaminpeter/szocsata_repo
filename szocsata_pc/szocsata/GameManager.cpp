@@ -1238,6 +1238,7 @@ void CGameManager::HandleDragFromBoardView(int x, int y)
 		m_PlacedLetterTouchX = -1;
 		m_LastTouchOnBoardView = false;
 		m_Renderer->SelectField(SelX, SelY);
+		m_Renderer->SetTileVisible(SelX, SelY, true);
 	}
 }
 

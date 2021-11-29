@@ -75,8 +75,8 @@ public:
 	float GetOptimalToViewDistance(float fovY);
 	void CameraFitToViewAnim(float tilt, float rotation, float zoom, float move, const glm::vec2& dir);
 	void ClearResources();
-	//float SetTileSize();
 	float SetBoardSize();
+	void SetTileVisible(int x, int y, bool visible);
 
 	void HideSelection(bool hide) { m_SelectionVisible = !hide; } //TODO setvisibleblabla... atirni
 	bool IsInited() { return m_Inited; }

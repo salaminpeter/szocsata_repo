@@ -19,12 +19,14 @@ private:
 
 	struct TLetterAnimation
 	{
-		TLetterAnimation(CLetterModel* letterModel, float distance, float height, size_t uiLetterIdx) : m_LetterModel(letterModel), m_Distance(distance), m_DestHeight(height), m_UILetterIdx(uiLetterIdx) {}
+		TLetterAnimation(CLetterModel* letterModel, float distance, float height, size_t uiLetterIdx, int boardX, int boardY) : m_LetterModel(letterModel), m_Distance(distance), m_DestHeight(height), m_UILetterIdx(uiLetterIdx), m_BoardX(boardX), m_BoardY(boardY) {}
 
 		CLetterModel* m_LetterModel;
 		float m_AminationTime = 0.f;
 		float m_Distance;
 		float m_DestHeight;
+		int m_BoardX;
+		int m_BoardY;
 		size_t m_UILetterIdx;
 		ELetterAnimState m_State = ELetterAnimState::Waiting;
 	};

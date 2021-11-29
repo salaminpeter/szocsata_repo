@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "WordAnimationManager.h"
 #include "GameManager.h"
+#include "Renderer.h"
 #include "TimerEventManager.h"
 #include "LetterModel.h"
 #include "Timer.h"
@@ -36,7 +37,7 @@ void CWordAnimationManager::AddWordAnimation(std::wstring word, const std::vecto
 			float DistanceToBoard = 4.f - DestHeight; //TODO config 3
 			CLetterModel* LetterModel = m_GameManager->AddLetterToBoard(x, y, word.at(i), 4.f);  //TODO config 3
 			LetterModel->SetVisibility(false);
-			m_LetterAnimations.emplace_back(LetterModel, DistanceToBoard, DestHeight, uiLetterIndices[UILetterIdx]);
+			m_LetterAnimations.emplace_back(LetterModel, DistanceToBoard, DestHeight, uiLetterIndices[UILetterIdx], x, y);
 			UILetterIdx++;
 		}
 
@@ -91,6 +92,7 @@ void CWordAnimationManager::AnimateLettersEvent(double& timeFromStart, double& t
 			m_LetterAnimations[i].m_State = ELetterAnimState::Finished;
 			m_LetterAnimations[i].m_AminationTime = m_LetterAnimTime;
 			Position.z = m_LetterAnimations[i].m_DestHeight;
+			m_GameManager->GetRenderer()->SetTileVisible(m_LetterAnimations[i].m_BoardX, m_LetterAnimations[i].m_BoardY, false);
 		}
 		else
 			Position.z = 4. - m_LetterAnimations[i].m_Distance * std::sinf((3.14 / 2.f) * m_LetterAnimations[i].m_AminationTime / m_LetterAnimTime);

@@ -54,7 +54,7 @@ CBoardTiles::CBoardTiles(int tileCount, CRenderer* renderer, CGameManager* gameM
 			float PosZ = BoardHeight - 0.1; //TODO mi a lofasz ez a -0.1????
 
 			m_BoardTiles.back().SetPosition(glm::vec3(PosX, PosY, PosZ));
-
+			
 			//add shadow
 			m_TileShadows.emplace_back(m_Renderer->GetSquarePositionData(), m_Renderer->GetSquareColorData());
 			m_TileShadows.back().SetParent(parent);
@@ -70,6 +70,15 @@ CBoardTiles::CBoardTiles(int tileCount, CRenderer* renderer, CGameManager* gameM
 		}
 	}
 }
+
+void CBoardTiles::SetTileVisible(int x, int y, bool visible)
+{
+	int TileCount;
+	CConfig::GetConfig("tile_count", TileCount);
+
+	m_BoardTiles[y * TileCount + x].SetVisible(visible);
+}
+
 
 void CBoardTiles::RenderTiles()
 {
@@ -106,7 +115,8 @@ void CBoardTiles::RenderTiles()
 		int x = i % TileCount;
 		int y = i / TileCount;
 
-		if (m_GameManager->Board(x, TileCount - y - 1).m_Height == 0)
+//		if (m_GameManager->Board(x, TileCount - y - 1).m_Height == 0)
+		if (m_BoardTiles[i].IsVisible())
 		{
 			m_Renderer->DrawModel(&m_BoardTiles[i], "board_perspecive", "per_pixel_light_textured", true, !BufferBound, !TextureBound, i == LastVisibleTileIdx, true, m_BoardTiles[i].TextureOffset());
 
