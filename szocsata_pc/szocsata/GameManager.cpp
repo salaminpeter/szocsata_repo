@@ -1229,16 +1229,13 @@ void CGameManager::HandleDragFromBoardView(int x, int y)
 	//placed letter back to dragged letter
 	else if (m_Dragged)
 	{
-		int SelX = m_PlayerSteps.back().m_XPosition;
-		int SelY = m_PlayerSteps.back().m_YPosition;
-
 		RemovePlacedLetterSelAtPos(m_PlacedLetterTouchX, m_PlacedLetterTouchY);
 		m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName())->SetLetterDragged(m_PlayerSteps[m_PlayerStepIdxUndo].m_LetterIdx, x, y);
 		UndoStepAtPos(m_PlacedLetterTouchX, m_PlacedLetterTouchY);
+		m_Renderer->SelectField(m_PlacedLetterTouchX, m_PlacedLetterTouchY);
+		m_Renderer->SetTileVisible(m_PlacedLetterTouchX, m_PlacedLetterTouchY, true);
 		m_PlacedLetterTouchX = -1;
 		m_LastTouchOnBoardView = false;
-		m_Renderer->SelectField(SelX, SelY);
-		m_Renderer->SetTileVisible(SelX, SelY, true);
 	}
 }
 
