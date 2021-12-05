@@ -14,10 +14,11 @@ class CUIText : public CUIElement
 {
 public:
 
-	CUIText(CUIElement* parent, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, const wchar_t* text, int x, int y, int w, int h, int vx, int vy, const wchar_t* id);
+	CUIText(CUIElement* parent, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, const wchar_t* text, int x, int y, int w, int h, int vx, int vy, float r, float g, float b,  const wchar_t* id);
 
 	void SetText(const wchar_t* text);
 	size_t Length() const;
+	void SetColor(float r, float g, float b);
 
 	void Render(CRenderer* renderer) override;
 
@@ -29,6 +30,8 @@ public:
 private:
 
 	std::wstring m_Text;
+
+	glm::vec3 m_Color;
 
 	static std::map<wchar_t, glm::vec2> m_FontTexPos; //TODO kulon font osztaly!!!!!!!!!!
 	static std::map<wchar_t, int> m_FontCharWidth;

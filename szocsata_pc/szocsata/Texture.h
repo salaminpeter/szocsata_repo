@@ -11,8 +11,8 @@ class CTexture
 {
 	public:
 
-	CTexture(const char* fileName, int colorDepth = 3) : mName(fileName), m_ColorDepth(colorDepth) {}
-	CTexture(const char* fileName, uint8_t* imageData, int width, int height, int colorDepth = 3);
+	CTexture(const char* fileName, int colorDepth = 3, bool filter = true) : mName(fileName), m_ColorDepth(colorDepth) {InitTexture(filter);}
+	CTexture(const char* fileName, uint8_t* imageData, int width, int height, int colorDepth = 3, bool filter = true);
 
 	unsigned texture;
 	std::string mName;
@@ -59,7 +59,7 @@ class CTexture
 
 	}
 
-	void InitTexture();
+	void InitTexture(bool filter, uint8_t* imageData = nullptr);
 
 	int m_ColorDepth;
 };

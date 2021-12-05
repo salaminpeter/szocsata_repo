@@ -18,7 +18,7 @@ void CUIButton::AddText(const wchar_t* buttonText, float relTextHeight, EAlignme
 	m_RelTextSize = relTextHeight;
 	m_Padding = padding;
 	m_TextAlignment = textAlignment;
-	new CUIText(this, positionData, gridcolorData8x8, buttonText, 0, 0, relTextHeight * m_Height, relTextHeight * m_Height, m_ViewXPosition, m_ViewYPosition, L"ui_button_text");
+	new CUIText(this, positionData, gridcolorData8x8, buttonText, 0, 0, relTextHeight * m_Height, relTextHeight * m_Height, m_ViewXPosition, m_ViewYPosition, 1, 1, 1, L"ui_button_text");
 	PositionText();
 }
 

@@ -11,6 +11,7 @@
 #include "UIMessageBox.h"
 #include "UIRankingsPanel.h"
 #include "UIScorePanel.h"
+#include "UIPlayerLetterPanel.h"
 #include "UISelectControl.h"
 #include "GridLayout.h"
 #include "GameManager.h"
@@ -62,13 +63,13 @@ CUIButton* CUIManager::AddButton(CUIElement* parent, std::shared_ptr<CSquarePosi
 	return NewButton;
 }
 
-CUIText* CUIManager::AddText(CUIElement* parent, const wchar_t* text, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, float x, float y, float w, float h, const char* ViewID, const char* textureID, const wchar_t* id)
+CUIText* CUIManager::AddText(CUIElement* parent, const wchar_t* text, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, float x, float y, float w, float h, const char* ViewID, const char* textureID, const wchar_t* id, float r, float g, float b)
 {
 	if (!parent)
 		return nullptr;
 
 	glm::vec2 ViewPos = m_GameManager->GetViewPosition(ViewID);
-	CUIText* NewText = new CUIText(parent, positionData, colorData, text, x, y, w, h, ViewPos.x, ViewPos.y, id);
+	CUIText* NewText = new CUIText(parent, positionData, colorData, text, x, y, w, h, ViewPos.x, ViewPos.y, r, g, b, id);
 
 	return NewText;
 }
@@ -76,7 +77,7 @@ CUIText* CUIManager::AddText(CUIElement* parent, const wchar_t* text, std::share
 CUIPlayerLetters* CUIManager::AddPlayerLetters(CPlayer* player, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData)
 {
 	glm::vec2 ViewPos = m_GameManager->GetViewPosition("view_ortho");
-	CUIPlayerLetters* PlayerLetters = new CUIPlayerLetters(m_GameManager, this, player, m_RootGameScreen, player->GetName().c_str());
+	CUIPlayerLetters* PlayerLetters = new CUIPlayerLetters(m_GameManager, this, player, m_PlayerLetterPanel, player->GetName().c_str());
 	PlayerLetters->InitLetterElements(positionData, colorData, ViewPos.x, ViewPos.y);
 	PlayerLetters->SetVisible(false);
 
@@ -92,7 +93,7 @@ void CUIManager::PositionPlayerLetter(const std::wstring& playerId, size_t lette
 
 CUIPlayerLetters* CUIManager::GetPlayerLetters(const std::wstring& playerID)
 {
-	return static_cast<CUIPlayerLetters*>(m_RootGameScreen->GetChild(playerID.c_str()));
+	return static_cast<CUIPlayerLetters*>(m_PlayerLetterPanel->GetChild(playerID.c_str()));
 }
 
 glm::vec2 CUIManager::GetTileCounterPos()
@@ -115,7 +116,7 @@ void CUIManager::PositionUIElements()
 	int LetterCount;
 	CConfig::GetConfig("letter_count", LetterCount);
 
-	m_PlayerLettersLayout = new CGridLayout(m_GameManager->m_SurfaceHeigh, /*m_GameManager->m_SurfaceHeigh / 2*/0, m_GameManager->m_SurfaceWidth - m_GameManager->m_SurfaceHeigh, m_GameManager->m_SurfaceHeigh / 3, 50.f, 60.f);
+	m_PlayerLettersLayout = new CGridLayout(m_GameManager->m_SurfaceHeigh, 0, m_GameManager->m_SurfaceWidth - m_GameManager->m_SurfaceHeigh, m_GameManager->m_SurfaceHeigh / 3, 20.f, 60.f);
 	m_PlayerLettersLayout->AllignGrid(LetterCount, true);
 
 	float ButtonsLayoutY = m_GameManager->m_SurfaceHeigh / 1.3f;
@@ -127,6 +128,10 @@ void CUIManager::PositionUIElements()
 
 	CUIElement* DraggedPlayerLetter = m_RootDraggedLetterScreen->GetChild(L"ui_dragged_player_letter_btn");
 	DraggedPlayerLetter->SetPosAndSize(0, 0, m_PlayerLettersLayout->GetElemSize(), m_PlayerLettersLayout->GetElemSize());
+
+	float Width = m_GameManager->m_SurfaceWidth - m_GameManager->m_SurfaceHeigh;
+	float Height = m_GameManager->m_SurfaceHeigh / 3;
+	m_PlayerLetterPanel->SetPosAndSize(m_GameManager->m_SurfaceHeigh + Width / 2, Height / 2 + 10, Width - 20, Height - 20);
 }
 
 void CUIManager::InitUIElements(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData8x8, std::shared_ptr<CSquareColorData> gridcolorData8x4)
@@ -148,7 +153,7 @@ void CUIManager::InitUIElements(std::shared_ptr<CSquarePositionData> positionDat
 	float LogoCharSize = HeaderHeight * 0.7;
 	float LogoTextWidth = CUIText::GetTextWidthInPixels(L"Szócsata 3D", LogoCharSize);
 	float LogoYGap = (m_GameManager->m_SurfaceHeigh - HeaderHeight) / 6.f;
-	AddText(HeaderPanelStartScr, L"SZÓCSATA 3D", positionData, gridcolorData8x8, -LogoTextWidth / 2 + LogoCharSize / 2, 0, LogoCharSize, LogoCharSize, "view_ortho", "font.bmp", L"ui_logo_text_header");
+	AddText(HeaderPanelStartScr, L"SZÓCSATA 3D", positionData, gridcolorData8x8, -LogoTextWidth / 2 + LogoCharSize / 2, 0, LogoCharSize, LogoCharSize, "view_ortho", "font.bmp", L"ui_logo_text_header",.5f, .5f, .5f);
 
 	float StartScreenBtnWidth = LogoYGap * 4.5f;
 	float StartScreenBtnHeight = LogoYGap;
@@ -185,6 +190,8 @@ void CUIManager::InitUIElements(std::shared_ptr<CSquarePositionData> positionDat
 
 	if (ShowFps)
 		AddText(m_RootGameScreen, L"", positionData, gridcolorData8x8, m_GameManager->m_SurfaceWidth - 150, m_GameManager->m_SurfaceHeigh - 30, 30, 30, "view_ortho", "font.bmp", L"ui_fps_text");
+
+	m_PlayerLetterPanel = new CUIPlayerLetterPanel(m_RootGameScreen, positionData, colorData, ViewPos.x, ViewPos.y);
 
 	m_ScorePanel = new CUIScorePanel(m_RootGameScreen, m_GameManager, L"ui_score_panel", positionData, colorData, gridcolorData8x8, 0, m_GameManager->m_SurfaceHeigh / 2, 0, 0, ViewPos.x, ViewPos.y, "panel.bmp", 0.f, 0.f);
 

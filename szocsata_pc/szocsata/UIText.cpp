@@ -16,18 +16,24 @@ std::map<wchar_t, int> CUIText::m_FontCharHeight;
 std::map<wchar_t, float> CUIText::m_FontDesc;
 
 
-CUIText::CUIText(CUIElement* parent, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, const wchar_t* text, int x, int y, int w, int h, int vx, int vy, const wchar_t* id) :
+CUIText::CUIText(CUIElement* parent, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, const wchar_t* text, int x, int y, int w, int h, int vx, int vy, float r, float g, float b, const wchar_t* id) :
 	CUIElement(parent, id, new CModel(false, 0, std::static_pointer_cast<CModelPositionData>(positionData), std::static_pointer_cast<CModelColorData>(colorData)), x, y, w, h, vx, vy, 0.f, 0.f),
 	m_Text(text)
 {
 	InitFontTexPositions();
 	SetText(text);
+	SetColor(r, g, b);
 	PositionElement();
 }
 
 size_t CUIText::Length() const
 {
 	return std::count_if(m_Text.begin(), m_Text.end(), [](wchar_t c) {return c != L' ';});
+}
+
+void CUIText::SetColor(float r, float g, float b)
+{
+	m_Color = glm::vec3(r, g, b);
 }
 
 void CUIText::Render(CRenderer* renderer)
@@ -38,7 +44,7 @@ void CUIText::Render(CRenderer* renderer)
 	glEnable(GL_BLEND); //TODO!!
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	renderer->SetTextColor(1, 1, 1);
+	renderer->SetTextColor(m_Color.r, m_Color.g, m_Color.b);
 
 	for (size_t i = 0; i < Length(); ++i)
 	{

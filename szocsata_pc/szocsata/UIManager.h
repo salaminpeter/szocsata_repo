@@ -22,6 +22,7 @@ class CGridLayout;
 class CUISelectControl;
 class CUIRankingsPanel;
 class CUIScorePanel;
+class CUIPlayerLetterPanel;
 class CPlayer;
 
 
@@ -46,7 +47,7 @@ public:
 	CUIButton* AddButton(CUIElement* parent, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, float x, float y, float w, float h, const char* ViewID, const char* textureID, const wchar_t* id, const char* shaderID = "textured"); 
 	CUIIconTextButton* AddIconTextButton(CUIElement* parent, const wchar_t* text, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData, float x, float y, float w, float h, const char* ViewID, const char* textureID, const char* iconIextureID, const wchar_t* id, const char* shaderID = "textured");
 	CUISelectControl* AddSelectControl(CUIElement* parent, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData, float x, float y, float w, float h, const char* ViewID, const char* textureID, const wchar_t* id);
-	CUIText* AddText(CUIElement* parent, const wchar_t* text, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, float x, float y, float w, float h, const char* ViewID, const char* textureID, const wchar_t* id);
+	CUIText* AddText(CUIElement* parent, const wchar_t* text, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, float x, float y, float w, float h, const char* ViewID, const char* textureID, const wchar_t* id, float r = 1.f, float g = 1.f, float b = 1.f);
 	CUIPlayerLetters* AddPlayerLetters(CPlayer* player, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData);
 	
 	void PositionPlayerLetter(const std::wstring& playerId, size_t letterIdx, float x, float y, float size);
@@ -119,6 +120,8 @@ public: //TODO
 	CUIToast* m_Toast;
 	CUIScorePanel* m_ScorePanel;
 	CUIRankingsPanel* m_RankingsPanel;
+	CUIPlayerLetterPanel* m_PlayerLetterPanel;
+	CUIPanel* m_UIScreenPanel;
 	CGridLayout* m_PlayerLettersLayout;
 	CGridLayout* m_ButtonsLayout;
 

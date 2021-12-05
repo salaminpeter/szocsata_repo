@@ -9,15 +9,14 @@ class CTextureManager
 {
 public:
 
-	void AddTexture(const char* path, int colorDepth = 3);
+	void AddTexture(const char* path, int colorDepth = 3, bool filter = true);
 	void ActivateTexture(const char* texId);
-	void GenerateTextures();
+	void GenerateTextures(float viewWidth, float viewHeight);
 
 private:
 	
 	void GenerateHeaderTexture();
-	void GenerateStartScreenBtnTexture(int w, int h, int r, glm::vec4 color);
-	void GenerateTileShadowTexture(int blur);
+	void GenerateRoundedBoxTexture(int w, int h, int r, glm::vec4 color, const char* textureID);
 
 private:
 	

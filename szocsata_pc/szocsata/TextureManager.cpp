@@ -12,10 +12,9 @@
 #include "TextureManager.h"
 #include "Texture.h"
 
-void CTextureManager::AddTexture(const char* path, int colorDepth)
+void CTextureManager::AddTexture(const char* path, int colorDepth, bool filter)
 {
-	CTexture* NewTexture = new CTexture(path, colorDepth);
-	NewTexture->InitTexture();
+	CTexture* NewTexture = new CTexture(path, colorDepth, filter);
 
 	m_Textures[path] = NewTexture;
 }
@@ -31,13 +30,13 @@ void CTextureManager::ActivateTexture(const char* texId)
 
 void CTextureManager::GenerateHeaderTexture()
 {
-	uint8_t ImageData[16] = { 187, 95, 0, 230, 187, 95, 0, 230, 187, 95, 0, 230, 187, 95, 0, 230 };
+	uint8_t ImageData[16] = { 255, 176, 138, 110, 255, 176, 138, 110, 255, 176, 138, 110, 255, 176, 138, 110 };
 	CTexture* NewTexture = new CTexture("header_texture_generated", ImageData, 2, 2, 4);
 
 	m_Textures["header_texture_generated"] = NewTexture;
 }
 
-void CTextureManager::GenerateStartScreenBtnTexture(int w, int h, int r, glm::vec4 color)
+void CTextureManager::GenerateRoundedBoxTexture(int w, int h, int r, glm::vec4 color, const char* textureID)
 {
 	//radius too big error!
 	if (r * 2 > h)
@@ -78,13 +77,14 @@ void CTextureManager::GenerateStartScreenBtnTexture(int w, int h, int r, glm::ve
 		}
 	}
 
-	CTexture* NewTexture = new CTexture("start_scr_btn_texture_generated", &ImageData[0], w, h, 4);
+	CTexture* NewTexture = new CTexture(textureID, &ImageData[0], w, h, 4);
 
-	m_Textures["start_scr_btn_texture_generated"] = NewTexture;
+	m_Textures[textureID] = NewTexture;
 }
 
-void CTextureManager::GenerateTextures()
+void CTextureManager::GenerateTextures(float viewWidth, float viewHeight)
 {
 	GenerateHeaderTexture();
-	GenerateStartScreenBtnTexture(680, 150, 30, glm::vec4(1, 0.58f, 0.16f, 0.65f));
+	GenerateRoundedBoxTexture(680, 150, 30, glm::vec4(0.70f, 0.22f, 0.f, 0.2f), "start_scr_btn_texture_generated");
+	GenerateRoundedBoxTexture(viewWidth - 20, viewHeight / 3 - 20, 50, glm::vec4(0.8f, 0.8f, 0.8f, 0.6f), "player_letter_panel_texture_generated");
 }

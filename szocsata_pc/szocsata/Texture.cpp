@@ -9,19 +9,13 @@
 #define GL3_PROTOTYPES 1
 #include <GLES3\gl3.h>
 
-CTexture::CTexture(const char* fileName, uint8_t* imageData, int width, int height, int colorDepth) : 
+CTexture::CTexture(const char* fileName, uint8_t* imageData, int width, int height, int colorDepth, bool filter) : 
 	mName(fileName), 
 	m_ColorDepth(colorDepth),
 	m_Width(width),
 	m_Height(height)
 {
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageData);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); //scale linearly when image bigger than texture
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); //scale linearly when image smalled than texture
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	InitTexture(filter, imageData);
 }
 
 
@@ -72,16 +66,21 @@ int CTexture::ImageLoad(const char *filename, Image *image)
 	return 1;
 }
 
-void CTexture::InitTexture()
+void CTexture::InitTexture(bool filter, uint8_t* imageData)
 {
-	Image *image1 = loadTexture();
+	if (!imageData)
+	{
+		Image *image1 = loadTexture();
 
-	if (image1 == NULL) {
+		if (image1 == NULL) {
 
-		printf("Image was not returned from loadTexture\n");
+			printf("Image was not returned from loadTexture\n");
+			exit(0);
+		}
 
-		exit(0);
-
+		m_Width = image1->sizeX;
+		m_Height = image1->sizeY;
+		imageData = image1->data;
 	}
 
 	glGenTextures(1, &texture);
@@ -90,12 +89,12 @@ void CTexture::InitTexture()
 
 	bool alpha = m_ColorDepth == 4;
 	int format = alpha ? GL_RGBA : GL_RGB;
-	glTexImage2D(GL_TEXTURE_2D, 0, format, image1->sizeX, image1->sizeY, 0, format, GL_UNSIGNED_BYTE, image1->data);
+	glTexImage2D(GL_TEXTURE_2D, 0, format, m_Width, m_Height, 0, format, GL_UNSIGNED_BYTE, imageData);
 
-	if (!alpha)
+	if (filter)
 		glGenerateMipmap(GL_TEXTURE_2D);
 
-	if (!alpha)
+	if (filter)
 	{
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); //scale linearly when image bigger than texture
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); //scale linearly when image smalled than texture
