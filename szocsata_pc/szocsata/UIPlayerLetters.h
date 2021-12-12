@@ -33,7 +33,7 @@ public:
 	void SetLetterDragged(size_t letterIdx, int x, int y);
 	
 	void Render(CRenderer* renderer) override;
-	bool HandleEventAtPos(int x, int y, bool touchEvent, CUIElement* root, bool checkChildren) override;
+	bool HandleEventAtPos(int x, int y, EEventType event, CUIElement* root = nullptr, bool checkChildren = true, bool selfCheck = true) override;
 
 
 private:

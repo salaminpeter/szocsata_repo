@@ -13,10 +13,10 @@ CUISelectControl::CUISelectControl(CUIElement* parent, const wchar_t* id, std::s
 	AddText(L"", 0.f, 0.f, m_TextSize, m_TextSize, "font.bmp", L"ui_select_control_text");
 
 	AddButton(-(w + h) / 2.f, 0.f, h, h, "leftarrow.bmp", L"arrow_left");
-	m_Children.back()->SetEvent(this, &CUISelectControl::ChangeEvent, -1);
+	m_Children.back()->SetEvent(false, this, &CUISelectControl::ChangeEvent, -1);
 
 	AddButton((w + h) / 2.f, 0, h, h, "rightarrow.bmp", L"arrow_right");
-	m_Children.back()->SetEvent(this, &CUISelectControl::ChangeEvent, 1);
+	m_Children.back()->SetEvent(false, this, &CUISelectControl::ChangeEvent, 1);
 }
 
 void CUISelectControl::SetTextAndPos(const wchar_t* text)

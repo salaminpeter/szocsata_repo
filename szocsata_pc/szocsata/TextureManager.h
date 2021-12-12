@@ -16,7 +16,7 @@ public:
 private:
 	
 	void GenerateHeaderTexture();
-	void GenerateRoundedBoxTexture(int w, int h, int r, glm::vec4 color, const char* textureID);
+	void GenerateRoundedBoxTexture(int w, int h, int r, glm::vec4 color, int outlineWidth, glm::vec4 outlineColor, const char* textureID);
 
 private:
 	

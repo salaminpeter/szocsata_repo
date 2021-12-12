@@ -1,10 +1,10 @@
 #pragma once
 
-#include "UIPanel.h"
+#include "UIIconTextButton.h"
 
 class CUIElement;
 
-class CUITileCounter : public CUIPanel
+class CUITileCounter : public CUIIconTextButton
 {
 public:
 

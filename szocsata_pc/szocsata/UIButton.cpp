@@ -6,8 +6,8 @@
 #include "Renderer.h"
 
 
-CUIButton::CUIButton(CUIElement* parent, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, float x, float y, float w, float h, float vx, float vy, const char* textureID, const wchar_t* id, bool ignoreReleaseEvent, const char* shaderID) :
-	CUIElement(parent, id, new CModel(false, 2, std::static_pointer_cast<CModelPositionData>(positionData), std::static_pointer_cast<CModelColorData>(colorData), textureID, shaderID), x, y, w, h, vx, vy, 0.f, 0.f, ignoreReleaseEvent)
+CUIButton::CUIButton(CUIElement* parent, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, float x, float y, float w, float h, float vx, float vy, const char* textureID, const wchar_t* id, const char* shaderID) :
+	CUIElement(parent, id, new CModel(false, 2, std::static_pointer_cast<CModelPositionData>(positionData), std::static_pointer_cast<CModelColorData>(colorData), textureID, shaderID), x, y, w, h, vx, vy, 0.f, 0.f)
 {
 	PositionElement();
 }

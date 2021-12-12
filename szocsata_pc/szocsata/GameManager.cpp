@@ -502,6 +502,7 @@ bool CGameManager::EndPlayerTurn(bool stillHaveTime)
 	m_CurrentPlayer->AddScore(Score);
 	UpdatePlayerScores();
 	SetGameState(EGameState::WaintingOnAnimation);
+	m_Renderer->DisableSelection();
 
 	return true;
 }
@@ -583,7 +584,7 @@ bool CGameManager::EndComputerTurn()
 	m_GameBoard.AddWord(ComputerWord);
 	UpdatePlayerScores();
 	SetGameState(EGameState::WaintingOnAnimation);
-
+	m_Renderer->DisableSelection();
 
 	return false;
 }
@@ -867,8 +868,10 @@ int CGameManager::CalculateScore(const TWordPos& word, std::vector<TWordPos>* cr
 	return CrossingWordsValid ? Score : 0;
 }
 
-void CGameManager::PlayerLetterClicked(unsigned letterIdx)
+void CGameManager::PlayerLetterReleased(unsigned letterIdx)
 {
+	m_UIManager->SetDraggedPlayerLetter(false, 0, glm::vec2(0.f, 0.f), glm::vec2(0.f, 0.f), true);
+
 	int SelX, SelY;
 	m_Renderer->GetSelectionPos(SelX, SelY);
 
@@ -910,7 +913,7 @@ void CGameManager::PlayerLetterClicked(unsigned letterIdx)
 	{
 		SelX += Horizontal ? 1 : 0;
 		SelY -= Horizontal ? 0 : 1;
-	
+
 		if (!SelectionPosIllegal(SelX, SelY))
 		{
 			m_Renderer->HideSelection(false);
@@ -972,8 +975,9 @@ void CGameManager::HandleReleaseEvent(int x, int y)
 	CConfig::GetConfig("window_height", WindowHeigth);
 	
     m_TouchX = -1;
-
-	if (m_LastTouchOnBoardView)
+	
+	//ha van message boxunk akkor a ui view kezeli a release eventet
+	if (m_LastTouchOnBoardView && !CUIMessageBox::m_ActiveMessageBox)
 		HandleReleaseEventFromBoardView(x, WindowHeigth - y);
 	else
 		HandleReleaseEventFromUIView(x, WindowHeigth - y);

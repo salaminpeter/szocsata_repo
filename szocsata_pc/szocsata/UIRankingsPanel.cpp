@@ -25,7 +25,7 @@ void CUIRankingsPanel::Init()
 	}
 
 	AddButton(20, -200, 160, 60, "okbutton.bmp", L"ui_end_game_btn");
-	GetChild(L"ui_end_game_btn")->SetEvent(this, &CUIRankingsPanel::FinishGame);
+	GetChild(L"ui_end_game_btn")->SetEvent(false, this, &CUIRankingsPanel::FinishGame);
 }
 
 void CUIRankingsPanel::FinishGame()

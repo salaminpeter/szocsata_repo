@@ -722,15 +722,18 @@ bool CRenderer::StartInit()
 	m_TextureManager->AddTexture("textbutton.bmp");
 	m_TextureManager->AddTexture("background.bmp");
 
-	m_TextureManager->AddTexture("playerletters.bmp");
-	m_TextureManager->AddTexture("font.bmp", 4);
-	m_TextureManager->AddTexture("play_icon.bmp", 4);
-	m_TextureManager->AddTexture("book_icon.bmp", 4);
-	m_TextureManager->AddTexture("settings_icon.bmp", 4);
-	m_TextureManager->AddTexture("controller_icon.bmp", 4);
-	m_TextureManager->AddTexture("shadow.bmp", 4);
+	m_TextureManager->AddTexture("tile_counter_icon.bmp", 4);
+	m_TextureManager->AddTexture("playerletters.bmp", 4);
+	m_TextureManager->AddTexture("font.bmp", 4, false);
+	m_TextureManager->AddTexture("play_icon.bmp", 4, false);
+	m_TextureManager->AddTexture("book_icon.bmp", 4, false);
+	m_TextureManager->AddTexture("settings_icon.bmp", 4, false);
+	m_TextureManager->AddTexture("controller_icon.bmp", 4, false);
+	m_TextureManager->AddTexture("shadow.bmp", 4, false);
 
-	m_TextureManager->GenerateTextures();
+	float Width = m_GameManager->m_SurfaceWidth - m_GameManager->m_SurfaceHeigh;
+	float Height = m_GameManager->m_SurfaceHeigh;
+	m_TextureManager->GenerateTextures(Width, Height);
 
 	return true;
 }
@@ -1001,14 +1004,11 @@ void CRenderer::ClearBuffers()
 void CRenderer::Render()
 {
 	ClearBuffers();
-	CTimer::Start();
 
 	GLuint DistanceDividerID = m_ShaderManager->GetShaderVariableID("per_pixel_light_textured", "DistanceDivider");
 	glDepthMask(GL_FALSE);
 	glUniform1f(DistanceDividerID, 10.f);
 	DrawModel(m_BoardModel, "board_perspecive", "per_pixel_light_textured", true);
-
-	double t = CTimer::GetTime();
 
 	glDepthMask(GL_TRUE);
 	glUniform1f(DistanceDividerID, 12.f);
@@ -1030,12 +1030,7 @@ void CRenderer::Render()
 			DrawModel(m_LettersOnBoard[i], "board_perspecive", "per_pixel_light_textured", !BufferBound, !BufferBound, !TextureBound, i == LastVisibleLetterIdx, true, m_LettersOnBoard[i]->TextureOffset());
 	}
 
-	int idx = 0;
-
-	CTimer::Start();
 	m_BoardTiles->RenderTiles();
-	t = CTimer::GetTime();
-
 
 	if (m_SelectionVisible)
 	{

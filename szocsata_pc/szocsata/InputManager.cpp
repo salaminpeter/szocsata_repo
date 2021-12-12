@@ -22,7 +22,7 @@ void CInputManager::HandleTouchEvent(int x, int y)
 	}
 
 	//wait for double click
-	if (m_FirstTouch && !m_SecondTouch && m_GameManager->GameScreenActive())
+	if (m_FirstTouch && !m_SecondTouch)
 		m_SecondTouch = true;
 
 	m_FirstTouch = true;
@@ -30,7 +30,7 @@ void CInputManager::HandleTouchEvent(int x, int y)
 	m_GameManager->SetLastTouchPos(x, WindowHeigth - y);
 
 	//dupla clicket csak board viewra nezunk
-	if (!m_SecondTouch && m_GameManager->GameScreenActive())
+	if (!m_SecondTouch)
 	{
 		m_Touch0X = x;
 		m_Touch0Y = y;
@@ -114,6 +114,13 @@ void CInputManager::HandleReleaseEvent(int x, int y)
 		m_ReleaseTouchHappened = true;
 		m_Touch1X = x;
 		m_Touch1Y = y;
+		return;
+	}
+
+	//if doubleclicked on board view dont handle release event = dont select field
+	if (m_SecondTouch)
+	{
+		m_SecondTouch = false;
 		return;
 	}
 

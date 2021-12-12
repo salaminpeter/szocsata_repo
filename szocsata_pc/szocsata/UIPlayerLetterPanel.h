@@ -10,5 +10,5 @@ public:
 		CUIPanel(parent, L"ui_player_letter_panel", positionData, colorData, nullptr, 0, 0, 0, 0, viewX, viewY, "player_letter_panel_texture_generated", 0, 0)
 	{}
 
-	bool HandleEventAtPos(int x, int y, bool touchEvent, CUIElement* root, bool checkChildren) override;
+	bool HandleEventAtPos(int x, int y, EEventType event, CUIElement* root = nullptr, bool checkChildren = true, bool selfCheck = true) override;
 };

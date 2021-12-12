@@ -12,7 +12,7 @@ public:
 	
 	enum EAlignment {Center, Left, Right};
 
-	CUIButton(CUIElement* parent, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, float x, float y, float w, float h, float vx, float vy, const char* textureID, const wchar_t* id, bool ignoreReleaseEvent = true, const char* shaderID = "textured");
+	CUIButton(CUIElement* parent, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, float x, float y, float w, float h, float vx, float vy, const char* textureID, const wchar_t* id, const char* shaderID = "textured");
 
 	void AddText(const wchar_t* buttonText, float relTextHeight, EAlignment textAlignment, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> gridcolorData8x8, float padding = 5.f);
 	void PositionText();

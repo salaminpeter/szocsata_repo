@@ -126,5 +126,7 @@ char FragmentShaderTexturedTransparent[] =
 "out vec4 fragColour;\n"
 "uniform sampler2D texSampler;\n"
 "void main() {\n"
-"   fragColour = vec4(texture(texSampler,fTexCoord).rgb, 0.5);\n"
+"   vec4 TextureColor = texture(texSampler,fTexCoord).rgba;\n"
+"   fragColour = vec4(TextureColor.rgb, TextureColor.a - 0.5);\n"
+//"   fragColour = texture(texSampler,fTexCoord).rgba;\n"
 "}";

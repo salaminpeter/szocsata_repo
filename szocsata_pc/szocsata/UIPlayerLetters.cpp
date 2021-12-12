@@ -61,7 +61,7 @@ void CUIPlayerLetters::OrderLetterElements()
 {
 	for (unsigned i = 0; i < m_Children.size(); ++i)
 	{
-		m_Children[i]->SetEvent(m_GameManager, &CGameManager::PlayerLetterClicked, std::move(i));
+		m_Children[i]->SetEvent(false, m_GameManager, &CGameManager::PlayerLetterReleased, std::move(i));
 	}
 }
 
@@ -88,8 +88,9 @@ void CUIPlayerLetters::AddUILetters(unsigned count)
 	for (unsigned i = 0; i < count; ++i)
 	{
 		CUIElement* NewLetter;
-		AddChild(NewLetter = new CUIButton(nullptr, m_PositionData, m_ColorData, 0, 0, 0, 0, m_ViewPosX, m_ViewPosY, "playerletters.bmp", L"", false));
-		NewLetter->SetEvent(m_GameManager, &CGameManager::PlayerLetterClicked, std::move(i));
+		AddChild(NewLetter = new CUIButton(nullptr, m_PositionData, m_ColorData, 0, 0, 0, 0, m_ViewPosX, m_ViewPosY, "playerletters.bmp", L""));
+		NewLetter->SetEvent(false, m_GameManager, &CGameManager::PlayerLetterReleased, std::move(i));
+	//	NewLetter->SetPropegateEvent(true);
 	}
 }
 
@@ -134,17 +135,17 @@ void CUIPlayerLetters::SetLetterDragged(size_t letterIdx, int x, int y)
 }
 
 
-bool CUIPlayerLetters::HandleEventAtPos(int x, int y, bool touchEvent, CUIElement* root, bool checkChildren)
+bool CUIPlayerLetters::HandleEventAtPos(int x, int y, EEventType event, CUIElement* root, bool checkChildren, bool selfCheck)
 {
 	for (size_t i = 0; i < m_Children.size(); ++i)
 	{
 		if (m_Children[i]->IsEnabled() && m_Children[i]->IsVisible() && m_Children[i]->PositionInElement(x, y))
 		{
-			//player letter clicked
-			if (!touchEvent)
-				m_Children[i]->HandleEvent();
+			//player letter clicked - release
+			if (event == CUIElement::ReleaseEvent)
+				m_Children[i]->HandleEvent(event);
 			//player letter drag start
-			else
+			else if (event == CUIElement::TouchEvent)
 				m_UIManager->SetDraggedPlayerLetter(false, i, m_Children[i]->GetTexturePos(), glm::vec2(x, y));
 				
 			return true;

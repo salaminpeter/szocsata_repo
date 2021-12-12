@@ -17,13 +17,13 @@ CUIMessageBox::CUIMessageBox(std::shared_ptr<CSquarePositionData> positionData, 
 		int BtnX = m_Width / 2;
 		int BtnY = m_Height ;
 		AddButton(0, -100, 120, 120, "okbutton.bmp", L"ui_message_box_ok_btn");
-		m_Children.back()->SetEvent(this, &CUIMessageBox::ButtonPressed, 1);
+		m_Children.back()->SetEvent(false, this, &CUIMessageBox::ButtonPressed, 1);
 	}
 
 	if (m_Type == OkCancel)
 	{
 		AddButton(80, -80, 50, 50, "cancelbutton.bmp", L"ui_message_box_cancel_btn");
-		m_Children.back()->SetEvent(this, &CUIMessageBox::ButtonPressed, 0);
+		m_Children.back()->SetEvent(false, this, &CUIMessageBox::ButtonPressed, 0);
 	}
 }
 

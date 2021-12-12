@@ -17,22 +17,27 @@ friend CUIElement;
 
 public:
 
-	CUIElement(CUIElement*  parent, const wchar_t* id, CModel *model, int x, int y, int w, int h, int vx, int vy, float tx, float ty, bool ignoreReleaseEvent = true);
+	CUIElement(CUIElement*  parent, const wchar_t* id, CModel *model, int x, int y, int w, int h, int vx, int vy, float tx, float ty);
 	virtual ~CUIElement();
 		
 	template <typename ClassType, typename... ArgTypes>
-	void SetEvent(ClassType* funcClass, typename CEvent<ClassType, ArgTypes...>::TFuncPtrType funcPtr, ArgTypes&&... args)
+	void SetEvent(bool touch, ClassType* funcClass, typename CEvent<ClassType, ArgTypes...>::TFuncPtrType funcPtr, ArgTypes&&... args)
 	{
-		m_Event = new CEvent<ClassType, ArgTypes...>(funcClass, funcPtr, std::forward<ArgTypes>(args)...);
+		if (touch)
+			m_EventTouch = new CEvent<ClassType, ArgTypes...>(funcClass, funcPtr, std::forward<ArgTypes>(args)...);
+		else
+			m_EventRelease = new CEvent<ClassType, ArgTypes...>(funcClass, funcPtr, std::forward<ArgTypes>(args)...);
 	}
 
-	bool HandleEvent();
+	enum EEventType {TouchEvent, ReleaseEvent, PositionChangeEvent};
+
+	bool HandleEvent(EEventType event);
 	bool PositionInElement(int x, int y);
 	void PositionElement();
 	void AddChild(CUIElement* child);
 	void RemoveLastChild();
-	void SetPosAndSize(float x, float y, float w, float h);
-	void SetPosition(float x, float y);
+	void SetPosAndSize(float x, float y, float w, float h, bool midPointOrigo = true);
+	void SetPosition(float x, float y, bool midPointOrigo = true);
 	void DeleteRecursive();
 
 	glm::vec2 GetAbsolutePosition();
@@ -66,9 +71,10 @@ public:
 	CUIElement* GetParent() {return m_Parent;}
 	void Enable(bool enable) { m_Enabled = enable; }
 	bool IsEnabled() { return m_Enabled; }
+	void SetCheckChildEvent(bool b) { m_CheckChildEvents = b; }
 
 	virtual void Render(CRenderer* renderer) {};
-	virtual bool HandleEventAtPos(int x, int y, bool touchEvent, CUIElement* root = nullptr, bool checkChildren = true);
+	virtual bool HandleEventAtPos(int x, int y, EEventType event, CUIElement* root = nullptr, bool checkChildren = true, bool selfCheck = true);
 
 public:
 	std::vector<CUIElement*> m_Children;
@@ -77,7 +83,8 @@ protected:
 
 	CUIElement* m_Parent = nullptr;
 	CModel* m_Model = nullptr;
-	CEventBase* m_Event = nullptr;
+	CEventBase* m_EventTouch = nullptr;
+	CEventBase* m_EventRelease = nullptr;
 
 	int m_ViewXPosition;
 	int m_ViewYPosition;
@@ -87,7 +94,9 @@ protected:
 	int m_Height;
 	bool m_Visible = true;
 	bool m_Enabled = true;
-	bool m_IgnoreReleaseEvent = false;
+	
+	bool m_CheckChildEvents = true;
+
 	glm::vec2 m_TexturePosition;
 	std::wstring m_ID;
 

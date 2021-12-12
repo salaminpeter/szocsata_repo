@@ -20,6 +20,7 @@ CUIText::CUIText(CUIElement* parent, std::shared_ptr<CSquarePositionData> positi
 	CUIElement(parent, id, new CModel(false, 0, std::static_pointer_cast<CModelPositionData>(positionData), std::static_pointer_cast<CModelColorData>(colorData)), x, y, w, h, vx, vy, 0.f, 0.f),
 	m_Text(text)
 {
+	m_CheckChildEvents = false;
 	InitFontTexPositions();
 	SetText(text);
 	SetColor(r, g, b);

@@ -3,7 +3,7 @@
 #include "Model.h"
 
 
-CUIElement::CUIElement(CUIElement* parent, const wchar_t* id, CModel* model, int x, int y, int w, int h, int vx, int vy, float tx, float ty, bool ignoreReleaseEvent) :
+CUIElement::CUIElement(CUIElement* parent, const wchar_t* id, CModel* model, int x, int y, int w, int h, int vx, int vy, float tx, float ty) :
 	m_Parent(parent),
 	m_Model(model),
 	m_XPosition(x),
@@ -13,8 +13,7 @@ CUIElement::CUIElement(CUIElement* parent, const wchar_t* id, CModel* model, int
 	m_ViewXPosition(vx),
 	m_ViewYPosition(vy),
 	m_TexturePosition(tx, ty),
-	m_ID(id),
-	m_IgnoreReleaseEvent(ignoreReleaseEvent)
+	m_ID(id)
 {
 	if (parent)
 		parent->AddChild(this);
@@ -23,15 +22,21 @@ CUIElement::CUIElement(CUIElement* parent, const wchar_t* id, CModel* model, int
 CUIElement::~CUIElement()
 {
 	delete m_Model;
-	delete m_Event;
+	delete m_EventTouch;
+	delete m_EventRelease;
 	DeleteRecursive();
 }
 
-bool CUIElement::HandleEvent()
+bool CUIElement::HandleEvent(EEventType event)
 {
-	if (m_Event)
+	if (event == EEventType::TouchEvent && m_EventTouch)
 	{ 
-		m_Event->HandleEvent();
+		m_EventTouch->HandleEvent();
+		return true;
+	}
+	else if (event == EEventType::ReleaseEvent && m_EventRelease)
+	{
+		m_EventRelease->HandleEvent();
 		return true;
 	}
 
@@ -63,35 +68,33 @@ glm::vec2 CUIElement::GetAbsolutePosition()
 	return AbsPos;
 }
 
-bool CUIElement::HandleEventAtPos(int x, int y, bool touchEvent, CUIElement* root, bool checkChildren)
+bool CUIElement::HandleEventAtPos(int x, int y, EEventType event, CUIElement* root, bool checkChildren, bool selfCheck)
 { 
 	if (!root)
 		root = this;
-	else if (root == this)
-		return false;
 
-	//ha nem lathato az elem, vagy nincsenengedelyezve vagy nem kezel realeseeventet
-	if ((!touchEvent && m_IgnoreReleaseEvent) || !m_Visible || !m_Enabled)
+	//ha nem lathato az elem, vagy nincs enengedelyezve
+	if (!m_Visible || !m_Enabled)
 		return false;
 
 	//gyerek controllokra vegigellenorizzuk tudja e kezelni valamelyik az esemenyt (belulrol kifele)
-	if (checkChildren)
+	if (checkChildren && root->m_CheckChildEvents)
 	{
 		for (size_t i = 0; i < root->m_Children.size(); ++i)
 		{
-			if (HandleEventAtPos(x, y, touchEvent, root->m_Children[i]))
+			if (HandleEventAtPos(x, y, event, root->m_Children[i]))
 				return true;
 		}
 	}
 
 	//a control custom lekezelte az esemenyt a sajat HandleEventAtPos fugvenyevel
-	if (root->HandleEventAtPos(x, y, touchEvent, root, false))
+	if (selfCheck && root->HandleEventAtPos(x, y, event, root, false, false))
 		return true;
 	
 	//ha nincs custom fuggveny megnezzuk hogy a controllban van e a pozicio, es tusjuk e kezelni az esemenyt
-	else if ((touchEvent || !touchEvent && !m_IgnoreReleaseEvent) && root->PositionInElement(x, y))
+	else if (root->PositionInElement(x, y))
 	{
-		if (root->HandleEvent())
+		if (root->HandleEvent(event))
 			return true;
 	}
 
@@ -121,22 +124,30 @@ void CUIElement::DeleteRecursive()
 	m_Children.clear();
 }
 
-void CUIElement::SetPosition(float x, float y)
+void CUIElement::SetPosition(float x, float y, bool midPointOrigo)
 {
-	m_XPosition = x;
-	m_YPosition = y;
+	if (midPointOrigo)
+	{
+		m_XPosition = x;
+		m_YPosition = y;
+	}
+	else
+	{
+		float ParentWidth = m_Parent ? m_Parent->GetWidth() : 0;
+		float ParentHeight = m_Parent ? m_Parent->GetHeight() : 0;
+		m_XPosition = x - ParentWidth / 2 + m_Width / 2;
+		m_YPosition = y - ParentHeight / 2 + m_Height / 2;
+	}
 
 	PositionElement();
 }
 
-void CUIElement::SetPosAndSize(float x, float y, float w, float h)
+void CUIElement::SetPosAndSize(float x, float y, float w, float h, bool midPointOrigo)
 {
-	m_XPosition = x;
-	m_YPosition = y;
 	m_Width = w;
 	m_Height = h;
 
-	PositionElement();
+	SetPosition(x, y, midPointOrigo);
 }
 
 
@@ -171,8 +182,15 @@ CModel* CUIElement::GetModel(size_t idx)
 CUIElement* CUIElement::GetChild(const wchar_t* childIdx)
 {
 	for (size_t i = 0; i < m_Children.size(); ++i)
+	{
 		if (m_Children[i]->GetID() == childIdx)
 			return m_Children[i];
+
+		CUIElement* FoundChild = m_Children[i]->GetChild(childIdx);
+
+		if (FoundChild)
+			return FoundChild;
+	}
 
 	return nullptr;
 }

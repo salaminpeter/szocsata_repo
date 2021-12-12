@@ -84,7 +84,7 @@ public:
 	void RemovePlacedLetterSelAtPos(int x, int y);
 	int GetPlayerStepIdxAtPos(int x, int y);
 	void DealCurrPlayerLetters();
-	void PlayerLetterClicked(unsigned letterIdx);
+	void PlayerLetterReleased(unsigned letterIdx);
 	void EndGameAfterLastPass();
 	void GameLoop();
 	void SetGameState(int state);
