@@ -77,6 +77,7 @@ public:
 	void ClearResources();
 	float SetBoardSize();
 	void SetTileVisible(int x, int y, bool visible);
+	glm::vec2 GetTextureSize(const char* textureID);
 
 	void HideSelection(bool hide) { m_SelectionVisible = !hide; } //TODO setvisibleblabla... atirni
 	bool IsInited() { return m_Inited; }

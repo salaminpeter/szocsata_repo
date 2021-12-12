@@ -10,7 +10,8 @@ CUISelectControl::CUISelectControl(CUIElement* parent, const wchar_t* id, std::s
 {
 	m_TextSize = h - 34.f;
 
-	AddText(L"", 0.f, 0.f, m_TextSize, m_TextSize, "font.bmp", L"ui_select_control_text");
+	AddText(L"", 0.f, 0.f, m_TextSize, "font.bmp", L"ui_select_control_text");
+	static_cast<CUIText*>(m_Children.back())->Align(CUIText::Center);
 
 	AddButton(-(w + h) / 2.f, 0.f, h, h, "leftarrow.bmp", L"arrow_left");
 	m_Children.back()->SetEvent(false, this, &CUISelectControl::ChangeEvent, -1);
@@ -22,10 +23,11 @@ CUISelectControl::CUISelectControl(CUIElement* parent, const wchar_t* id, std::s
 void CUISelectControl::SetTextAndPos(const wchar_t* text)
 {
 	CUIText* Text = static_cast<CUIText*>(GetChild(L"ui_select_control_text"));
-	float TextWidth = CUIText::GetTextWidthInPixels(text, m_TextSize);
-	glm::vec2 TextTopBottom = CUIText::GetTextTopBottom(text, m_TextSize);
-	Text->SetPosAndSize((m_TextSize - TextWidth) / 2.f, (m_TextSize - TextTopBottom.x) / 2.f, m_TextSize, m_TextSize);
+//	float TextWidth = CUIText::GetTextWidthInPixels(text, m_TextSize);
+//	glm::vec2 TextTopBottom = CUIText::GetTextTopBottom(text, m_TextSize);
+//	Text->SetPosAndSize((m_TextSize - TextWidth) / 2.f, (m_TextSize - TextTopBottom.x) / 2.f, m_TextSize, m_TextSize);
 	Text->SetText(text);
+	Text->Align(CUIText::Center);
 }
 
 

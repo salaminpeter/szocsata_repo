@@ -6,16 +6,16 @@
 #include <sstream>
 
 CUITileCounter::CUITileCounter(CUIElement* parent, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridColorData, int x, int y, int w, int h, int vx, int vy) :
-	CUIIconTextButton(parent, L"betuk szama", positionData, colorData, gridColorData, x, y, w, h, vx, vy, "score_panel_texture_generated", "tile_counter_icon.bmp", L"ui_tile_counter", "textured", .8f, .2f, 8.f)
+	CUIIconTextButton(parent, L"", positionData, colorData, gridColorData, x, y, w, h, vx, vy, "score_panel_texture_generated", "tile_counter_icon.bmp", L"ui_tile_counter", "textured", .8f, .2f, 20.f)
 {
-	static_cast<CUIPanel*>(GetChild(L"ui_button_icon"))->AddText(L"0", 0, 0, 70, 70, "font.bmp", L"ui_tile_counter_text", 1, 1, 1);
+	static_cast<CUIPanel*>(GetChild(L"ui_button_icon"))->AddText(L"0", 0, 0, 70, "font.bmp", L"ui_tile_counter_text", 1, 1, 1);
 }
 
 void CUITileCounter::SetPositionAndSize(float x, float y, float w, float h)
 {
 	SetPosAndSize(x, y, w, h);
-	CUIElement* Counter = GetChild(L"ui_tile_counter_text");
-	Counter->SetPosAndSize(-10, 5, 70, 70);
+	CUIText* Counter = static_cast<CUIText*>(GetChild(L"ui_tile_counter_text"));
+	Counter->Align(CUIText::Center);
 }
 
 void CUITileCounter::SetCounter(unsigned count)
@@ -24,7 +24,10 @@ void CUITileCounter::SetCounter(unsigned count)
 	std::wstringstream StrStream;
 
 	StrStream << count;
-	static_cast<CUIText*>(GetChild(L"ui_tile_counter_text"))->SetText(StrStream.str().c_str());  //TODO Legyen egy gettext/getbutton fuggveny!!!!!!!!!!!!
+
+	CUIText* CounterText = static_cast<CUIText*>(GetChild(L"ui_tile_counter_text"));
+	CounterText->SetText(StrStream.str().c_str());  //TODO Legyen egy gettext/getbutton fuggveny!!!!!!!!!!!!
+	CounterText->Align(CUIText::Center);
 }
 
 void CUITileCounter::SetCounter()

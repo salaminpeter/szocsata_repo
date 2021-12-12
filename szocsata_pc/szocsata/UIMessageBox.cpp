@@ -10,7 +10,7 @@ CUIMessageBox::CUIMessageBox(std::shared_ptr<CSquarePositionData> positionData, 
 	CUIPanel(nullptr, L"ui_message_box", positionData, colorData, gridColorData, x, y, w, h, vx, vy, "panel.bmp", 0.f, 0.f),
 	m_Type(type)
 {
-	AddText(L"", 0.f, 0.f, 40.f, 40.f, "font.bmp", L"ui_message_box_text");
+	AddText(L"", 0.f, 0.f, 40.f, "font.bmp", L"ui_message_box_text");
 
 	if (m_Type == Ok)
 	{ 

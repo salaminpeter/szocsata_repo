@@ -19,6 +19,15 @@ void CTextureManager::AddTexture(const char* path, int colorDepth, bool filter)
 	m_Textures[path] = NewTexture;
 }
 
+const CTexture* CTextureManager::GetTexture(const char* textureID)
+{
+	if (m_Textures.find(textureID) == m_Textures.end())
+		return nullptr;
+
+	return m_Textures[textureID];
+}
+
+
 void CTextureManager::ActivateTexture(const char* texId)
 {
 	if (m_CurrentTexture != texId)
@@ -136,6 +145,6 @@ void CTextureManager::GenerateTextures(float viewWidth, float viewHeight)
 	GenerateHeaderTexture();
 	GenerateRoundedBoxTexture(680, 150, 30, glm::vec4(0.70f, 0.22f, 0.f, 0.4f), 0, glm::vec4(1, 1, 1, 1.f), "start_scr_btn_texture_generated");
 	GenerateRoundedBoxTexture(viewWidth - 20, viewHeight / 3 - 20, 50, glm::vec4(0.70f, 0.22f, 0.f, 0.4f), 5, glm::vec4(0.46f, 0.3f, 0.21f, 1.f), "player_letter_panel_texture_generated");
-	GenerateRoundedBoxTexture(500, 200, 20, glm::vec4(0.70f, 0.22f, 0.f, 0.4f), 5, glm::vec4(0.46f, 0.3f, 0.21f, 1.f), "score_panel_texture_generated");
+	GenerateRoundedBoxTexture(200, 200, 20, glm::vec4(0.70f, 0.22f, 0.f, 0.4f), 5, glm::vec4(0.46f, 0.3f, 0.21f, 1.f), "score_panel_texture_generated");
 	GenerateRoundedBoxTexture(370, 300, 20, glm::vec4(0.70f, 0.22f, 0.f, 0.4f), 5, glm::vec4(0.46f, 0.3f, 0.21f, 1.f), "player_score_panel_texture_generated");
 }

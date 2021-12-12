@@ -13,6 +13,8 @@ public:
 	void ActivateTexture(const char* texId);
 	void GenerateTextures(float viewWidth, float viewHeight);
 
+	const CTexture* GetTexture(const char* textureID);
+
 private:
 	
 	void GenerateHeaderTexture();

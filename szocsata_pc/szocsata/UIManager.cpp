@@ -63,13 +63,13 @@ CUIButton* CUIManager::AddButton(CUIElement* parent, std::shared_ptr<CSquarePosi
 	return NewButton;
 }
 
-CUIText* CUIManager::AddText(CUIElement* parent, const wchar_t* text, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, float x, float y, float w, float h, const char* ViewID, const char* textureID, const wchar_t* id, float r, float g, float b)
+CUIText* CUIManager::AddText(CUIElement* parent, const wchar_t* text, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, float x, float y, float fontHeight, const char* ViewID, const char* textureID, const wchar_t* id, float r, float g, float b)
 {
 	if (!parent)
 		return nullptr;
 
 	glm::vec2 ViewPos = m_GameManager->GetViewPosition(ViewID);
-	CUIText* NewText = new CUIText(parent, positionData, colorData, text, x, y, w, h, ViewPos.x, ViewPos.y, r, g, b, id);
+	CUIText* NewText = new CUIText(parent, positionData, colorData, text, fontHeight, x, y, ViewPos.x, ViewPos.y, r, g, b, id);
 
 	return NewText;
 }
@@ -133,11 +133,16 @@ void CUIManager::PositionUIElements()
 	float Height = m_GameManager->m_SurfaceHeigh / 3;
 	m_PlayerLetterPanel->SetPosAndSize(0, -m_GameManager->m_SurfaceHeigh / 2 + Height / 2 + 10, Width - 20, Height - 20);
 
-	m_UITileCounter->SetPosAndSize(20, m_PlayerLetterPanel->GetHeight() + 30, 500, 200, false);
+	m_UITileCounter->SetPosAndSize(0, m_PlayerLetterPanel->GetHeight() - m_UIScreenPanel->GetHeight() / 2 + 100 + 30, 200, 200);
 }
 
 void CUIManager::InitUIElements(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData8x8, std::shared_ptr<CSquareColorData> gridcolorData8x4)
 {
+	//set font char box sizes
+	glm::vec2 FontCharSize = m_GameManager->GetRenderer()->GetTextureSize("font.bmp");
+	CUIText::m_FontTextureCharWidth = FontCharSize.x / 16; //TODO a 16 majd a fontosztalybol jon ha elkeszul
+	CUIText::m_FontTextureCharHeight = FontCharSize.y / 6; //TODO a 6 majd a fontosztalybol jon ha elkeszul
+
 	//init font properties TODO font class
 	CUIText::InitFontTexPositions();
 
@@ -155,7 +160,7 @@ void CUIManager::InitUIElements(std::shared_ptr<CSquarePositionData> positionDat
 	float LogoCharSize = HeaderHeight * 0.7;
 	float LogoTextWidth = CUIText::GetTextWidthInPixels(L"Szócsata 3D", LogoCharSize);
 	float LogoYGap = (m_GameManager->m_SurfaceHeigh - HeaderHeight) / 6.f;
-	AddText(HeaderPanelStartScr, L"SZÓCSATA 3D", positionData, gridcolorData8x8, -LogoTextWidth / 2 + LogoCharSize / 2, 0, LogoCharSize, LogoCharSize, "view_ortho", "font.bmp", L"ui_logo_text_header",.5f, .5f, .5f);
+	AddText(HeaderPanelStartScr, L"SZÓCSATA 3D", positionData, gridcolorData8x8, 0, 0, LogoCharSize, "view_ortho", "font.bmp", L"ui_logo_text_header",.5f, .5f, .5f);
 
 	float StartScreenBtnWidth = LogoYGap * 4.5f;
 	float StartScreenBtnHeight = LogoYGap;
@@ -197,13 +202,13 @@ void CUIManager::InitUIElements(std::shared_ptr<CSquarePositionData> positionDat
 	ShowFps &= ConfigFound;
 
 	if (ShowFps)
-		AddText(m_RootGameScreen, L"", positionData, gridcolorData8x8, m_GameManager->m_SurfaceWidth - 150, m_GameManager->m_SurfaceHeigh - 30, 30, 30, "view_ortho", "font.bmp", L"ui_fps_text");
+		AddText(m_RootGameScreen, L"", positionData, gridcolorData8x8, m_GameManager->m_SurfaceWidth - 150, m_GameManager->m_SurfaceHeigh - 30, 30, "view_ortho", "font.bmp", L"ui_fps_text");
 
 	m_PlayerLetterPanel = new CUIPlayerLetterPanel(m_UIScreenPanel, positionData, colorData, ViewPos.x, ViewPos.y);
 
 	m_ScorePanel = new CUIScorePanel(m_UIScreenPanel, m_GameManager, L"ui_score_panel", positionData, colorData, gridcolorData8x8, 0, 0, 0, 0, ViewPos.x, ViewPos.y, "player_score_panel_texture_generated", 0.f, 0.f);
 
-	m_UITileCounter = new CUITileCounter(m_UIScreenPanel, positionData, colorData, gridcolorData8x8, 0, 0, 500, 200, ViewPos.x, ViewPos.y);
+	m_UITileCounter = new CUITileCounter(m_UIScreenPanel, positionData, colorData, gridcolorData8x8, 0, 0, 200, 200, ViewPos.x, ViewPos.y);
 
 	m_MessageBoxOk = new CUIMessageBox(positionData, colorData, gridcolorData8x8, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh / 2, 600, 400, ViewPos.x, ViewPos.y, CUIMessageBox::Ok);
 	m_Toast = new CUIToast(1000, m_TimerEventManager, this, positionData, colorData, gridcolorData8x8, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh / 2, 600, 200, ViewPos.x, ViewPos.y, CUIMessageBox::NoButton);
@@ -227,7 +232,7 @@ void CUIManager::InitUIElements(std::shared_ptr<CSquarePositionData> positionDat
 	LogoCharSize = HeaderHeight * 0.7;
 	LogoTextWidth = CUIText::GetTextWidthInPixels(L"JÁTÉK INDÍTÁSA", LogoCharSize);
 	LogoYGap = (m_GameManager->m_SurfaceHeigh - HeaderHeight) / 6.f;
-	AddText(HeaderPanelStartGameScr, L"JÁTÉK INDÍTÁSA", positionData, gridcolorData8x8, -LogoTextWidth / 2 + LogoCharSize / 2, 0, LogoCharSize, LogoCharSize, "view_ortho", "font.bmp", L"ui_start_game_text_header");
+	AddText(HeaderPanelStartGameScr, L"JÁTÉK INDÍTÁSA", positionData, gridcolorData8x8, 0, 0, LogoCharSize, "view_ortho", "font.bmp", L"ui_start_game_text_header");
 
 	CUISelectControl* SelectControl = nullptr;
 

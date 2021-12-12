@@ -9,16 +9,19 @@
 #define GL3_PROTOTYPES 1
 #include <GLES3\gl3.h>
 
-
 std::map<wchar_t, glm::vec2> CUIText::m_FontTexPos;
 std::map<wchar_t, int> CUIText::m_FontCharWidth;
 std::map<wchar_t, int> CUIText::m_FontCharHeight;
 std::map<wchar_t, float> CUIText::m_FontDesc;
 
+float CUIText::m_FontTextureCharWidth;
+float CUIText::m_FontTextureCharHeight;
 
-CUIText::CUIText(CUIElement* parent, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, const wchar_t* text, int x, int y, int w, int h, int vx, int vy, float r, float g, float b, const wchar_t* id) :
-	CUIElement(parent, id, new CModel(false, 0, std::static_pointer_cast<CModelPositionData>(positionData), std::static_pointer_cast<CModelColorData>(colorData)), x, y, w, h, vx, vy, 0.f, 0.f),
-	m_Text(text)
+
+CUIText::CUIText(CUIElement* parent, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, const wchar_t* text, int fontHeight, int x, int y, int vx, int vy, float r, float g, float b, const wchar_t* id) :
+	CUIElement(parent, id, new CModel(false, 0, std::static_pointer_cast<CModelPositionData>(positionData), std::static_pointer_cast<CModelColorData>(colorData)), x, y, 0, 0, vx, vy, 0.f, 0.f),
+	m_Text(text),
+	m_FontHeight(fontHeight)
 {
 	m_CheckChildEvents = false;
 	InitFontTexPositions();
@@ -31,6 +34,24 @@ size_t CUIText::Length() const
 {
 	return std::count_if(m_Text.begin(), m_Text.end(), [](wchar_t c) {return c != L' ';});
 }
+
+void CUIText::Align(ETextAlign alingment, float padding)
+{
+	float TextHeight = GetTextHeightInPixels(m_Text, m_FontHeight);
+	float Padding = fabs(padding) < 0.001f ? m_FontHeight / 5 : padding;
+	float YPos = m_Parent->GetHeight() / 2 - TextHeight / 2;
+	float XPos = (m_Parent->GetWidth() - m_Width) / 2;
+
+	if (alingment == ETextAlign::Left)
+		XPos = Padding;
+	else if (alingment == ETextAlign::Right)
+		XPos = m_Parent->GetWidth() - m_Width - Padding;
+	else if (alingment == ETextAlign::Center)
+		XPos = (m_Parent->GetWidth() - m_Width) / 2;
+		
+	SetPosition(XPos, YPos, false);
+}
+
 
 void CUIText::SetColor(float r, float g, float b)
 {
@@ -81,8 +102,7 @@ glm::vec2 CUIText::GetTextTopBottom(const std::wstring& text, int size)
 			DescentSet = true;
 		}
 
-		float FontHeight = 103; // TODO ne beegetve legyen, texturameretbol es betukpersor bol szamolja
-		float Ascent = m_FontCharHeight[text.at(i)] * (size / FontHeight) - Descent;
+		float Ascent = m_FontCharHeight[text.at(i)] * (size / m_FontTextureCharHeight) - Descent;
 
 		if (TopBottom.x < Ascent)
 			TopBottom.x = Ascent;
@@ -100,17 +120,31 @@ float CUIText::GetTextSize(const std::wstring& text, int textWidth)
 	return TextSize - 1;
 }
 
+float CUIText::GetTextHeightInPixels(const std::wstring& text, int size)
+{
+	float MaxHeight = 0.f;
+
+	for (size_t i = 0; i < text.length(); ++i)
+	{
+		if (text.at(i) != L' ' && MaxHeight < m_FontCharHeight[text.at(i)])
+			MaxHeight = m_FontCharHeight[text.at(i)];
+	}
+
+	return MaxHeight * (size / m_FontTextureCharHeight);
+}
 
 float CUIText::GetTextWidthInPixels(const std::wstring& text, int size)
 {
+	float FontWidth = (m_FontTextureCharWidth / m_FontTextureCharHeight) * size;
 	float SizeInPixels = 0.f;
+	float LetterGap = FontWidth / 4.f;
 
 	for (size_t i = 0; i < text.length(); ++i)
 	{
 		if (text.at(i) == L' ')
-			SizeInPixels += 18. * (size / 64.); //TODO space
+			SizeInPixels += FontWidth / 4.f; //TODO space
 		else
-			SizeInPixels += m_FontCharWidth[text.at(i)] * (size / 64.) + 7. * (size / 64.); //TODO betukoz konfigbol
+			SizeInPixels += m_FontCharWidth[text.at(i)] * (FontWidth / m_FontTextureCharWidth) + (i < text.length() - 1 ? LetterGap : 0);
 	}
 
 	return SizeInPixels;
@@ -128,7 +162,7 @@ void CUIText::SetText(const wchar_t* text)
 		for (size_t i = from; i < m_Text.length(); ++i)
 		{
 			if (m_Text[i] != L' ')
-				new CUIElement(this, L"", new CModel(false, 2, m_Model->GetPositionData(), m_Model->GetColorData(), "font.bmp", "textured"), 0, 0, m_Width, m_Height, m_ViewXPosition, m_ViewYPosition, 0, 0);
+				new CUIElement(this, L"", new CModel(false, 2, m_Model->GetPositionData(), m_Model->GetColorData(), "font.bmp", "textured"), 0, 0, m_FontHeight, m_FontHeight, m_ViewXPosition, m_ViewYPosition, 0, 0);
 		}
 	}
 	else
@@ -142,12 +176,14 @@ void CUIText::SetText(const wchar_t* text)
 		}
 	}
 
-	float FontWidth = 69; // TODO ne beegetve legyen, texturameretbol es betukperoszlop bol szamolja
-	float FontHeight = 103; // TODO ne beegetve legyen, texturameretbol es betukpersor bol szamolja
-	float FontCharGap = 9. * (m_Width / FontWidth); //TODO a 7 configbol!
-	float FontSpace = 60. * (m_Height / FontHeight); //TODO a 18 configbol!
+	float FontWidth = (m_FontTextureCharWidth / m_FontTextureCharHeight) * m_FontHeight;
+	float FontCharGap = FontWidth / 4.f;
+	float FontSpace = FontWidth / 2.f;
 	float Offset = 0.f;
 	size_t idx = 0;
+
+	m_Width = GetTextWidthInPixels(text, m_FontHeight);
+	m_Height = m_FontHeight;
 
 	for (size_t i = 0; i < m_Text.length(); ++i)
 	{
@@ -157,10 +193,10 @@ void CUIText::SetText(const wchar_t* text)
 		{
 			float FontDesc = 0.f;
 			if (m_FontDesc.find(m_Text.at(i)) != m_FontDesc.end())
-				FontDesc = m_Height * m_FontDesc[m_Text.at(i)];
+				FontDesc = m_FontHeight * m_FontDesc[m_Text.at(i)];
 
-			m_Children[idx]->SetPosAndSize(Offset, -FontDesc, m_Width, m_Height);
-			Offset += m_FontCharWidth[m_Text.at(i)] * (m_Width / FontWidth) + FontCharGap; 
+			m_Children[idx]->SetPosAndSize(Offset, -FontDesc, FontWidth, m_FontHeight, false);
+			Offset += m_FontCharWidth[m_Text.at(i)] * (FontWidth / m_FontTextureCharWidth) + FontCharGap;
 			idx++;
 		}
 	}
@@ -169,7 +205,7 @@ void CUIText::SetText(const wchar_t* text)
 
 	for (size_t i = 0; i < m_Text.length(); ++i)
 		if (m_Text.at(i) != L' ')
-			m_Children[idx++]->SetTexturePosition(glm::vec2((1.f / 16.f) * m_FontTexPos[m_Text.at(i)].x - 0.0015f, (1.f / 6.f) * m_FontTexPos[m_Text.at(i)].y) + 0.00089f);
+			m_Children[idx++]->SetTexturePosition(glm::vec2((1.f / 16.f) * m_FontTexPos[m_Text.at(i)].x /*- 0.0015f*/, (1.f / 6.f) * m_FontTexPos[m_Text.at(i)].y) /*+ 0.00089f*/);
 }
 
 void CUIText::InitFontTexPositions()
@@ -290,7 +326,7 @@ void CUIText::InitFontTexPositions()
 	m_FontCharWidth[L'h'] = 42;
 	m_FontCharWidth[L'i'] = 6;
 	m_FontCharWidth[L'í'] = 9;
-	m_FontCharWidth[L'j'] = 17;
+	m_FontCharWidth[L'j'] = 17;                                                      
 	m_FontCharWidth[L'k'] = 38;
 	m_FontCharWidth[L'l'] = 4;
 	m_FontCharWidth[L'm'] = 66;

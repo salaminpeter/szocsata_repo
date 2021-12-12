@@ -6,7 +6,7 @@ CUIRankingsPanel::CUIRankingsPanel(CUIElement* parent, CGameManager* gameManager
 	CUIPanel(parent, id, positionData, colorData, gridColorData, x, y, w, h, vx, vy, textureID, 0.f, 0.f),
 	m_GameManager(gameManager)
 {
-	AddText(L"jatek vege", -200, 400, 50, 50, "font.bmp", L"ui_game_ended_text");
+	AddText(L"jatek vege", -200, 400, 50, "font.bmp", L"ui_game_ended_text");
 }
 
 
@@ -21,7 +21,7 @@ void CUIRankingsPanel::Init()
 		std::wstringstream ss;
 		ss << Name << L" : " << Score;
 
-		AddText(ss.str().c_str(), -140, Idx * 50, 40, 40, "font.bmp", L"ui_game_ended_text");
+		AddText(ss.str().c_str(), -140, Idx * 50, 40, "font.bmp", L"ui_game_ended_text");
 	}
 
 	AddButton(20, -200, 160, 60, "okbutton.bmp", L"ui_end_game_btn");

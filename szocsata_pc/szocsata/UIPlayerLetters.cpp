@@ -109,12 +109,19 @@ void CUIPlayerLetters::SetLetterVisibility(CBinaryBoolList usedLetters)
 
 void CUIPlayerLetters::SetLetters()
 {
+	const std::lock_guard<std::recursive_mutex> lock(m_GameManager->GetRenderer()->GetRenderLock());
+
 	std::wstring& letters = m_Player->GetLetters();
 
 	if (letters.size() > m_Children.size())
 		AddUILetters(letters.size() - m_Children.size());
 	else if (letters.size() < m_Children.size())
-		m_Children.resize(letters.size()); //TODO delete 
+	{
+		for (size_t i = letters.size(); i < m_Children.size(); ++i)
+			delete m_Children[i];
+		
+		m_Children.resize(letters.size()); 
+	}
 
 	for (size_t i = 0; i < m_Children.size(); ++i)
 		m_Children[i]->SetTexturePosition(m_LetterTexPos[letters[i]]);

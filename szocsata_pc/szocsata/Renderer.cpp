@@ -738,6 +738,17 @@ bool CRenderer::StartInit()
 	return true;
 }
 
+glm::vec2 CRenderer::GetTextureSize(const char* textureID)
+{
+	const CTexture* Texture = m_TextureManager->GetTexture(textureID);
+
+	if (!Texture)
+		return glm::vec2(0.f, 0.f);
+
+	return glm::vec2(Texture->m_Width, Texture->m_Height);
+}
+
+
 void CRenderer::SetTileVisible(int x, int y, bool visible)
 {
 	m_BoardTiles->SetTileVisible(x, y, visible);

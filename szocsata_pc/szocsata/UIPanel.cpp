@@ -21,9 +21,9 @@ CUIPanel::CUIPanel(CUIElement* parent, const wchar_t* id, std::shared_ptr<CSquar
 	SetPosAndSize(x, y, w, h);
 }
 
-void CUIPanel::AddText(const wchar_t* text, float x, float y, float w, float h, const char* textureID, const wchar_t* id, float r, float g, float b)
+void CUIPanel::AddText(const wchar_t* text, float x, float y, float fontHeight, const char* textureID, const wchar_t* id, float r, float g, float b)
 {
-	new CUIText(this, m_PositionData, m_GridColorData, text, x, y, w, h, m_ViewXPosition, m_ViewYPosition, r, g, b, id);
+	new CUIText(this, m_PositionData, m_GridColorData, text, fontHeight, x, y, m_ViewXPosition, m_ViewYPosition, r, g, b, id);
 }
 
 void CUIPanel::AddButton(float x, float y, float w, float h, const char* textureID, const wchar_t* id)
