@@ -60,6 +60,8 @@ glm::vec2 CUIElement::GetAbsolutePosition()
 
 	while (Parent)
 	{
+		bool RootElem = !Parent->GetParent();
+
 		AbsPos.x += Parent->GetXPosition();
 		AbsPos.y += Parent->GetYPosition();
 		Parent = Parent->GetParent();
@@ -133,10 +135,20 @@ void CUIElement::SetPosition(float x, float y, bool midPointOrigo)
 	}
 	else
 	{
+		bool RootElem = !m_Parent->GetParent();
 		float ParentWidth = m_Parent ? m_Parent->GetWidth() : 0;
 		float ParentHeight = m_Parent ? m_Parent->GetHeight() : 0;
-		m_XPosition = x - ParentWidth / 2 + m_Width / 2;
-		m_YPosition = y - ParentHeight / 2 + m_Height / 2;
+
+		if (!RootElem)
+		{
+			m_XPosition = x - ParentWidth / 2 + m_Width / 2;
+			m_YPosition = y - ParentHeight / 2 + m_Height / 2;
+		}
+		else
+		{
+			m_XPosition = x + m_Width / 2;
+			m_YPosition = y + m_Height / 2;
+		}
 	}
 
 	PositionElement();

@@ -90,7 +90,6 @@ void CUIPlayerLetters::AddUILetters(unsigned count)
 		CUIElement* NewLetter;
 		AddChild(NewLetter = new CUIButton(nullptr, m_PositionData, m_ColorData, 0, 0, 0, 0, m_ViewPosX, m_ViewPosY, "playerletters.bmp", L""));
 		NewLetter->SetEvent(false, m_GameManager, &CGameManager::PlayerLetterReleased, std::move(i));
-	//	NewLetter->SetPropegateEvent(true);
 	}
 }
 
