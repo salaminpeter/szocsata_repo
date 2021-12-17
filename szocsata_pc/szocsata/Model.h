@@ -15,9 +15,10 @@ public:
 
 	friend CModel;
 
-	CModel(bool useNormals, int vertexAttribCount, std::shared_ptr<CModelPositionData> positionData, std::shared_ptr<CModelColorData> colorData, const char* textureId = "", const char* shaderId = "") :
+	CModel(bool useNormals, int vertexAttribCount, std::shared_ptr<CModelPositionData> positionData, std::shared_ptr<CModelColorData> colorData, const char* textureId = "", const char* shaderId = "", unsigned textureOffset = 0) :
 		m_VertexAttribCount(vertexAttribCount), 
 		m_TextureId(textureId),
+		m_TextureOffset(textureOffset),
 		m_ShaderId(shaderId),
 		m_PositionData(positionData),
 		m_ColorData(colorData),
@@ -41,12 +42,17 @@ public:
 
 	void SetParent(CModel* parent);
 	float GetBoundingRadius();
-	void Draw(bool bindVertexBuffer = true, bool bindTextureBuffer = true, bool unbindBuffers = true, bool setTextureVertexAttrib = true, bool preRender = true, int textureOffset = 0);
+	void Draw(bool bindVertexBuffer = true, bool bindTextureBuffer = true, bool unbindBuffers = true, bool setTextureVertexAttrib = true);
 
 	void SetMatrices(glm::mat4& m, glm::mat4& mns) {m_ModelMatrix = m; m_ModelMatrixNoScale = mns;}
 
 	const char* GetTextureId() { return m_TextureId.c_str(); }
 	const char* GetShaderId() { return m_ShaderId.c_str(); }
+	unsigned GetTextureOffset() {return m_TextureOffset;}
+	bool HasTexture() {return !m_TextureId.empty();}
+	
+	int GetColorBufferID();
+	int GetPositionBufferID();
 
 	std::shared_ptr<CModelColorData> GetColorData() { return m_ColorData; }
 	std::shared_ptr<CModelPositionData> GetPositionData() { return m_PositionData; }
@@ -70,6 +76,7 @@ protected:
 	std::string m_TextureId;
 	std::string m_ShaderId;
 
+	unsigned m_TextureOffset;
 	float m_BoundingSphereRadius;
 	int m_VertexAttribCount;
 	bool m_UseNormals;

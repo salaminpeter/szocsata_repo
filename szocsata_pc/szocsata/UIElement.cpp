@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "UIElement.h"
 #include "Model.h"
+#include "Renderer.h"
 
 
 CUIElement::CUIElement(CUIElement* parent, const wchar_t* id, CModel* model, int x, int y, int w, int h, int vx, int vy, float tx, float ty) :
@@ -67,6 +68,64 @@ glm::vec2 CUIElement::GetAbsolutePosition()
 
 	return AbsPos;
 }
+
+int CUIElement::GetVisibleElemCount()
+{
+	if (!m_Visible)
+		return 0;
+	
+	int Count = 0;
+
+	for (size_t i = 0; i < m_Children.size(); ++i)
+	{
+		Count += m_Children[i]->GetVisibleElemCount();
+	}
+
+	return Count + (m_Model && m_Model->HasTexture() ? 1 : 0);
+}
+
+
+void CUIElement::RenderInner(CRenderer* renderer, int& elemIdx, int& colorBufferID, int& textureOffset, int elemCount)
+{
+	if (!m_Visible)
+		return;
+	
+	if (m_Model && m_Model->HasTexture())
+	{
+		bool BindTexture = colorBufferID != m_Model->GetColorBufferID();
+		bool SetTextureVertexAttrib = BindTexture || textureOffset != m_Model->GetTextureOffset();
+
+		colorBufferID = m_Model->GetColorBufferID();
+		textureOffset = m_Model->GetTextureOffset();
+
+		if (elemIdx == 0)
+			renderer->EnableBlending(true);
+
+		renderer->SetModifyColor(m_TextureModColor.r, m_TextureModColor.g, m_TextureModColor.b, m_TextureModColor.a);
+		renderer->SetTexturePos(m_TexturePosition);
+		renderer->DrawModel(m_Model, "view_ortho", "textured", false, elemIdx == 0, BindTexture, elemIdx == elemCount - 1, SetTextureVertexAttrib);
+		elemIdx++;
+	}
+
+	for (size_t i = 0; i < m_Children.size(); ++i)
+	{
+		m_Children[i]->RenderInner(renderer, elemIdx, colorBufferID, textureOffset, elemCount);
+	}
+
+	if (elemIdx == elemCount)
+		renderer->EnableBlending(false);
+}
+
+void CUIElement::Render(CRenderer* renderer) 
+{
+	int VisibleElements = GetVisibleElemCount();
+	int RenderedElements = 0;
+	int ColorBufferID = -1;
+	int TextureOffset = -1;
+
+	RenderInner(renderer, RenderedElements, ColorBufferID, TextureOffset, VisibleElements);
+};
+
 
 bool CUIElement::HandleEventAtPos(int x, int y, EEventType event, CUIElement* root, bool checkChildren, bool selfCheck)
 { 

@@ -16,7 +16,6 @@ public:
 	int BoardX() { return m_BoardX; }
 	int BoardY() { return m_BoardY; }
 	float ZPos() { return m_ModelMatrixNoScale[3].z; }
-	unsigned TextureOffset() {return m_TextureOffset;}
 
 	void Position(float x, float y);
 
@@ -28,8 +27,6 @@ private:
 
 	int m_BoardX;
 	int m_BoardY;
-
-	unsigned m_TextureOffset;
 
 	wchar_t m_Char;
 

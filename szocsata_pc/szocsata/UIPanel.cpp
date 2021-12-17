@@ -31,26 +31,3 @@ void CUIPanel::AddButton(float x, float y, float w, float h, const char* texture
 	new CUIButton(this, m_PositionData, m_ColorData, x, y, w, h, m_ViewXPosition, m_ViewYPosition, textureID, id);
 }
 
-void CUIPanel::Render(CRenderer* renderer)
-{
-	if (!m_Visible)
-		return;
-
-	glEnable(GL_BLEND); //TODO!!
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	//draw panel
-	renderer->SetTexturePos(glm::vec2(0.f, 0.f));
-	renderer->DrawModel(m_Model, "view_ortho", "textured", false);
-	glDisable(GL_BLEND); //TODO!!
-
-	//draw child ui elements
-	for (size_t i = 0; i < m_Children.size(); ++i)
-	{
-		glEnable(GL_BLEND); //TODO!!
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		m_Children[i]->Render(renderer);
-		glDisable(GL_BLEND); //TODO!!
-	}
-}
-
-

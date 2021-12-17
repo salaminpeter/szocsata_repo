@@ -18,6 +18,8 @@ public:
 	void BindBuffer(int location, int offset, bool setVertexAttrib = true) const;
 	void SetVertexAttribs(int location, unsigned offset);
 
+	GLuint GetBufferId() {return m_TextureCoordBufferId;}
+
 protected:
 
 	GLuint m_TextureCoordBufferId = 0;

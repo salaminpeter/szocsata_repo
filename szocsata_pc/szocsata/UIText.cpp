@@ -58,28 +58,6 @@ void CUIText::SetColor(float r, float g, float b)
 	m_Color = glm::vec3(r, g, b);
 }
 
-void CUIText::Render(CRenderer* renderer)
-{
-	if (!m_Visible)
-		return;
-
-	glEnable(GL_BLEND); //TODO!!
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	renderer->SetTextColor(m_Color.r, m_Color.g, m_Color.b);
-
-	for (size_t i = 0; i < Length(); ++i)
-	{
-		renderer->SetTexturePos(GetTexturePos(i));
-		renderer->DrawModel(GetModel(i), "view_ortho", "textured", false, i == 0, i == 0, i == Length() - 1, i == 0);
-	}
-
-	renderer->SetTextColor(1, 1, 1);
-
-	glDisable(GL_BLEND); //TODO!!
-
-}
-
 glm::vec2 CUIText::GetTextTopBottom(const std::wstring& text, int size)
 {
 	//x a top, y a bottom

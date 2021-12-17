@@ -51,20 +51,3 @@ void CUIButton::PositionText()
 		ButtonText->SetPosAndSize(-m_Width / 2.f + TextWidth / 2 + m_Padding, (CharHeight - TextTopBottom.x) / 2.f, CharHeight, CharHeight);
 }
 
-void CUIButton::Render(CRenderer* renderer)
-{
-	if (!m_Visible)
-		return;
-
-	bool Transparent = false;
-	//TODO ocsmany igy! egy texture shader legyen kivulrol allithato alfaval!
-	if (std::wstring(m_ID) == L"ui_dragged_player_letter_btn")
-		Transparent = true;
-	
-	renderer->SetTexturePos(m_TexturePosition, Transparent);
-	renderer->DrawModel(m_Model, "view_ortho", m_Model->GetShaderId(), false);
-
-	//draw button text    
-	for (size_t i = 0; i < m_Children.size(); ++i)
-		m_Children[i]->Render(renderer);
-}

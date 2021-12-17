@@ -17,6 +17,7 @@ public:
 	void BindIndexBuffer() const;
 
 	unsigned GetIndexCount() const {return m_IndexCount;}
+	int GetPositionBufferId() {return m_VertexBufferId;}
 
 protected:
 

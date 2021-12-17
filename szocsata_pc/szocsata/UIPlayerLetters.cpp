@@ -80,7 +80,7 @@ void CUIPlayerLetters::InitLetterElements(std::shared_ptr<CSquarePositionData> p
 	AddUILetters(LetterCount);
 
 	for (size_t i = 0; i < m_Children.size(); ++i)
-		m_Children[i]->SetTexturePosition(m_LetterTexPos[letters[i]]);
+		m_Children[i]->SetTexturePosition(m_LetterTexPos[letters[i]] / glm::vec2(8, 4));
 }
 
 void CUIPlayerLetters::AddUILetters(unsigned count)
@@ -124,7 +124,7 @@ void CUIPlayerLetters::SetLetters()
 	}
 
 	for (size_t i = 0; i < m_Children.size(); ++i)
-		m_Children[i]->SetTexturePosition(m_LetterTexPos[letters[i]]);
+		m_Children[i]->SetTexturePosition(m_LetterTexPos[letters[i]] / glm::vec2(8, 4));
 }
 
 void CUIPlayerLetters::ShowLetters(bool show)
@@ -159,28 +159,6 @@ bool CUIPlayerLetters::HandleEventAtPos(int x, int y, EEventType event, CUIEleme
 	}
 
 	return false;
-}
-
-void CUIPlayerLetters::Render(CRenderer* renderer)
-{
-	if (!m_Visible)
-		return;
-
-	size_t idx = 0;
-	size_t VisibleLetterCount = m_Player->GetUnUsedLetterCount();
-
-	for (size_t i = 0; i < m_Children.size(); ++i)
-	{
-		if (!IsVisible(i))
-			continue;
-
-		glm::vec2 TextPos = GetTexturePos(i);
-		TextPos.x /= 8.f;
-		TextPos.y /= 4.f;
-		renderer->SetTexturePos(TextPos);
-		renderer->DrawModel(GetModel(i), "view_ortho", "textured", false, idx == 0, idx == 0, idx == VisibleLetterCount - 1, idx == 0);
-		idx++;
-	}
 }
 
 

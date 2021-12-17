@@ -16,7 +16,7 @@ CModel::~CModel()
 	m_ColorData.reset();
 }
 
-void CModel::Draw(bool bindVertexBuffer, bool bindColorBuffer, bool unbindBuffers, bool setTextureVertexAttrib, bool preRender, int textureOffset)
+void CModel::Draw(bool bindVertexBuffer, bool bindColorBuffer, bool unbindBuffers, bool setTextureVertexAttrib)
 {
 	if (bindVertexBuffer)
 	{
@@ -26,10 +26,10 @@ void CModel::Draw(bool bindVertexBuffer, bool bindColorBuffer, bool unbindBuffer
 			m_PositionData->BindVertexBuffer(0, -1);
 	}
 	if (m_ColorData && bindColorBuffer)
-		m_ColorData->BindBuffer(1, textureOffset, setTextureVertexAttrib);
+		m_ColorData->BindBuffer(1, m_TextureOffset, setTextureVertexAttrib);
 
 	if (m_ColorData && setTextureVertexAttrib && !bindColorBuffer)
-		m_ColorData->SetVertexAttribs(1, textureOffset);
+		m_ColorData->SetVertexAttribs(1, m_TextureOffset);
 
 	if (bindVertexBuffer)
 		m_PositionData->BindIndexBuffer();
@@ -111,6 +111,16 @@ void CModel::SetParent(CModel* parent)
 float CModel::GetBoundingRadius()
 {
 	return m_BoundingSphereRadius;
+}
+
+int CModel::GetPositionBufferID()
+{
+	return m_PositionData->GetPositionBufferId();
+}
+
+int CModel::GetColorBufferID() 
+{
+	 return m_ColorData->GetBufferId(); 
 }
 
 glm::vec3 CModel::GetAxis(unsigned axisID)

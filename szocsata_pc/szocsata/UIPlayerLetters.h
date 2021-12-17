@@ -26,13 +26,11 @@ public:
 	void AddUILetters(unsigned count);
 	void OrderLetterElements();
 	void PositionPlayerLetter(size_t lettedIdx, float x, float y, float size);
- //   void RemoveLetter(size_t letterIdx);
 	void ShowLetters(bool show);
 	void SetLetters();
 	void SetLetterVisibility(CBinaryBoolList usedLetters);
 	void SetLetterDragged(size_t letterIdx, int x, int y);
 	
-	void Render(CRenderer* renderer) override;
 	bool HandleEventAtPos(int x, int y, EEventType event, CUIElement* root = nullptr, bool checkChildren = true, bool selfCheck = true) override;
 
 

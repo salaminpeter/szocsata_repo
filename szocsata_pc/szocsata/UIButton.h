@@ -18,7 +18,7 @@ public:
 	void PositionText();
 	void SetText(const wchar_t* buttonText);
 
-	void Render(CRenderer* renderer) override;
+//	void Render(CRenderer* renderer) override;
 
 private:
 

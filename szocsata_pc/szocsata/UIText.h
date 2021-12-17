@@ -23,8 +23,6 @@ public:
 	void SetColor(float r, float g, float b);
 	void Align(ETextAlign alingment, float padding = 0.f);
 
-	void Render(CRenderer* renderer) override;
-
 	static float GetTextWidthInPixels(const std::wstring& text, int size);
 	static float GetTextHeightInPixels(const std::wstring& text, int size);
 	static float GetTextSize(const std::wstring& text, int textWidth);

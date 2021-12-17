@@ -18,8 +18,6 @@ public:
 	void AddButton(float x, float y, float w, float h, const char* textureID, const wchar_t* id);
 	void AddText(const wchar_t* text, float x, float y, float fontHeight, const char* textureID, const wchar_t* id, float r = 1.f, float g = 1.f, float b = 1.f);
 
-	void Render(CRenderer* renderer) override;
-
 protected:
 
 	std::shared_ptr<CSquarePositionData> m_PositionData;

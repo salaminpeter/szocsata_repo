@@ -193,20 +193,24 @@ CLetterModel* CRenderer::AddLetterToBoard(int x, int y, wchar_t c, float height,
 }
 
 
-void CRenderer::SetTexturePos(glm::vec2 texturePos, bool transparent)
+void CRenderer::SetTexturePos(glm::vec2 texturePos)
 {
-	const char* ShaderID = transparent ? "textured_transparent" : "textured";
-	m_ShaderManager->ActivateShader(ShaderID);
-	GLuint TexturePosId = m_ShaderManager->GetShaderVariableID(ShaderID, "TexturePos");
+	m_ShaderManager->ActivateShader("textured");
+	GLuint TexturePosId = m_ShaderManager->GetShaderVariableID("textured", "TexturePos");
 	glUniform2fv(TexturePosId, 1, &texturePos[0]);
+}
+
+void CRenderer::SetModifyColor(float r, float g, float b, float a)
+{
+	m_ShaderManager->ActivateShader("textured");
+	GLuint ModColorID = m_ShaderManager->GetShaderVariableID("textured", "ModifyColor");
+	glm::vec4 Color(r, g, b, a);
+	glUniform4fv(ModColorID, 1, &Color[0]);
 }
 
 void CRenderer::SetTextColor(float r, float g, float b)
 {
-	m_ShaderManager->ActivateShader("textured");
-	GLuint TextColorID = m_ShaderManager->GetShaderVariableID("textured", "ModifyColor");
-	glm::vec4 Color(r, g, b, 1);
-	glUniform4fv(TextColorID, 1, &Color[0]);
+	SetModifyColor(r, g, b, 1);
 }
 
 void CRenderer::FittBoardToView(bool topView)
@@ -699,7 +703,6 @@ bool CRenderer::StartInit()
 	m_ShaderManager->AddShader("per_pixel_light_textured", VertexShaderPerPixel, FragmentShaderPerPixel);
 	m_ShaderManager->AddShader("transparent_color", VertexShaderSelection, FragmentShaderSelection);
 	m_ShaderManager->AddShader("textured", VertexShaderTextured, FragmentShaderTextured);
-	m_ShaderManager->AddShader("textured_transparent", VertexShaderTextured, FragmentShaderTexturedTransparent);
 
 	SetTextColor(1, 1, 1);
 
@@ -736,6 +739,17 @@ bool CRenderer::StartInit()
 	m_TextureManager->GenerateTextures(Width, Height);
 
 	return true;
+}
+
+void CRenderer::EnableBlending(bool enable)
+{
+	if (enable)
+	{
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	}
+	else
+		glDisable(GL_BLEND);
 }
 
 glm::vec2 CRenderer::GetTextureSize(const char* textureID)
@@ -874,6 +888,8 @@ bool CRenderer::EndInit()
 	m_SelectionModel->SetParent(m_BoardModel);
 	CalculateScreenSpaceGrid();
 
+	m_TextureManager->GenerateTexturesAtGameStart(m_GameManager->GetScorePanelSize().x, m_GameManager->GetScorePanelSize().y);
+
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 	glFrontFace(GL_CW);
@@ -966,6 +982,12 @@ void CRenderer::RemoveLastLetter()
 	m_LettersOnBoard.pop_back();
 }
 
+bool CRenderer::IsCurrentTexture(const char* texId)
+{
+	return m_TextureManager->IsCurrentTexture(texId);
+}
+
+
 void CRenderer::SetLightPosition()
 {
 	float BoardHeight;
@@ -977,7 +999,7 @@ void CRenderer::SetLightPosition()
 	m_LightPosition = glm::vec4(PosOnBoard - CameraLookAt * 13.f, 1.f); //13.f config TODO
 }
 
-void CRenderer::DrawModel(CModel* model, const char* viewID, const char* shaderID, bool setLightPos, bool bindVertexBuffer, bool bindTextureBuffer, bool unbindBuffers, bool setTextureVertexAttrib, int textureOffset)
+void CRenderer::DrawModel(CModel* model, const char* viewID, const char* shaderID, bool setLightPos, bool bindVertexBuffer, bool bindTextureBuffer, bool unbindBuffers, bool setTextureVertexAttrib)
 {
 	m_ShaderManager->ActivateShader(shaderID);
 	m_Views[viewID]->Activate();
@@ -1002,7 +1024,7 @@ void CRenderer::DrawModel(CModel* model, const char* viewID, const char* shaderI
 	if (!std::string(TextureID).empty())
 		m_TextureManager->ActivateTexture(TextureID);
 
-	model->Draw(bindVertexBuffer, bindTextureBuffer, unbindBuffers, setTextureVertexAttrib, true, textureOffset);
+	model->Draw(bindVertexBuffer, bindTextureBuffer, unbindBuffers, setTextureVertexAttrib);
 }
 
 void CRenderer::ClearBuffers()
@@ -1038,7 +1060,7 @@ void CRenderer::Render()
 	for (unsigned i = 0; i < m_LettersOnBoard.size(); ++i)
 	{
 		if (m_LettersOnBoard[i]->Visible())
-			DrawModel(m_LettersOnBoard[i], "board_perspecive", "per_pixel_light_textured", !BufferBound, !BufferBound, !TextureBound, i == LastVisibleLetterIdx, true, m_LettersOnBoard[i]->TextureOffset());
+			DrawModel(m_LettersOnBoard[i], "board_perspecive", "per_pixel_light_textured", !BufferBound, !BufferBound, !TextureBound, i == LastVisibleLetterIdx, true);
 	}
 
 	m_BoardTiles->RenderTiles();

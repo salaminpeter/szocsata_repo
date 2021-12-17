@@ -12,11 +12,10 @@
 #include <vector>
 
 CLetterModel::CLetterModel(unsigned textureOffset, int bx, int by, wchar_t c, std::shared_ptr<CRoundedBoxPositionData> positionData, std::shared_ptr<CModelColorData> colorData) :
-	CModel(true, 3, positionData, colorData, "letters.bmp", "per_pixel_light_textured"),
+	CModel(true, 3, positionData, colorData, "letters.bmp", "per_pixel_light_textured", textureOffset),
 	m_BoardX(bx),
 	m_BoardY(by),
-	m_Char(c),
-	m_TextureOffset(textureOffset)
+	m_Char(c)
 {
 }
 

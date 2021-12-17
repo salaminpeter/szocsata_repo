@@ -9,8 +9,7 @@
 
 
 CTileModel::CTileModel(unsigned textureOffset, std::shared_ptr<CRoundedBoxPositionData> positionData, std::shared_ptr<CModelColorData> colorData) :
-	CModel(true, 3, positionData, colorData, "gridtex.bmp", "per_pixel_light_textured"),
-	m_TextureOffset(textureOffset)
+	CModel(true, 3, positionData, colorData, "gridtex.bmp", "per_pixel_light_textured", textureOffset)
 {
 }
 
@@ -88,7 +87,7 @@ void CBoardTiles::RenderTiles()
 	glDisable(GL_DEPTH);
 	glEnable(GL_BLEND);
 
-	m_Renderer->SetTexturePos(glm::vec2(0.f, 0.f), false);
+	m_Renderer->SetTexturePos(glm::vec2(0.f, 0.f));
 
 	for (size_t i = 0; i < m_TileShadows.size(); ++i)
 		m_Renderer->DrawModel(&m_TileShadows[i], "board_perspecive", "textured", false);
@@ -115,10 +114,9 @@ void CBoardTiles::RenderTiles()
 		int x = i % TileCount;
 		int y = i / TileCount;
 
-//		if (m_GameManager->Board(x, TileCount - y - 1).m_Height == 0)
 		if (m_BoardTiles[i].IsVisible())
 		{
-			m_Renderer->DrawModel(&m_BoardTiles[i], "board_perspecive", "per_pixel_light_textured", true, !BufferBound, !TextureBound, i == LastVisibleTileIdx, true, m_BoardTiles[i].TextureOffset());
+			m_Renderer->DrawModel(&m_BoardTiles[i], "board_perspecive", "per_pixel_light_textured", true, !BufferBound, !TextureBound, i == LastVisibleTileIdx, true);
 
 			if (i == LastVisibleTileIdx)
 				return;

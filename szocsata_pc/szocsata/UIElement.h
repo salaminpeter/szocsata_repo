@@ -72,12 +72,17 @@ public:
 	void Enable(bool enable) { m_Enabled = enable; }
 	bool IsEnabled() { return m_Enabled; }
 	void SetCheckChildEvent(bool b) { m_CheckChildEvents = b; }
+	void SetModifyColor(glm::vec4 modColor) {m_TextureModColor = modColor;}
+	int GetVisibleElemCount();
 
-	virtual void Render(CRenderer* renderer) {};
+	virtual void Render(CRenderer* renderer);
 	virtual bool HandleEventAtPos(int x, int y, EEventType event, CUIElement* root = nullptr, bool checkChildren = true, bool selfCheck = true);
 
 public:
 	std::vector<CUIElement*> m_Children;
+
+private:
+	void RenderInner(CRenderer* renderer, int& elemIdx, int& colorBufferID, int& textureOffset, int elemCount = 0);
 
 protected:
 
@@ -97,9 +102,7 @@ protected:
 	
 	bool m_CheckChildEvents = true;
 
+	glm::vec4 m_TextureModColor = glm::vec4(1, 1, 1, 1);
 	glm::vec2 m_TexturePosition;
 	std::wstring m_ID;
-
-	public:
-	std::string m_Type; //TODO szepen!
 };

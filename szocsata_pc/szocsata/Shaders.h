@@ -38,38 +38,6 @@ char FragmentShaderPerPixel[] =
 "	fragColour  = (texture(texSampler, fTexCoord) * LightIntensity);\n"
 "}";
 
-char VertexShaderBoard[] =
-"#version 300 es\n"
-"layout(location = 0) in vec4 vPosition;\n"
-"layout(location = 1) in vec2 vTexCoord;\n"
-"layout(location = 2) in vec4 vNormal;\n"
-"out vec2 fTexCoord;\n"
-"out float LightIntensity; \n"
-"uniform mat4 MVP; \n"
-"uniform vec4 LightPosition; \n"
-"void main() {\n"
-"	float Distance = length(LightPosition - vPosition) / 13.0;\n"
-"	vec4 LightVector = normalize(LightPosition - vPosition);\n"
-"	LightIntensity = max(dot(LightVector, vNormal), 0.);\n"
-"	LightIntensity = LightIntensity * (1.0 / (Distance * Distance));\n"
-"	LightIntensity = min(1.0, LightIntensity);\n"
-"	fTexCoord = vTexCoord;\n"
-"	gl_Position = MVP * vPosition;\n"
-"}";
-
-char FragmentShaderBoard[] =
-"#version 300 es\n"
-"#ifdef GL_ES\n"
-"precision highp float;\n"
-"#endif\n"
-"in vec2 fTexCoord;\n"
-"in float LightIntensity;\n"
-"out vec4 fragColour;\n"
-"uniform sampler2D texSampler;\n"
-"void main() {\n"
-"	fragColour = texture(texSampler, fTexCoord) * LightIntensity;\n"
-"}";
-
 char VertexShaderSelection[] =
 "#version 300 es\n"
 "layout(location = 0) in vec4 vPosition;\n"
@@ -117,16 +85,3 @@ char FragmentShaderTextured[] =
 "   fragColour = texture(texSampler,fTexCoord) * modColor;\n"
 "}";
 
-char FragmentShaderTexturedTransparent[] =
-"#version 300 es\n"
-"#ifdef GL_ES\n"
-"precision highp float;\n"
-"#endif\n"
-"in vec2 fTexCoord;\n"
-"out vec4 fragColour;\n"
-"uniform sampler2D texSampler;\n"
-"void main() {\n"
-"   vec4 TextureColor = texture(texSampler,fTexCoord).rgba;\n"
-"   fragColour = vec4(TextureColor.rgb, TextureColor.a - 0.5);\n"
-//"   fragColour = texture(texSampler,fTexCoord).rgba;\n"
-"}";

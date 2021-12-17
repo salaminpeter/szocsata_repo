@@ -59,9 +59,10 @@ public:
 	void DisableSelection();
 	void RemoveLastLetter();
 	void RemoveTopLetter(int x, int y);
-	void SetTexturePos(glm::vec2 texturePos, bool transparent = false);
+	void SetTexturePos(glm::vec2 texturePos);
 	void SetTextColor(float r, float g, float b);
-	void DrawModel(CModel* model, const char* viewID, const char* shaderID, bool setLightPos, bool bindBuffers = true, bool bindTexture = true, bool unbindBuffers = true, bool setTextureVertexAttrib = true, int textureOffset = 0);
+	void SetModifyColor(float r, float g, float b, float a);
+	void DrawModel(CModel* model, const char* viewID, const char* shaderID, bool setLightPos, bool bindBuffers = true, bool bindTexture = true, bool unbindBuffers = true, bool setTextureVertexAttrib = true);
 	TPosition GetTilePos(int x, int y);
 	void FittBoardToView(bool topView);
 	void RotateCamera(float rotateAngle, float tiltAngle, bool intersectWithBoard = true);
@@ -77,7 +78,9 @@ public:
 	void ClearResources();
 	float SetBoardSize();
 	void SetTileVisible(int x, int y, bool visible);
+	bool IsCurrentTexture(const char* texId);
 	glm::vec2 GetTextureSize(const char* textureID);
+	void EnableBlending(bool enable);
 
 	void HideSelection(bool hide) { m_SelectionVisible = !hide; } //TODO setvisibleblabla... atirni
 	bool IsInited() { return m_Inited; }

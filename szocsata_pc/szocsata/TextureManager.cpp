@@ -27,6 +27,10 @@ const CTexture* CTextureManager::GetTexture(const char* textureID)
 	return m_Textures[textureID];
 }
 
+bool CTextureManager::IsCurrentTexture(const char* texId)
+{
+	return (m_CurrentTexture == texId);
+}
 
 void CTextureManager::ActivateTexture(const char* texId)
 {
