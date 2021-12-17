@@ -122,15 +122,19 @@ float CUIText::GetTextSize(const std::wstring& text, int textWidth)
 
 float CUIText::GetTextHeightInPixels(const std::wstring& text, int size)
 {
-	float MaxHeight = 0.f;
+	float Top = 0.f;
+	float Bottom = 1.f;
 
 	for (size_t i = 0; i < text.length(); ++i)
 	{
-		if (text.at(i) != L' ' && MaxHeight < m_FontCharHeight[text.at(i)])
-			MaxHeight = m_FontCharHeight[text.at(i)];
+		if (text.at(i) != L' ' && Top < m_FontCharHeight[text.at(i)])
+			Top = m_FontCharHeight[text.at(i)];
+
+		if (text.at(i) != L' ' && Bottom > -m_FontDesc[text.at(i)])
+			Bottom = -m_FontDesc[text.at(i)];
 	}
 
-	return MaxHeight * (size / m_FontTextureCharHeight);
+	return (Top - Bottom) * (size / m_FontTextureCharHeight);
 }
 
 float CUIText::GetTextWidthInPixels(const std::wstring& text, int size)

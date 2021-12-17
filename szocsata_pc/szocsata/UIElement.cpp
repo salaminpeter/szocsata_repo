@@ -60,8 +60,6 @@ glm::vec2 CUIElement::GetAbsolutePosition()
 
 	while (Parent)
 	{
-		bool RootElem = !Parent->GetParent();
-
 		AbsPos.x += Parent->GetXPosition();
 		AbsPos.y += Parent->GetYPosition();
 		Parent = Parent->GetParent();

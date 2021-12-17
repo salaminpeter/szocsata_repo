@@ -105,6 +105,8 @@ public:
 	bool PlayerLetterAnimationFinished();
 	bool SelectionPosIllegal(int x, int y);
 	void CheckAndUpdateTime(double& timeFromStart, double& timeFromPrev);
+
+	glm::ivec2 GetScorePanelSize();
 	std::wstring GetTimeStr(int msec);
 
 	std::wstring GetWordAtPos(bool horizontal, int& x, int& y);

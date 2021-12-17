@@ -20,7 +20,7 @@ public:
 
 	void Render(CRenderer* renderer) override;
 
-private:
+protected:
 
 	std::shared_ptr<CSquarePositionData> m_PositionData;
 	std::shared_ptr<CSquareColorData>	 m_ColorData;

@@ -88,6 +88,7 @@ public:
 
 	void UpdateScorePanel();
 	void InitScorePanel();
+	glm::ivec2 GetScorePanelSize();
 
 	void ClearUIElements();
 

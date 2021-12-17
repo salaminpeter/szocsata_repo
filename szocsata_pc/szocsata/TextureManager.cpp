@@ -39,11 +39,25 @@ void CTextureManager::ActivateTexture(const char* texId)
 
 void CTextureManager::GenerateHeaderTexture()
 {
-	uint8_t ImageData[16] = { 255, 176, 138, 110, 255, 176, 138, 110, 255, 176, 138, 110, 255, 176, 138, 110 };
+	uint8_t ImageData[16] = { 132, 77, 36, 110, 132, 77, 36, 110, 132, 77, 36, 110, 132, 77, 36, 110 };
 	CTexture* NewTexture = new CTexture("header_texture_generated", ImageData, 2, 2, 4);
 
 	m_Textures["header_texture_generated"] = NewTexture;
 }
+
+void CTextureManager::Generate2x2Texture(glm::vec4 color, const char* textureID)
+{
+	uint8_t ImageData[16] = { color.r * 255, color.g * 255, color.b * 255, color.a * 255, 
+							  color.r * 255, color.g * 255, color.b * 255, color.a * 255, 
+							  color.r * 255, color.g * 255, color.b * 255, color.a * 255, 
+							  color.r * 255, color.g * 255, color.b * 255, color.a * 255 
+							};
+
+	CTexture* NewTexture = new CTexture(textureID, ImageData, 2, 2, 4);
+
+	m_Textures[textureID] = NewTexture;
+}
+
 
 void CTextureManager::GenerateRoundedBoxTexture(int w, int h, int r, glm::vec4 color, int outlineWidth, glm::vec4 outlineColor, const char* textureID)
 {
@@ -140,11 +154,16 @@ void CTextureManager::GenerateRoundedBoxTexture(int w, int h, int r, glm::vec4 c
 	m_Textures[textureID] = NewTexture;
 }
 
+void CTextureManager::GenerateTexturesAtGameStart(float scorePanelWidth, float scorePanelHeight)
+{
+	GenerateRoundedBoxTexture(scorePanelWidth, scorePanelHeight, scorePanelWidth / 20, glm::vec4(0.70f, 0.22f, 0.f, 0.4f), 5, glm::vec4(0.46f, 0.3f, 0.21f, 1.f), "player_score_panel_texture_generated");
+}
+
 void CTextureManager::GenerateTextures(float viewWidth, float viewHeight)
 {
 	GenerateHeaderTexture();
 	GenerateRoundedBoxTexture(680, 150, 30, glm::vec4(0.70f, 0.22f, 0.f, 0.4f), 0, glm::vec4(1, 1, 1, 1.f), "start_scr_btn_texture_generated");
 	GenerateRoundedBoxTexture(viewWidth - 20, viewHeight / 3 - 20, 50, glm::vec4(0.70f, 0.22f, 0.f, 0.4f), 5, glm::vec4(0.46f, 0.3f, 0.21f, 1.f), "player_letter_panel_texture_generated");
 	GenerateRoundedBoxTexture(200, 200, 20, glm::vec4(0.70f, 0.22f, 0.f, 0.4f), 5, glm::vec4(0.46f, 0.3f, 0.21f, 1.f), "score_panel_texture_generated");
-	GenerateRoundedBoxTexture(370, 300, 20, glm::vec4(0.70f, 0.22f, 0.f, 0.4f), 5, glm::vec4(0.46f, 0.3f, 0.21f, 1.f), "player_score_panel_texture_generated");
+	Generate2x2Texture(glm::vec4(0.46f, 0.3f, 0.21f, 1.f), "divider_texture_generated");
 }

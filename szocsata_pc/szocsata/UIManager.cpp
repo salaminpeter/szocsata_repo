@@ -160,7 +160,7 @@ void CUIManager::InitUIElements(std::shared_ptr<CSquarePositionData> positionDat
 	float LogoCharSize = HeaderHeight * 0.7;
 	float LogoTextWidth = CUIText::GetTextWidthInPixels(L"Szócsata 3D", LogoCharSize);
 	float LogoYGap = (m_GameManager->m_SurfaceHeigh - HeaderHeight) / 6.f;
-	AddText(HeaderPanelStartScr, L"SZÓCSATA 3D", positionData, gridcolorData8x8, 0, 0, LogoCharSize, "view_ortho", "font.bmp", L"ui_logo_text_header",.5f, .5f, .5f);
+	AddText(HeaderPanelStartScr, L"SZÓCSATA 3D", positionData, gridcolorData8x8, 0, 0, LogoCharSize, "view_ortho", "font.bmp", L"ui_logo_text_header",1, .74f, .5f);
 
 	float StartScreenBtnWidth = LogoYGap * 4.5f;
 	float StartScreenBtnHeight = LogoYGap;
@@ -340,6 +340,11 @@ void CUIManager::InitScorePanel()
 	m_ScorePanel->Init();
 }
 
+glm::ivec2 CUIManager::GetScorePanelSize()
+{ 
+	return glm::ivec2(m_ScorePanel->GetWidth(), m_ScorePanel->GetHeight());
+}
+
 
 int CUIManager::GetBoardSize()
 {
@@ -429,10 +434,6 @@ void CUIManager::PositionGameButtons()
 	auto GridPos = m_ButtonsLayout->GetGridPosition(0);
 	auto LettersGridPos = m_PlayerLettersLayout->GetGridPosition(m_PlayerLettersLayout->GridCount() - 1);
 	((CUITileCounter*)m_UIScreenPanel->GetChild(L"ui_tile_counter"))->SetPositionAndSize(m_GameManager->m_SurfaceHeigh + (m_GameManager->m_SurfaceWidth - m_GameManager->m_SurfaceHeigh) / 2, LettersGridPos.m_Bottom + m_PlayerLettersLayout->GetElemSize() / 2 + (GridPos.m_Top - m_ButtonsLayout->GetElemSize() / 2 - (LettersGridPos.m_Bottom + m_PlayerLettersLayout->GetElemSize() / 2)) / 2, 250, 150);
-
-	float ScorePanelSize = m_GameManager->m_SurfaceWidth - (m_GameManager->m_SurfaceHeigh + (m_GameManager->m_SurfaceWidth - m_GameManager->m_SurfaceHeigh) / 2) - m_GameManager->m_SurfaceHeigh * .11f - m_GameManager->m_SurfaceWidth * 0.016f;
-	float ScorePanelHeight = (GridPos.m_Top - m_ButtonsLayout->GetElemSize() / 2 - (LettersGridPos.m_Bottom + m_PlayerLettersLayout->GetElemSize() / 2)) - .037f * m_GameManager->m_SurfaceHeigh;
-	m_UIScreenPanel->GetChild(L"ui_score_panel")->SetPosAndSize(m_UIScreenPanel->GetWidth() - ScorePanelSize, m_PlayerLetterPanel->GetHeight() + ScorePanelHeight + 150, ScorePanelSize, ScorePanelHeight, false);
 }
 
 void CUIManager::PositionPlayerLetters(const std::wstring& playerId)

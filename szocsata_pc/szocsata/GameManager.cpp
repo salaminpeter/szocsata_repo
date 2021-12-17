@@ -81,8 +81,8 @@ void CGameManager::FinishRenderInit()
 #else
 	SetTileCount();
 	InitBasedOnTileCount();
-	EndInitRenderer();
 	InitPlayers();
+	EndInitRenderer();
 	SetGameState(CGameManager::BeginGame);
 #endif
 }
@@ -163,6 +163,11 @@ void CGameManager::StartPlayerTurn(CPlayer* player)
 bool CGameManager::TileAnimationFinished() 
 { 
 	return m_TileAnimations->Finished(); 
+}
+
+glm::ivec2 CGameManager::GetScorePanelSize()
+{
+	return m_UIManager->GetScorePanelSize();
 }
 
 std::wstring CGameManager::GetTimeStr(int msec)
