@@ -12,7 +12,7 @@ CUIButton::CUIButton(CUIElement* parent, std::shared_ptr<CSquarePositionData> po
 	PositionElement();
 }
 
-void CUIButton::AddText(const wchar_t* buttonText, float relTextHeight, EAlignment textAlignment, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> gridcolorData8x8, float padding)
+void CUIButton::AddText(const wchar_t* buttonText, float relTextHeight, CUIText::ETextAlign textAlignment, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> gridcolorData8x8, float padding)
 {
 	m_Text = buttonText;
 	m_RelTextSize = relTextHeight;
@@ -41,13 +41,6 @@ void CUIButton::PositionText()
 	if (!ButtonText)
 		return;
 
-	float CharHeight = m_RelTextSize * m_Height;
-	float TextWidth = CUIText::GetTextWidthInPixels(m_Text, CharHeight);
-	glm::vec2 TextTopBottom = CUIText::GetTextTopBottom(m_Text, CharHeight);
-
-	if (m_TextAlignment == Center)
-		ButtonText->SetPosAndSize(0, (CharHeight - TextTopBottom.x) / 2.f, CharHeight, CharHeight);
-	else if (m_TextAlignment == Left)
-		ButtonText->SetPosAndSize(-m_Width / 2.f + TextWidth / 2 + m_Padding, (CharHeight - TextTopBottom.x) / 2.f, CharHeight, CharHeight);
+	ButtonText->Align(m_TextAlignment, m_Padding);
 }
 

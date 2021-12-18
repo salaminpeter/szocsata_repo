@@ -24,7 +24,6 @@ public:
 	void Align(ETextAlign alingment, float padding = 0.f);
 
 	static float GetTextWidthInPixels(const std::wstring& text, int size);
-	static float GetTextHeightInPixels(const std::wstring& text, int size);
 	static float GetTextSize(const std::wstring& text, int textWidth);
 	static glm::vec2 GetTextTopBottom(const std::wstring& text, int size);
 	static void InitFontTexPositions();
@@ -35,7 +34,6 @@ public:
 private:
 
 	std::wstring m_Text;
-	glm::vec3 m_Color;
 	float m_FontHeight;
 
 	static std::map<wchar_t, glm::vec2> m_FontTexPos; //TODO kulon font osztaly!!!!!!!!!!

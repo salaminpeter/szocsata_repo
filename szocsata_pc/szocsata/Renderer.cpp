@@ -725,6 +725,7 @@ bool CRenderer::StartInit()
 	m_TextureManager->AddTexture("textbutton.bmp");
 	m_TextureManager->AddTexture("background.bmp");
 
+	m_TextureManager->AddTexture("kor_icon.bmp", 4);
 	m_TextureManager->AddTexture("tile_counter_icon.bmp", 4);
 	m_TextureManager->AddTexture("playerletters.bmp", 4);
 	m_TextureManager->AddTexture("font.bmp", 4, false);

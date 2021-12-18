@@ -18,8 +18,9 @@ void CUIScorePanel::Update()
 	size_t Idx = 0;
 	std::wstring Name;
 	int Score;
+	glm::vec3 Color;
 
-	while (m_GameManager->GetPlayerNameScore(Idx, Name, Score))
+	while (m_GameManager->GetPlayerProperties(Idx, Name, Score, Color))
 	{
 		std::wstringstream Id;
 		Id << L"ui_player_score_score_" << Idx;
@@ -45,11 +46,13 @@ void CUIScorePanel::Init()
 	size_t Idx = 0;
 	std::wstring Name;
 	int Score;
+	glm::vec3 Color;
 
-	while (m_GameManager->GetPlayerNameScore(Idx++, Name, Score))
+	while (m_GameManager->GetPlayerProperties(Idx++, Name, Score, Color))
 	{
 		float TextWidth = CUIText::GetTextWidthInPixels(Name.c_str(), TextSize);
-		float TextHeight = CUIText::GetTextHeightInPixels(Name.c_str(), TextSize);
+		glm::vec2 TextTopBottom = CUIText::GetTextTopBottom(Name.c_str(), TextSize);
+		float TextHeight = TextTopBottom.x - TextTopBottom.y;
 
 		if (MaxTextWidth < TextWidth)
 			MaxTextWidth = TextWidth;
@@ -64,7 +67,12 @@ void CUIScorePanel::Init()
 	float PanelHeight = 2 * MaxTextHeight * m_GameManager->GetPlayerCount();
 	float PanelWidth = MaxTextWidth + ScoreGap + ScoreSize + 2 * Padding;
 
-	SetPosAndSize(m_Parent->GetWidth() - PanelWidth, m_Parent->GetHeight() / 2 - PanelHeight / 2, PanelWidth, PanelHeight, false);
+	CUIElement* PlayerLogo = m_Parent->GetChild(L"ui_current_palyer_logo");
+	CUIElement* PlayerLetterPanel = m_Parent->GetChild(L"ui_player_letter_panel");
+
+	float YPosPanel = m_Parent->GetHeight() - PlayerLogo->GetHeight() - PlayerLogo->GetHeight() / 4 - ((PlayerLogo->GetYPosition() - PlayerLogo->GetHeight() / 2) - (PlayerLetterPanel->GetYPosition() + PlayerLetterPanel->GetHeight() / 2)) / 2;
+	
+	SetPosAndSize(m_Parent->GetWidth() - PanelWidth, YPosPanel - PanelHeight / 2, PanelWidth, PanelHeight, false);
 
 	Idx = 0;
 
@@ -74,14 +82,14 @@ void CUIScorePanel::Init()
 	float DividerWidth = PanelWidth * 0.5;
 	float DividerHeight = MaxTextHeight / 10;
 
-	while (m_GameManager->GetPlayerNameScore(Idx, Name, Score))
+	while (m_GameManager->GetPlayerProperties(Idx, Name, Score, Color))
 	{
 		std::wstringstream Id;
 
 		glm::vec2 TextTopBottom = CUIText::GetTextTopBottom(Name, TextSize);
 
 		Id << L"ui_player_score_name_" << Idx;
-		AddText(Name.c_str(), 0, 0, TextSize, "font.bmp", Id.str().c_str());
+		AddText(Name.c_str(), 0, 0, TextSize, "font.bmp", Id.str().c_str(), Color.r, Color.g, Color.b);
 		m_Children.back()->SetPosAndSize(XPos, YPos - TextTopBottom.y, m_Children.back()->GetWidth(), m_Children.back()->GetHeight(), false);
 
 		Id.str(L"");

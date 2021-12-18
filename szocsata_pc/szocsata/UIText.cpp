@@ -37,9 +37,10 @@ size_t CUIText::Length() const
 
 void CUIText::Align(ETextAlign alingment, float padding)
 {
-	float TextHeight = GetTextHeightInPixels(m_Text, m_FontHeight);
+	glm::vec2 TextTopBottom = GetTextTopBottom(m_Text, m_FontHeight);
+	float TextHeight = TextTopBottom.x - TextTopBottom.y;
 	float Padding = fabs(padding) < 0.001f ? m_FontHeight / 5 : padding;
-	float YPos = m_Parent->GetHeight() / 2 - TextHeight / 2;
+	float YPos = m_Parent->GetHeight() / 2 - TextHeight / 2 - TextTopBottom.y;
 	float XPos = (m_Parent->GetWidth() - m_Width) / 2;
 
 	if (alingment == ETextAlign::Left)
@@ -52,10 +53,12 @@ void CUIText::Align(ETextAlign alingment, float padding)
 	SetPosition(XPos, YPos, false);
 }
 
-
 void CUIText::SetColor(float r, float g, float b)
 {
-	m_Color = glm::vec3(r, g, b);
+	m_TextureModColor = glm::vec4(r, g, b, 1);
+
+	for (size_t i = 0; i < m_Children.size(); ++i)
+		m_Children[i]->SetModifyColor(glm::vec4(r, g, b, 1));
 }
 
 glm::vec2 CUIText::GetTextTopBottom(const std::wstring& text, int size)
@@ -96,23 +99,6 @@ float CUIText::GetTextSize(const std::wstring& text, int textWidth)
 	while (GetTextWidthInPixels(text, TextSize++) < textWidth);
 
 	return TextSize - 1;
-}
-
-float CUIText::GetTextHeightInPixels(const std::wstring& text, int size)
-{
-	float Top = 0.f;
-	float Bottom = 1.f;
-
-	for (size_t i = 0; i < text.length(); ++i)
-	{
-		if (text.at(i) != L' ' && Top < m_FontCharHeight[text.at(i)])
-			Top = m_FontCharHeight[text.at(i)];
-
-		if (text.at(i) != L' ' && Bottom > -m_FontDesc[text.at(i)])
-			Bottom = -m_FontDesc[text.at(i)];
-	}
-
-	return (Top - Bottom) * (size / m_FontTextureCharHeight);
 }
 
 float CUIText::GetTextWidthInPixels(const std::wstring& text, int size)
@@ -187,7 +173,9 @@ void CUIText::SetText(const wchar_t* text)
 
 	for (size_t i = 0; i < m_Text.length(); ++i)
 		if (m_Text.at(i) != L' ')
-			m_Children[idx++]->SetTexturePosition(glm::vec2((1.f / 16.f) * m_FontTexPos[m_Text.at(i)].x /*- 0.0015f*/, (1.f / 6.f) * m_FontTexPos[m_Text.at(i)].y) /*+ 0.00089f*/);
+			m_Children[idx++]->SetTexturePosition(glm::vec2((1.f / 16.f) * m_FontTexPos[m_Text.at(i)].x, (1.f / 6.f) * m_FontTexPos[m_Text.at(i)].y));
+
+	SetColor(m_TextureModColor.r, m_TextureModColor.g, m_TextureModColor.b);
 }
 
 void CUIText::InitFontTexPositions()

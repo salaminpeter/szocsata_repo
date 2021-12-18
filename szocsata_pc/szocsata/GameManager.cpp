@@ -42,9 +42,12 @@ void CGameManager::AddPlayers(int playerCount, bool addComputer)
 	int LetterCount;
 	CConfig::GetConfig("letter_count", LetterCount);
 
+	std::vector<glm::vec3> PlayerColors = { glm::vec3(0, 0, 0),  glm::vec3(0, 1, 0), glm::vec3(0, 0, 1), glm::vec3(1, 1, 0), glm::vec3(1, 1, 1) };
+
 	for (int i = 0; i < playerCount; ++i)
 	{
 		m_Players.push_back(new CPlayer(this));
+		m_Players.back()->SetColor(PlayerColors[i].r, PlayerColors[i].g, PlayerColors[i].b);
 		m_LetterPool.DealLetters(m_Players.back()->GetLetters());
 		m_UIManager->AddPlayerLetters(m_Players.back(), m_Renderer->GetSquarePositionData(), m_Renderer->GetSquareColorGridData8x4());
 		m_UIManager->PositionPlayerLetters(m_Players.back()->GetName().c_str());
@@ -54,6 +57,7 @@ void CGameManager::AddPlayers(int playerCount, bool addComputer)
 	if (addComputer)
 	{ 
 		m_Computer = new CComputer(this);
+		m_Computer->SetColor(PlayerColors.back().r, PlayerColors.back().g, PlayerColors.back().b);
 		m_LetterPool.DealLetters(m_Computer->GetLetters());
 		m_Players.push_back(m_Computer);
 		//TODO ezeket a uimanageres fuggvenyeket osszevonni egybe a uimanagerben
@@ -275,13 +279,14 @@ bool CGameManager::GameScreenActive()
 }
 
 
-bool CGameManager::GetPlayerNameScore(size_t idx, std::wstring& name, int& score)
+bool CGameManager::GetPlayerProperties(size_t idx, std::wstring& name, int& score, glm::vec3& color)
 {
 	if (m_Players.size() <= idx)
 		return false;
 
 	name = m_Players[idx]->GetName();
 	score = m_Players[idx]->GetScore();
+	color = m_Players[idx]->GetColor();
 
 	return true;
 }
@@ -355,6 +360,7 @@ void CGameManager::NextPlayerTurn()
 
 	m_CurrentPlayer = m_Players[NextPlayerIdx];
 
+	m_UIManager->SetCurrentPlayerName(m_CurrentPlayer->GetName().c_str(), m_CurrentPlayer->GetColor().r, m_CurrentPlayer->GetColor().g, m_CurrentPlayer->GetColor().b);
 	m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName().c_str())->SetLetterVisibility(CBinaryBoolList());
 	m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName().c_str())->SetVisible(true);
 
@@ -596,8 +602,6 @@ bool CGameManager::EndComputerTurn()
 
 void CGameManager::StartComputerturn()
 {
-	//	CompGameBoard = m_GameBoard;
-	//	CompLetters = m_Computer->m_Letters;	
 	m_TmpGameBoard = m_GameBoard;
 	m_Computer->CalculateStep();
 

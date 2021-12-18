@@ -98,7 +98,7 @@ public:
 	wchar_t GetChOnBoard(int x, int y) { return m_GameBoard(x, y).m_Char; }
 	int GetDifficulty();
 	bool AllPlayersPassed();
-	bool GetPlayerNameScore(size_t idx, std::wstring& name, int& score);
+	bool GetPlayerProperties(size_t idx, std::wstring& name, int& score, glm::vec3& color);
 	bool GameScreenActive();
 	void ShowNextPlayerPopup();
 	bool TileAnimationFinished();

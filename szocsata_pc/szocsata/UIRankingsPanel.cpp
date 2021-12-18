@@ -15,8 +15,9 @@ void CUIRankingsPanel::Init()
 	size_t Idx = 0;
 	std::wstring Name;
 	int Score;
-	
-	while (m_GameManager->GetPlayerNameScore(Idx++, Name, Score))
+	glm::vec3 Color;
+
+	while (m_GameManager->GetPlayerProperties(Idx++, Name, Score, Color))
 	{
 		std::wstringstream ss;
 		ss << Name << L" : " << Score;
