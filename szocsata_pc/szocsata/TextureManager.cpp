@@ -63,7 +63,7 @@ void CTextureManager::Generate2x2Texture(glm::vec4 color, const char* textureID)
 }
 
 
-void CTextureManager::GenerateRoundedBoxTexture(int w, int h, int r, glm::vec4 color, int outlineWidth, glm::vec4 outlineColor, const char* textureID)
+void CTextureManager::GenerateRoundedBoxTexture(int w, int h, int r, glm::vec4 color, int outlineWidth, glm::vec4 outlineColor, const char* textureID, bool halfRound)
 {
 	//radius too big error!
 	if (r * 2 > h)
@@ -74,6 +74,20 @@ void CTextureManager::GenerateRoundedBoxTexture(int w, int h, int r, glm::vec4 c
 	std::vector<int> ScanLineEnd(h);
 	std::vector<glm::vec2> OutlineCoords;
 
+	glm::vec4& BackgroundColor = outlineWidth != 0 ? outlineColor : color;
+
+	for (size_t y = 0; y < h; ++y)
+	{
+		for (size_t x = 0; x < w; ++x)
+		{
+			ImageData[4 * (y * w + x) + 0] = BackgroundColor.r * 255;
+			ImageData[4 * (y * w + x) + 1] = BackgroundColor.g * 255;
+			ImageData[4 * (y * w + x) + 2] = BackgroundColor.b * 255;
+			ImageData[4 * (y * w + x) + 3] = 0;
+		}
+	}
+
+
 	glm::vec2 RadiusVec(0.f, r);
 
 	for (int i = 0; i < 180; ++i)
@@ -83,9 +97,9 @@ void CTextureManager::GenerateRoundedBoxTexture(int w, int h, int r, glm::vec4 c
 		size_t idx1 = h - idx0 - 1;
 
 		ScanLineStart[idx0] = r - RotatedVec.x;
-		ScanLineEnd[idx0] = w - r + RotatedVec.x;
+		ScanLineEnd[idx0] = w - (halfRound ? 0 : r - RotatedVec.x);
 		ScanLineStart[idx1] = r - RotatedVec.x;
-		ScanLineEnd[idx1] = w - r + RotatedVec.x;
+		ScanLineEnd[idx1] = w - (halfRound ? 0 : r - RotatedVec.x);
 
 		if (outlineWidth != 0)
 		{
@@ -93,10 +107,13 @@ void CTextureManager::GenerateRoundedBoxTexture(int w, int h, int r, glm::vec4 c
 			{
 				glm::vec2 OutlineVec = glm::normalize(RotatedVec) * (glm::length(RotatedVec) - j / 2.f);
 				OutlineCoords.push_back(glm::vec2(r - OutlineVec.x, h - (r - OutlineVec.y) - 1));
-				OutlineCoords.push_back(glm::vec2(w - r + OutlineVec.x, h - (r - OutlineVec.y) - 1));
-
 				OutlineCoords.push_back(glm::vec2(r - OutlineVec.x, h - (h - (r - OutlineVec.y) - 1) - 1));
-				OutlineCoords.push_back(glm::vec2(w - r + OutlineVec.x, h - (h - (r - OutlineVec.y) - 1) - 1));
+				
+				if (!halfRound)
+				{
+					OutlineCoords.push_back(glm::vec2(w - r + OutlineVec.x, h - (r - OutlineVec.y) - 1));
+					OutlineCoords.push_back(glm::vec2(w - r + OutlineVec.x, h - (h - (r - OutlineVec.y) - 1) - 1));
+				}
 			}
 		}
 	}
@@ -104,7 +121,7 @@ void CTextureManager::GenerateRoundedBoxTexture(int w, int h, int r, glm::vec4 c
 	for (size_t i = r; i <= h - r; ++i)
 	{
 		ScanLineStart[i] = 0;
-		ScanLineEnd[i] = w - 1;
+		ScanLineEnd[i] = w;
 	}
 
 	for (size_t i = r; i <= h - r; ++i)
@@ -112,11 +129,13 @@ void CTextureManager::GenerateRoundedBoxTexture(int w, int h, int r, glm::vec4 c
 		for (int j = 0; j < outlineWidth; ++j)
 		{
 			OutlineCoords.push_back(glm::vec2(j, i));
-			OutlineCoords.push_back(glm::vec2(w - 1 - j, i));
+			
+			if (!halfRound)
+				OutlineCoords.push_back(glm::vec2(w - 1 - j, i));
 		}
 	}
-
-	for (size_t i = r; i <= w - r; ++i)
+	
+	for (size_t i = r; i <= w - (halfRound ? 0 : r); ++i)
 	{
 		for (int j = 0; j < outlineWidth; ++j)
 		{
@@ -124,10 +143,10 @@ void CTextureManager::GenerateRoundedBoxTexture(int w, int h, int r, glm::vec4 c
 			OutlineCoords.push_back(glm::vec2(i, h - 1 - j));
 		}
 	}
-
+	
 	for (size_t y = 0; y < h; ++y)
 	{
-		for (size_t x = ScanLineStart[y]; x <= ScanLineEnd[y]; ++x)
+		for (size_t x = ScanLineStart[y]; x < ScanLineEnd[y]; ++x)
 		{	
 			ImageData[4 * (y * w + x) + 0] = color.r * 255;
 			ImageData[4 * (y * w + x) + 1] = color.g * 255;
@@ -158,17 +177,18 @@ void CTextureManager::GenerateRoundedBoxTexture(int w, int h, int r, glm::vec4 c
 	m_Textures[textureID] = NewTexture;
 }
 
-void CTextureManager::GenerateTexturesAtGameStart(float scorePanelWidth, float scorePanelHeight)
+void CTextureManager::GenerateTexturesAtGameStart(float scorePanelWidth, float scorePanelHeight, float letterSize)
 {
-	GenerateRoundedBoxTexture(scorePanelWidth, scorePanelHeight, scorePanelWidth / 20, glm::vec4(0.70f, 0.22f, 0.f, 0.4f), 5, glm::vec4(0.46f, 0.3f, 0.21f, 1.f), "player_score_panel_texture_generated");
+	GenerateRoundedBoxTexture(scorePanelWidth, scorePanelHeight, scorePanelWidth / 20, glm::vec4(0.70f, 0.22f, 0.f, 0.4f), 3, glm::vec4(0.23f, 0.15f, 0.1f, 1.f), "player_score_panel_texture_generated", true);
+	GenerateRoundedBoxTexture(letterSize * 1.2f, letterSize * 1.2f, letterSize * 0.12f, glm::vec4(0.70f, 0.22f, 0.f, 0.4f), 3, glm::vec4(0.23f, 0.15f, 0.1f, 1.f), "tile_counter_texture_generated");
 }
 
 void CTextureManager::GenerateTextures(float viewWidth, float viewHeight)
 {
 	GenerateHeaderTexture();
 	GenerateRoundedBoxTexture(680, 150, 30, glm::vec4(0.70f, 0.22f, 0.f, 0.4f), 0, glm::vec4(1, 1, 1, 1.f), "start_scr_btn_texture_generated");
-	GenerateRoundedBoxTexture(viewWidth - 20, viewHeight / 3 - 20, 50, glm::vec4(0.70f, 0.22f, 0.f, 0.4f), 5, glm::vec4(0.46f, 0.3f, 0.21f, 1.f), "player_letter_panel_texture_generated");
-	GenerateRoundedBoxTexture(200, 200, 20, glm::vec4(0.70f, 0.22f, 0.f, 0.4f), 5, glm::vec4(0.46f, 0.3f, 0.21f, 1.f), "score_panel_texture_generated");
+	GenerateRoundedBoxTexture(viewWidth - 20, viewHeight / 3 - 20, 50, glm::vec4(0.70f, 0.22f, 0.f, 0.4f), 3, glm::vec4(0.23f, 0.15f, 0.1f, 1.f), "player_letter_panel_texture_generated");
 	GenerateRoundedBoxTexture(viewWidth / 2, viewHeight / 15, viewHeight / 30, glm::vec4(0.70f, 0.22f, 0.f, 0.4f), 0, glm::vec4(), "current_player_texture_generated");
+	GenerateRoundedBoxTexture(viewHeight / 8, viewHeight / 8, viewHeight / 16, glm::vec4(0.70f, 0.22f, 0.f, 0.4f), 4, glm::vec4(1, 1, 1, 1.f), "round_button_texture_generated");
 	Generate2x2Texture(glm::vec4(0.46f, 0.3f, 0.21f, 1.f), "divider_texture_generated");
 }

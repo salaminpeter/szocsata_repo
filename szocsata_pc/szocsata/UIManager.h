@@ -88,6 +88,7 @@ public:
 	int GetBoardSize();
 	int GetPlayerCount();
 	int GetTimeLimit();
+	float GetLetterSize();
 	bool ComputerOpponentEnabled();
 
 	void UpdateScorePanel();

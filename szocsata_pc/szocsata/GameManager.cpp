@@ -42,7 +42,7 @@ void CGameManager::AddPlayers(int playerCount, bool addComputer)
 	int LetterCount;
 	CConfig::GetConfig("letter_count", LetterCount);
 
-	std::vector<glm::vec3> PlayerColors = { glm::vec3(0, 0, 0),  glm::vec3(0, 1, 0), glm::vec3(0, 0, 1), glm::vec3(1, 1, 0), glm::vec3(1, 1, 1) };
+	std::vector<glm::vec3> PlayerColors = { glm::vec3(0, 1, 1),  glm::vec3(0, 1, 0), glm::vec3(0, 0, 1), glm::vec3(1, 1, 0), glm::vec3(1, 1, 1) };
 
 	for (int i = 0; i < playerCount; ++i)
 	{
@@ -167,6 +167,11 @@ void CGameManager::StartPlayerTurn(CPlayer* player)
 bool CGameManager::TileAnimationFinished() 
 { 
 	return m_TileAnimations->Finished(); 
+}
+
+float CGameManager::GetLetterSize()
+{
+	return m_UIManager->GetLetterSize();
 }
 
 glm::ivec2 CGameManager::GetScorePanelSize()
@@ -334,7 +339,7 @@ void CGameManager::NextPlayerTurn()
 	}
 	else
 	{ 
-		m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName().c_str())->SetVisible(false);
+		m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName().c_str())->ShowLetters(false);
 		int CurrPlayerIdx = -1;
 		while (m_Players[++CurrPlayerIdx] != m_CurrentPlayer);
 		NextPlayerIdx = CurrPlayerIdx == m_Players.size() - 1 ? 0 : CurrPlayerIdx + 1;
@@ -362,7 +367,7 @@ void CGameManager::NextPlayerTurn()
 
 	m_UIManager->SetCurrentPlayerName(m_CurrentPlayer->GetName().c_str(), m_CurrentPlayer->GetColor().r, m_CurrentPlayer->GetColor().g, m_CurrentPlayer->GetColor().b);
 	m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName().c_str())->SetLetterVisibility(CBinaryBoolList());
-	m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName().c_str())->SetVisible(true);
+	m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName().c_str())->ShowLetters(true);
 
 	if (m_Players[NextPlayerIdx]->GetName() == L"computer")
 	{
@@ -1328,11 +1333,8 @@ void CGameManager::RenderUI()
 	if (GetGameState() != EGameState::OnRankingsScreen)
 	{
 		m_UIManager->RenderUI();
-		
-		glEnable(GL_BLEND);
+	
 		m_UIManager->RenderDraggedLetter();
-		glDisable(GL_BLEND);
-
 		m_UIManager->RenderMessageBox();
 	}
 	else

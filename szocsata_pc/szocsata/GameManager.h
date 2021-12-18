@@ -107,6 +107,7 @@ public:
 	void CheckAndUpdateTime(double& timeFromStart, double& timeFromPrev);
 
 	glm::ivec2 GetScorePanelSize();
+	float GetLetterSize();
 	std::wstring GetTimeStr(int msec);
 
 	std::wstring GetWordAtPos(bool horizontal, int& x, int& y);

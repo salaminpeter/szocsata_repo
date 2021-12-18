@@ -21,3 +21,9 @@ void CUIIconTextButton::SetIconColor(float r, float g, float b)
 {
 	GetChild(L"ui_button_icon")->SetModifyColor(glm::vec4(r, g, b, 1));
 }
+
+void CUIIconTextButton::CenterIcon()
+{
+	GetChild(L"ui_button_icon")->SetPosition(0.f, 0.f);
+}
+

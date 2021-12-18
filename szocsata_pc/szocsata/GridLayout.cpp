@@ -58,7 +58,7 @@ void CGridLayout::AllignGrid(int gridCount, bool recalcGridSize)
 		m_GridSize = BestSize;
 		m_GridsInRow = gridCount / m_RowCount + (gridCount % m_RowCount ? 1 : 0);
 		m_GridGapHoriz = (m_Width - m_GridsInRow * m_GridSize) / (m_GridsInRow + 1.f);
-		m_GridGapVert = (m_Height - m_RowCount * m_GridSize) / (m_RowCount + 1.f);
+		m_GridGapVert = m_RowCount == 1 ? 0 : (m_Height - m_RowCount * m_GridSize) / (m_RowCount + 1.f);
 	}
 
 	float XPos = m_XPosition + m_GridGapHoriz;

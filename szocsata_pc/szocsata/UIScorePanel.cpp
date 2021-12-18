@@ -67,10 +67,12 @@ void CUIScorePanel::Init()
 	float PanelHeight = 2 * MaxTextHeight * m_GameManager->GetPlayerCount();
 	float PanelWidth = MaxTextWidth + ScoreGap + ScoreSize + 2 * Padding;
 
-	CUIElement* PlayerLogo = m_Parent->GetChild(L"ui_current_palyer_logo");
 	CUIElement* PlayerLetterPanel = m_Parent->GetChild(L"ui_player_letter_panel");
+	CUIElement* OKBtn = m_Parent->GetChild(L"ui_ok_btn");
 
-	float YPosPanel = m_Parent->GetHeight() - PlayerLogo->GetHeight() - PlayerLogo->GetHeight() / 4 - ((PlayerLogo->GetYPosition() - PlayerLogo->GetHeight() / 2) - (PlayerLetterPanel->GetYPosition() + PlayerLetterPanel->GetHeight() / 2)) / 2;
+	float OKBtnBottom = OKBtn->GetYPosition() + m_Parent->GetHeight() / 2 - OKBtn->GetHeight() / 2;
+	float h = (OKBtn->GetYPosition() - OKBtn->GetHeight() / 2) - (PlayerLetterPanel->GetYPosition() + PlayerLetterPanel->GetHeight() / 2);
+	float YPosPanel = OKBtnBottom - h / 2 ;
 	
 	SetPosAndSize(m_Parent->GetWidth() - PanelWidth, YPosPanel - PanelHeight / 2, PanelWidth, PanelHeight, false);
 
