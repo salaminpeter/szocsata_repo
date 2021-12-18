@@ -51,10 +51,10 @@ void CTextureManager::GenerateHeaderTexture()
 
 void CTextureManager::Generate2x2Texture(glm::vec4 color, const char* textureID)
 {
-	uint8_t ImageData[16] = { color.r * 255, color.g * 255, color.b * 255, color.a * 255, 
-							  color.r * 255, color.g * 255, color.b * 255, color.a * 255, 
-							  color.r * 255, color.g * 255, color.b * 255, color.a * 255, 
-							  color.r * 255, color.g * 255, color.b * 255, color.a * 255 
+	uint8_t ImageData[16] = { uint8_t(color.r * 255), uint8_t(color.g * 255), uint8_t(color.b * 255), uint8_t(color.a * 255), 
+							  uint8_t(color.r * 255), uint8_t(color.g * 255), uint8_t(color.b * 255), uint8_t(color.a * 255), 
+							  uint8_t(color.r * 255), uint8_t(color.g * 255), uint8_t(color.b * 255), uint8_t(color.a * 255), 
+							  uint8_t(color.r * 255), uint8_t(color.g * 255), uint8_t(color.b * 255), uint8_t(color.a * 255) 
 							};
 
 	CTexture* NewTexture = new CTexture(textureID, ImageData, 2, 2, 4);
