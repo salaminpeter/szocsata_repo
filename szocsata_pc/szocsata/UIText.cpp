@@ -39,7 +39,7 @@ void CUIText::Align(ETextAlign alingment, float padding)
 {
 	glm::vec2 TextTopBottom = GetTextTopBottom(m_Text, m_FontHeight);
 	float TextHeight = TextTopBottom.x - TextTopBottom.y;
-	float Padding = fabs(padding) < 0.001f ? m_FontHeight / 5 : padding;
+	float Padding = fabs(padding) < 0.001f ? m_FontHeight / 6 : padding;
 	float YPos = m_Parent->GetHeight() / 2 - TextHeight / 2 - TextTopBottom.y;
 	float XPos = (m_Parent->GetWidth() - m_Width) / 2;
 
@@ -105,7 +105,7 @@ float CUIText::GetTextWidthInPixels(const std::wstring& text, int size)
 {
 	float FontWidth = (m_FontTextureCharWidth / m_FontTextureCharHeight) * size;
 	float SizeInPixels = 0.f;
-	float LetterGap = FontWidth / 4.f;
+	float LetterGap = FontWidth / 6.f;
 
 	for (size_t i = 0; i < text.length(); ++i)
 	{
@@ -145,7 +145,7 @@ void CUIText::SetText(const wchar_t* text)
 	}
 
 	float FontWidth = (m_FontTextureCharWidth / m_FontTextureCharHeight) * m_FontHeight;
-	float FontCharGap = FontWidth / 4.f;
+	float FontCharGap = FontWidth / 6.f;
 	float FontSpace = FontWidth / 2.f;
 	float Offset = 0.f;
 	size_t idx = 0;
