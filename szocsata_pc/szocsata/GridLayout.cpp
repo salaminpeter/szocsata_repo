@@ -4,7 +4,7 @@
 #include <cmath>
 
 
-void CGridLayout::AllignGrid(int gridCount, bool recalcGridSize)
+void CGridLayout::AllignGrid(int gridCount, bool recalcGridSize, bool useGapToEdge)
 {
 	m_GridPositions.clear();
 	m_GridPositions.reserve(gridCount);
@@ -25,9 +25,11 @@ void CGridLayout::AllignGrid(int gridCount, bool recalcGridSize)
 				if (RowCount * m_MinGridSize + (RowCount + 1) * m_MinGridGap > m_Height)
 					break;
 
-				int MaxGridOnRow = gridCount / RowCount + (gridCount % RowCount ? 1 : 0);	
-				float MaxVSize = (m_Height - (RowCount + 1) * m_MinGridGap) / float(RowCount);
-				float MaxHSize = (m_Width - (MaxGridOnRow + 1) * m_MinGridGap) / float(MaxGridOnRow);
+				int MaxGridOnRow = gridCount / RowCount + (gridCount % RowCount ? 1 : 0);
+				int VGapCount = useGapToEdge ? (RowCount + 1) : (RowCount > 1 ? RowCount - 1 : 0);
+				int HGapCount = useGapToEdge ? (MaxGridOnRow + 1) : (MaxGridOnRow > 1 ? MaxGridOnRow - 1 : 0);
+				float MaxVSize = (m_Height - VGapCount * m_MinGridGap) / float(RowCount);
+				float MaxHSize = (m_Width - HGapCount * m_MinGridGap) / float(MaxGridOnRow);
 			
 				if (MaxHSize > m_MinGridSize)
 				{
@@ -58,11 +60,11 @@ void CGridLayout::AllignGrid(int gridCount, bool recalcGridSize)
 		m_GridSize = BestSize;
 		m_GridsInRow = gridCount / m_RowCount + (gridCount % m_RowCount ? 1 : 0);
 		m_GridGapHoriz = (m_Width - m_GridsInRow * m_GridSize) / (m_GridsInRow + 1.f);
-		m_GridGapVert = m_RowCount == 1 ? 0 : (m_Height - m_RowCount * m_GridSize) / (m_RowCount + 1.f);
+		m_GridGapVert = (m_Height - m_RowCount * m_GridSize) / (m_RowCount + 1.f);
 	}
 
-	float XPos = m_XPosition + m_GridGapHoriz;
-	float YPos = m_YPosition + m_GridGapVert;
+	float XPos = m_XPosition + (useGapToEdge ? m_GridGapHoriz : 0);
+	float YPos = m_YPosition + (useGapToEdge ? m_GridGapVert : 0);
 	float LastRowGrids = gridCount % m_GridsInRow;
 	float LastRowOffset = (m_Width - (LastRowGrids  * m_GridSize + (LastRowGrids + 1) * m_GridGapHoriz)) / 2.f;
 

@@ -3,7 +3,7 @@
 #include "GameManager.h"
 #include "UIText.h"
 
-#define SizeMul 0.032f; //TODO config
+#define SizeMul 0.035f; //TODO config
 
 
 CUIScorePanel::CUIScorePanel(CUIElement* parent, CGameManager* gameManager, const wchar_t* id, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridColorData, int x, int y, int w, int h, int vx, int vy, const char* textureID, float tx, float ty) :

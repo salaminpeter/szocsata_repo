@@ -46,7 +46,6 @@ public:
 	void ClearBuffers();
 	void AddView(const char* viewId, int x, int y, int w, int h);
 	glm::vec2 GetViewPosition(const char* viewId);
-	void CalculateOptimalCameraPos(float fovY, float boundingSphereRadius, float& xyOffset, float& height);
 	void SelectField(int x, int y);
 	void PositionSelection();
 	void PositionSelection(CModel* selectionModel, int x, int y);
@@ -72,8 +71,7 @@ public:
 	void ResetZoom();
 	void DragCamera(int x0, int y0, int x1, int y1);
 	void GetFitToScreemProps(float& tilt, float& rotation, float& zoom, float& move, glm::vec2& dir);
-	float GetFitToViewDistance(float fovY);
-	float GetOptimalToViewDistance(float fovY);
+	float GetFittedViewProps(float fovY, bool topView, glm::vec2& camPos);
 	void CameraFitToViewAnim(float tilt, float rotation, float zoom, float move, const glm::vec2& dir);
 	void ClearResources();
 	float SetBoardSize();
@@ -167,9 +165,6 @@ private:
 	float m_CameraRotAngle = 0.f;
 
 	bool m_SelectionVisible = false;
-
-	bool m_FitToTopView = false;
-	float m_OptimalDistance; //distance to fit board bounding speher into view
 
 	float m_BoardAnimAngleDestZ;
 	float m_BoardAnimAngleDestX;

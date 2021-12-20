@@ -88,6 +88,7 @@ void CBoardTiles::RenderTiles()
 	glEnable(GL_BLEND);
 
 	m_Renderer->SetTexturePos(glm::vec2(0.f, 0.f));
+	m_Renderer->SetModifyColor(1, 1, 1, 1);
 
 	for (size_t i = 0; i < m_TileShadows.size(); ++i)
 		m_Renderer->DrawModel(&m_TileShadows[i], "board_perspecive", "textured", false);

@@ -39,37 +39,25 @@ CRenderer::CRenderer(int screenWidth, int screenHeight, CGameManager* gameManage
 {
 }
 
-void CRenderer::CalculateOptimalCameraPos(float fovY, float boundingSphereRadius, float& xyOffset, float& height)
-{
-	float d = boundingSphereRadius / std::sinf(glm::radians(fovY / 2.f));
-
-	height = std::sqrtf((d * d) / 2.f);
-	xyOffset = height * 0.707f;
-	m_OptimalDistance = std::sqrtf(height * height + 2 * xyOffset * xyOffset);
-}
-
-//TODO alabbi fuggvennyel osszevonni
-float CRenderer::GetOptimalToViewDistance(float fovY)
+float CRenderer::GetFittedViewProps(float fovY, bool topView, glm::vec2& camPos)
 {
 	float BoardSize;
 	CConfig::GetConfig("board_size", BoardSize);
 
-	float d = std::sqrtf(2 * BoardSize * BoardSize) / std::sinf(glm::radians(fovY / 2.f));
-	float Height = std::sqrtf((d * d) / 2.f);
-	float XYOffset = Height * 0.707f;
+	//position
+	float d;
 
-	return std::sqrtf(Height * Height + 2 * XYOffset * XYOffset);
-}
+	if (topView)
+		d = BoardSize / std::sinf(glm::radians(fovY / 2.f));
+	else
+		d = std::sqrtf(2 * BoardSize * BoardSize) / std::sinf(glm::radians(fovY / 2.f));
 
-float CRenderer::GetFitToViewDistance(float fovY)
-{
-	float BoardSize;
-	CConfig::GetConfig("board_size", BoardSize);
+	float Height = topView ? d : std::sqrtf((d * d) / 2.f);
+	float XYOffset = topView ? 0.f : Height * 0.707f;
 
-	float d = BoardSize / std::sinf(glm::radians(fovY / 2.f));
-	float Height = std::sqrtf((d * d) / 2.f);
-	float XYOffset = Height * 0.707f;
+	camPos = glm::vec2(XYOffset, Height);
 
+	//distance
 	return std::sqrtf(Height * Height + 2 * XYOffset * XYOffset);
 }
 
@@ -215,18 +203,16 @@ void CRenderer::SetTextColor(float r, float g, float b)
 
 void CRenderer::FittBoardToView(bool topView)
 {
-	m_FitToTopView = topView;
-	float BoardSize;
-	CConfig::GetConfig("board_size", BoardSize);
+	glm::vec2 CameraPos(0, 0);
 
-	float r = topView ? BoardSize : std::sqrtf(2 * BoardSize * BoardSize);
+	GetFittedViewProps(40.f, topView, CameraPos);
 
-	float CameraXY = 0.f;
-	float CameraZ = 0.f;
+	glm::vec3 UPVector = (topView ? glm::vec3(0, 1, 1) : glm::vec3(0, 0, 1));
 
-	CalculateOptimalCameraPos(40.f, r, CameraXY, CameraZ);
+	if (topView)
+		m_CameraTiltAngle = 90;
 
-	m_Views["board_perspecive"]->InitCamera(glm::vec3(-CameraXY, -CameraXY, CameraZ), glm::vec3(0, 0, 0.2), glm::vec3(0, 0, 1));
+	m_Views["board_perspecive"]->InitCamera(glm::vec3(-CameraPos.x, -CameraPos.x, CameraPos.y), glm::vec3(0, 0, 0.2), UPVector);
 	m_Views["board_perspecive"]->InitPerspective(40.f, 1.f, 25.f);
 }
 
@@ -458,7 +444,8 @@ void CRenderer::ZoomCameraCentered(float dist, float origoX, float origoY)
 		}
 		else
 		{
-			float OptimalDist = OptimalDist = GetOptimalToViewDistance(40.f);
+			glm::vec2 Dummy;
+			float OptimalDist = GetFittedViewProps(40.f, false, Dummy);
 			glm::vec3  ZoomVector = -CameraLookAt * OptimalDist - CameraPos;
 			m_CameraZoomDistance = glm::length(ZoomVector);
 			m_CameraZoomVector = glm::normalize(ZoomVector);
@@ -500,7 +487,8 @@ void CRenderer::GetFitToScreemProps(float& tilt, float& rotation, float& zoom, f
 
 	//zoom
 	glm::vec3 LookAtPos = CameraPosition + CameraLookAt * std::fabs(CameraPosition.z / CameraLookAt.z);
-	zoom = glm::length(LookAtPos - CameraPosition) - GetFitToViewDistance(40.f);
+	glm::vec2 Dummy;
+	zoom = glm::length(LookAtPos - CameraPosition) - GetFittedViewProps(40.f, true, Dummy);
 
 	//move distance
 	move = glm::length(glm::vec2(LookAtPos.x, LookAtPos.y));
@@ -718,22 +706,25 @@ bool CRenderer::StartInit()
 	m_TextureManager->AddTexture("gridtex.bmp");
 	m_TextureManager->AddTexture("okbutton.bmp");
 	m_TextureManager->AddTexture("panel.bmp");
-	m_TextureManager->AddTexture("tilecounter.bmp");
 	m_TextureManager->AddTexture("selectcontrol.bmp");
 	m_TextureManager->AddTexture("leftarrow.bmp");
 	m_TextureManager->AddTexture("rightarrow.bmp");
 	m_TextureManager->AddTexture("textbutton.bmp");
 	m_TextureManager->AddTexture("background.bmp");
 
+	m_TextureManager->AddTexture("exit_icon.bmp", 4);
+	m_TextureManager->AddTexture("pause_icon.bmp", 4);
+	m_TextureManager->AddTexture("cancel_icon.bmp", 4);
+	m_TextureManager->AddTexture("ok_icon.bmp", 4);
 	m_TextureManager->AddTexture("kor_icon.bmp", 4);
 	m_TextureManager->AddTexture("tile_counter_icon.bmp", 4);
 	m_TextureManager->AddTexture("playerletters.bmp", 4);
-	m_TextureManager->AddTexture("font.bmp", 4, false);
-	m_TextureManager->AddTexture("play_icon.bmp", 4, false);
-	m_TextureManager->AddTexture("book_icon.bmp", 4, false);
-	m_TextureManager->AddTexture("settings_icon.bmp", 4, false);
-	m_TextureManager->AddTexture("controller_icon.bmp", 4, false);
-	m_TextureManager->AddTexture("shadow.bmp", 4, false);
+	m_TextureManager->AddTexture("font.bmp", 4);
+	m_TextureManager->AddTexture("play_icon.bmp", 4);
+	m_TextureManager->AddTexture("book_icon.bmp", 4);
+	m_TextureManager->AddTexture("settings_icon.bmp", 4);
+	m_TextureManager->AddTexture("controller_icon.bmp", 4);
+	m_TextureManager->AddTexture("shadow.bmp", 4);
 
 	float Width = m_GameManager->m_SurfaceWidth - m_GameManager->m_SurfaceHeigh;
 	float Height = m_GameManager->m_SurfaceHeigh;
@@ -768,7 +759,6 @@ void CRenderer::SetTileVisible(int x, int y, bool visible)
 {
 	m_BoardTiles->SetTileVisible(x, y, visible);
 }
-
 
 float CRenderer::SetBoardSize()
 {
@@ -883,13 +873,13 @@ bool CRenderer::EndInit()
 	m_BoardModel = new CBoardBaseModel();
 	m_BoardTiles = new CBoardTiles(TileCount, this, m_GameManager, m_BoardModel);
 
-	FittBoardToView(false);
+	FittBoardToView(true);
 
 	m_SelectionModel = new CSelectionModel(m_RoundedSquarePositionData);
 	m_SelectionModel->SetParent(m_BoardModel);
 	CalculateScreenSpaceGrid();
 
-	m_TextureManager->GenerateTexturesAtGameStart(m_GameManager->GetScorePanelSize().x, m_GameManager->GetScorePanelSize().y);
+	m_TextureManager->GenerateTexturesAtGameStart(m_GameManager->GetScorePanelSize().x, m_GameManager->GetScorePanelSize().y, m_GameManager->GetLetterSize());
 
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);

@@ -1027,6 +1027,11 @@ void CGameManager::UndoAllSteps()
 {
 	while (m_PlayerSteps.size())
 		UndoLastStep();
+
+	const std::lock_guard<std::recursive_mutex> lock(m_Renderer->GetRenderLock());
+
+	m_PlacedLetterSelections.clear();
+	m_Renderer->DisableSelection();
 }
 
 void CGameManager::UndoLastStep()
@@ -1077,6 +1082,9 @@ void CGameManager::UndoStep(size_t idx)
 
 	m_GameBoard(BoardX, BoardY).m_Char = m_TmpGameBoard(BoardX, BoardY).m_Char;
 	m_GameBoard(BoardX, BoardY).m_Height--;
+
+	if (m_GameBoard(BoardX, BoardY).m_Height == 0)
+		m_Renderer->SetTileVisible(m_PlayerSteps[idx].m_XPosition, m_PlayerSteps[idx].m_YPosition, true);
 
 	m_CurrentPlayer->SetLetter(m_PlayerSteps[idx].m_LetterIdx, m_PlayerSteps[idx].m_Char);
 	m_CurrentPlayer->SetLetterUsed(m_PlayerSteps[idx].m_LetterIdx, false);

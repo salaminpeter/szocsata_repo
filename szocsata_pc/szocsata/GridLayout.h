@@ -20,7 +20,7 @@ public:
 
 	CGridLayout(int x, int y, int width, int height, float minGap, float minSize) : m_XPosition(x), m_YPosition(y), m_Width(width), m_Height(height), m_MinGridGap(minGap), m_MinGridSize(minSize) {}
 
-	void AllignGrid(int gridCount, bool recalcGridSize);
+	void AllignGrid(int gridCount, bool recalcGridSize, bool useGapToEdge = true);
 	int GetGridIdxAtPos(int x, int y);
 	float GetElemSize();
 
