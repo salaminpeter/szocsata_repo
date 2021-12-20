@@ -10,7 +10,7 @@ class CTextureManager
 public:
 
 	void AddTexture(const char* path, int colorDepth = 3, bool filter = true);
-	void ActivateTexture(const char* texId);
+	bool ActivateTexture(const char* texId);
 	void GenerateTextures(float viewWidth, float viewHeight);
 	void GenerateTexturesAtGameStart(float scorePanelWidth, float scorePanelHeight, float letterSize);
 	bool IsCurrentTexture(const char* texId);

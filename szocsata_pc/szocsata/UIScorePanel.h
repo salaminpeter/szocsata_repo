@@ -16,4 +16,5 @@ public:
 private:
 
 	CGameManager* m_GameManager;
+	float m_ScoreXPosition;
 };

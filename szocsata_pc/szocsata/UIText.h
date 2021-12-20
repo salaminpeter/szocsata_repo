@@ -16,7 +16,7 @@ public:
 
 	enum ETextAlign {Left, Right, Center};
 
-	CUIText(CUIElement* parent, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, const wchar_t* text, int fontHeight, int x, int y, int vx, int vy, float r, float g, float b,  const wchar_t* id);
+	CUIText(CUIElement* parent, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, const wchar_t* text, int fontHeight, int x, int y, int vx, int vy, float r = 0.92f, float g = 0.92f, float b = 0.92f,  const wchar_t* id = L"");
 
 	void SetText(const wchar_t* text);
 	size_t Length() const;

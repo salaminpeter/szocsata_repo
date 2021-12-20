@@ -13,9 +13,10 @@ CUITileCounter::CUITileCounter(CUIElement* parent, std::shared_ptr<CSquarePositi
 
 void CUITileCounter::SetPositionAndSize(float x, float y, float w, float h)
 {
-	SetPosAndSize(x, y, w, h);
+	SetPosAndSize(x, y, w, h, false);
 	CUIText* Counter = static_cast<CUIText*>(GetChild(L"ui_tile_counter_text"));
 	Counter->Align(CUIText::Center);
+	CenterIcon();
 }
 
 void CUITileCounter::SetCounter(unsigned count)

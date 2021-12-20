@@ -161,7 +161,7 @@ private:
 	std::shared_ptr<CSquareColorData> m_LetterTextureData16x6;
 	std::shared_ptr<CSquareColorData> m_LetterTextureData8x4;
 
-	float m_CameraTiltAngle = 45.f;
+	float m_CameraTiltAngle = 0.f;
 	float m_CameraRotAngle = 0.f;
 
 	bool m_SelectionVisible = false;

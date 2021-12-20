@@ -17,6 +17,11 @@ CUIIconTextButton::CUIIconTextButton(CUIElement* parent, const wchar_t* text, st
 	CUIPanel* IconPanel = new CUIPanel(this, L"ui_button_icon", positionData, colorData, gridcolorData8x8, -w / 2 + IconSize / 2 + IconPadding, 0, IconSize, IconSize, 0, 0, iconTextureID, 0, 0);
 }
 
+void CUIIconTextButton::SetTextColor(float r, float g, float b)
+{
+	static_cast<CUIText*>(GetChild(L"ui_button_text"))->SetColor(r, g, b);
+}
+
 void CUIIconTextButton::SetIconColor(float r, float g, float b)
 {
 	GetChild(L"ui_button_icon")->SetModifyColor(glm::vec4(r, g, b, 1));

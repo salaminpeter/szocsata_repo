@@ -53,7 +53,7 @@ float CRenderer::GetFittedViewProps(float fovY, bool topView, glm::vec2& camPos)
 		d = std::sqrtf(2 * BoardSize * BoardSize) / std::sinf(glm::radians(fovY / 2.f));
 
 	float Height = topView ? d : std::sqrtf((d * d) / 2.f);
-	float XYOffset = topView ? 0.f : Height * 0.707f;
+	float XYOffset = topView ? 0.01f : Height * 0.707f; //topview nal 0.01 mert pontosan merolegesen nem nezhetunk a tablara gimbal lock miatt
 
 	camPos = glm::vec2(XYOffset, Height);
 
@@ -204,13 +204,16 @@ void CRenderer::SetTextColor(float r, float g, float b)
 void CRenderer::FittBoardToView(bool topView)
 {
 	glm::vec2 CameraPos(0, 0);
-
 	GetFittedViewProps(40.f, topView, CameraPos);
 
-	glm::vec3 UPVector = (topView ? glm::vec3(0, 1, 1) : glm::vec3(0, 0, 1));
+	glm::vec3 UPVector = glm::vec3(0, 0, 1);
 
 	if (topView)
-		m_CameraTiltAngle = 90;
+		UPVector = glm::rotate(UPVector, glm::radians(45.f), glm::vec3(-1, 0, 0));
+
+	float BoardRotMin;
+	CConfig::GetConfig("board_rotation_min", BoardRotMin);
+	m_CameraTiltAngle = topView ? 90 : BoardRotMin;
 
 	m_Views["board_perspecive"]->InitCamera(glm::vec3(-CameraPos.x, -CameraPos.x, CameraPos.y), glm::vec3(0, 0, 0.2), UPVector);
 	m_Views["board_perspecive"]->InitPerspective(40.f, 1.f, 25.f);
@@ -711,6 +714,7 @@ bool CRenderer::StartInit()
 	m_TextureManager->AddTexture("rightarrow.bmp");
 	m_TextureManager->AddTexture("textbutton.bmp");
 	m_TextureManager->AddTexture("background.bmp");
+//	m_TextureManager->AddTexture("background_half.bmp");
 
 	m_TextureManager->AddTexture("exit_icon.bmp", 4);
 	m_TextureManager->AddTexture("pause_icon.bmp", 4);
@@ -1013,7 +1017,8 @@ void CRenderer::DrawModel(CModel* model, const char* viewID, const char* shaderI
 	const char* TextureID = model->GetTextureId();
 
 	if (!std::string(TextureID).empty())
-		m_TextureManager->ActivateTexture(TextureID);
+		if (!m_TextureManager->ActivateTexture(TextureID))
+			int i = 0;//return;
 
 	model->Draw(bindVertexBuffer, bindTextureBuffer, unbindBuffers, setTextureVertexAttrib);
 }

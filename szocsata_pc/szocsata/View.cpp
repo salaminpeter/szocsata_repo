@@ -14,6 +14,7 @@ CView::CView(int w, int h, int x, int y) : m_Width(w), m_Height(h), m_XPosition(
 
 void CView::InitCamera(glm::vec3 camPos, glm::vec3 lookatPos, glm::vec3 upVector)
 {
+	//TODO!!!!!!!!! a renderer tilt anglet mindenkepp ujra kell szamolni!!!!!
 	m_Camera->InitView(camPos, lookatPos, upVector);
 }
 

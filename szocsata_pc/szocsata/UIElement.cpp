@@ -61,8 +61,8 @@ glm::vec2 CUIElement::GetAbsolutePosition()
 
 	while (Parent)
 	{
-		AbsPos.x += Parent->GetXPosition();
-		AbsPos.y += Parent->GetYPosition();
+		AbsPos.x += Parent->GetPosition().x;
+		AbsPos.y += Parent->GetPosition().y;
 		Parent = Parent->GetParent();
 	}
 
@@ -126,7 +126,6 @@ void CUIElement::Render(CRenderer* renderer)
 	RenderInner(renderer, RenderedElements, ColorBufferID, TextureOffset, VisibleElements);
 };
 
-
 bool CUIElement::HandleEventAtPos(int x, int y, EEventType event, CUIElement* root, bool checkChildren, bool selfCheck)
 { 
 	if (!root)
@@ -181,6 +180,21 @@ void CUIElement::DeleteRecursive()
 		delete m_Children[i];
 
 	m_Children.clear();
+}
+
+glm::vec2 CUIElement::GetPosition(bool midPointOrigo)
+{
+	if (midPointOrigo)
+		return glm::vec2(m_XPosition, m_YPosition);
+
+	bool RootElem = !m_Parent->GetParent();
+	float ParentWidth = m_Parent ? m_Parent->GetWidth() : 0;
+	float ParentHeight = m_Parent ? m_Parent->GetHeight() : 0;
+
+	if (!RootElem)
+		return glm::vec2(ParentWidth / 2 + m_XPosition - m_Width / 2, ParentHeight / 2 + m_YPosition - m_Height / 2);
+	else
+		return glm::vec2(m_XPosition - m_Width / 2, m_YPosition - m_Height / 2);
 }
 
 void CUIElement::SetPosition(float x, float y, bool midPointOrigo)

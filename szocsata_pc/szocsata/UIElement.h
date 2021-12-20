@@ -38,6 +38,7 @@ public:
 	void RemoveLastChild();
 	void SetPosAndSize(float x, float y, float w, float h, bool midPointOrigo = true);
 	void SetPosition(float x, float y, bool midPointOrigo = true);
+	glm::vec2 GetPosition(bool midPointOrigo = true);
 	void DeleteRecursive();
 
 	glm::vec2 GetAbsolutePosition();
@@ -47,18 +48,11 @@ public:
 
 	float GetHeight() { return m_Height; }
 	float GetWidth() { return m_Width; }
-	float GetXPosition() { return m_XPosition; }
-	float GetYPosition() { return m_YPosition; }
+
+	glm::vec2 GetTexturePos() {	return m_TexturePosition;}
+	glm::vec2 GetTexturePos(size_t idx) { return m_Children[idx]->GetTexturePos();}
 
 	void Scale(float scale);
-
-	glm::vec2 GetTexturePos() {
-		return m_TexturePosition;
-	}
-	glm::vec2 GetTexturePos(size_t idx)
-	{
-		return m_Children[idx]->GetTexturePos();
-	}
 	void SetTexturePosition(glm::vec2 texPos) {m_TexturePosition = texPos;}
 	void SetVisible(bool visible) {m_Visible = visible;}
 	void SetVisible(bool visible, size_t idx) { m_Children[idx]->SetVisible(visible); }
