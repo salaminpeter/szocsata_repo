@@ -85,7 +85,6 @@ void CGameManager::FinishRenderInit()
 #else
 	SetTileCount();
 	InitBasedOnTileCount();
-	InitPlayers();
 	EndInitRenderer();
 	SetGameState(CGameManager::BeginGame);
 #endif
@@ -118,8 +117,11 @@ void CGameManager::InitBasedOnTileCount()
 	CompGameBoard.SetSize(TileCount);
 
 	InitLetterPool();
+	m_UIManager->CreateLayouts();
+	m_UIManager->PositionGameButtons();
+	m_UIManager->PositionLetterPanel();
+	InitPlayers();
 	PositionUIElements();
-	m_UIManager->ActivateStartScreen(false);
 }
 
 void CGameManager::InitPlayers()
@@ -543,7 +545,7 @@ void CGameManager::DealCurrPlayerLetters()
 			if (m_CurrentPlayer->LetterUsed(i))
 			{
 				PlayerLetters->GetChild(i)->Scale(0.f);
-				m_PlayerLetterAnimationManager->AddAnimation(PlayerLetters->GetChild(i), PlayerLetters->GetChild(i)->GetWidth(), TileCounterPos.x, TileCounterPos.y, PlayerLetters->GetChild(i)->GetXPosition(), PlayerLetters->GetChild(i)->GetYPosition());
+				m_PlayerLetterAnimationManager->AddAnimation(PlayerLetters->GetChild(i), PlayerLetters->GetChild(i)->GetWidth(), TileCounterPos.x, TileCounterPos.y, PlayerLetters->GetChild(i)->GetPosition().x, PlayerLetters->GetChild(i)->GetPosition().y);
 			}
 		}
 		m_PlayerLetterAnimationManager->StartAnimations();

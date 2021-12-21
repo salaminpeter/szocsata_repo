@@ -39,7 +39,7 @@ void CUIText::Align(ETextAlign alingment, float padding)
 {
 	glm::vec2 TextTopBottom = GetTextTopBottom(m_Text, m_FontHeight);
 	float TextHeight = TextTopBottom.x - TextTopBottom.y;
-	float Padding = fabs(padding) < 0.001f ? m_FontHeight / 7 : padding;
+	float Padding = fabs(padding) < 0.001f ? m_FontHeight / 10 : padding;
 	float YPos = m_Parent->GetHeight() / 2 - TextHeight / 2 - TextTopBottom.y;
 	float XPos = (m_Parent->GetWidth() - m_Width) / 2;
 
@@ -105,7 +105,7 @@ float CUIText::GetTextWidthInPixels(const std::wstring& text, int size)
 {
 	float FontWidth = (m_FontTextureCharWidth / m_FontTextureCharHeight) * size;
 	float SizeInPixels = 0.f;
-	float LetterGap = FontWidth / 7.f;
+	float LetterGap = FontWidth / 10.f;
 
 	for (size_t i = 0; i < text.length(); ++i)
 	{
@@ -145,7 +145,7 @@ void CUIText::SetText(const wchar_t* text)
 	}
 
 	float FontWidth = (m_FontTextureCharWidth / m_FontTextureCharHeight) * m_FontHeight;
-	float FontCharGap = FontWidth / 7.f;
+	float FontCharGap = FontWidth / 10.f;
 	float FontSpace = FontWidth / 2.f;
 	float Offset = 0.f;
 	size_t idx = 0;
@@ -297,9 +297,9 @@ void CUIText::InitFontTexPositions()
 	m_FontCharWidth[L'i'] = 11;
 	m_FontCharWidth[L'í'] = 16;
 	m_FontCharWidth[L'j'] = 25;                                                      
-	m_FontCharWidth[L'k'] = 39;
+	m_FontCharWidth[L'k'] = 36;
 	m_FontCharWidth[L'l'] = 11;
-	m_FontCharWidth[L'm'] = 63;
+	m_FontCharWidth[L'm'] = 65;
 	m_FontCharWidth[L'n'] = 39;
 	m_FontCharWidth[L'o'] = 42;
 	m_FontCharWidth[L'ó'] = 42;
@@ -308,7 +308,7 @@ void CUIText::InitFontTexPositions()
 	m_FontCharWidth[L'p'] = 39;
 	m_FontCharWidth[L'r'] = 25;
 	m_FontCharWidth[L's'] = 30;
-	m_FontCharWidth[L't'] = 31;
+	m_FontCharWidth[L't'] = 27;
 	m_FontCharWidth[L'v'] = 42;
 	m_FontCharWidth[L'u'] = 38;
 	m_FontCharWidth[L'ú'] = 38;
