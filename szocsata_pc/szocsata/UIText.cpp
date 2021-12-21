@@ -356,11 +356,11 @@ void CUIText::InitFontTexPositions()
 	m_FontCharWidth[L')'] = 21;
 	m_FontCharWidth[L'?'] = 32;
 
-	m_FontCharHeight[L'0'] = 59;
-	m_FontCharHeight[L'1'] = 56;
-	m_FontCharHeight[L'2'] = 56;
+	m_FontCharHeight[L'0'] = 58;
+	m_FontCharHeight[L'1'] = 58;
+	m_FontCharHeight[L'2'] = 58;
 	m_FontCharHeight[L'3'] = 60;
-	m_FontCharHeight[L'4'] = 57;
+	m_FontCharHeight[L'4'] = 58;
 	m_FontCharHeight[L'5'] = 58;
 	m_FontCharHeight[L'6'] = 58;
 	m_FontCharHeight[L'7'] = 58;

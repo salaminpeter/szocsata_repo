@@ -214,6 +214,9 @@ void CUIManager::InitUIElements(std::shared_ptr<CSquarePositionData> positionDat
 	float PlayerLogoHeight = m_UIScreenPanel->GetHeight() / 12;
 	IconTextButton = AddIconTextButton(m_UIScreenPanel, L"", positionData, colorData, gridcolorData8x8, 0, (m_UIScreenPanel->GetHeight() - PlayerLogoHeight) / 2 - PlayerLogoHeight / 6, m_UIScreenPanel->GetWidth() / 2, PlayerLogoHeight, "view_ortho", "current_player_texture_generated", "kor_icon.bmp", L"ui_current_palyer_logo", "textured", 0.7f, 0.7f, 10, CUIText::Center);
 
+	float CountDownXPos = m_UIScreenPanel->GetWidth() / 4 + m_UIScreenPanel->GetWidth() / 9 + (m_UIScreenPanel->GetWidth() / 4 - m_UIScreenPanel->GetWidth() / 5) / 2;
+	IconTextButton = AddIconTextButton(m_UIScreenPanel, L"", positionData, colorData, gridcolorData8x8,CountDownXPos, (m_UIScreenPanel->GetHeight() - PlayerLogoHeight) / 2 - PlayerLogoHeight / 6, m_UIScreenPanel->GetWidth() / 4.5, PlayerLogoHeight, "view_ortho", "countdown_panel_texture_generated", "hourglass_icon.bmp", L"ui_countdown_btn", "textured", 0.65f, 0.7f, 0.f, CUIText::Left);
+
 	IconTextButton = AddIconTextButton(m_UIScreenPanel, L"", positionData, colorData, nullptr, 0, 0, m_UIScreenPanel->GetHeight() / 8, m_UIScreenPanel->GetHeight() / 8, "view_ortho", "round_button_texture_generated", "ok_icon.bmp", L"ui_ok_btn", "textured", 0.7f);
 	IconTextButton->SetEvent(false, m_GameManager, &CGameManager::EndPlayerTurnEvent);
 	IconTextButton->CenterIcon();
@@ -229,10 +232,6 @@ void CUIManager::InitUIElements(std::shared_ptr<CSquarePositionData> positionDat
 	IconTextButton = AddIconTextButton(m_UIScreenPanel, L"", positionData, colorData, nullptr, 0, 0, m_UIScreenPanel->GetHeight() / 8, m_UIScreenPanel->GetHeight() / 8, "view_ortho", "round_button_texture_generated", "exit_icon.bmp", L"ui_exit_btn", "textured", 0.6f);
 	IconTextButton->SetEvent(false, m_GameManager, &CGameManager::EndPlayerTurnEvent);
 	IconTextButton->CenterIcon();
-
-	Button = AddButton(m_UIScreenPanel, positionData, colorData, 0, 0, 0, 0, "view_ortho", "textbutton.bmp", L"ui_remaining_time_btn");
-	Button->AddText(L"", 0.3f, CUIText::Center, positionData, gridcolorData8x8);
-	Button->SetVisible(false);
 
 	int ShowFps;
 	bool ConfigFound = CConfig::GetConfig("show_fps", ShowFps);
@@ -457,7 +456,7 @@ bool CUIManager::IsGameButton(const CUIButton* button) const
 
 void CUIManager::SetRemainingTimeStr(const wchar_t* timeStr)
 {
-	CUIButton* Button = static_cast<CUIButton*>(m_RootGameScreen->GetChild(L"ui_remaining_time_btn"));
+	CUIButton* Button = static_cast<CUIButton*>(m_RootGameScreen->GetChild(L"ui_countdown_btn"));
 	Button->SetText(timeStr);
 }
 

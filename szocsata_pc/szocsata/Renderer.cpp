@@ -714,8 +714,8 @@ bool CRenderer::StartInit()
 	m_TextureManager->AddTexture("rightarrow.bmp");
 	m_TextureManager->AddTexture("textbutton.bmp");
 	m_TextureManager->AddTexture("background.bmp");
-//	m_TextureManager->AddTexture("background_half.bmp");
 
+	m_TextureManager->AddTexture("hourglass_icon.bmp", 4);
 	m_TextureManager->AddTexture("exit_icon.bmp", 4);
 	m_TextureManager->AddTexture("pause_icon.bmp", 4);
 	m_TextureManager->AddTexture("cancel_icon.bmp", 4);
