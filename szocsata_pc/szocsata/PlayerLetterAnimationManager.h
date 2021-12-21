@@ -48,6 +48,7 @@ private:
 	std::vector<TPlayerLetterAnimation> m_PlayerLetterAnimations;
 
 	size_t m_CurrentLetterIdx;
+	size_t m_PrevLetterIdx;
 	CTimerEventManager* m_TimerEventManager;
 	CGameManager* m_GameManager;
 };

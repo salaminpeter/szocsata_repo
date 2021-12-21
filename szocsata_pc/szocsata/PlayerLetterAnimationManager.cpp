@@ -11,6 +11,7 @@ void CPlayerLetterAnimationManager::StartAnimations()
 	if (m_PlayerLetterAnimations.size())
 	{
 		m_CurrentLetterIdx = 0;
+		m_PrevLetterIdx = 1;
 		m_TimerEventManager->AddTimerEvent(this, &CPlayerLetterAnimationManager::AnimatePlayerLetter, &CPlayerLetterAnimationManager::AnimFinishedEvent, "player_letter_animation");
 		m_TimerEventManager->StartTimer("player_letter_animation");
 	}
@@ -34,12 +35,17 @@ void CPlayerLetterAnimationManager::AnimatePlayerLetter(double& timeFromStart, d
 	m_PlayerLetterAnimations[m_CurrentLetterIdx].m_PlayerLetter->Scale(timeFromStart < AnimTime ? Scale : m_PlayerLetterAnimations[m_CurrentLetterIdx].m_DestScale);
 	m_PlayerLetterAnimations[m_CurrentLetterIdx].m_PlayerLetter->SetPosAndSize(XPos, YPos, Scale, Scale);
 
-	if (timeFromStart > AnimTime)
+	if (m_CurrentLetterIdx != m_PrevLetterIdx)
 	{
-		m_TimerEventManager->StopTimer("player_letter_animation");
+		m_PrevLetterIdx = m_CurrentLetterIdx;
 
 		if (m_GameManager->GetUIManager()->GetTileCounterValue() >= 1)
 			m_GameManager->GetUIManager()->SetTileCounterValue(m_GameManager->GetUIManager()->GetTileCounterValue() - 1);
+	}
+
+	if (timeFromStart > AnimTime)
+	{
+		m_TimerEventManager->StopTimer("player_letter_animation");
 
 		if (m_CurrentLetterIdx + 1 == m_PlayerLetterAnimations.size())
 		{
