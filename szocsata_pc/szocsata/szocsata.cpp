@@ -155,8 +155,9 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	
    OpenGLFunctions::InitOpenGL(GetDC(hWnd), hWnd);
 
-   GameManager->StartInitRenderer(WindowWidth, WindowHeigth );
+   GameManager->StartInitRenderer(WindowWidth, WindowHeigth);
    GameManager->InitUIManager();
+   GameManager->MiddleInitRender();
    GameManager->SetGameState(CGameManager::OnStartScreen);
 
    SetCursor(LoadCursor(nullptr, IDC_ARROW));
