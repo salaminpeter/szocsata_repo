@@ -189,6 +189,11 @@ void CTextureManager::GenerateTexturesAtGameStart(float scorePanelWidth, float s
 	GenerateRoundedBoxTexture(letterSize, letterSize, letterSize / 10.f, glm::vec4(0.89f, 0.71f, 0.51f, 0.4f), 3, glm::vec4(.41f, .21f, .09f, 1.f), "tile_counter_texture_generated");
 }
 
+void CTextureManager::GenerateTexturesAtGameOptions(float selectControlWidth, float selectControlHeight)
+{
+	GenerateRoundedBoxTexture(selectControlWidth, selectControlHeight, selectControlHeight / 2, glm::vec4(0.89f, 0.71f, 0.51f, 0.5f), 3, glm::vec4(.41f, .21f, .09f, 1.f), "select_control_texture_generated");
+}
+
 void CTextureManager::GenerateTextures(float viewWidth, float viewHeight)
 {
 	GenerateHeaderTexture();

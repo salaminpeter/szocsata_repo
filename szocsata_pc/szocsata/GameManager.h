@@ -49,6 +49,7 @@ public:
 	void InitLetterPool();
 	int CalculateScore(const TWordPos& word, std::vector<TWordPos>* crossingWords = nullptr);
 	void StartInitRenderer(int surfaceWidth, int surfaceHeight);
+	void MiddleInitRender();
 	void EndInitRenderer();
 	void InitUIManager();
 	void PositionUIElements();
@@ -137,7 +138,8 @@ public:
 	
 	bool HasEmptyFieldInWord(int& min, int& max);
 	glm::ivec2 GetSelectionPosition();
-
+	glm::vec2 GetSelectControlsize();
+	
 	void EndPlayerTurnEvent();
 	void TopViewEvent();
 	void GoToStartGameScrEvent();

@@ -648,6 +648,14 @@ TPosition CRenderer::GetTilePos(int x, int y)
 	return Result;
 }
 
+bool CRenderer::MiddleInit()
+{
+	glm::vec2 SelectControlSize =  m_GameManager->GetSelectControlsize();
+	m_TextureManager->GenerateTexturesAtGameOptions(SelectControlSize.x, SelectControlSize.y);
+
+	return true;
+}
+
 //init parts of renderer which does not require the tilecount config (will be set on start screen by user)
 bool CRenderer::StartInit()
 {
@@ -707,14 +715,11 @@ bool CRenderer::StartInit()
 	m_TextureManager->AddTexture("letters.bmp");
 	m_TextureManager->AddTexture("boardtex.bmp");
 	m_TextureManager->AddTexture("gridtex.bmp");
-	m_TextureManager->AddTexture("okbutton.bmp");
 	m_TextureManager->AddTexture("panel.bmp");
-	m_TextureManager->AddTexture("selectcontrol.bmp");
-	m_TextureManager->AddTexture("leftarrow.bmp");
-	m_TextureManager->AddTexture("rightarrow.bmp");
-	m_TextureManager->AddTexture("textbutton.bmp");
 	m_TextureManager->AddTexture("background.bmp");
 
+	m_TextureManager->AddTexture("left_arrow_icon.bmp", 4);
+	m_TextureManager->AddTexture("right_arrow_icon.bmp", 4);
 	m_TextureManager->AddTexture("hourglass_icon.bmp", 4);
 	m_TextureManager->AddTexture("exit_icon.bmp", 4);
 	m_TextureManager->AddTexture("pause_icon.bmp", 4);

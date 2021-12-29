@@ -44,6 +44,7 @@ Java_com_example_szocsata_1android_OpenGLRenderer_InitGameManager(JNIEnv *env, j
     InputManager = new CInputManager(gm);
     gm->StartInitRenderer(surface_width, surface_height);
     gm->InitUIManager();
+    gm->MiddleInitRender();
     gm->SetGameState(CGameManager::OnStartScreen);
 }
 
@@ -107,7 +108,6 @@ JNIEXPORT void JNICALL
 Java_com_example_szocsata_1android_OpenGLRenderer_EndInitAndStart(JNIEnv *env, jobject thiz) {
     gm->SetTileCount();
     gm->InitBasedOnTileCount();
-    gm->InitPlayers();
     gm->EndInitRenderer();
     gm->SetGameState(CGameManager::BeginGame);
 }

@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "UIMessageBox.h"
 #include "UIText.h"
+#include "UIIconTextButton.h"
 
 CUIMessageBox* CUIMessageBox::m_ActiveMessageBox = nullptr;
 int CUIMessageBox::m_RetValue = false;
@@ -16,8 +17,10 @@ CUIMessageBox::CUIMessageBox(std::shared_ptr<CSquarePositionData> positionData, 
 	{ 
 		int BtnX = m_Width / 2;
 		int BtnY = m_Height ;
-		AddButton(0, -100, 120, 120, "okbutton.bmp", L"ui_message_box_ok_btn");
-		m_Children.back()->SetEvent(false, this, &CUIMessageBox::ButtonPressed, 1);
+
+		CUIIconTextButton* NewButton = new CUIIconTextButton(this, L"", positionData, colorData, nullptr, 0, -100, 120, 120, 0, 0, "round_button_texture_generated", "ok_icon.bmp", L"msg_box_ok_button");
+		NewButton->SetEvent(false, this, &CUIMessageBox::ButtonPressed, 1);
+		NewButton->CenterIcon();
 	}
 
 	if (m_Type == OkCancel)

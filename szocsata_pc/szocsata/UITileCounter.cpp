@@ -28,7 +28,6 @@ void CUITileCounter::SetCounter(unsigned count)
 
 	CUIText* CounterText = static_cast<CUIText*>(GetChild(L"ui_tile_counter_text"));
 	CounterText->SetText(StrStream.str().c_str());  //TODO Legyen egy gettext/getbutton fuggveny!!!!!!!!!!!!
-	CounterText->Align(CUIText::Center);
 }
 
 void CUITileCounter::SetCounter()

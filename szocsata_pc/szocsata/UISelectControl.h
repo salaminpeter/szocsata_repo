@@ -12,7 +12,7 @@ class CUISelectControl : public CUIPanel
 {
 public:
 
-	CUISelectControl(CUIElement* parent, const wchar_t* id, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData, int x, int y, int w, int h, int vx, int vy, const char* textureID, size_t idx = 0);
+	CUISelectControl(CUIElement* parent, const wchar_t* id, const wchar_t* description, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData, int x, int y, int w, int h, int vx, int vy, const char* textureID, size_t idx = 0);
 
 	void AddOption(const wchar_t* text, bool setText = false);
 	void SetIndex(size_t idx);
@@ -28,5 +28,4 @@ private:
 
 	std::vector<std::wstring> m_Options;
 	size_t m_CurrSelection = 0;
-	int m_TextSize;
 };

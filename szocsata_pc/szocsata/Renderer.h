@@ -42,6 +42,7 @@ public:
 
 	bool StartInit();
 	bool EndInit();
+	bool MiddleInit();
 	void Render();
 	void ClearBuffers();
 	void AddView(const char* viewId, int x, int y, int w, int h);

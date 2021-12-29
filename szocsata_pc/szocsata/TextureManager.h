@@ -13,6 +13,7 @@ public:
 	bool ActivateTexture(const char* texId);
 	void GenerateTextures(float viewWidth, float viewHeight);
 	void GenerateTexturesAtGameStart(float scorePanelWidth, float scorePanelHeight, float letterSize);
+	void GenerateTexturesAtGameOptions(float selectControlWidth, float selectControlHeight);
 	bool IsCurrentTexture(const char* texId);
 
 	const CTexture* GetTexture(const char* textureID);

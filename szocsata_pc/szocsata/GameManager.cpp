@@ -1,4 +1,4 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include "GameManager.h"
 #include "Renderer.h"
 #include "UIManager.h"
@@ -947,6 +947,23 @@ void CGameManager::PositionUIElements()
 	m_UIManager->PositionUIElements();
 }
 
+glm::vec2 CGameManager::GetSelectControlsize()
+{
+	const wchar_t* Texts[] = { L"nincs", L"normál", L"nehéz", L"lehetetlen", L"könnyű" };
+	float MaxWidth = 0;
+	float PanelHeight = m_SurfaceHeigh * .09f;
+
+	for (int i = 0; i < 5; ++i)
+	{
+		float Width = CUIText::GetTextWidthInPixels(Texts[i], PanelHeight * .6f);
+
+		if (MaxWidth < Width)
+			MaxWidth = Width;
+	}
+
+	return glm::vec2(MaxWidth * 2.f, PanelHeight);
+}
+
 void CGameManager::InitUIManager()
 {
 	int ShowFps;
@@ -960,6 +977,11 @@ void CGameManager::InitUIManager()
 		m_UIManager->SetText(L"ui_fps_text", L"fps : 0");
 
 	m_TileAnimations->SetUIManager(m_UIManager);
+}
+
+void CGameManager::MiddleInitRender()
+{
+	m_Renderer->MiddleInit();
 }
 
 void CGameManager::StartInitRenderer(int surfaceWidth, int surfaceHeight)
