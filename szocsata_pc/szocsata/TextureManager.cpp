@@ -68,6 +68,43 @@ void CTextureManager::Generate2x2Texture(glm::vec4 color, const char* textureID)
 	m_Textures[textureID] = NewTexture;
 }
 
+void CTextureManager::AntialiasTexture(std::vector<uint8_t>& imageData, int width, int height, int depth)
+{
+	for (size_t d = 0; d < depth; ++d)
+	{
+		std::vector<uint8_t> TmpData(imageData);
+
+		for (int y = 0; y < height; ++y)
+		{
+			for (int x = 0; x < width; ++x)
+			{
+				if (imageData[4 * (y * width + x) + 3] == 0)
+				{
+					int AlphaSum = 0;
+					int AlphaCount = 0;
+
+					for (int i = y - 1; i <= y + 1; ++i)
+					{
+						for (int j = x - 1; j <= x + 1; ++j)
+						{
+							if (i < 0 || j < 0 || i >= height || j >= width)
+								continue;
+
+							AlphaSum += imageData[4 * (i * width + j) + 3];
+
+							if (imageData[4 * (i * width + j) + 3] != 0)
+								AlphaCount++;
+						}
+					}
+
+					TmpData[4 * (y * width + x) + 3] = AlphaSum / (AlphaCount + 2);
+				}
+			}
+		}
+
+		imageData = std::move(TmpData);
+	}
+}
 
 void CTextureManager::GenerateRoundedBoxTexture(int w, int h, int r, glm::vec4 color, int outlineWidth, glm::vec4 outlineColor, const char* textureID, bool halfRound)
 {
@@ -82,6 +119,8 @@ void CTextureManager::GenerateRoundedBoxTexture(int w, int h, int r, glm::vec4 c
 
 	glm::vec4& BackgroundColor = outlineWidth != 0 ? outlineColor : color;
 
+	int Offset = 2;
+
 	for (size_t y = 0; y < h; ++y)
 	{
 		for (size_t x = 0; x < w; ++x)
@@ -93,14 +132,16 @@ void CTextureManager::GenerateRoundedBoxTexture(int w, int h, int r, glm::vec4 c
 		}
 	}
 
+	int DecRadius = r - Offset;
+	float Div = r * 5 / 90.f;
 
-	glm::vec2 RadiusVec(0.f, r);
+	glm::vec2 RadiusVec(0.f, DecRadius);
 
-	for (int i = 0; i < 180; ++i)
+	for (int i = 0; i <= r * 5; ++i)
 	{
-		glm::vec2 RotatedVec = glm::rotate(RadiusVec, -glm::radians(i / 2.f));
+		glm::vec2 RotatedVec = glm::rotate(RadiusVec, -glm::radians(i / Div));
 		size_t idx0 = h - (r - RotatedVec.y) - 1;
-		size_t idx1 = h - idx0 - 1;
+		size_t idx1 = h - idx0;
 
 		ScanLineStart[idx0] = r - RotatedVec.x;
 		ScanLineEnd[idx0] = w - (halfRound ? 0 : r - RotatedVec.x);
@@ -109,11 +150,13 @@ void CTextureManager::GenerateRoundedBoxTexture(int w, int h, int r, glm::vec4 c
 
 		if (outlineWidth != 0)
 		{
-			for (int j = 0; j < outlineWidth * 2; ++j)
+			float Mul = 180.f / r;
+
+			for (int j = 0; j < outlineWidth * Mul; ++j)
 			{
-				glm::vec2 OutlineVec = glm::normalize(RotatedVec) * (glm::length(RotatedVec) - j / 2.f);
+				glm::vec2 OutlineVec = glm::normalize(RotatedVec) * (glm::length(RotatedVec) - j / Mul);
 				OutlineCoords.push_back(glm::vec2(r - OutlineVec.x, h - (r - OutlineVec.y) - 1));
-				OutlineCoords.push_back(glm::vec2(r - OutlineVec.x, h - (h - (r - OutlineVec.y) - 1) - 1));
+				OutlineCoords.push_back(glm::vec2(r - OutlineVec.x, h - (h - (r - OutlineVec.y) - 1) ));
 				
 				if (!halfRound)
 				{
@@ -124,29 +167,29 @@ void CTextureManager::GenerateRoundedBoxTexture(int w, int h, int r, glm::vec4 c
 		}
 	}
 
-	for (size_t i = r; i <= h - r; ++i)
+	for (size_t i = DecRadius; i <= h - DecRadius; ++i)
 	{
-		ScanLineStart[i] = 0;
-		ScanLineEnd[i] = w;
+		ScanLineStart[i] = Offset;
+		ScanLineEnd[i] = w - Offset;
 	}
 
-	for (size_t i = r; i <= h - r; ++i)
+	for (size_t i = DecRadius; i <= h - DecRadius; ++i)
 	{
 		for (int j = 0; j < outlineWidth; ++j)
 		{
-			OutlineCoords.push_back(glm::vec2(j, i));
+			OutlineCoords.push_back(glm::vec2(j + Offset, i));
 			
 			if (!halfRound)
-				OutlineCoords.push_back(glm::vec2(w - 1 - j, i));
+				OutlineCoords.push_back(glm::vec2(w - 1 - j - Offset, i));
 		}
 	}
 	
-	for (size_t i = r; i <= w - (halfRound ? 0 : r); ++i)
+	for (size_t i = DecRadius; i <= w - (halfRound ? 0 : DecRadius); ++i)
 	{
 		for (int j = 0; j < outlineWidth; ++j)
 		{
-			OutlineCoords.push_back(glm::vec2(i, j));
-			OutlineCoords.push_back(glm::vec2(i, h - 1 - j));
+			OutlineCoords.push_back(glm::vec2(i, j + Offset));
+			OutlineCoords.push_back(glm::vec2(i, h - 1 - j - Offset));
 		}
 	}
 	
@@ -178,7 +221,9 @@ void CTextureManager::GenerateRoundedBoxTexture(int w, int h, int r, glm::vec4 c
 		ImageData[4 * (y * w + x) + 3] = outlineColor.a * 255;
 	}
 
-	CTexture* NewTexture = new CTexture(textureID, &ImageData[0], w, h, 4);
+	AntialiasTexture(ImageData, w, h, Offset);
+
+	CTexture* NewTexture = new CTexture(textureID, &ImageData[0], w, h, 4, false);
 
 	m_Textures[textureID] = NewTexture;
 }
@@ -197,7 +242,7 @@ void CTextureManager::GenerateTexturesAtGameOptions(float selectControlWidth, fl
 void CTextureManager::GenerateTextures(float viewWidth, float viewHeight)
 {
 	GenerateHeaderTexture();
-	GenerateRoundedBoxTexture(680, 150, 30, glm::vec4(0.89f, 0.71f, 0.51f, 0.5f), 3, glm::vec4(.41f, .21f, .09f, 1.f), "start_scr_btn_texture_generated");
+	GenerateRoundedBoxTexture(viewWidth / 2, viewWidth / 8, viewWidth / 30, glm::vec4(0.89f, 0.71f, 0.51f, 0.5f), 3, glm::vec4(.41f, .21f, .09f, 1.f), "start_scr_btn_texture_generated");
 	GenerateRoundedBoxTexture(viewWidth - 20, viewHeight / 3 - 20, viewHeight / 25, glm::vec4(0.89f, 0.71f, 0.51f, 0.5f), 3, glm::vec4(.41f, .21f, .09f, 1.f), "player_letter_panel_texture_generated");
 	GenerateRoundedBoxTexture(viewWidth / 2, viewHeight / 12, viewHeight / 24, glm::vec4(0.89f, 0.71f, 0.51f, 0.5f), 3, glm::vec4(.41f, .21f, .09f, 1.f), "current_player_texture_generated");
 	GenerateRoundedBoxTexture(viewWidth / 4.5, viewHeight / 12, viewHeight / 38, glm::vec4(0.89f, 0.71f, 0.51f, 0.5f), 3, glm::vec4(.41f, .21f, .09f, 1.f), "countdown_panel_texture_generated");

@@ -718,6 +718,8 @@ bool CRenderer::StartInit()
 	m_TextureManager->AddTexture("panel.bmp");
 	m_TextureManager->AddTexture("background.bmp");
 
+	m_TextureManager->AddTexture("player_icon.bmp", 4);
+	m_TextureManager->AddTexture("computer_icon.bmp", 4);
 	m_TextureManager->AddTexture("left_arrow_icon.bmp", 4);
 	m_TextureManager->AddTexture("right_arrow_icon.bmp", 4);
 	m_TextureManager->AddTexture("hourglass_icon.bmp", 4);

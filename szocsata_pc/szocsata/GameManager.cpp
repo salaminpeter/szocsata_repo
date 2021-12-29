@@ -951,7 +951,7 @@ glm::vec2 CGameManager::GetSelectControlsize()
 {
 	const wchar_t* Texts[] = { L"nincs", L"normál", L"nehéz", L"lehetetlen", L"könnyű" };
 	float MaxWidth = 0;
-	float PanelHeight = m_SurfaceHeigh * .09f;
+	float PanelHeight = m_SurfaceHeigh * .1f;
 
 	for (int i = 0; i < 5; ++i)
 	{
