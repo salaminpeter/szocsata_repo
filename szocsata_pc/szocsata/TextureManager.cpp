@@ -247,5 +247,6 @@ void CTextureManager::GenerateTextures(float viewWidth, float viewHeight)
 	GenerateRoundedBoxTexture(viewWidth / 2, viewHeight / 12, viewHeight / 24, glm::vec4(0.89f, 0.71f, 0.51f, 0.5f), 3, glm::vec4(.41f, .21f, .09f, 1.f), "current_player_texture_generated");
 	GenerateRoundedBoxTexture(viewWidth / 4.5, viewHeight / 12, viewHeight / 38, glm::vec4(0.89f, 0.71f, 0.51f, 0.5f), 3, glm::vec4(.41f, .21f, .09f, 1.f), "countdown_panel_texture_generated");
 	GenerateRoundedBoxTexture(viewHeight / 8, viewHeight / 8, viewHeight / 16, glm::vec4(0.89f, 0.71f, 0.51f, 0.5f), 4, glm::vec4(1, 1, 1, 1.f), "round_button_texture_generated");
+	GenerateRoundedBoxTexture(viewHeight / 8, viewHeight / 8, viewHeight / 16, glm::vec4(0.89f, 0.71f, 0.51f, 0.5f), 4, glm::vec4(.41f, .21f, .09f, 1.f), "round_icon_texture_generated");
 	Generate2x2Texture(glm::vec4(0.21f, 0.07f, 0.f, 1.f), "divider_texture_generated");
 }
