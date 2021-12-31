@@ -121,8 +121,9 @@ void CUIScorePanel::Init()
 		
 		if (Idx != m_GameManager->GetPlayerCount() - 1)
 		{
-			CUIPanel* DividerElem = new CUIPanel(this, L"ui_score_panel_divider", m_PositionData, m_ColorData, nullptr, 0, YPos, DividerWidth, DividerHeight, 0, 0, "divider_texture_generated", 0, 0);
+			CUIPanel* DividerElem = new CUIPanel(this, L"ui_score_panel_divider", m_PositionData, m_ColorData, nullptr, 0, YPos, DividerWidth, DividerHeight, 0, 0, "solid_color_texture_generated", 0, 0);
 			m_Children.back()->SetPosAndSize((PanelWidth - DividerWidth) / 2, YPos + (VertGap - DividerHeight) / 2, DividerWidth, DividerHeight, false);
+			m_Children.back()->SetModifyColor(glm::vec4(0.21f, 0.07f, 0.f, 1.f));
 		}
 
 		YPos -= MaxTextHeight;

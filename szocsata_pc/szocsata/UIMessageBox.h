@@ -4,7 +4,6 @@
 
 class CUIText;
 class CUIButton;
-class CUIManager;
 
 class CUIMessageBox : public CUIPanel
 {
@@ -24,5 +23,5 @@ public:
 private:
 
 	EType m_Type;
-	CUIManager* m_UIManager;
+	float m_TextSize;
 };

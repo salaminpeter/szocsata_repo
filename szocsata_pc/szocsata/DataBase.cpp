@@ -59,6 +59,9 @@ bool CDataBase::WordExists(std::wstring& word, CWordTree::TNode* node, int charI
 	}
 	else
 	{
+		if (m_WordTrees.find(word.at(0)) == m_WordTrees.end())
+			return false;
+
 		return WordExists(word, m_WordTrees[word.at(0)]->Root(), 1);
 	}
 }

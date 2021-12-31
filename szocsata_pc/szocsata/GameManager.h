@@ -27,6 +27,7 @@ class CWordAnimationManager;
 class CLetterModel;
 class CCameraAnimationManager;
 class CPlayerLetterAnimationManager;
+class CDimmBGAnimationManager;
 
 class CGameManager
 {
@@ -52,6 +53,7 @@ public:
 	void MiddleInitRender();
 	void EndInitRenderer();
 	void InitUIManager();
+	void ShowCountDown();
 	void PositionUIElements();
 	void RenderFrame();
 	void RenderUI();
@@ -104,6 +106,7 @@ public:
 	void ShowNextPlayerPopup();
 	bool TileAnimationFinished();
 	bool PlayerLetterAnimationFinished();
+	void StartDimmingAnimation();
 	bool SelectionPosIllegal(int x, int y);
 	void CheckAndUpdateTime(double& timeFromStart, double& timeFromPrev);
 
@@ -139,7 +142,8 @@ public:
 	bool HasEmptyFieldInWord(int& min, int& max);
 	glm::ivec2 GetSelectionPosition();
 	glm::vec2 GetSelectControlsize();
-	
+	void SetDimmPanelOpacity(float opacity);
+
 	void EndPlayerTurnEvent();
 	void TopViewEvent();
 	void GoToStartGameScrEvent();
@@ -180,6 +184,7 @@ private:
 	CWordAnimationManager* m_WordAnimation;
 	CCameraAnimationManager* m_CameraAnimationManager;
 	CPlayerLetterAnimationManager* m_PlayerLetterAnimationManager;
+	CDimmBGAnimationManager* m_DimmBGAnimationManager;
 
 	public: //TODO
 	bool m_Dragged = false;

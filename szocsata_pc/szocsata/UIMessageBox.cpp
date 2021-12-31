@@ -8,19 +8,20 @@ int CUIMessageBox::m_RetValue = false;
 
 
 CUIMessageBox::CUIMessageBox(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridColorData, int x, int y, int w, int h, int vx, int vy, EType type) :
-	CUIPanel(nullptr, L"ui_message_box", positionData, colorData, gridColorData, x, y, w, h, vx, vy, "panel.bmp", 0.f, 0.f),
+	CUIPanel(nullptr, L"ui_message_box", positionData, colorData, gridColorData, x, y, w, h, vx, vy, "messagebox_texture_generated", 0.f, 0.f),
 	m_Type(type)
 {
-	AddText(L"", 0.f, 0.f, 40.f, "font.bmp", L"ui_message_box_text");
+	float TextPanelYPos = m_Type == NoButton ? 0.f : h / 2 - h / 6;
+	CUIPanel* TextPanel = new CUIPanel(this, L"ui_msgbox_text_panel", positionData, colorData, gridColorData, 0, TextPanelYPos, w, h / 3, vx, vy, "", 0.f, 0.f);
+	
+	m_TextSize = h / 3 - h / 10;
+	TextPanel->AddText(L"", 0.f, 0.f, m_TextSize, "font.bmp", L"ui_message_box_text");
 
 	if (m_Type == Ok)
 	{ 
-		int BtnX = m_Width / 2;
-		int BtnY = m_Height ;
-
-		CUIIconTextButton* NewButton = new CUIIconTextButton(this, L"", positionData, colorData, nullptr, 0, -100, 120, 120, 0, 0, "round_button_texture_generated", "ok_icon.bmp", L"msg_box_ok_button");
+		float BtnSize = m_TextSize * 1.5f;
+		CUIIconTextButton* NewButton = new CUIIconTextButton(this, L"", positionData, colorData, nullptr, 0, -h / 2 + BtnSize / 2 + BtnSize / 4, BtnSize, BtnSize, 0, 0, "round_button_texture_generated", "ok_icon.bmp", L"msg_box_ok_button");
 		NewButton->SetEvent(false, this, &CUIMessageBox::ButtonPressed, 1);
-		NewButton->CenterIcon();
 	}
 
 	if (m_Type == OkCancel)
@@ -38,9 +39,8 @@ void CUIMessageBox::ButtonPressed(int ret)
 
 void CUIMessageBox::SetText(const wchar_t* text)
 {
-	CUIText* Text = static_cast<CUIText*>(m_Children[0]);
-	float TextSize = 40;
-	float TextWidth = CUIText::GetTextWidthInPixels(text, TextSize);
-	Text->SetPosAndSize((TextSize - TextWidth) / 2.f, 70, TextSize, TextSize);
+	
+	CUIText* Text = static_cast<CUIText*>(GetChild(L"ui_message_box_text"));
 	Text->SetText(text);
+	Text->Align(CUIText::Center);
 }

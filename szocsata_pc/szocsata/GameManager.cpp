@@ -15,6 +15,7 @@
 #include "WordAnimationManager.h"
 #include "CameraAnimationManager.h"
 #include "PlayerLetterAnimationManager.h"
+#include "DimmBGAnimationManager.h"
 
 #define GL_GLEXT_PROTOTYPES 1
 #define GL3_PROTOTYPES 1
@@ -34,6 +35,7 @@ CGameManager::CGameManager()
 	m_WordAnimation = new CWordAnimationManager(m_TimerEventManager, this); //TODO!!!!!!!!!!!
 	m_CameraAnimationManager = new CCameraAnimationManager(m_TimerEventManager, this); //TODO!!!!!!!!!!!
 	m_PlayerLetterAnimationManager = new CPlayerLetterAnimationManager(this, m_TimerEventManager); //TODO!!!!!!!!!!!
+	m_DimmBGAnimationManager = new CDimmBGAnimationManager(this, m_TimerEventManager);
 }
 
 
@@ -85,6 +87,7 @@ void CGameManager::FinishRenderInit()
 #else
 	SetTileCount();
 	InitBasedOnTileCount();
+	ShowCountDown();
 	EndInitRenderer();
 	SetGameState(CGameManager::BeginGame);
 #endif
@@ -257,6 +260,11 @@ bool CGameManager::SelectionPosIllegal(int x, int y)
 	}
 
 	return false;
+}
+
+void CGameManager::StartDimmingAnimation()
+{
+	m_DimmBGAnimationManager->StartAnimation();
 }
 
 bool CGameManager::PlayerLetterAnimationFinished()
@@ -683,7 +691,10 @@ void CGameManager::GameLoop()
 	if (GetGameState() != EGameState::GameEnded)
 	{
 		if (GetGameState() == EGameState::WaitingForMessageBox && !CUIMessageBox::m_ActiveMessageBox)
+		{ 
+			m_DimmBGAnimationManager->StartAnimation(false);
 			SetGameState(EGameState::NextTurn);
+		}
 
 		if (GetGameState() == EGameState::NextTurn)
 			NextPlayerTurn();
@@ -947,6 +958,12 @@ void CGameManager::PositionUIElements()
 	m_UIManager->PositionUIElements();
 }
 
+void CGameManager::SetDimmPanelOpacity(float opacity)
+{
+	m_UIManager->SetDimmPanelOpacity(opacity);
+}
+
+
 glm::vec2 CGameManager::GetSelectControlsize()
 {
 	const wchar_t* Texts[] = { L"nincs", L"normál", L"nehéz", L"lehetetlen", L"könnyű" };
@@ -996,6 +1013,10 @@ void CGameManager::StartInitRenderer(int surfaceWidth, int surfaceHeight)
 	m_Renderer->StartInit();
 }
 
+void CGameManager::ShowCountDown()
+{
+	m_UIManager->ShowCountDown();
+}
 
 void CGameManager::EndInitRenderer()
 {

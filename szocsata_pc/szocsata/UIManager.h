@@ -76,6 +76,8 @@ public:
 
 	void SetCurrentPlayerName(const wchar_t* playerName, float r, float g, float b);
 
+	void ShowCountDown();
+
 	void PositionPlayerLetters(const std::wstring& playerId);
 	void PositionGameButtons();
 	void PositionLetterPanel();
@@ -97,6 +99,8 @@ public:
 	glm::ivec2 GetScorePanelSize();
 
 	void ClearUIElements();
+
+	void SetDimmPanelOpacity(float opacity);
 
 	CUIElement* GetActiveScreenUIRoot();
 
@@ -129,6 +133,7 @@ public: //TODO
 	CUIRankingsPanel* m_RankingsPanel;
 	CUIPlayerLetterPanel* m_PlayerLetterPanel;
 	CUIPanel* m_UIScreenPanel;
+	CUIPanel* m_DimmPanel;
 	CGridLayout* m_PlayerLettersLayout;
 	CGridLayout* m_ButtonsLayout;
 

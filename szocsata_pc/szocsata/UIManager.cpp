@@ -253,12 +253,19 @@ void CUIManager::InitUIElements(std::shared_ptr<CSquarePositionData> positionDat
 
 	m_UITileCounter = new CUITileCounter(m_UIScreenPanel, positionData, colorData, gridcolorData8x8, 0, 0, m_UIScreenPanel->GetHeight() / 4, m_UIScreenPanel->GetHeight() / 4, ViewPos.x, ViewPos.y);
 
-	m_MessageBoxOk = new CUIMessageBox(positionData, colorData, gridcolorData8x8, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh / 2, 600, 400, ViewPos.x, ViewPos.y, CUIMessageBox::Ok);
-	m_Toast = new CUIToast(1000, m_TimerEventManager, this, positionData, colorData, gridcolorData8x8, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh / 2, 600, 200, ViewPos.x, ViewPos.y, CUIMessageBox::NoButton);
+	m_MessageBoxOk = new CUIMessageBox(positionData, colorData, gridcolorData8x8, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh / 2, Width / 2, Width / 3, ViewPos.x, ViewPos.y, CUIMessageBox::Ok);
+	m_Toast = new CUIToast(1000, m_TimerEventManager, this, positionData, colorData, gridcolorData8x8, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh / 2, Width / 2, Width / 3, ViewPos.x, ViewPos.y, CUIMessageBox::NoButton);
+	m_Toast->SetModifyColor(glm::vec4(1, 1, 1, 1.f / .8f));
 
-	CUIPanel* Divider = new CUIPanel(m_UIScreenPanel, L"ui_divider", positionData, colorData, nullptr, 0, 0, 5, m_UIScreenPanel->GetHeight(), ViewPos.x, ViewPos.y, "divider_texture_generated", 0, 0);
+	CUIPanel* Divider = new CUIPanel(m_UIScreenPanel, L"ui_divider", positionData, colorData, nullptr, 0, 0, 5, m_UIScreenPanel->GetHeight(), ViewPos.x, ViewPos.y, "solid_color_texture_generated", 0, 0);
 	Divider->SetPosition(0, 0, false);
-	Divider->SetModifyColor(glm::vec4(1.5,1.5,1.5,1));
+	Divider->SetModifyColor(glm::vec4(0.11f, 0.03f, 0.f, 1.f));
+
+
+	m_DimmPanel = new CUIPanel(m_RootGameScreen, L"ui_bg_panel", positionData, colorData, nullptr, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh / 2, m_GameManager->m_SurfaceWidth, m_GameManager->m_SurfaceHeigh, ViewPos.x, ViewPos.y, "solid_color_texture_generated", 0, 0);
+	m_DimmPanel->SetModifyColor(glm::vec4(1, 1, 1, 0.f));
+	m_DimmPanel->SetVisible(false);
+
 
 	//dragged letter root
 	m_RootDraggedLetterScreen = new CUIElement(nullptr, L"ui_dragged_letter_root", nullptr, 0.f, 0.f, m_GameManager->m_SurfaceWidth, m_GameManager->m_SurfaceHeigh, ViewPos.x, ViewPos.y, 0.f, 0.f);
@@ -354,14 +361,30 @@ void CUIManager::InitUIElements(std::shared_ptr<CSquarePositionData> positionDat
 
 	float DividerSize = BackGroundPanelStartGameScreen->GetHeight() + IconTextButton->GetPosition().y - HeaderHeight;
 	float DividerY = BackGroundPanelStartGameScreen->GetHeight() / 2 - HeaderHeight - DividerSize / 2;
-	Divider = new CUIPanel(BackGroundPanelStartGameScreen, L"ui_divider_start_game_screen", positionData, colorData, nullptr, 0, DividerY, 8, DividerSize, ViewPos.x, ViewPos.y, "divider_texture_generated", 0, 0);
-	Divider->SetModifyColor(glm::vec4(1.5, 1.5, 1.5, 0.7));
+	Divider = new CUIPanel(BackGroundPanelStartGameScreen, L"ui_divider_start_game_screen", positionData, colorData, nullptr, 0, DividerY, 8, DividerSize, ViewPos.x, ViewPos.y, "solid_color_texture_generated", 0, 0);
+	Divider->SetModifyColor(glm::vec4(0.4f, 0.2f, 0.08f, 1.f));
 
 	m_UIRoots.push_back(m_RootStartScreen);
 	m_UIRoots.push_back(m_RootStartGameScreen);
 	m_UIRoots.push_back(m_RootGameScreen);
 	m_UIRoots.push_back(m_RootGameEndScreen);
 	m_UIRoots.push_back(m_RootDraggedLetterScreen);
+}
+
+void CUIManager::SetDimmPanelOpacity(float opacity)
+{
+	m_DimmPanel->SetModifyColor(glm::vec4(.7f, .7f, .7f,opacity));
+
+	if (opacity < 0.001f)
+		m_DimmPanel->SetVisible(false);
+	else
+		m_DimmPanel->SetVisible(true);
+}
+
+void CUIManager::ShowCountDown()
+{
+	CUIElement* Panel = m_RootStartGameScreen->GetChild(L"ui_background_panel_start_game_screen");
+	m_RootGameScreen->GetChild(L"ui_countdown_btn")->SetVisible(GetTimeLimit() != -1);
 }
 
 void CUIManager::SetCurrentPlayerName(const wchar_t* playerName, float r, float g, float b)
@@ -529,7 +552,11 @@ void CUIManager::ShowMessageBox(int type, const wchar_t* text)
 		CUIMessageBox::m_ActiveMessageBox = m_MessageBoxOk;
 
 	CUIMessageBox::m_ActiveMessageBox->SetText(text);
+	
 	m_GameManager->SetGameState(CGameManager::WaitingForMessageBox);
+
+	if (type != CUIMessageBox::NoButton)
+		m_GameManager->StartDimmingAnimation();
 }
 
 
