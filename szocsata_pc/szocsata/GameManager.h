@@ -33,7 +33,7 @@ class CGameManager
 {
 public:
 	
-	enum EGameState { NextTurn, WaintingOnAnimation, WaitingForMessageBox, TurnInProgress, GameAboutToEnd, GameEnded, BeginGame, OnStartGameScreen, OnStartScreen, OnRankingsScreen, None};
+	enum EGameState { NextTurn, WaintingOnAnimation, WaitingForMessageBox, TurnInProgress, GameAboutToEnd, GameEnded, BeginGame, Paused, OnStartGameScreen, OnStartScreen, OnRankingsScreen, None};
 
 	CGameManager();
 
@@ -144,6 +144,7 @@ public:
 	glm::vec2 GetSelectControlsize();
 	void SetDimmPanelOpacity(float opacity);
 
+	void PauseGameEvent();
 	void EndPlayerTurnEvent();
 	void TopViewEvent();
 	void GoToStartGameScrEvent();
@@ -162,7 +163,6 @@ public:
 		StartComputerturn();
 	}
 	//==============================================================================
-
 
 private:
 
@@ -206,6 +206,7 @@ private:
 #endif
 
 	EGameState m_GameState = EGameState::None;
+	EGameState m_PrevGameState = EGameState::None;
 
 	std::mutex m_GameStateLock;
 	std::mutex m_PlayerPopupLock;
@@ -216,5 +217,7 @@ private:
 
 	int m_LastTurnTimeChanged = 0;
 	int m_TurnTimeStart = 0;
+
+	bool m_GamePaused = false;
 };
 

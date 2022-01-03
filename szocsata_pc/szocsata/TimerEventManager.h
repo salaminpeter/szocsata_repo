@@ -26,9 +26,10 @@ public:
 	}
 
 	void Call(bool finished);
-	void SetTimerState(bool stopped);
+	void SetTimerState(bool stopped, bool paused = false);
 
-	bool IsStopped() {return m_Stopped;}
+	bool IsStopped() { return m_Stopped; }
+	bool IsPaused() { return m_Paused; }
 	std::string GetID() {return m_Id;}
 
 private:
@@ -36,11 +37,13 @@ private:
 	std::string m_Id;
 	CEventBase* m_Event = nullptr;
 	CEventBase* m_FinishedEvent = nullptr;
-	bool m_Stopped = true;
+	bool m_Stopped = false;
+	bool m_Paused = false;
 	double m_StartTime;
 	double m_CurrentTime;
 	double m_TimeFromStart;
 	double m_TimeFromPrev;
+	double m_PauseTime;
 };
 
 class CTimerEventManager
@@ -59,13 +62,15 @@ public:
 
 	void Loop();
 
-	void StartTimer(const char* id) { ChangeTimerState(true, id); }
-	void StopTimer(const char* id) { ChangeTimerState(false, id); }
+	void StartTimer(const char* id) { ChangeTimerState(true, false ,id); }
+	void StopTimer(const char* id) { ChangeTimerState(false, false, id); }
+	void PauseTimer(const char* id) { ChangeTimerState(false, true, id); }
+	void ResumeTimer(const char* id) { ChangeTimerState(true, false, id); }
 
 private:
 
 	CTimerEvent* GetTimerEvent(const char* id);
-	void ChangeTimerState(bool start, const char*id);
+	void ChangeTimerState(bool start, bool , const char*id);
 
 private:
 	

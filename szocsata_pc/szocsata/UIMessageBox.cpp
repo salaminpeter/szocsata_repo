@@ -17,14 +17,14 @@ CUIMessageBox::CUIMessageBox(std::shared_ptr<CSquarePositionData> positionData, 
 	m_TextSize = h / 3 - h / 10;
 	TextPanel->AddText(L"", 0.f, 0.f, m_TextSize, "font.bmp", L"ui_message_box_text");
 
-	if (m_Type == Ok)
+	if (m_Type == Ok || m_Type == Resume)
 	{ 
+		const char* IconName = (m_Type == Ok ? "ok_icon.bmp" : "play_icon.bmp");
 		float BtnSize = m_TextSize * 1.5f;
-		CUIIconTextButton* NewButton = new CUIIconTextButton(this, L"", positionData, colorData, nullptr, 0, -h / 2 + BtnSize / 2 + BtnSize / 4, BtnSize, BtnSize, 0, 0, "round_button_texture_generated", "ok_icon.bmp", L"msg_box_ok_button");
+		CUIIconTextButton* NewButton = new CUIIconTextButton(this, L"", positionData, colorData, nullptr, 0, -h / 2 + BtnSize / 2 + BtnSize / 4, BtnSize, BtnSize, 0, 0, "round_button_texture_generated", IconName, L"msg_box_ok_button");
 		NewButton->SetEvent(false, this, &CUIMessageBox::ButtonPressed, 1);
 	}
-
-	if (m_Type == OkCancel)
+	else if (m_Type == OkCancel)
 	{
 		AddButton(80, -80, 50, 50, "cancelbutton.bmp", L"ui_message_box_cancel_btn");
 		m_Children.back()->SetEvent(false, this, &CUIMessageBox::ButtonPressed, 0);

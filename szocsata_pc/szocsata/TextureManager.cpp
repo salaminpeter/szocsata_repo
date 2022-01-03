@@ -97,7 +97,7 @@ void CTextureManager::AntialiasTexture(std::vector<uint8_t>& imageData, int widt
 						}
 					}
 
-					TmpData[4 * (y * width + x) + 3] = AlphaSum / (AlphaCount + 2);
+					TmpData[4 * (y * width + x) + 3] = AlphaSum / (AlphaCount + 1);
 				}
 			}
 		}
@@ -223,7 +223,7 @@ void CTextureManager::GenerateRoundedBoxTexture(int w, int h, int r, glm::vec4 c
 
 	AntialiasTexture(ImageData, w, h, Offset);
 
-	CTexture* NewTexture = new CTexture(textureID, &ImageData[0], w, h, 4, false);
+	CTexture* NewTexture = new CTexture(textureID, &ImageData[0], w, h, 4);
 
 	m_Textures[textureID] = NewTexture;
 }

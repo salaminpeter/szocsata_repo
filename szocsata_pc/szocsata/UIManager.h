@@ -92,6 +92,7 @@ public:
 	int GetTimeLimit();
 	float GetLetterSize();
 	bool ComputerOpponentEnabled();
+	void PauseGame(bool pause);
 
 	void UpdateScorePanel();
 	void InitScorePanel();
@@ -128,6 +129,7 @@ public: //TODO
 
 	CUITileCounter* m_UITileCounter;
 	CUIMessageBox* m_MessageBoxOk;
+	CUIMessageBox* m_MessageBoxResumeGame;
 	CUIToast* m_Toast;
 	CUIScorePanel* m_ScorePanel;
 	CUIRankingsPanel* m_RankingsPanel;

@@ -13,25 +13,29 @@ void CTimerEventManager::Loop()
 	
 	while (it != m_TimerEvents.end())
 	{
-		if (!(*it)->IsStopped())
+		if (!(*it)->IsStopped() && !(*it)->IsPaused())
 		{
 			(*it)->Call(false);
 			++it;
+			continue;
 		}
-		else
+		else if ((*it)->IsStopped())
 		{
 			(*it)->Call(true);
 			m_TimerEvents.erase(it++);
+			continue;
 		}
+
+		++it;
 	}
 
 	m_LastLoopTime = CTimer::GetCurrentTime();
 }
 
-void CTimerEventManager::ChangeTimerState(bool start, const char* id)
+void CTimerEventManager::ChangeTimerState(bool start, bool pause, const char* id)
 {
 	if (CTimerEvent* t = GetTimerEvent(id))
-		t->SetTimerState(!start);
+		t->SetTimerState(!start, pause);
 }
 
 CTimerEvent* CTimerEventManager::GetTimerEvent(const char* id)
@@ -46,9 +50,25 @@ CTimerEvent* CTimerEventManager::GetTimerEvent(const char* id)
 }
 
 
-void CTimerEvent::SetTimerState(bool stopped) 
+void CTimerEvent::SetTimerState(bool stopped, bool paused) 
 { 
-	m_Stopped = stopped; 
+	//pause timer
+	if (!m_Paused && paused)
+		m_Paused = true;
+
+	//resume timer
+	if (m_Paused && !paused)
+	{
+		m_Paused = false;
+		m_CurrentTime = CTimer::GetCurrentTime();
+		m_StartTime = m_CurrentTime - m_TimeFromStart;
+		return;
+	}
+
+	if (m_Paused)
+		return;
+
+	m_Stopped = stopped;
 
 	if (!m_Stopped)
 		m_StartTime = m_CurrentTime = CTimer::GetCurrentTime();
@@ -59,6 +79,7 @@ void CTimerEvent::Call(bool finished)
 	m_TimeFromPrev = CTimer::GetCurrentTime() - m_CurrentTime;
 	m_CurrentTime = CTimer::GetCurrentTime();
 	m_TimeFromStart = m_CurrentTime - m_StartTime;
+
 	if (!finished)
 		m_Event->HandleEvent();
 	else if (m_FinishedEvent)

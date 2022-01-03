@@ -22,8 +22,6 @@
 #include <GLES3\gl3.h>
 
 
-//TODO computer jateknal preferalja a palya kozepe fele levo szvakat azonos pontszam eseten!!
-
 CGameManager::CGameManager()
 {
 	CConfig::LoadConfigs("config.txt");
@@ -403,6 +401,7 @@ void CGameManager::HandlePlayerPass()
 	m_CurrentPlayer->m_Passed = true;
 	bool AllPassed = AllPlayersPassed();
 	m_PlacedLetterSelections.clear();
+	UndoAllSteps();
 	m_PlayerSteps.clear();
 
 	//TODO biztos passzolni akarsz msgbox!
@@ -674,6 +673,7 @@ void CGameManager::AddWordSelectionAnimationForComputer()
 void CGameManager::SetGameState(int state)
 {
 	const std::lock_guard<std::mutex> lock(m_GameStateLock);
+	m_PrevGameState = m_GameState;
 	m_GameState = static_cast<EGameState>(state);
 }
 
@@ -690,6 +690,19 @@ void CGameManager::GameLoop()
 
 	if (GetGameState() != EGameState::GameEnded)
 	{
+		m_TimerEventManager->Loop();
+
+		//resume game
+		if (m_GamePaused && !CUIMessageBox::m_ActiveMessageBox)
+		{
+			m_DimmBGAnimationManager->StartAnimation(false);
+			PauseGameEvent();
+			SetGameState(m_PrevGameState);
+		}
+
+		if (m_GamePaused)
+			return;
+
 		if (GetGameState() == EGameState::WaitingForMessageBox && !CUIMessageBox::m_ActiveMessageBox)
 		{ 
 			m_DimmBGAnimationManager->StartAnimation(false);
@@ -698,8 +711,6 @@ void CGameManager::GameLoop()
 
 		if (GetGameState() == EGameState::NextTurn)
 			NextPlayerTurn();
-
-		m_TimerEventManager->Loop();
 	}
 	else
 	{ 
@@ -1399,6 +1410,24 @@ void CGameManager::RenderUI()
 void CGameManager::GoToStartGameScrEvent()
 {
 	SetGameState(CGameManager::OnStartGameScreen);
+}
+
+void CGameManager::PauseGameEvent()
+{
+	//pause game
+	if (!m_GamePaused)
+	{
+		m_GamePaused = true;
+		m_TimerEventManager->PauseTimer("time_limit_event");
+		m_UIManager->ShowMessageBox(CUIMessageBox::Resume, L"");
+	}
+
+	//resume game
+	else
+	{
+		m_GamePaused = false;
+		m_TimerEventManager->ResumeTimer("time_limit_event");
+	}
 }
 
 void CGameManager::EndPlayerTurnEvent()

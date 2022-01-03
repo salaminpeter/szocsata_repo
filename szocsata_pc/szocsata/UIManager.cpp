@@ -233,7 +233,7 @@ void CUIManager::InitUIElements(std::shared_ptr<CSquarePositionData> positionDat
 	IconTextButton->CenterIcon();
 
 	IconTextButton = AddIconTextButton(m_UIScreenPanel, L"", positionData, colorData, nullptr, 0, 0, m_UIScreenPanel->GetHeight() / 8, m_UIScreenPanel->GetHeight() / 8, "view_ortho", "round_button_texture_generated", "pause_icon.bmp", L"ui_pause_btn", "textured", 0.6f);
-	IconTextButton->SetEvent(false, m_GameManager, &CGameManager::EndPlayerTurnEvent);
+	IconTextButton->SetEvent(false, m_GameManager, &CGameManager::PauseGameEvent);
 	IconTextButton->CenterIcon();
 
 	IconTextButton = AddIconTextButton(m_UIScreenPanel, L"", positionData, colorData, nullptr, 0, 0, m_UIScreenPanel->GetHeight() / 8, m_UIScreenPanel->GetHeight() / 8, "view_ortho", "round_button_texture_generated", "exit_icon.bmp", L"ui_exit_btn", "textured", 0.6f);
@@ -254,6 +254,8 @@ void CUIManager::InitUIElements(std::shared_ptr<CSquarePositionData> positionDat
 	m_UITileCounter = new CUITileCounter(m_UIScreenPanel, positionData, colorData, gridcolorData8x8, 0, 0, m_UIScreenPanel->GetHeight() / 4, m_UIScreenPanel->GetHeight() / 4, ViewPos.x, ViewPos.y);
 
 	m_MessageBoxOk = new CUIMessageBox(positionData, colorData, gridcolorData8x8, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh / 2, Width / 2, Width / 3, ViewPos.x, ViewPos.y, CUIMessageBox::Ok);
+	m_MessageBoxResumeGame = new CUIMessageBox(positionData, colorData, gridcolorData8x8, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh / 2, Width / 2, Width / 3, ViewPos.x, ViewPos.y, CUIMessageBox::Resume);
+	m_MessageBoxResumeGame->GetChild(L"msg_box_ok_button")->SetPosition(0, 0);
 	m_Toast = new CUIToast(1000, m_TimerEventManager, this, positionData, colorData, gridcolorData8x8, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh / 2, Width / 2, Width / 3, ViewPos.x, ViewPos.y, CUIMessageBox::NoButton);
 	m_Toast->SetModifyColor(glm::vec4(1, 1, 1, 1.f / .8f));
 
@@ -369,6 +371,11 @@ void CUIManager::InitUIElements(std::shared_ptr<CSquarePositionData> positionDat
 	m_UIRoots.push_back(m_RootGameScreen);
 	m_UIRoots.push_back(m_RootGameEndScreen);
 	m_UIRoots.push_back(m_RootDraggedLetterScreen);
+}
+
+void CUIManager::PauseGame(bool pause)
+{
+	m_GameManager->SetGameState(pause);
 }
 
 void CUIManager::SetDimmPanelOpacity(float opacity)
@@ -550,6 +557,8 @@ void CUIManager::ShowMessageBox(int type, const wchar_t* text)
 {
 	if (type == CUIMessageBox::Ok)
 		CUIMessageBox::m_ActiveMessageBox = m_MessageBoxOk;
+	else if (type == CUIMessageBox::Resume)
+		CUIMessageBox::m_ActiveMessageBox = m_MessageBoxResumeGame;
 
 	CUIMessageBox::m_ActiveMessageBox->SetText(text);
 	
