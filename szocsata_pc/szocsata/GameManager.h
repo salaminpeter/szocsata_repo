@@ -109,6 +109,8 @@ public:
 	void StartDimmingAnimation();
 	bool SelectionPosIllegal(int x, int y);
 	void CheckAndUpdateTime(double& timeFromStart, double& timeFromPrev);
+	bool IsGamePaused();
+	void SetGamePaused(bool paused);
 
 	glm::ivec2 GetScorePanelSize();
 	float GetLetterSize();
@@ -209,6 +211,7 @@ private:
 	EGameState m_PrevGameState = EGameState::None;
 
 	std::mutex m_GameStateLock;
+	std::mutex m_GamePausedLock;
 	std::mutex m_PlayerPopupLock;
 
 	CPlayer* m_CurrentPlayer = nullptr;

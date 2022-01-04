@@ -677,6 +677,19 @@ void CGameManager::SetGameState(int state)
 	m_GameState = static_cast<EGameState>(state);
 }
 
+bool CGameManager::IsGamePaused()
+{
+	const std::lock_guard<std::mutex> lock(m_GamePausedLock);
+	return m_GamePaused;
+}
+
+void CGameManager::SetGamePaused(bool paused)
+{
+	const std::lock_guard<std::mutex> lock(m_GamePausedLock);
+	m_GamePaused = paused;
+}
+
+
 CGameManager::EGameState CGameManager::GetGameState()
 {
 	const std::lock_guard<std::mutex> lock(m_GameStateLock);
@@ -692,15 +705,7 @@ void CGameManager::GameLoop()
 	{
 		m_TimerEventManager->Loop();
 
-		//resume game
-		if (m_GamePaused && !CUIMessageBox::m_ActiveMessageBox)
-		{
-			m_DimmBGAnimationManager->StartAnimation(false);
-			PauseGameEvent();
-			SetGameState(m_PrevGameState);
-		}
-
-		if (m_GamePaused)
+		if (IsGamePaused())
 			return;
 
 		if (GetGameState() == EGameState::WaitingForMessageBox && !CUIMessageBox::m_ActiveMessageBox)
@@ -1045,9 +1050,10 @@ void CGameManager::HandleReleaseEvent(int x, int y)
 	CConfig::GetConfig("window_height", WindowHeigth);
 	
     m_TouchX = -1;
-	
+
+    bool mb = !CUIMessageBox::m_ActiveMessageBox;
 	//ha van message boxunk akkor a ui view kezeli a release eventet
-	if (m_LastTouchOnBoardView && !CUIMessageBox::m_ActiveMessageBox)
+	if (m_LastTouchOnBoardView && !CUIMessageBox::m_ActiveMessageBox && GameScreenActive())
 		HandleReleaseEventFromBoardView(x, WindowHeigth - y);
 	else
 		HandleReleaseEventFromUIView(x, WindowHeigth - y);
@@ -1055,9 +1061,6 @@ void CGameManager::HandleReleaseEvent(int x, int y)
 
 void CGameManager::HandleReleaseEventFromBoardView(int x, int y)
 {
-	if (!GameScreenActive())
-		return;
-
 	m_Renderer->CalculateScreenSpaceGrid();
 	m_Dragged = false;
 
@@ -1415,17 +1418,21 @@ void CGameManager::GoToStartGameScrEvent()
 void CGameManager::PauseGameEvent()
 {
 	//pause game
-	if (!m_GamePaused)
+	if (!IsGamePaused())
 	{
-		m_GamePaused = true;
+		SetGamePaused(true);
 		m_TimerEventManager->PauseTimer("time_limit_event");
+		m_UIManager->ShowPlayerLetters(false, m_CurrentPlayer->GetName().c_str());
 		m_UIManager->ShowMessageBox(CUIMessageBox::Resume, L"");
 	}
 
 	//resume game
 	else
 	{
-		m_GamePaused = false;
+		m_DimmBGAnimationManager->StartAnimation(false);
+		SetGameState(m_PrevGameState);
+		SetGamePaused(false);
+		m_UIManager->ShowPlayerLetters(true, m_CurrentPlayer->GetName().c_str());
 		m_TimerEventManager->ResumeTimer("time_limit_event");
 	}
 }

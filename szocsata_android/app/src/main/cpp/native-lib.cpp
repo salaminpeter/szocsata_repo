@@ -108,6 +108,7 @@ JNIEXPORT void JNICALL
 Java_com_example_szocsata_1android_OpenGLRenderer_EndInitAndStart(JNIEnv *env, jobject thiz) {
     gm->SetTileCount();
     gm->InitBasedOnTileCount();
+    gm->ShowCountDown();
     gm->EndInitRenderer();
     gm->SetGameState(CGameManager::BeginGame);
 }

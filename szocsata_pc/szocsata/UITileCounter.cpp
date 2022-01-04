@@ -6,7 +6,7 @@
 #include <sstream>
 
 CUITileCounter::CUITileCounter(CUIElement* parent, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridColorData, int x, int y, int w, int h, int vx, int vy) :
-	CUIIconTextButton(parent, L"", positionData, colorData, gridColorData, x, y, w, h, vx, vy, "tile_counter_texture_generated", "tile_counter_icon.bmp", L"ui_tile_counter", "textured", .8f, .2f, 20.f)
+	CUIIconTextButton(parent, L"", positionData, colorData, gridColorData, x, y, w, h, vx, vy, "tile_counter_texture_generated", "tile_counter_icon.bmp", L"ui_tile_counter", 1.f, "textured", .8f, .2f, 20.f)
 {
 	static_cast<CUIPanel*>(GetChild(L"ui_button_icon"))->AddText(L"0", 0, 0, w / 2, "font.bmp", L"ui_tile_counter_text", 0, 0, 0);
 }

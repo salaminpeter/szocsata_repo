@@ -24,10 +24,13 @@ CUISelectControl::CUISelectControl(CUIElement* parent, const wchar_t* id, const 
 	SelectPanel->AddText(L"", 0.f, 0.f, TextSize, "font.bmp", L"ui_select_control_text");
 	static_cast<CUIText*>(GetChild(L"ui_select_control_text"))->Align(CUIText::Center);
 
-	SelectPanel->AddButton(-(w - IconSize - IconSize / 3) / 2.f, 0.f, IconSize, IconSize, "left_arrow_icon.bmp", L"arrow_left");
+	float ArrowHeight = IconSize;
+	float ArrowWidth = ArrowHeight * .59f;
+
+	SelectPanel->AddButton(-(w - ArrowWidth - ArrowWidth / 2) / 2.f, 0.f, ArrowWidth, ArrowHeight, "left_arrow_icon.bmp", L"arrow_left");
 	GetChild(L"arrow_left")->SetEvent(false, this, &CUISelectControl::ChangeEvent, -1);
 
-	SelectPanel->AddButton((w - IconSize - IconSize / 3) / 2.f, 0, IconSize, IconSize, "right_arrow_icon.bmp", L"arrow_right");
+	SelectPanel->AddButton((w - ArrowWidth - ArrowWidth / 2) / 2.f, 0, ArrowWidth, ArrowHeight, "right_arrow_icon.bmp", L"arrow_right");
 	GetChild(L"arrow_right")->SetEvent(false, this, &CUISelectControl::ChangeEvent, 1);
 }
 
