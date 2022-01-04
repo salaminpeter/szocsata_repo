@@ -68,7 +68,7 @@ void CTextureManager::Generate2x2Texture(glm::vec4 color, const char* textureID)
 	m_Textures[textureID] = NewTexture;
 }
 
-void CTextureManager::AntialiasTexture(std::vector<uint8_t>& imageData, int width, int height, int depth)
+void CTextureManager::AntialiasTexture(std::vector<uint8_t>& imageData, int width, int height, glm::ivec3 innerColor, int depth)
 {
 	for (size_t d = 0; d < depth; ++d)
 	{
@@ -78,6 +78,7 @@ void CTextureManager::AntialiasTexture(std::vector<uint8_t>& imageData, int widt
 		{
 			for (int x = 0; x < width; ++x)
 			{
+				//kulso resz elsimitas
 				if (imageData[4 * (y * width + x) + 3] == 0)
 				{
 					int AlphaSum = 0;
@@ -99,6 +100,45 @@ void CTextureManager::AntialiasTexture(std::vector<uint8_t>& imageData, int widt
 
 					TmpData[4 * (y * width + x) + 3] = AlphaSum / (AlphaCount + 1);
 				}
+
+				
+				//belse resz elsimitas
+				if (imageData[4 * (y * width + x) + 3] != 0 && (imageData[4 * (y * width + x) + 0] == innerColor.r && imageData[4 * (y * width + x) + 1] == innerColor.g && imageData[4 * (y * width + x) + 2] == innerColor.b))
+				{
+					int r = 0;
+					int g = 0;
+					int b = 0;
+					int a = 0;
+
+					int SampleCount = 0;
+
+					for (int i = y - 1; i <= y + 1; ++i)
+					{
+						for (int j = x - 1; j <= x + 1; ++j)
+						{
+							if (i < 0 || j < 0 || i >= height || j >= width)
+								continue;
+
+							if (imageData[4 * (i * width + j) + 3] != 0 && (imageData[4 * (i * width + j)] != innerColor.r || imageData[4 * (i * width + j) + 1] != innerColor.g || imageData[4 * (i * width + j) + 2] != innerColor.b))
+							{
+								r += imageData[4 * (i * width + j)];
+								g += imageData[4 * (i * width + j) + 1];
+								b += imageData[4 * (i * width + j) + 2];
+								a += imageData[4 * (i * width + j) + 3];
+								SampleCount++;
+							}
+						}
+					}
+
+					if (SampleCount)
+					{
+						TmpData[4 * (y * width + x)] = (imageData[4 * (y * width + x)] + r) / (SampleCount + 1);
+						TmpData[4 * (y * width + x) + 1] = (imageData[4 * (y * width + x) + 1] + g) / (SampleCount + 1);
+						TmpData[4 * (y * width + x) + 2] = (imageData[4 * (y * width + x) + 2] + b) / (SampleCount + 1);
+						TmpData[4 * (y * width + x) + 3] = (imageData[4 * (y * width + x) + 3] + a) / (SampleCount + 1);
+					}
+				}
+
 			}
 		}
 
@@ -170,7 +210,7 @@ void CTextureManager::GenerateRoundedBoxTexture(int w, int h, int r, glm::vec4 c
 	for (size_t i = DecRadius; i <= h - DecRadius; ++i)
 	{
 		ScanLineStart[i] = Offset;
-		ScanLineEnd[i] = w - Offset;
+		ScanLineEnd[i] = w - (halfRound ? 0 : Offset);
 	}
 
 	for (size_t i = DecRadius; i <= h - DecRadius; ++i)
@@ -221,7 +261,7 @@ void CTextureManager::GenerateRoundedBoxTexture(int w, int h, int r, glm::vec4 c
 		ImageData[4 * (y * w + x) + 3] = outlineColor.a * 255;
 	}
 
-	AntialiasTexture(ImageData, w, h, Offset);
+	AntialiasTexture(ImageData, w, h, glm::ivec3(color.r * 255, color.g * 255, color.b * 255), Offset);
 
 	CTexture* NewTexture = new CTexture(textureID, &ImageData[0], w, h, 4);
 
@@ -230,25 +270,25 @@ void CTextureManager::GenerateRoundedBoxTexture(int w, int h, int r, glm::vec4 c
 
 void CTextureManager::GenerateTexturesAtGameStart(float scorePanelWidth, float scorePanelHeight, float letterSize)
 {
-	GenerateRoundedBoxTexture(scorePanelWidth, scorePanelHeight, scorePanelWidth / 20, glm::vec4(0.89f, 0.71f, 0.51f, 0.4f), 3, glm::vec4(.41f, .21f, .09f, 1.f), "player_score_panel_texture_generated", true);
-	GenerateRoundedBoxTexture(letterSize, letterSize, letterSize / 10.f, glm::vec4(0.89f, 0.71f, 0.51f, 0.4f), 3, glm::vec4(.41f, .21f, .09f, 1.f), "tile_counter_texture_generated");
+	GenerateRoundedBoxTexture(scorePanelWidth, scorePanelHeight, scorePanelWidth / 20, glm::vec4(0.89f, 0.71f, 0.51f, 0.4f), 2, glm::vec4(.41f, .21f, .09f, 1.f), "player_score_panel_texture_generated", true);
+	GenerateRoundedBoxTexture(letterSize, letterSize, letterSize / 10.f, glm::vec4(0.89f, 0.71f, 0.51f, 0.4f), 2, glm::vec4(.41f, .21f, .09f, 1.f), "tile_counter_texture_generated");
 }
 
 void CTextureManager::GenerateTexturesAtGameOptions(float selectControlWidth, float selectControlHeight)
 {
-	GenerateRoundedBoxTexture(selectControlWidth, selectControlHeight, selectControlHeight / 2, glm::vec4(0.89f, 0.71f, 0.51f, 0.5f), 3, glm::vec4(.41f, .21f, .09f, 1.f), "select_control_texture_generated");
+	GenerateRoundedBoxTexture(selectControlWidth, selectControlHeight, selectControlHeight / 2, glm::vec4(0.89f, 0.71f, 0.51f, 0.5f), 2, glm::vec4(.41f, .21f, .09f, 1.f), "select_control_texture_generated");
 }
 
 void CTextureManager::GenerateTextures(float viewWidth, float viewHeight)
 {
 	GenerateHeaderTexture();
-	GenerateRoundedBoxTexture(viewWidth / 2, viewWidth / 8, viewWidth / 30, glm::vec4(0.89f, 0.71f, 0.51f, 0.5f), 3, glm::vec4(.41f, .21f, .09f, 1.f), "start_scr_btn_texture_generated");
-	GenerateRoundedBoxTexture(viewWidth - 20, viewHeight / 3 - 20, viewHeight / 25, glm::vec4(0.89f, 0.71f, 0.51f, 0.5f), 3, glm::vec4(.41f, .21f, .09f, 1.f), "player_letter_panel_texture_generated");
-	GenerateRoundedBoxTexture(viewWidth / 2, viewHeight / 12, viewHeight / 24, glm::vec4(0.89f, 0.71f, 0.51f, 0.5f), 3, glm::vec4(.41f, .21f, .09f, 1.f), "current_player_texture_generated");
-	GenerateRoundedBoxTexture(viewWidth / 4.5, viewHeight / 12, viewHeight / 38, glm::vec4(0.89f, 0.71f, 0.51f, 0.5f), 3, glm::vec4(.41f, .21f, .09f, 1.f), "countdown_panel_texture_generated");
-	GenerateRoundedBoxTexture(viewHeight / 8, viewHeight / 8, viewHeight / 16, glm::vec4(0.89f, 0.71f, 0.51f, 0.5f), 4, glm::vec4(1, 1, 1, 1.f), "round_button_texture_generated");
-	GenerateRoundedBoxTexture(viewHeight / 8, viewHeight / 8, viewHeight / 16, glm::vec4(0.89f, 0.71f, 0.51f, 0.5f), 4, glm::vec4(.41f, .21f, .09f, 1.f), "round_icon_texture_generated");
-	GenerateRoundedBoxTexture(viewWidth / 2, viewWidth / 3, viewWidth / 50, glm::vec4(0.89f, 0.71f, 0.51f, .7f), 3, glm::vec4(.41f, .21f, .09f, 1.f), "messagebox_texture_generated");
+	GenerateRoundedBoxTexture(viewWidth / 2, viewWidth / 8, viewWidth / 30, glm::vec4(0.89f, 0.71f, 0.51f, 0.5f), 2, glm::vec4(.41f, .21f, .09f, 1.f), "start_scr_btn_texture_generated");
+	GenerateRoundedBoxTexture(viewWidth - 20, viewHeight / 3 - 20, viewHeight / 25, glm::vec4(0.89f, 0.71f, 0.51f, 0.5f), 2, glm::vec4(.41f, .21f, .09f, 1.f), "player_letter_panel_texture_generated");
+	GenerateRoundedBoxTexture(viewWidth / 2, viewHeight / 12, viewHeight / 24, glm::vec4(0.89f, 0.71f, 0.51f, 0.5f), 2, glm::vec4(.41f, .21f, .09f, 1.f), "current_player_texture_generated");
+	GenerateRoundedBoxTexture(viewWidth / 4.5, viewHeight / 12, viewHeight / 38, glm::vec4(0.89f, 0.71f, 0.51f, 0.5f), 2, glm::vec4(.41f, .21f, .09f, 1.f), "countdown_panel_texture_generated");
+	GenerateRoundedBoxTexture(viewHeight / 8, viewHeight / 8, viewHeight / 16, glm::vec4(0.89f, 0.71f, 0.51f, 0.5f), 3, glm::vec4(1, 1, 1, 1.f), "round_button_texture_generated");
+	GenerateRoundedBoxTexture(viewHeight / 8, viewHeight / 8, viewHeight / 16, glm::vec4(0.89f, 0.71f, 0.51f, 0.5f), 3, glm::vec4(.41f, .21f, .09f, 1.f), "round_icon_texture_generated");
+	GenerateRoundedBoxTexture(viewWidth / 2, viewWidth / 3, viewWidth / 50, glm::vec4(0.89f, 0.71f, 0.51f, .7f), 2, glm::vec4(.41f, .21f, .09f, 1.f), "messagebox_texture_generated");
 
 	Generate2x2Texture(glm::vec4(1.f, 1.f, 1.f, 1.f), "solid_color_texture_generated");
 }

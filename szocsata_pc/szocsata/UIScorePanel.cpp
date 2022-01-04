@@ -75,9 +75,10 @@ void CUIScorePanel::Init()
 
 	float VertGap = MaxTextHeight / 2;
 	float ScoreGap = MaxTextWidth / 3.f;
-	float Padding = MaxTextWidth / 3.f;
 
 	float PanelHeight = MaxTextHeight * m_GameManager->GetPlayerCount() + VertGap * (m_GameManager->GetPlayerCount() + 1);
+	float IconSize = MaxTextHeight * 0.9;
+	float Padding = 2 * IconSize;
 	float PanelWidth = MaxTextWidth + ScoreGap + ScoreSize + 2 * Padding;
 
 	CUIElement* PlayerLetterPanel = m_Parent->GetChild(L"ui_player_letter_panel");
@@ -98,6 +99,7 @@ void CUIScorePanel::Init()
 	while (m_GameManager->GetPlayerProperties(Idx, Name, Score, Color))
 	{
 		std::wstringstream Id;
+		std::wstringstream IconId;
 		std::wstringstream ScoreStrStream;
 
 		ScoreStrStream << Score;
@@ -108,8 +110,18 @@ void CUIScorePanel::Init()
 		float MaxNameScoreHeight = std::fmaxf(NameTopBottom.x - NameTopBottom.y, ScoreTopBottom.x - ScoreTopBottom.y);
 
 		Id << L"ui_player_score_name_" << Idx;
-		AddText(Name.c_str(), 0, 0, TextSize, "font.bmp", Id.str().c_str(), Color.r, Color.g, Color.b);
-		m_Children.back()->SetPosAndSize(XPos, YPos - NameTopBottom.y - (MaxTextHeight - MaxNameScoreHeight) / 2, m_Children.back()->GetWidth(), m_Children.back()->GetHeight(), false);
+		AddText(Name.c_str(), 0, 0, TextSize, "font.bmp", Id.str().c_str());
+		CUIElement* PlayerName = m_Children.back();
+		PlayerName->SetPosAndSize(XPos, YPos - NameTopBottom.y - (MaxTextHeight - MaxNameScoreHeight) / 2, PlayerName->GetWidth(), PlayerName->GetHeight(), false);
+
+		IconId << L"ui_player_score_icon_" << Idx;
+		CUIPanel* IconPanel = new CUIPanel(this, IconId.str().c_str(), m_PositionData, m_ColorData, m_GridColorData, 0, 0, 0, 0, m_ViewXPosition, m_ViewYPosition, "kor_icon.bmp", 0, 0);
+		float ph = PlayerName->GetHeight();
+		float IconY = PlayerName->GetPosition(false).y + NameTopBottom.y + (NameTopBottom.x - NameTopBottom.y - IconSize) / 2;
+		m_Children.back()->SetPosAndSize(IconSize / 2, IconY, IconSize, IconSize, false);
+		m_Children.back()->SetModifyColor(glm::vec4(Color, 1.f));
+		IconId.str(L"");
+		IconId.clear();
 
 		Id.str(L"");
 		Id.clear();

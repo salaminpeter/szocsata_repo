@@ -11,7 +11,7 @@ public:
 
 	void AddTexture(const char* path, int colorDepth = 3, bool filter = true);
 	bool ActivateTexture(const char* texId);
-	void AntialiasTexture(std::vector<uint8_t>& imageData, int width, int height, int depth = 1);
+	void AntialiasTexture(std::vector<uint8_t>& imageData, int width, int height, glm::ivec3 innerColor, int depth = 1);
 	void GenerateTextures(float viewWidth, float viewHeight);
 	void GenerateTexturesAtGameStart(float scorePanelWidth, float scorePanelHeight, float letterSize);
 	void GenerateTexturesAtGameOptions(float selectControlWidth, float selectControlHeight);

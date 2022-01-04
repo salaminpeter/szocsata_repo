@@ -219,7 +219,7 @@ void CUIManager::InitUIElements(std::shared_ptr<CSquarePositionData> positionDat
 	m_UIScreenPanel->SetPosAndSize(m_GameManager->m_SurfaceHeigh, 0, Width, Height, false);
 
 	float PlayerLogoHeight = m_UIScreenPanel->GetHeight() / 12;
-	IconTextButton = AddIconTextButton(m_UIScreenPanel, L"", positionData, colorData, gridcolorData8x8, 0, (m_UIScreenPanel->GetHeight() - PlayerLogoHeight) / 2 - PlayerLogoHeight / 6, m_UIScreenPanel->GetWidth() / 2, PlayerLogoHeight, "view_ortho", "current_player_texture_generated", "kor_icon.bmp", L"ui_current_palyer_logo", "textured", 0.7f, 1.f, 0.7f, 10, CUIText::Center);
+	IconTextButton = AddIconTextButton(m_UIScreenPanel, L"", positionData, colorData, gridcolorData8x8, 0, (m_UIScreenPanel->GetHeight() - PlayerLogoHeight) / 2 - PlayerLogoHeight / 6, m_UIScreenPanel->GetWidth() / 2, PlayerLogoHeight, "view_ortho", "current_player_texture_generated", "kor_icon.bmp", L"ui_current_palyer_logo", "textured", 0.7f, 1.f, 0.7f, 0.f, CUIText::Center);
 
 	float CountDownXPos = m_UIScreenPanel->GetWidth() / 4 + m_UIScreenPanel->GetWidth() / 9 + (m_UIScreenPanel->GetWidth() / 4 - m_UIScreenPanel->GetWidth() / 5) / 2;
 	float CountDownWidth = m_UIScreenPanel->GetWidth() / 4.5;

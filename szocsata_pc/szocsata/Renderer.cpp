@@ -727,7 +727,7 @@ bool CRenderer::StartInit()
 	m_TextureManager->AddTexture("pause_icon.bmp", 4);
 	m_TextureManager->AddTexture("cancel_icon.bmp", 4);
 	m_TextureManager->AddTexture("ok_icon.bmp", 4);
-	m_TextureManager->AddTexture("kor_icon.bmp", 4);
+	m_TextureManager->AddTexture("kor_icon.bmp", 4, false);
 	m_TextureManager->AddTexture("tile_counter_icon.bmp", 4);
 	m_TextureManager->AddTexture("playerletters.bmp", 4);
 	m_TextureManager->AddTexture("font.bmp", 4);
