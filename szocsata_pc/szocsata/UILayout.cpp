@@ -5,6 +5,8 @@ void CUILayout::LayoutChildren()
 {
 	for (size_t i = 0; i < m_Children.size(); ++i)
 	{
+		m_Children[i]->AlignChildren();
+
 		if ((m_LayoutBoxes[i].m_IncSizeAllowed && (m_Children[i]->GetWidth() < m_LayoutBoxes[i].m_Width || m_Children[i]->GetHeight() < m_LayoutBoxes[i].m_Height)) 
 											   || (m_Children[i]->GetWidth() > m_LayoutBoxes[i].m_Width || m_Children[i]->GetHeight() > m_LayoutBoxes[i].m_Height))
 			m_Children[i]->Resize(m_LayoutBoxes[i].m_Width, true);

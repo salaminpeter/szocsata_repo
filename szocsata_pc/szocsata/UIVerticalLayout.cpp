@@ -50,8 +50,5 @@ void CUIVerticalLayout::AlignChildren()
 		m_LayoutBoxes[i].m_BottomLeftY = YPos;
 	}
 	
-	for (size_t i = 0; i < m_Children.size(); ++i)
-		m_Children[i]->AlignChildren();
-
 	LayoutChildren();
 }
