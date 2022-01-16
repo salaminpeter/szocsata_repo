@@ -69,6 +69,25 @@ glm::vec2 CUIElement::GetAbsolutePosition()
 	return AbsPos;
 }
 
+void CUIElement::Resize(float newSize, bool widthSize, int depth)
+{
+	if (m_Width == 0 || m_Height == 0)
+		return;
+
+	float WidthPercent = widthSize ? newSize / m_Width : ((float(m_Width) / float(m_Height)) * newSize) / m_Height;
+	float HeightPercent = widthSize ? ((float(m_Height) / float(m_Width)) * newSize) / m_Height : newSize / m_Height;
+
+	float NewXPos = m_Parent && depth != 0 ? m_XPosition * WidthPercent : m_XPosition;
+	float NewYPos = m_Parent && depth != 0 ? m_YPosition * HeightPercent : m_YPosition;
+
+	SetPosAndSize(NewXPos, NewYPos, m_Width * WidthPercent, m_Height * HeightPercent);
+
+	for (size_t i = 0; i < m_Children.size(); ++i)
+		m_Children[i]->Resize(m_Children[i]->GetWidth() * WidthPercent, true, depth + 1);
+
+	ResizeElement(WidthPercent, HeightPercent);
+}
+
 int CUIElement::GetVisibleElemCount()
 {
 	if (!m_Visible)

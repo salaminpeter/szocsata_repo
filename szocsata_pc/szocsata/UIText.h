@@ -31,10 +31,13 @@ public:
 	static float m_FontTextureCharWidth;
 	static float m_FontTextureCharHeight;
 
+protected:
+
+	virtual void ResizeElement(float widthPercent, float heightPercent) override;
+
 private:
 
 	std::wstring m_Text;
-	float m_FontHeight;
 
 	static std::map<wchar_t, glm::vec2> m_FontTexPos; //TODO kulon font osztaly!!!!!!!!!!
 	static std::map<wchar_t, int> m_FontCharWidth;

@@ -12,6 +12,45 @@ CUIScorePanel::CUIScorePanel(CUIElement* parent, CGameManager* gameManager, cons
 {
 }
 
+void CUIScorePanel::ResizeElement(float widthPercent, float heightPercent) 
+{
+	float MaxTextWidth = -1;
+	float MaxTextHeight = -1;
+
+	CUIElement* PlayerName = GetChild(L"ui_player_score_name_0");
+	float TextSize = PlayerName->GetHeight();
+
+	size_t Idx = 0;
+	std::wstring Name;
+	int Score;
+	glm::vec3 Color;
+
+	while (m_GameManager->GetPlayerProperties(Idx++, Name, Score, Color))
+	{
+		std::wstringstream ScoreStrStream;
+		ScoreStrStream << Score;
+
+		float TextWidth = CUIText::GetTextWidthInPixels(Name.c_str(), TextSize);
+
+		glm::vec2 NameTopBottom = CUIText::GetTextTopBottom(Name.c_str(), TextSize);
+		glm::vec2 ScoreTopBottom = CUIText::GetTextTopBottom(ScoreStrStream.str(), TextSize);
+
+		float TextHeight = std::fmaxf(NameTopBottom.x - NameTopBottom.y, ScoreTopBottom.x - ScoreTopBottom.y);
+
+		if (MaxTextWidth < TextWidth)
+			MaxTextWidth = TextWidth;
+
+		if (MaxTextHeight < TextHeight)
+			MaxTextHeight = TextHeight;
+	}
+
+	float ScoreGap = MaxTextWidth / 3.f;
+	float ScoreSize = CUIText::GetTextWidthInPixels(L"0", TextSize);
+	float XPos = (m_Width - (MaxTextWidth + ScoreGap + ScoreSize)) / 2;
+	m_ScoreXPosition = XPos + MaxTextWidth + ScoreGap;
+
+	Update();
+}
 
 void CUIScorePanel::Update()
 {

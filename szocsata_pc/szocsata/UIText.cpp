@@ -19,9 +19,8 @@ float CUIText::m_FontTextureCharHeight;
 
 
 CUIText::CUIText(CUIElement* parent, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, const wchar_t* text, int fontHeight, int x, int y, int vx, int vy, float r, float g, float b, const wchar_t* id) :
-	CUIElement(parent, id, new CModel(false, 0, std::static_pointer_cast<CModelPositionData>(positionData), std::static_pointer_cast<CModelColorData>(colorData)), x, y, 0, 0, vx, vy, 0.f, 0.f),
-	m_Text(text),
-	m_FontHeight(fontHeight)
+	CUIElement(parent, id, new CModel(false, 0, std::static_pointer_cast<CModelPositionData>(positionData), std::static_pointer_cast<CModelColorData>(colorData)), x, y, 0, fontHeight, vx, vy, 0.f, 0.f),
+	m_Text(text)
 {
 	m_CheckChildEvents = false;
 	InitFontTexPositions();
@@ -37,9 +36,9 @@ size_t CUIText::Length() const
 
 void CUIText::Align(ETextAlign alingment, float padding)
 {
-	glm::vec2 TextTopBottom = GetTextTopBottom(m_Text, m_FontHeight);
+	glm::vec2 TextTopBottom = GetTextTopBottom(m_Text, m_Height);
 	float TextHeight = TextTopBottom.x - TextTopBottom.y;
-	float Padding = fabs(padding) < 0.001f ? m_FontHeight / 10 : padding;
+	float Padding = fabs(padding) < 0.001f ? m_Height / 10 : padding;
 	float YPos = m_Parent->GetHeight() / 2 - TextHeight / 2 - TextTopBottom.y;
 	float XPos = (m_Parent->GetWidth() - m_Width) / 2;
 
@@ -130,7 +129,7 @@ void CUIText::SetText(const wchar_t* text)
 		for (size_t i = from; i < m_Text.length(); ++i)
 		{
 			if (m_Text[i] != L' ')
-				new CUIElement(this, L"", new CModel(false, 2, m_Model->GetPositionData(), m_Model->GetColorData(), "font.bmp", "textured"), 0, 0, m_FontHeight, m_FontHeight, m_ViewXPosition, m_ViewYPosition, 0, 0);
+				new CUIElement(this, L"", new CModel(false, 2, m_Model->GetPositionData(), m_Model->GetColorData(), "font.bmp", "textured"), 0, 0, m_Height, m_Height, m_ViewXPosition, m_ViewYPosition, 0, 0);
 		}
 	}
 	else
@@ -144,14 +143,13 @@ void CUIText::SetText(const wchar_t* text)
 		}
 	}
 
-	float FontWidth = (m_FontTextureCharWidth / m_FontTextureCharHeight) * m_FontHeight;
+	float FontWidth = (m_FontTextureCharWidth / m_FontTextureCharHeight) * m_Height;
 	float FontCharGap = FontWidth / 10.f;
 	float FontSpace = FontWidth / 2.f;
 	float Offset = 0.f;
 	size_t idx = 0;
 
-	m_Width = GetTextWidthInPixels(text, m_FontHeight);
-	m_Height = m_FontHeight;
+	m_Width = GetTextWidthInPixels(text, m_Height);
 
 	for (size_t i = 0; i < m_Text.length(); ++i)
 	{
@@ -161,9 +159,9 @@ void CUIText::SetText(const wchar_t* text)
 		{
 			float FontDesc = 0.f;
 			if (m_FontDesc.find(m_Text.at(i)) != m_FontDesc.end())
-				FontDesc = m_FontHeight * m_FontDesc[m_Text.at(i)];
+				FontDesc = m_Height * m_FontDesc[m_Text.at(i)];
 
-			m_Children[idx]->SetPosAndSize(Offset, -FontDesc, FontWidth, m_FontHeight, false);
+			m_Children[idx]->SetPosAndSize(Offset, -FontDesc, FontWidth, m_Height, false);
 			Offset += m_FontCharWidth[m_Text.at(i)] * (FontWidth / m_FontTextureCharWidth) + FontCharGap;
 			idx++;
 		}
@@ -177,6 +175,12 @@ void CUIText::SetText(const wchar_t* text)
 
 	SetColor(m_TextureModColor.r, m_TextureModColor.g, m_TextureModColor.b);
 }
+
+void CUIText::ResizeElement(float widthPercent, float heightPercent)
+{
+	SetText(m_Text.c_str());
+}
+
 
 void CUIText::InitFontTexPositions()
 {

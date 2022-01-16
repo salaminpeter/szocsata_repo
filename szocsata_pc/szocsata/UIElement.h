@@ -29,7 +29,8 @@ public:
 			m_EventRelease = new CEvent<ClassType, ArgTypes...>(funcClass, funcPtr, std::forward<ArgTypes>(args)...);
 	}
 
-	enum EEventType {TouchEvent, ReleaseEvent, PositionChangeEvent};
+	enum EEventType { TouchEvent, ReleaseEvent, PositionChangeEvent };
+	enum EAlignmentType { Center, Left, Right, Top, Bottom};
 
 	bool HandleEvent(EEventType event);
 	bool PositionInElement(int x, int y);
@@ -68,9 +69,16 @@ public:
 	void SetCheckChildEvent(bool b) { m_CheckChildEvents = b; }
 	void SetModifyColor(glm::vec4 modColor) {m_TextureModColor = modColor;}
 	int GetVisibleElemCount();
+	void Resize(float newSize, bool widthSize, int depth = 0);
 
 	virtual void Render(CRenderer* renderer);
 	virtual bool HandleEventAtPos(int x, int y, EEventType event, CUIElement* root = nullptr, bool checkChildren = true, bool selfCheck = true);
+
+	virtual void AlignChildren() {}
+
+protected:
+
+	virtual void ResizeElement(float widthPercent, float heightPercent) {}
 
 public:
 	std::vector<CUIElement*> m_Children;

@@ -26,6 +26,7 @@ class CUIRankingsPanel;
 class CUIScorePanel;
 class CUIPlayerLetterPanel;
 class CPlayer;
+class CUIVerticalLayout;
 
 
 class CUIManager
@@ -43,6 +44,8 @@ public:
 	void PositionUIElements();
 	void CreateLayouts();
 	void InitRankingsPanel();
+
+	glm::vec2 GetElemSize(const wchar_t* id);
 
 	glm::vec2 GetTileCounterPos();
 	glm::vec2 GetPlayerLetterPos(size_t idx);
@@ -109,10 +112,13 @@ public:
 
 	void SetRemainingTimeStr(const wchar_t* timeStr);
 
+	void InitMainScreen(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData8x8);
+
 private:
 
 	CUIText* GetText(const wchar_t* id) const;
 	bool IsGameButton(const CUIButton* button) const;
+	glm::vec2 GetSizeByArea(float areaRatio, float whRatio, float parentArea, float maxWidth);
 
 public: //TODO
 
@@ -138,6 +144,8 @@ public: //TODO
 	CUIPanel* m_DimmPanel;
 	CGridLayout* m_PlayerLettersLayout;
 	CGridLayout* m_ButtonsLayout;
+
+	CUIVerticalLayout* m_MainScreenBtnLayout;
 
 	glm::vec2 m_LastDraggedPlayerLetterPos;
 

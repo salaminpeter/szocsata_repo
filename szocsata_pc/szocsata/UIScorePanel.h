@@ -13,6 +13,10 @@ public:
 	void Update();
 	void Init();
 
+protected:
+
+	virtual void ResizeElement(float widthPercent, float heightPercent) override;
+
 private:
 
 	CGameManager* m_GameManager;
