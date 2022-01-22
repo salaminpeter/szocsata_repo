@@ -113,12 +113,13 @@ public:
 	void SetRemainingTimeStr(const wchar_t* timeStr);
 
 	void InitMainScreen(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData8x8);
+	void InitStartGameScreen(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData8x8);
 
 private:
 
 	CUIText* GetText(const wchar_t* id) const;
 	bool IsGameButton(const CUIButton* button) const;
-	glm::vec2 GetSizeByArea(float areaRatio, float whRatio, float parentArea, float maxWidth);
+	glm::ivec2 GetSizeByArea(float areaRatio, float whRatio, float parentArea, float maxWidth);
 
 public: //TODO
 

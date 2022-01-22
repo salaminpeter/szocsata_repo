@@ -648,10 +648,10 @@ TPosition CRenderer::GetTilePos(int x, int y)
 	return Result;
 }
 
-bool CRenderer::MiddleInit()
+bool CRenderer::MiddleInit(float startBtnW, float startBtnH, float selectCtrlW, float selectCtrlH)
 {
-	glm::vec2 SelectControlSize =  m_GameManager->GetSelectControlsize();
-	m_TextureManager->GenerateTexturesAtGameOptions(SelectControlSize.x, SelectControlSize.y);
+	m_TextureManager->GenerateSelectControlTexture(selectCtrlW, selectCtrlH);
+	m_TextureManager->GenerateStartBtnTexture(startBtnW, startBtnH);
 
 	return true;
 }
@@ -737,7 +737,7 @@ bool CRenderer::StartInit()
 	m_TextureManager->AddTexture("controller_icon.bmp", 4);
 	m_TextureManager->AddTexture("shadow.bmp", 4);
 
-	float Width = m_GameManager->m_SurfaceWidth - m_GameManager->m_SurfaceHeigh;
+	float Width = m_GameManager->m_SurfaceWidth/* - m_GameManager->m_SurfaceHeigh*/;
 	float Height = m_GameManager->m_SurfaceHeigh;
 	m_TextureManager->GenerateTextures(Width, Height);
 

@@ -1014,8 +1014,10 @@ void CGameManager::InitUIManager()
 
 void CGameManager::MiddleInitRender()
 {
-	glm::vec2 Size = m_UIManager->GetElemSize(L"ui_settings_game_btn");
-	m_Renderer->MiddleInit(Size.x, Size.y);
+	glm::vec2 BtnSize = m_UIManager->GetElemSize(L"ui_settings_game_btn");
+	glm::vec2 SelectSize = m_UIManager->GetElemSize(L"ui_select_control_panel");
+	
+	m_Renderer->MiddleInit(BtnSize.x, BtnSize.y, SelectSize.x, SelectSize.y);
 }
 
 void CGameManager::StartInitRenderer(int surfaceWidth, int surfaceHeight)

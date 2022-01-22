@@ -30,7 +30,7 @@ public:
 	}
 
 	enum EEventType { TouchEvent, ReleaseEvent, PositionChangeEvent };
-	enum EAlignmentType { Center, Left, Right, Top, Bottom};
+	enum EAlignmentType { Center, Left, Right, Top, Bottom, None};
 
 	bool HandleEvent(EEventType event);
 	bool PositionInElement(int x, int y);

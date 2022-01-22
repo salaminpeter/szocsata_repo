@@ -185,6 +185,11 @@ void CTextureManager::GenerateRoundedBoxTexture(int w, int h, int r, glm::vec4 c
 		size_t idx0 = h - (r - RotatedVec.y) - 1;
 		size_t idx1 = h - idx0;
 
+		idx0 = idx0 >= ScanLineStart.size() ? ScanLineStart.size() - 1 : idx0;
+		idx0 = idx0 >= ScanLineEnd.size() ? ScanLineEnd.size() - 1 : idx0;
+		idx1 = idx1 >= ScanLineStart.size() ? ScanLineStart.size() - 1 : idx1;
+		idx1 = idx1 >= ScanLineEnd.size() ? ScanLineEnd.size() - 1 : idx1;
+
 		ScanLineStart[idx0] = r - RotatedVec.x;
 		ScanLineEnd[idx0] = w - (halfRound ? 0 : r - RotatedVec.x);
 		ScanLineStart[idx1] = r - RotatedVec.x;
@@ -276,7 +281,7 @@ void CTextureManager::GenerateTexturesAtGameStart(float scorePanelWidth, float s
 	GenerateRoundedBoxTexture(letterSize, letterSize, letterSize / 10.f, glm::vec4(0.89f, 0.71f, 0.51f, 0.4f), 2, glm::vec4(.41f, .21f, .09f, 1.f), "tile_counter_texture_generated");
 }
 
-void CTextureManager::GenerateTexturesAtGameOptions(float selectControlWidth, float selectControlHeight)
+void CTextureManager::GenerateSelectControlTexture(float selectControlWidth, float selectControlHeight)
 {
 	GenerateRoundedBoxTexture(selectControlWidth, selectControlHeight, selectControlHeight / 2, glm::vec4(0.89f, 0.71f, 0.51f, 0.5f), 2, glm::vec4(.41f, .21f, .09f, 1.f), "select_control_texture_generated");
 }

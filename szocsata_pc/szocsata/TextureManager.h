@@ -14,7 +14,7 @@ public:
 	void AntialiasTexture(std::vector<uint8_t>& imageData, int width, int height, glm::ivec3 innerColor, float radius, int depth = 1);
 	void GenerateTextures(float viewWidth, float viewHeight);
 	void GenerateTexturesAtGameStart(float scorePanelWidth, float scorePanelHeight, float letterSize);
-	void GenerateTexturesAtGameOptions(float selectControlWidth, float selectControlHeight);
+	void GenerateSelectControlTexture(float selectControlWidth, float selectControlHeight);
 	void GenerateStartBtnTexture(float btnWidth, float btnHeight);
 	bool IsCurrentTexture(const char* texId);
 

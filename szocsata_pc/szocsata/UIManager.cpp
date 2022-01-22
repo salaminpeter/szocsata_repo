@@ -99,7 +99,19 @@ CUIPlayerLetters* CUIManager::GetPlayerLetters(const std::wstring& playerID)
 
 glm::vec2 CUIManager::GetElemSize(const wchar_t* id)
 {
-	return glm::vec2(m_RootStartScreen->GetChild(id)->GetWidth(), m_RootStartScreen->GetChild(id)->GetHeight());
+	CUIElement* Roots[] = { m_RootStartScreen, m_RootStartGameScreen, m_RootGameScreen, m_RootDraggedLetterScreen, m_RootGameEndScreen};
+	CUIElement* FoundElem = nullptr;
+
+	for (int i = 0; i < 5; ++i)
+	{
+		if (FoundElem = Roots[i]->GetChild(id))
+			break;
+	}
+
+	if (FoundElem)
+		return glm::vec2(FoundElem->GetWidth(), FoundElem->GetHeight());
+
+	return glm::vec2(0, 0);
 }
 
 
@@ -165,7 +177,7 @@ void CUIManager::InitFont()
 	CUIText::InitFontTexPositions();
 }
 
-glm::vec2 CUIManager::GetSizeByArea(float areaRatio, float whRatio, float parentArea, float maxWidth)
+glm::ivec2 CUIManager::GetSizeByArea(float areaRatio, float whRatio, float parentArea, float maxWidth)
 {
 	float Width = whRatio;
 	float Height = 1.f;
@@ -184,7 +196,7 @@ glm::vec2 CUIManager::GetSizeByArea(float areaRatio, float whRatio, float parent
 	if (Width > maxWidth)
 		Width = maxWidth;
 
-	return glm::vec2(Width, Height);
+	return glm::ivec2(Width, Height);
 }
 
 void CUIManager::InitMainScreen(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData8x8)
@@ -196,19 +208,18 @@ void CUIManager::InitMainScreen(std::shared_ptr<CSquarePositionData> positionDat
 
 	CUIPanel* BackGroundPanelStartScreen = new CUIPanel(m_RootStartScreen, L"ui_background_panel_start_screen", positionData, colorData, gridcolorData8x8, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh / 2, m_GameManager->m_SurfaceWidth, m_GameManager->m_SurfaceHeigh, 0, 0, "background.bmp", 0, 0);
 
-	float Width = m_GameManager->m_SurfaceWidth - m_GameManager->m_SurfaceHeigh;
-	float Height = m_GameManager->m_SurfaceHeigh;
+	glm::ivec2 BtnSize = GetSizeByArea(25.f, 4.f, m_GameManager->m_SurfaceWidth * m_GameManager->m_SurfaceHeigh, m_GameManager->m_SurfaceWidth);
+	glm::ivec2 HeaderSize = GetSizeByArea(12.f, 28.f, m_GameManager->m_SurfaceWidth * m_GameManager->m_SurfaceHeigh, m_GameManager->m_SurfaceWidth);
 
-	glm::vec2 BtnSize = GetSizeByArea(25.f, 4.f, m_GameManager->m_SurfaceWidth * m_GameManager->m_SurfaceHeigh, m_GameManager->m_SurfaceWidth);
-	glm::vec2 HeaderSize = GetSizeByArea(12.f, 28.f, m_GameManager->m_SurfaceWidth * m_GameManager->m_SurfaceHeigh, m_GameManager->m_SurfaceWidth);
+	if (HeaderSize.x < m_GameManager->m_SurfaceWidth)
+		HeaderSize.x = m_GameManager->m_SurfaceWidth;
 
-	CUILayout* MainScreeLayout = new CUIVerticalLayout(0, 0, m_GameManager->m_SurfaceWidth, m_GameManager->m_SurfaceHeigh, m_GameManager->m_SurfaceWidth / m_GameManager->m_SurfaceHeigh, 0, 0, m_GameManager->m_SurfaceWidth, m_GameManager->m_SurfaceHeigh, 0.f, 0.f, 2, ViewPos.x, ViewPos.y, BackGroundPanelStartScreen, L"ui_main_screen_layout");
+	CUILayout* MainScreeLayout = new CUIVerticalLayout(true, 0, 0, m_GameManager->m_SurfaceWidth, m_GameManager->m_SurfaceHeigh, 0, 0, 0, m_GameManager->m_SurfaceWidth, m_GameManager->m_SurfaceHeigh, 0.f, 0.f, 2, ViewPos.x, ViewPos.y, BackGroundPanelStartScreen, L"ui_main_screen_layout");
 	
-	MainScreeLayout->SetBoxAlignProps(0, CUIElement::Center, true);
-	MainScreeLayout->SetBoxGapProps(0, 0, 0);
+	MainScreeLayout->SetBoxAlignProps(0, CUIElement::Center, CUIElement::None, true);
 	MainScreeLayout->SetBoxSizeProps(0, HeaderSize.x, HeaderSize.y);
 
-	MainScreeLayout->SetBoxAlignProps(1, CUIElement::Center, true);
+	MainScreeLayout->SetBoxAlignProps(1, CUIElement::Center, CUIElement::None, true);
 	MainScreeLayout->SetBoxGapProps(1, 0, 0);
 	MainScreeLayout->SetBoxSizeProps(1, m_GameManager->m_SurfaceWidth, m_GameManager->m_SurfaceHeigh - HeaderSize.y);
 	
@@ -218,7 +229,7 @@ void CUIManager::InitMainScreen(std::shared_ptr<CSquarePositionData> positionDat
 	HeaderText->Align(CUIText::Center);
  
 	float BtnLayoutHeight = m_GameManager->m_SurfaceHeigh - HeaderSize.y;
-	m_MainScreenBtnLayout = new CUIVerticalLayout(0, 0, m_GameManager->m_SurfaceWidth, BtnLayoutHeight, .25f, BtnSize.y / 2, BtnSize.y, BtnSize.x, BtnSize.y, 0.5f, 0.5f, 4, ViewPos.x, ViewPos.y, MainScreeLayout, L"ui_main_screen_btn_layout");
+	m_MainScreenBtnLayout = new CUIVerticalLayout(true, 0, 0, m_GameManager->m_SurfaceWidth, BtnLayoutHeight, 4.f, 1, BtnSize.y, BtnSize.x, BtnSize.y, 0.5f, 0.5f, 4, ViewPos.x, ViewPos.y, MainScreeLayout, L"ui_main_screen_btn_layout");
 
 	//Start screen buttons
 	IconTextButton = AddIconTextButton(m_MainScreenBtnLayout, L"új játék", positionData, colorData, gridcolorData8x8, 0, 0, BtnSize.x, BtnSize.y, "view_ortho", "start_scr_btn_texture_generated", "play_icon.bmp", L"ui_new_game_btn_test", "textured", .65f, .7f);
@@ -243,6 +254,162 @@ void CUIManager::InitMainScreen(std::shared_ptr<CSquarePositionData> positionDat
 
 	MainScreeLayout->AlignChildren();
 }
+
+void CUIManager::InitStartGameScreen(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData8x8)
+{
+	glm::vec2 ViewPos = m_GameManager->GetViewPosition("view_ortho");
+	CUIIconTextButton* IconTextButton = nullptr;
+
+	m_RootStartGameScreen = new CUIElement(nullptr, L"ui_start_game_screen_root", nullptr, 0.f, 0.f, m_GameManager->m_SurfaceWidth, m_GameManager->m_SurfaceHeigh, ViewPos.x, ViewPos.y, 0.f, 0.f);
+
+	CUIPanel* BackGroundPanelStartGameScreen = new CUIPanel(m_RootStartGameScreen, L"ui_background_panel_start_game_screen", positionData, colorData, gridcolorData8x8, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh / 2, m_GameManager->m_SurfaceWidth, m_GameManager->m_SurfaceHeigh, 0, 0, "background.bmp", 0, 0);
+
+	glm::ivec2 HeaderSize = GetSizeByArea(12.f, 28.f, m_GameManager->m_SurfaceWidth * m_GameManager->m_SurfaceHeigh, m_GameManager->m_SurfaceWidth);
+
+	if (HeaderSize.x < m_GameManager->m_SurfaceWidth)
+		HeaderSize.x = m_GameManager->m_SurfaceWidth;
+
+	CUILayout* StartGameScreeLayout = new CUIVerticalLayout(true, 0, 0, m_GameManager->m_SurfaceWidth, m_GameManager->m_SurfaceHeigh, /*m_GameManager->m_SurfaceWidth / m_GameManager->m_SurfaceHeigh*/0, 0, 0, m_GameManager->m_SurfaceWidth, m_GameManager->m_SurfaceHeigh, 0.f, 0.f, 2, ViewPos.x, ViewPos.y, BackGroundPanelStartGameScreen, L"ui_start_game_screen_layout");
+
+	StartGameScreeLayout->SetBoxAlignProps(0, CUIElement::Center, CUIElement::None, true);
+	StartGameScreeLayout->SetBoxSizeProps(0, HeaderSize.x, HeaderSize.y);
+
+	StartGameScreeLayout->SetBoxAlignProps(1, CUIElement::Center, CUIElement::None, true);
+	StartGameScreeLayout->SetBoxGapProps(1, 0, 0);
+	StartGameScreeLayout->SetBoxSizeProps(1, m_GameManager->m_SurfaceWidth, m_GameManager->m_SurfaceHeigh - HeaderSize.y);
+
+	//header with text
+	CUIPanel* HeaderPanelStartGameScr = new CUIPanel(StartGameScreeLayout, L"ui_header_panel_start_game_screen", positionData, colorData, gridcolorData8x8, 0, 0, HeaderSize.x, HeaderSize.y, 0, 0, "header_texture_generated", 0, 0);
+	CUIText* HeaderText = AddText(HeaderPanelStartGameScr, L"JÁTÉK INDÍTÁSA", positionData, gridcolorData8x8, 0, 0, HeaderSize.y * 0.85, "view_ortho", "font.bmp", L"ui_logo_text_header", .92f, .79f, .64f);
+	HeaderText->Align(CUIText::Center);
+
+	glm::ivec2 StartBtnSize = GetSizeByArea(68.f, 1.f, m_GameManager->m_SurfaceWidth * m_GameManager->m_SurfaceHeigh, m_GameManager->m_SurfaceWidth);
+	glm::ivec2 LogoSize = GetSizeByArea(85.f, 1.f, m_GameManager->m_SurfaceWidth * m_GameManager->m_SurfaceHeigh, m_GameManager->m_SurfaceWidth);
+
+	int HorizLayoutMaxWidth = (m_GameManager->m_SurfaceWidth - StartBtnSize.x) / 2;
+	int HorizLayoutMaxHeight = m_GameManager->m_SurfaceHeigh - HeaderSize.y;
+	float DividerSize = HorizLayoutMaxHeight - 2 * LogoSize.y;
+
+	glm::ivec2 SelectControlSize = GetSizeByArea(22, 3, m_GameManager->m_SurfaceWidth * m_GameManager->m_SurfaceHeigh, HorizLayoutMaxWidth); //m_GameManager->GetSelectControlsize();
+
+	CUILayout* HorizontalLayout = new CUIHorizontalLayout(0, 0, m_GameManager->m_SurfaceWidth, HorizLayoutMaxHeight, 0, 0, 0, 0, 0, 0.f, 0.f, 3, ViewPos.x, ViewPos.y, StartGameScreeLayout, L"ui_start_game_screen_layout_h");
+
+	HorizontalLayout->SetBoxAlignProps(0, CUIElement::None, CUIElement::Center, true);
+	HorizontalLayout->SetBoxGapProps(0, 0, 0);
+	HorizontalLayout->SetBoxSizeProps(0, HorizLayoutMaxWidth, HorizLayoutMaxHeight);
+
+	HorizontalLayout->SetBoxAlignProps(1, CUIElement::None, CUIElement::Center, true);
+	HorizontalLayout->SetBoxGapProps(1, 0, 0);
+	HorizontalLayout->SetBoxSizeProps(1, StartBtnSize.x, HorizLayoutMaxHeight);
+
+	HorizontalLayout->SetBoxAlignProps(2, CUIElement::None, CUIElement::Center, true);
+	HorizontalLayout->SetBoxGapProps(2, 0, 0);
+	HorizontalLayout->SetBoxSizeProps(2, HorizLayoutMaxWidth, HorizLayoutMaxHeight);
+
+	CUIVerticalLayout* VerticalLayoutLeft = new CUIVerticalLayout(true, 0, 0, HorizLayoutMaxWidth, HorizLayoutMaxHeight, 0, 0, 0, 0, 0, 0.f, 0.5f, 4, ViewPos.x, ViewPos.y, HorizontalLayout, L"ui_start_game_screen_layout_v_left");
+	CUIVerticalLayout* VerticalLayoutMid = new CUIVerticalLayout(true, 0, 0, StartBtnSize.x, HorizLayoutMaxHeight, 0, 0, 0, 0, 0, 0.f, 0.5f, 2, ViewPos.x, ViewPos.y, HorizontalLayout, L"ui_start_game_screen_layout_v_mid");
+	CUIVerticalLayout* VerticalLayoutRight = new CUIVerticalLayout(true, 0, 0, HorizLayoutMaxWidth, HorizLayoutMaxHeight, 0, 0, 0, 0, 0, 0.f, 0.5f, 3, ViewPos.x, ViewPos.y, HorizontalLayout, L"ui_start_game_screen_layout_v_right");
+
+	VerticalLayoutLeft->SetBoxAlignProps(0, CUIElement::Center, CUIElement::None, false);
+	VerticalLayoutLeft->SetBoxSizeProps(0, LogoSize.x, LogoSize.y);
+
+	VerticalLayoutLeft->SetBoxAlignProps(1, CUIElement::Center, CUIElement::None, false);
+	VerticalLayoutLeft->SetBoxGapProps(1, 1, SelectControlSize.y / 2);
+	VerticalLayoutLeft->SetBoxSizeProps(1, SelectControlSize.x, SelectControlSize.y);
+
+	VerticalLayoutLeft->SetBoxAlignProps(2, CUIElement::Center, CUIElement::None, false);
+	VerticalLayoutLeft->SetBoxGapProps(2, 1, SelectControlSize.y / 2);
+	VerticalLayoutLeft->SetBoxSizeProps(2, SelectControlSize.x, SelectControlSize.y);
+
+	VerticalLayoutLeft->SetBoxAlignProps(3, CUIElement::Center, CUIElement::None, false);
+	VerticalLayoutLeft->SetBoxGapProps(3, 1, SelectControlSize.y / 2);
+	VerticalLayoutLeft->SetBoxSizeProps(3, SelectControlSize.x, SelectControlSize.y);
+
+	VerticalLayoutMid->SetBoxAlignProps(0, CUIElement::Center, CUIElement::Top, false);
+	VerticalLayoutMid->SetBoxSizeProps(0, 8, DividerSize);
+
+	VerticalLayoutMid->SetBoxAlignProps(1, CUIElement::Center, CUIElement::None, false);
+	VerticalLayoutMid->SetBoxGapProps(1, 1, StartBtnSize.y / 2);
+	VerticalLayoutMid->SetBoxSizeProps(1, StartBtnSize.x, StartBtnSize.y);
+
+	VerticalLayoutRight->SetBoxAlignProps(0, CUIElement::Center, CUIElement::None, false);
+	VerticalLayoutRight->SetBoxSizeProps(0, LogoSize.x, LogoSize.y);
+
+	VerticalLayoutRight->SetBoxAlignProps(1, CUIElement::Center, CUIElement::None, false);
+	VerticalLayoutRight->SetBoxGapProps(1, 1, SelectControlSize.y / 2);
+	VerticalLayoutRight->SetBoxSizeProps(1, SelectControlSize.x, SelectControlSize.y);
+
+	VerticalLayoutRight->SetBoxAlignProps(2, CUIElement::Center, CUIElement::None, false);
+	VerticalLayoutRight->SetBoxGapProps(2, 1, SelectControlSize.y / 2);
+	VerticalLayoutRight->SetBoxSizeProps(2, SelectControlSize.x, SelectControlSize.y);
+
+	CUISelectControl* SelectControl = nullptr;
+
+	//player icon
+	IconTextButton = AddIconTextButton(VerticalLayoutLeft, L"", positionData, colorData, nullptr, 0, 0, LogoSize.x, LogoSize.y, "view_ortho", "round_icon_texture_generated", "player_icon.bmp", L"ui_player_logo", "textured", .6f);
+	IconTextButton->CenterIcon();
+
+	//number of players
+	SelectControl = AddSelectControl(VerticalLayoutLeft, positionData, colorData, gridcolorData8x8, 0, 0, SelectControlSize.x, SelectControlSize.y, "view_ortho", "selectioncontrol.bmp", L"ui_select_player_count", L"játékosok száma");
+	SelectControl->AddOption(L"1");
+	SelectControl->AddOption(L"2");
+	SelectControl->AddOption(L"3");
+	SelectControl->AddOption(L"4");
+	SelectControl->SetIndex(0);
+	
+	//board size
+	SelectControl = AddSelectControl(VerticalLayoutLeft, positionData, colorData, gridcolorData8x8, 0, 0, SelectControlSize.x, SelectControlSize.y, "view_ortho", "selectioncontrol.bmp", L"ui_select_board_size", L"pálya méret");
+	SelectControl->AddOption(L"7-7");
+	SelectControl->AddOption(L"8-8");
+	SelectControl->AddOption(L"9-9");
+	SelectControl->AddOption(L"10-10");
+	SelectControl->SetIndex(2);
+
+	//countdown time
+	SelectControl = AddSelectControl(VerticalLayoutLeft, positionData, colorData, gridcolorData8x8, 0, 0, SelectControlSize.x, SelectControlSize.y, "view_ortho", "selectioncontrol.bmp", L"ui_select_time_limit", L"idő korlát");
+	SelectControl->AddOption(L"nincs");
+	SelectControl->AddOption(L"0:30");
+	SelectControl->AddOption(L"1:00");
+	SelectControl->AddOption(L"1:30");
+	SelectControl->AddOption(L"2:00");
+	SelectControl->AddOption(L"2:30");
+	SelectControl->AddOption(L"3:00");
+	SelectControl->AddOption(L"3:30");
+	SelectControl->AddOption(L"4:00");
+	SelectControl->AddOption(L"4:30");
+	SelectControl->AddOption(L"5:00");
+	SelectControl->SetIndex(0);
+
+	//computer icon
+	IconTextButton = AddIconTextButton(VerticalLayoutRight, L"", positionData, colorData, nullptr, 0, 0, LogoSize.x, LogoSize.y, "view_ortho", "round_icon_texture_generated", "computer_icon.bmp", L"ui_computer_logo", "textured", .6f);
+	IconTextButton->CenterIcon();
+
+	//computer player on/off
+	SelectControl = AddSelectControl(VerticalLayoutRight, positionData, colorData, gridcolorData8x8, 0, 0, SelectControlSize.x, SelectControlSize.y, "view_ortho", "selectioncontrol.bmp", L"ui_select_computer_opponent", L"gépi játékos");
+	SelectControl->AddOption(L"be");
+	SelectControl->AddOption(L"ki");
+	SelectControl->SetIndex(0);
+
+	//difficulty
+	SelectControl = AddSelectControl(VerticalLayoutRight, positionData, colorData, gridcolorData8x8, 0, 0, SelectControlSize.x, SelectControlSize.y, "view_ortho", "selectioncontrol.bmp", L"ui_select_difficulty", L"nehézség");
+	SelectControl->AddOption(L"könnyű");
+	SelectControl->AddOption(L"normál");
+	SelectControl->AddOption(L"nehéz");
+	SelectControl->AddOption(L"lehetetlen");
+	SelectControl->SetIndex(1);
+
+	//divider
+	CUIPanel* Divider = new CUIPanel(VerticalLayoutMid, L"ui_divider_start_game_screen", positionData, colorData, nullptr, 0, 0, 8, DividerSize, ViewPos.x, ViewPos.y, "solid_color_texture_generated", 0, 0);
+	Divider->SetModifyColor(glm::vec4(0.4f, 0.2f, 0.08f, 1.f));
+
+	//start button
+	IconTextButton = AddIconTextButton(VerticalLayoutMid, L"", positionData, colorData, nullptr, 0, 0, StartBtnSize.x, StartBtnSize.y, "view_ortho", "round_button_texture_generated", "play_icon.bmp", L"ui_start_game_btn", "textured", .65f, .7f);
+	IconTextButton->SetEvent(false, m_GameManager, &CGameManager::FinishRenderInit);
+	IconTextButton->CenterIcon();
+
+	StartGameScreeLayout->AlignChildren();
+}
+
 
 void CUIManager::InitUIElements(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData8x8, std::shared_ptr<CSquareColorData> gridcolorData8x4)
 {
@@ -326,102 +493,7 @@ void CUIManager::InitUIElements(std::shared_ptr<CSquarePositionData> positionDat
 	m_RootGameEndScreen = new CUIElement(nullptr, L"ui_game_end_root", nullptr, 0.f, 0.f, m_GameManager->m_SurfaceWidth, m_GameManager->m_SurfaceHeigh, ViewPos.x, ViewPos.y, 0.f, 0.f);
 	m_RankingsPanel = new CUIRankingsPanel(m_RootGameEndScreen, m_GameManager, L"ui_rankings_panel", positionData, colorData, gridcolorData8x8, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh / 2, 600, 1000, ViewPos.x, ViewPos.y, "panel.bmp", 0.f, 0.f);
 
-	//start game screen ui elements
-	m_RootStartGameScreen = new CUIElement(nullptr, L"ui_start_game_screen_root", nullptr, 0.f, 0.f, m_GameManager->m_SurfaceWidth, m_GameManager->m_SurfaceHeigh, ViewPos.x, ViewPos.y, 0.f, 0.f);
-
-	CUIPanel* BackGroundPanelStartGameScreen = new CUIPanel(m_RootStartGameScreen, L"ui_background_panel_start_game_screen", positionData, colorData, gridcolorData8x8, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh / 2, m_GameManager->m_SurfaceWidth, m_GameManager->m_SurfaceHeigh, 0, 0, "background.bmp", 0, 0);
-
-	//====================================
-	float HeaderHeight = m_GameManager->m_SurfaceHeigh / 13;
-	float LogoCharSize = HeaderHeight * 0.85;
-	float LogoTextWidth = CUIText::GetTextWidthInPixels(L"SZÓCSATA 3D", LogoCharSize);
-	float LogoYGap = (m_GameManager->m_SurfaceHeigh - HeaderHeight) / 6.f;
-	CUIText* HeaderText = nullptr;
-	//====================================
-
-	CUIPanel* HeaderPanelStartGameScr = new CUIPanel(m_RootStartGameScreen, L"ui_header_panel_start_game_screen", positionData, colorData, gridcolorData8x8, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh - HeaderHeight / 2, m_GameManager->m_SurfaceWidth, HeaderHeight, 0, 0, "header_texture_generated", 0, 0);
-
-	LogoCharSize = HeaderHeight * 0.85;
-	LogoTextWidth = CUIText::GetTextWidthInPixels(L"JÁTÉK INDÍTÁSA", LogoCharSize);
-	LogoYGap = (m_GameManager->m_SurfaceHeigh - HeaderHeight) / 6.f;
-	HeaderText = AddText(HeaderPanelStartGameScr, L"JÁTÉK INDÍTÁSA", positionData, gridcolorData8x8, 0, 0, LogoCharSize, "view_ortho", "font.bmp", L"ui_start_game_text_header", .92f, .79f, .64f);
-	HeaderText->Align(CUIText::Center);
-
-	float PlayerLogoSize = BackGroundPanelStartGameScreen->GetHeight() * 0.14;
-	float PlayerLogoGap = PlayerLogoSize / 4;
-	float PlayerLogoY = (BackGroundPanelStartGameScreen->GetHeight() - PlayerLogoSize) / 2 - HeaderHeight - PlayerLogoGap;
-	float PlayerLogoX = -BackGroundPanelStartGameScreen->GetWidth() / 4;
-	IconTextButton = AddIconTextButton(BackGroundPanelStartGameScreen, L"", positionData, colorData, nullptr, PlayerLogoX, PlayerLogoY, PlayerLogoSize, PlayerLogoSize, "view_ortho", "round_icon_texture_generated", "player_icon.bmp", L"ui_player_logo", "textured", .7f, .73f);
-	IconTextButton->CenterIcon();
-
-	PlayerLogoX = BackGroundPanelStartGameScreen->GetWidth() / 4;
-	IconTextButton = AddIconTextButton(BackGroundPanelStartGameScreen, L"", positionData, colorData, nullptr, PlayerLogoX, PlayerLogoY, PlayerLogoSize, PlayerLogoSize, "view_ortho", "round_icon_texture_generated", "computer_icon.bmp", L"ui_computer_logo", "textured", .6f);
-	IconTextButton->CenterIcon();
-
-	CUISelectControl* SelectControl = nullptr;
-
-	glm::vec2 SelectControlSize = m_GameManager->GetSelectControlsize();
-	float SelectControlGap = SelectControlSize.y / 1.7f;
-	float SelectControlY = IconTextButton->GetPosition().y - IconTextButton->GetHeight() - PlayerLogoGap - SelectControlGap;
-	float SelectControlX = -BackGroundPanelStartGameScreen->GetWidth() / 4;
-
-	SelectControl = AddSelectControl(BackGroundPanelStartGameScreen, positionData, colorData, gridcolorData8x8, SelectControlX, SelectControlY, SelectControlSize.x, SelectControlSize.y, "view_ortho", "selectioncontrol.bmp", L"ui_select_player_count", L"játékosok száma");
-	SelectControl->AddOption(L"1");
-	SelectControl->AddOption(L"2");
-	SelectControl->AddOption(L"3");
-	SelectControl->AddOption(L"4");
-	SelectControl->SetIndex(0);
-	SelectControlY -= SelectControl->GetHeight() + SelectControlGap;
-
-	SelectControl = AddSelectControl(BackGroundPanelStartGameScreen, positionData, colorData, gridcolorData8x8, SelectControlX, SelectControlY, SelectControlSize.x, SelectControlSize.y, "view_ortho", "selectioncontrol.bmp", L"ui_select_board_size", L"pálya méret");
-	SelectControl->AddOption(L"7-7");
-	SelectControl->AddOption(L"8-8");
-	SelectControl->AddOption(L"9-9");
-	SelectControl->AddOption(L"10-10");
-	SelectControl->SetIndex(2);
-	SelectControlY -= SelectControl->GetHeight() + SelectControlGap;
-
-	SelectControl = AddSelectControl(BackGroundPanelStartGameScreen, positionData, colorData, gridcolorData8x8, SelectControlX, SelectControlY, SelectControlSize.x, SelectControlSize.y, "view_ortho", "selectioncontrol.bmp", L"ui_select_time_limit", L"idő korlát");
-	SelectControl->AddOption(L"nincs");
-	SelectControl->AddOption(L"0:30");
-	SelectControl->AddOption(L"1:00");
-	SelectControl->AddOption(L"1:30");
-	SelectControl->AddOption(L"2:00");
-	SelectControl->AddOption(L"2:30");
-	SelectControl->AddOption(L"3:00");
-	SelectControl->AddOption(L"3:30");
-	SelectControl->AddOption(L"4:00");
-	SelectControl->AddOption(L"4:30");
-	SelectControl->AddOption(L"5:00");
-	SelectControl->SetIndex(0);
-
-
-	SelectControlY = IconTextButton->GetPosition().y - IconTextButton->GetHeight() - PlayerLogoGap - SelectControlGap;
-	SelectControlX = BackGroundPanelStartGameScreen->GetWidth() / 4;
-
-	SelectControl = AddSelectControl(BackGroundPanelStartGameScreen, positionData, colorData, gridcolorData8x8, SelectControlX, SelectControlY, SelectControlSize.x, SelectControlSize.y, "view_ortho", "selectioncontrol.bmp", L"ui_select_computer_opponent", L"gépi játékos");
-	SelectControl->AddOption(L"be");
-	SelectControl->AddOption(L"ki");
-	SelectControl->SetIndex(0);
-	SelectControlY -= SelectControl->GetHeight() + SelectControlGap;
-
-	SelectControl = AddSelectControl(BackGroundPanelStartGameScreen, positionData, colorData, gridcolorData8x8, SelectControlX, SelectControlY, SelectControlSize.x, SelectControlSize.y, "view_ortho", "selectioncontrol.bmp", L"ui_select_difficulty", L"nehézség");
-	SelectControl->AddOption(L"könnyű");
-	SelectControl->AddOption(L"normál");
-	SelectControl->AddOption(L"nehéz");
-	SelectControl->AddOption(L"lehetetlen");
-	SelectControl->SetIndex(1);
-
-	float StartGameBtnSize = m_GameManager->m_SurfaceHeigh / 6;
-	float StartGameBtnIconSize = m_GameManager->m_SurfaceHeigh / 6 * 0.7f;
-	IconTextButton = AddIconTextButton(BackGroundPanelStartGameScreen, L"", positionData, colorData, nullptr, 0, (-m_GameManager->m_SurfaceHeigh + StartGameBtnSize) / 2 + StartGameBtnSize / 2, StartGameBtnSize, StartGameBtnSize, "view_ortho", "round_button_texture_generated", "play_icon.bmp", L"ui_start_game_btn", "textured", .65f, .7f);
-	IconTextButton->SetEvent(false, m_GameManager, &CGameManager::FinishRenderInit);
-	IconTextButton->CenterIcon();
-
-	float DividerSize = BackGroundPanelStartGameScreen->GetHeight() + IconTextButton->GetPosition().y - HeaderHeight;
-	float DividerY = BackGroundPanelStartGameScreen->GetHeight() / 2 - HeaderHeight - DividerSize / 2;
-	Divider = new CUIPanel(BackGroundPanelStartGameScreen, L"ui_divider_start_game_screen", positionData, colorData, nullptr, 0, DividerY, 8, DividerSize, ViewPos.x, ViewPos.y, "solid_color_texture_generated", 0, 0);
-	Divider->SetModifyColor(glm::vec4(0.4f, 0.2f, 0.08f, 1.f));
+	InitStartGameScreen(positionData, colorData, gridcolorData8x8);
 
 	m_UIRoots.push_back(m_RootStartScreen);
 	m_UIRoots.push_back(m_RootStartGameScreen);

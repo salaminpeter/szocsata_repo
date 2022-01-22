@@ -6,30 +6,38 @@ class CUIVerticalLayout : public CUILayout
 {
 public:
 
-	CUIVerticalLayout(float x, float y, float w, float h, float whRatio, int minGap, int maxGap, int maxW, int maxH, float topPercent, float leftPercent, int elemCount, int vx, int vy, CUIElement* parent, const wchar_t* id) :
+	friend CUIVerticalLayout;
+
+	CUIVerticalLayout(bool isVertical, float x, float y, float w, float h, float whRatio, int minGap, int maxGap, int maxW, int maxH, float topPercent, float leftPercent, int elemCount, int vx, int vy, CUIElement* parent, const wchar_t* id) :
 		CUILayout(x, y, w, h, vx, vy, parent, id),
-		m_MinBoxGap(minGap),
-		m_MaxBoxGap(maxGap),
-		m_MaxBoxWidth(maxW),
-		m_MaxBoxHeight(maxH),
-		m_WHRatio(whRatio),
 		m_TopGapPercent(topPercent),
-		m_LeftGapPercent(leftPercent)
+		m_LeftGapPercent(leftPercent),
+		m_IsVertical(isVertical)
 	{
 		m_LayoutBoxes.reserve(elemCount);
-		m_LayoutBoxes.insert(m_LayoutBoxes.end(), elemCount, TLayoutBox(0, 0, minGap, maxGap, maxW, maxH, whRatio, true));
+		m_LayoutBoxes.insert(m_LayoutBoxes.end(), elemCount, TLayoutBox(0, 0, minGap, maxGap, maxW, maxH, whRatio, true, m_IsVertical ? CUIElement::Center : CUIElement::None, m_IsVertical ? CUIElement::None : CUIElement::Center));
 		SetPosition(x, y, false);
 	}
 	
 	virtual void AlignChildren() override;
 
+protected:
+
+	bool m_IsVertical;
+
 private:
 
-	int m_MinBoxGap;
-	int m_MaxBoxGap;
-	int m_MaxBoxWidth;
-	int m_MaxBoxHeight;
-	float m_WHRatio;
-	float m_TopGapPercent;
-	float m_LeftGapPercent;
+	float m_TopGapPercent = .5f;
+	float m_LeftGapPercent = .5f;
+};
+
+class CUIHorizontalLayout : public CUIVerticalLayout
+{
+public:
+
+	CUIHorizontalLayout(float x, float y, float w, float h, float whRatio, int minGap, int maxGap, int maxW, int maxH, float topPercent, float leftPercent, int elemCount, int vx, int vy, CUIElement* parent, const wchar_t* id) :
+		CUIVerticalLayout(false, x, y, w, h, whRatio, minGap, maxGap, maxW, maxH, topPercent, leftPercent, elemCount, vx, vy, parent, id)
+	{
+	}
+
 };

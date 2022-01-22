@@ -42,7 +42,7 @@ public:
 
 	bool StartInit();
 	bool EndInit();
-	bool MiddleInit();
+	bool MiddleInit(float startBtnW, float startBtnH, float selectCtrlW, float selectCtrlH);
 	void Render();
 	void ClearBuffers();
 	void AddView(const char* viewId, int x, int y, int w, int h);

@@ -8,18 +8,20 @@ CUISelectControl::CUISelectControl(CUIElement* parent, const wchar_t* id, const 
 	CUIPanel(parent, id, positionData, colorData, gridcolorData, x, y, w, h, vx, vy, "", 0.f, 0.f),
 	m_CurrSelection(idx)
 {
-	float TextSize = h * .6f;
-	float DescTextSize = h * .45f;
-	float IconSize = h * .75f;
+	float DescTextSize = h * .3f;
+	float ControlSize = h * .68f;
+	float TextSize = ControlSize * .55f;
+	float IconSize = ControlSize * .8f;
+
 	float DescTextWidth = CUIText::GetTextWidthInPixels(description, DescTextSize);
 	glm::vec2 DescTextTopBottom = CUIText::GetTextTopBottom(description, DescTextSize);
-	float DescTextYGap = DescTextSize / 5;
+	float DescTextYGap = h * .02f;
+	float ControlY = -(h - ControlSize) / 2;
 
-	SetPosAndSize(x, y, w, h + DescTextSize + DescTextYGap);
+	CUIPanel* SelectPanel = new CUIPanel(this, L"ui_select_control_panel", positionData, colorData, gridcolorData, 0, ControlY, w, ControlSize, vx, vy, "select_control_texture_generated", 0, 0);
 
-	CUIPanel* SelectPanel = new CUIPanel(this, L"ui_select_control_panel", positionData, colorData, gridcolorData, 0, (h - m_Height) / 2, w, h, vx, vy, "select_control_texture_generated", 0, 0);
-
-	SelectPanel->AddText(description, -(w - DescTextWidth) / 2 + h / 3, h / 2 + DescTextSize / 2 - DescTextTopBottom.y + DescTextYGap, DescTextSize, "font.bmp", L"ui_select_control_desc_text");
+	CUIText* DescText = SelectPanel->AddText(description, 0, 0, DescTextSize, "font.bmp", L"ui_select_control_desc_text");
+	DescText->SetPosition(0, ControlSize + DescTextYGap - DescTextTopBottom.y, false);
 
 	SelectPanel->AddText(L"", 0.f, 0.f, TextSize, "font.bmp", L"ui_select_control_text");
 	static_cast<CUIText*>(GetChild(L"ui_select_control_text"))->Align(CUIText::Center);
