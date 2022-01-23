@@ -6,8 +6,8 @@ void CUIVerticalLayout::AlignChildren()
 {
 	int Gap = 0;
 
-	float MinGap = GetGapSum(true);
-	float MaxGap = GetGapSum(false);
+	int MinGap = GetGapSum(true);
+	int MaxGap = GetGapSum(false);
 
 	while (true)
 	{
@@ -20,7 +20,7 @@ void CUIVerticalLayout::AlignChildren()
 				
 		for (size_t i = 0; i < m_LayoutBoxes.size(); ++i)
 		{
-			if (m_LayoutBoxes[i].m_Height > m_LayoutBoxes[i].m_MaxHeight || m_LayoutBoxes[i].m_Width > m_LayoutBoxes[i].m_MaxWidth || Gap < MinGap)
+			if (i != m_LayoutBoxes.size() - 1 && (m_LayoutBoxes[i].m_Height > m_LayoutBoxes[i].m_MaxHeight || m_LayoutBoxes[i].m_Width > m_LayoutBoxes[i].m_MaxWidth || Gap < MinGap))
 			{
 				m_LayoutBoxes[i].m_Width--;
 				m_LayoutBoxes[i].m_Height = m_LayoutBoxes[i].m_Width / m_LayoutBoxes[i].m_WHRatio;
@@ -31,24 +31,30 @@ void CUIVerticalLayout::AlignChildren()
 					return;
 			}
 
-			m_LayoutBoxes[i].m_Gap = MinGap == 0 ? Gap : Gap * (m_LayoutBoxes[i].m_MinGap / MinGap);
+			m_LayoutBoxes[i].m_Gap = (MaxGap == 0 ? Gap : float(Gap) * (float(m_LayoutBoxes[i].m_MaxGap) / float(MaxGap)));
 		}
 
 		if (Success)
 			break;
 	}
 
+	PositionLayoutBoxes();
+	LayoutChildren();
+}
+
+void CUIVerticalLayout::PositionLayoutBoxes()
+{
 	float BoxesHeight = m_IsVertical ? GetHeightSum() + GetGapSum() : GetMaxHeight();
 	float BoxesWidth = m_IsVertical ? GetMaxWidth() : GetWidthSum() + GetGapSum();
-	
+
 	int YPos = m_IsVertical ? m_Height - (m_Height - BoxesHeight) * m_TopGapPercent : 0;
 	int XPos = m_IsVertical ? 0 : (m_Width - BoxesWidth) * m_LeftGapPercent;
 
-	for (size_t i = 0; i < m_LayoutBoxes.size(); ++i)
+	for (size_t i = 0; i < m_LayoutBoxes.size() - 1; ++i)
 	{
 		if (m_IsVertical)
 		{
-			YPos -= (i == 0 ? 0 : m_LayoutBoxes[i].m_Gap) + m_LayoutBoxes[i].m_Height;
+			YPos -= m_LayoutBoxes[i].m_Gap + m_LayoutBoxes[i].m_Height;
 			XPos = (m_Width - m_LayoutBoxes[i].m_Width) * m_LeftGapPercent;
 			m_LayoutBoxes[i].m_BottomLeftX = XPos;
 		}
@@ -61,6 +67,4 @@ void CUIVerticalLayout::AlignChildren()
 
 		m_LayoutBoxes[i].m_BottomLeftY = YPos;
 	}
-	
-	LayoutChildren();
 }

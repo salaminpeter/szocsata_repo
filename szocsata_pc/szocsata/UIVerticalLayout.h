@@ -16,10 +16,17 @@ public:
 	{
 		m_LayoutBoxes.reserve(elemCount);
 		m_LayoutBoxes.insert(m_LayoutBoxes.end(), elemCount, TLayoutBox(0, 0, minGap, maxGap, maxW, maxH, whRatio, true, m_IsVertical ? CUIElement::Center : CUIElement::None, m_IsVertical ? CUIElement::None : CUIElement::Center));
+
+		//dummy elem for storing last gap
+		m_LayoutBoxes.insert(m_LayoutBoxes.end(), 1, TLayoutBox(0, 0, minGap, maxGap, 0, 0, 0, true, CUIElement::None, CUIElement::None));
 		SetPosition(x, y, false);
 	}
 	
 	virtual void AlignChildren() override;
+
+protected:
+
+	virtual void PositionLayoutBoxes() override;
 
 protected:
 

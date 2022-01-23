@@ -15,6 +15,12 @@ public:
 	void SetBoxGapProps(size_t idx, int minGap, int maxGap);
 	void SetBoxSizeProps(size_t idx, int maxWidth, int maxHeight);
 
+	bool GetBoxProperties(size_t idx, int& x, int& y, int& w, int& h, int& alignH, int& alignV, int& minGap, int& maxGap, int& gap, int& maxW, int& maxH, bool& inc, float& whRatio);
+
+	void SetAdjustToLayer(CUILayout* layer);
+	void AddLayerToAdjust(CUILayout* layer);
+	void AdjustToLayer();
+
 protected:
 
 	void LayoutChildren();
@@ -22,9 +28,13 @@ protected:
 	float GetGapSum();
 	float GetHeightSum();
 	float GetWidthSum();
-	float GetHeightGapSum();
 	float GetMaxWidth();
 	float GetMaxHeight();
+
+	bool IsLayoutDone() { return m_LayoutDone; }
+	bool IsAdjustedToLayout() { return m_AdjustToLayer != nullptr; }
+
+	virtual void PositionLayoutBoxes() {}
 
 protected:
 
@@ -48,7 +58,7 @@ protected:
 			m_BottomLeftX(x), 
 			m_BottomLeftY(y), 
 			m_Width(maxWidth), 
-			m_Height(maxWidth * whRatio), 
+			m_Height(maxWidth / whRatio), 
 			m_MinGap(minGap),
 			m_MaxGap(maxGap),
 			m_MaxWidth(maxWidth),
@@ -58,8 +68,13 @@ protected:
 			m_IncSizeAllowed(incSize),
 			m_AlignmentH(alignH),
 			m_AlignmentV(alignV)
-			{}
+		{}
 	};
 
 	std::vector<TLayoutBox> m_LayoutBoxes;	
+
+	CUILayout* m_AdjustToLayer = nullptr;
+	std::vector<CUILayout*> m_LayersToAdjust;
+
+	bool m_LayoutDone = false;
 };

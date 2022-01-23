@@ -229,7 +229,7 @@ void CUIManager::InitMainScreen(std::shared_ptr<CSquarePositionData> positionDat
 	HeaderText->Align(CUIText::Center);
  
 	float BtnLayoutHeight = m_GameManager->m_SurfaceHeigh - HeaderSize.y;
-	m_MainScreenBtnLayout = new CUIVerticalLayout(true, 0, 0, m_GameManager->m_SurfaceWidth, BtnLayoutHeight, 4.f, 1, BtnSize.y, BtnSize.x, BtnSize.y, 0.5f, 0.5f, 4, ViewPos.x, ViewPos.y, MainScreeLayout, L"ui_main_screen_btn_layout");
+	m_MainScreenBtnLayout = new CUIVerticalLayout(true, 0, 0, m_GameManager->m_SurfaceWidth, BtnLayoutHeight, 4.f, BtnSize.y / 3, BtnSize.y, BtnSize.x, BtnSize.y, 0.5f, 0.5f, 4, ViewPos.x, ViewPos.y, MainScreeLayout, L"ui_main_screen_btn_layout");
 
 	//Start screen buttons
 	IconTextButton = AddIconTextButton(m_MainScreenBtnLayout, L"új játék", positionData, colorData, gridcolorData8x8, 0, 0, BtnSize.x, BtnSize.y, "view_ortho", "start_scr_btn_texture_generated", "play_icon.bmp", L"ui_new_game_btn_test", "textured", .65f, .7f);
@@ -310,38 +310,33 @@ void CUIManager::InitStartGameScreen(std::shared_ptr<CSquarePositionData> positi
 	CUIVerticalLayout* VerticalLayoutMid = new CUIVerticalLayout(true, 0, 0, StartBtnSize.x, HorizLayoutMaxHeight, 0, 0, 0, 0, 0, 0.f, 0.5f, 2, ViewPos.x, ViewPos.y, HorizontalLayout, L"ui_start_game_screen_layout_v_mid");
 	CUIVerticalLayout* VerticalLayoutRight = new CUIVerticalLayout(true, 0, 0, HorizLayoutMaxWidth, HorizLayoutMaxHeight, 0, 0, 0, 0, 0, 0.f, 0.5f, 3, ViewPos.x, ViewPos.y, HorizontalLayout, L"ui_start_game_screen_layout_v_right");
 
-	VerticalLayoutLeft->SetBoxAlignProps(0, CUIElement::Center, CUIElement::None, false);
+	VerticalLayoutLeft->SetBoxAlignProps(0, CUIElement::Center, CUIElement::None, true);
+	VerticalLayoutLeft->SetBoxGapProps(0, /*SelectControlSize.y / 10, SelectControlSize.y / 10*/ 0, 0);
 	VerticalLayoutLeft->SetBoxSizeProps(0, LogoSize.x, LogoSize.y);
 
-	VerticalLayoutLeft->SetBoxAlignProps(1, CUIElement::Center, CUIElement::None, false);
-	VerticalLayoutLeft->SetBoxGapProps(1, 1, SelectControlSize.y / 2);
+	VerticalLayoutLeft->SetBoxAlignProps(1, CUIElement::Center, CUIElement::None, true);
+	VerticalLayoutLeft->SetBoxGapProps(1, SelectControlSize.y / 5, SelectControlSize.y / 2);
 	VerticalLayoutLeft->SetBoxSizeProps(1, SelectControlSize.x, SelectControlSize.y);
 
-	VerticalLayoutLeft->SetBoxAlignProps(2, CUIElement::Center, CUIElement::None, false);
-	VerticalLayoutLeft->SetBoxGapProps(2, 1, SelectControlSize.y / 2);
+	VerticalLayoutLeft->SetBoxAlignProps(2, CUIElement::Center, CUIElement::None, true);
+	VerticalLayoutLeft->SetBoxGapProps(2, SelectControlSize.y / 5, SelectControlSize.y / 2);
 	VerticalLayoutLeft->SetBoxSizeProps(2, SelectControlSize.x, SelectControlSize.y);
 
-	VerticalLayoutLeft->SetBoxAlignProps(3, CUIElement::Center, CUIElement::None, false);
-	VerticalLayoutLeft->SetBoxGapProps(3, 1, SelectControlSize.y / 2);
+	VerticalLayoutLeft->SetBoxAlignProps(3, CUIElement::Center, CUIElement::None, true);
+	VerticalLayoutLeft->SetBoxGapProps(3, SelectControlSize.y / 5, SelectControlSize.y / 2);
 	VerticalLayoutLeft->SetBoxSizeProps(3, SelectControlSize.x, SelectControlSize.y);
 
-	VerticalLayoutMid->SetBoxAlignProps(0, CUIElement::Center, CUIElement::Top, false);
+	VerticalLayoutLeft->SetBoxGapProps(4, SelectControlSize.y / 5, SelectControlSize.y / 2);
+
+	VerticalLayoutMid->SetBoxAlignProps(0, CUIElement::Center, CUIElement::Top, true);
 	VerticalLayoutMid->SetBoxSizeProps(0, 8, DividerSize);
 
-	VerticalLayoutMid->SetBoxAlignProps(1, CUIElement::Center, CUIElement::None, false);
+	VerticalLayoutMid->SetBoxAlignProps(1, CUIElement::Center, CUIElement::None, true);
 	VerticalLayoutMid->SetBoxGapProps(1, 1, StartBtnSize.y / 2);
 	VerticalLayoutMid->SetBoxSizeProps(1, StartBtnSize.x, StartBtnSize.y);
+	VerticalLayoutMid->SetBoxGapProps(1, 2, StartBtnSize.y / 2);
 
-	VerticalLayoutRight->SetBoxAlignProps(0, CUIElement::Center, CUIElement::None, false);
-	VerticalLayoutRight->SetBoxSizeProps(0, LogoSize.x, LogoSize.y);
-
-	VerticalLayoutRight->SetBoxAlignProps(1, CUIElement::Center, CUIElement::None, false);
-	VerticalLayoutRight->SetBoxGapProps(1, 1, SelectControlSize.y / 2);
-	VerticalLayoutRight->SetBoxSizeProps(1, SelectControlSize.x, SelectControlSize.y);
-
-	VerticalLayoutRight->SetBoxAlignProps(2, CUIElement::Center, CUIElement::None, false);
-	VerticalLayoutRight->SetBoxGapProps(2, 1, SelectControlSize.y / 2);
-	VerticalLayoutRight->SetBoxSizeProps(2, SelectControlSize.x, SelectControlSize.y);
+	VerticalLayoutRight->SetAdjustToLayer(VerticalLayoutLeft);
 
 	CUISelectControl* SelectControl = nullptr;
 
