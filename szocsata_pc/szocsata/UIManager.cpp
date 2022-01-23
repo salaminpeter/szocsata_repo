@@ -311,7 +311,7 @@ void CUIManager::InitStartGameScreen(std::shared_ptr<CSquarePositionData> positi
 	CUIVerticalLayout* VerticalLayoutRight = new CUIVerticalLayout(true, 0, 0, HorizLayoutMaxWidth, HorizLayoutMaxHeight, 0, 0, 0, 0, 0, 0.f, 0.5f, 3, ViewPos.x, ViewPos.y, HorizontalLayout, L"ui_start_game_screen_layout_v_right");
 
 	VerticalLayoutLeft->SetBoxAlignProps(0, CUIElement::Center, CUIElement::None, true);
-	VerticalLayoutLeft->SetBoxGapProps(0, /*SelectControlSize.y / 10, SelectControlSize.y / 10*/ 0, 0);
+	VerticalLayoutLeft->SetBoxGapProps(0, 0, 0);
 	VerticalLayoutLeft->SetBoxSizeProps(0, LogoSize.x, LogoSize.y);
 
 	VerticalLayoutLeft->SetBoxAlignProps(1, CUIElement::Center, CUIElement::None, true);
@@ -328,7 +328,8 @@ void CUIManager::InitStartGameScreen(std::shared_ptr<CSquarePositionData> positi
 
 	VerticalLayoutLeft->SetBoxGapProps(4, SelectControlSize.y / 5, SelectControlSize.y / 2);
 
-	VerticalLayoutMid->SetBoxAlignProps(0, CUIElement::Center, CUIElement::Top, true);
+	VerticalLayoutMid->SetBoxAlignProps(0, CUIElement::Center, CUIElement::None, true);
+	VerticalLayoutMid->SetBoxGapProps(0, 0, 0);
 	VerticalLayoutMid->SetBoxSizeProps(0, 8, DividerSize);
 
 	VerticalLayoutMid->SetBoxAlignProps(1, CUIElement::Center, CUIElement::None, true);

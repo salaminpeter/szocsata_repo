@@ -23,7 +23,7 @@ void CUIVerticalLayout::AlignChildren()
 			if (i != m_LayoutBoxes.size() - 1 && (m_LayoutBoxes[i].m_Height > m_LayoutBoxes[i].m_MaxHeight || m_LayoutBoxes[i].m_Width > m_LayoutBoxes[i].m_MaxWidth || Gap < MinGap))
 			{
 				m_LayoutBoxes[i].m_Width--;
-				m_LayoutBoxes[i].m_Height = m_LayoutBoxes[i].m_Width / m_LayoutBoxes[i].m_WHRatio;
+				m_LayoutBoxes[i].m_Height = float(m_LayoutBoxes[i].m_Width) / m_LayoutBoxes[i].m_WHRatio;
 				Success = false;
 
 				//hiba tortent ne legyen vegtelen loop...
