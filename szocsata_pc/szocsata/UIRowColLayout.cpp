@@ -1,8 +1,8 @@
 #include "stdafx.h"
-#include "UIVerticalLayout.h"
+#include "UIRowColLayout.h"
 
 
-void CUIVerticalLayout::AlignChildren()
+void CUIRowColLayout::AlignChildren()
 {
 	int Gap = 0;
 
@@ -27,7 +27,7 @@ void CUIVerticalLayout::AlignChildren()
 				Success = false;
 
 				//hiba tortent ne legyen vegtelen loop...
-				if (m_LayoutBoxes[i].m_Width < 0 || m_LayoutBoxes[i].m_Height < 0)
+				if (m_LayoutBoxes[i].m_Width < 1 || m_LayoutBoxes[i].m_Height < 1)
 					return;
 			}
 
@@ -42,7 +42,7 @@ void CUIVerticalLayout::AlignChildren()
 	LayoutChildren();
 }
 
-void CUIVerticalLayout::PositionLayoutBoxes()
+void CUIRowColLayout::PositionLayoutBoxes()
 {
 	float BoxesHeight = m_IsVertical ? GetHeightSum() + GetGapSum() : GetMaxHeight();
 	float BoxesWidth = m_IsVertical ? GetMaxWidth() : GetWidthSum() + GetGapSum();
