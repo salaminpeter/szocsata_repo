@@ -143,7 +143,6 @@ public:
 	
 	bool HasEmptyFieldInWord(int& min, int& max);
 	glm::ivec2 GetSelectionPosition();
-	glm::vec2 GetSelectControlsize();
 	void SetDimmPanelOpacity(float opacity);
 
 	void PauseGameEvent();

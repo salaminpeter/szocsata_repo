@@ -979,24 +979,6 @@ void CGameManager::SetDimmPanelOpacity(float opacity)
 	m_UIManager->SetDimmPanelOpacity(opacity);
 }
 
-
-glm::vec2 CGameManager::GetSelectControlsize()
-{
-	const wchar_t* Texts[] = { L"nincs", L"normál", L"nehéz", L"lehetetlen", L"könnyű" };
-	float MaxWidth = 0;
-	float PanelHeight = m_SurfaceHeigh * .1f;
-
-	for (int i = 0; i < 5; ++i)
-	{
-		float Width = CUIText::GetTextWidthInPixels(Texts[i], PanelHeight * .6f);
-
-		if (MaxWidth < Width)
-			MaxWidth = Width;
-	}
-
-	return glm::vec2(MaxWidth * 2.f, PanelHeight);
-}
-
 void CGameManager::InitUIManager()
 {
 	int ShowFps;

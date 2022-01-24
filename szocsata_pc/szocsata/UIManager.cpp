@@ -214,14 +214,12 @@ void CUIManager::InitMainScreen(std::shared_ptr<CSquarePositionData> positionDat
 	if (HeaderSize.x < m_GameManager->m_SurfaceWidth)
 		HeaderSize.x = m_GameManager->m_SurfaceWidth;
 
-	CUILayout* MainScreeLayout = new CUIVerticalLayout(true, 0, 0, m_GameManager->m_SurfaceWidth, m_GameManager->m_SurfaceHeigh, 0, 0, 0, m_GameManager->m_SurfaceWidth, m_GameManager->m_SurfaceHeigh, 0.f, 0.f, 2, ViewPos.x, ViewPos.y, BackGroundPanelStartScreen, L"ui_main_screen_layout");
+	CUILayout* MainScreeLayout = new CUIVerticalLayout(true, 0, 0, m_GameManager->m_SurfaceWidth, m_GameManager->m_SurfaceHeigh, ViewPos.x, ViewPos.y, BackGroundPanelStartScreen, L"ui_main_screen_layout", 2, 0.f, .5f);
 	
-	MainScreeLayout->SetBoxAlignProps(0, CUIElement::Center, CUIElement::None, true);
-	MainScreeLayout->SetBoxSizeProps(0, HeaderSize.x, HeaderSize.y);
+	MainScreeLayout->SetBoxSizeProps(0, HeaderSize.x, HeaderSize.y, true);
 
-	MainScreeLayout->SetBoxAlignProps(1, CUIElement::Center, CUIElement::None, true);
 	MainScreeLayout->SetBoxGapProps(1, 0, 0);
-	MainScreeLayout->SetBoxSizeProps(1, m_GameManager->m_SurfaceWidth, m_GameManager->m_SurfaceHeigh - HeaderSize.y);
+	MainScreeLayout->SetBoxSizeProps(1, m_GameManager->m_SurfaceWidth, m_GameManager->m_SurfaceHeigh - HeaderSize.y, true);
 	
 	//header with text
 	CUIPanel* HeaderPanelStartScr = new CUIPanel(MainScreeLayout, L"ui_header_panel_start_screen", positionData, colorData, gridcolorData8x8, 0, 0, HeaderSize.x, HeaderSize.y, 0, 0, "header_texture_generated", 0, 0);
@@ -229,7 +227,7 @@ void CUIManager::InitMainScreen(std::shared_ptr<CSquarePositionData> positionDat
 	HeaderText->Align(CUIText::Center);
  
 	float BtnLayoutHeight = m_GameManager->m_SurfaceHeigh - HeaderSize.y;
-	m_MainScreenBtnLayout = new CUIVerticalLayout(true, 0, 0, m_GameManager->m_SurfaceWidth, BtnLayoutHeight, 4.f, BtnSize.y / 3, BtnSize.y, BtnSize.x, BtnSize.y, 0.5f, 0.5f, 4, ViewPos.x, ViewPos.y, MainScreeLayout, L"ui_main_screen_btn_layout");
+	m_MainScreenBtnLayout = new CUIVerticalLayout(true, 0, 0, m_GameManager->m_SurfaceWidth, BtnLayoutHeight, ViewPos.x, ViewPos.y, MainScreeLayout, L"ui_main_screen_btn_layout", 4, 0.5f, 0.5f, 4.f, BtnSize.y / 3, BtnSize.y, BtnSize.x, BtnSize.y);
 
 	//Start screen buttons
 	IconTextButton = AddIconTextButton(m_MainScreenBtnLayout, L"új játék", positionData, colorData, gridcolorData8x8, 0, 0, BtnSize.x, BtnSize.y, "view_ortho", "start_scr_btn_texture_generated", "play_icon.bmp", L"ui_new_game_btn_test", "textured", .65f, .7f);
@@ -269,14 +267,12 @@ void CUIManager::InitStartGameScreen(std::shared_ptr<CSquarePositionData> positi
 	if (HeaderSize.x < m_GameManager->m_SurfaceWidth)
 		HeaderSize.x = m_GameManager->m_SurfaceWidth;
 
-	CUILayout* StartGameScreeLayout = new CUIVerticalLayout(true, 0, 0, m_GameManager->m_SurfaceWidth, m_GameManager->m_SurfaceHeigh, /*m_GameManager->m_SurfaceWidth / m_GameManager->m_SurfaceHeigh*/0, 0, 0, m_GameManager->m_SurfaceWidth, m_GameManager->m_SurfaceHeigh, 0.f, 0.f, 2, ViewPos.x, ViewPos.y, BackGroundPanelStartGameScreen, L"ui_start_game_screen_layout");
+	CUILayout* StartGameScreeLayout = new CUIVerticalLayout(true, 0, 0, m_GameManager->m_SurfaceWidth, m_GameManager->m_SurfaceHeigh, ViewPos.x, ViewPos.y, BackGroundPanelStartGameScreen, L"ui_start_game_screen_layout", 2, 0.f, .5f);
 
-	StartGameScreeLayout->SetBoxAlignProps(0, CUIElement::Center, CUIElement::None, true);
-	StartGameScreeLayout->SetBoxSizeProps(0, HeaderSize.x, HeaderSize.y);
+	StartGameScreeLayout->SetBoxSizeProps(0, HeaderSize.x, HeaderSize.y, true);
 
-	StartGameScreeLayout->SetBoxAlignProps(1, CUIElement::Center, CUIElement::None, true);
 	StartGameScreeLayout->SetBoxGapProps(1, 0, 0);
-	StartGameScreeLayout->SetBoxSizeProps(1, m_GameManager->m_SurfaceWidth, m_GameManager->m_SurfaceHeigh - HeaderSize.y);
+	StartGameScreeLayout->SetBoxSizeProps(1, m_GameManager->m_SurfaceWidth, m_GameManager->m_SurfaceHeigh - HeaderSize.y, true);
 
 	//header with text
 	CUIPanel* HeaderPanelStartGameScr = new CUIPanel(StartGameScreeLayout, L"ui_header_panel_start_game_screen", positionData, colorData, gridcolorData8x8, 0, 0, HeaderSize.x, HeaderSize.y, 0, 0, "header_texture_generated", 0, 0);
@@ -290,51 +286,42 @@ void CUIManager::InitStartGameScreen(std::shared_ptr<CSquarePositionData> positi
 	int HorizLayoutMaxHeight = m_GameManager->m_SurfaceHeigh - HeaderSize.y;
 	float DividerSize = HorizLayoutMaxHeight - 2 * LogoSize.y;
 
-	glm::ivec2 SelectControlSize = GetSizeByArea(22, 3, m_GameManager->m_SurfaceWidth * m_GameManager->m_SurfaceHeigh, HorizLayoutMaxWidth); //m_GameManager->GetSelectControlsize();
+	glm::ivec2 SelectControlSize = GetSizeByArea(22, 3, m_GameManager->m_SurfaceWidth * m_GameManager->m_SurfaceHeigh, HorizLayoutMaxWidth); 
 
-	CUILayout* HorizontalLayout = new CUIHorizontalLayout(0, 0, m_GameManager->m_SurfaceWidth, HorizLayoutMaxHeight, 0, 0, 0, 0, 0, 0.f, 0.f, 3, ViewPos.x, ViewPos.y, StartGameScreeLayout, L"ui_start_game_screen_layout_h");
+	CUILayout* HorizontalLayout = new CUIHorizontalLayout(0, 0, m_GameManager->m_SurfaceWidth, HorizLayoutMaxHeight, ViewPos.x, ViewPos.y, StartGameScreeLayout, L"ui_start_game_screen_layout_h", 3, .5f, 0.f);
 
-	HorizontalLayout->SetBoxAlignProps(0, CUIElement::None, CUIElement::Center, true);
 	HorizontalLayout->SetBoxGapProps(0, 0, 0);
-	HorizontalLayout->SetBoxSizeProps(0, HorizLayoutMaxWidth, HorizLayoutMaxHeight);
+	HorizontalLayout->SetBoxSizeProps(0, HorizLayoutMaxWidth, HorizLayoutMaxHeight, true);
 
-	HorizontalLayout->SetBoxAlignProps(1, CUIElement::None, CUIElement::Center, true);
 	HorizontalLayout->SetBoxGapProps(1, 0, 0);
-	HorizontalLayout->SetBoxSizeProps(1, StartBtnSize.x, HorizLayoutMaxHeight);
+	HorizontalLayout->SetBoxSizeProps(1, StartBtnSize.x, HorizLayoutMaxHeight, true);
 
-	HorizontalLayout->SetBoxAlignProps(2, CUIElement::None, CUIElement::Center, true);
 	HorizontalLayout->SetBoxGapProps(2, 0, 0);
-	HorizontalLayout->SetBoxSizeProps(2, HorizLayoutMaxWidth, HorizLayoutMaxHeight);
+	HorizontalLayout->SetBoxSizeProps(2, HorizLayoutMaxWidth, HorizLayoutMaxHeight, true);
 
-	CUIVerticalLayout* VerticalLayoutLeft = new CUIVerticalLayout(true, 0, 0, HorizLayoutMaxWidth, HorizLayoutMaxHeight, 0, 0, 0, 0, 0, 0.f, 0.5f, 4, ViewPos.x, ViewPos.y, HorizontalLayout, L"ui_start_game_screen_layout_v_left");
-	CUIVerticalLayout* VerticalLayoutMid = new CUIVerticalLayout(true, 0, 0, StartBtnSize.x, HorizLayoutMaxHeight, 0, 0, 0, 0, 0, 0.f, 0.5f, 2, ViewPos.x, ViewPos.y, HorizontalLayout, L"ui_start_game_screen_layout_v_mid");
-	CUIVerticalLayout* VerticalLayoutRight = new CUIVerticalLayout(true, 0, 0, HorizLayoutMaxWidth, HorizLayoutMaxHeight, 0, 0, 0, 0, 0, 0.f, 0.5f, 3, ViewPos.x, ViewPos.y, HorizontalLayout, L"ui_start_game_screen_layout_v_right");
+	CUIVerticalLayout* VerticalLayoutLeft = new CUIVerticalLayout(true, 0, 0, HorizLayoutMaxWidth, HorizLayoutMaxHeight, ViewPos.x, ViewPos.y, HorizontalLayout, L"ui_start_game_screen_layout_v_left", 4, 0.f, .5f);
+	CUIVerticalLayout* VerticalLayoutMid = new CUIVerticalLayout(true, 0, 0, StartBtnSize.x, HorizLayoutMaxHeight, ViewPos.x, ViewPos.y, HorizontalLayout, L"ui_start_game_screen_layout_v_mid", 2, 0.f, .5f);
+	CUIVerticalLayout* VerticalLayoutRight = new CUIVerticalLayout(true, 0, 0, HorizLayoutMaxWidth, HorizLayoutMaxHeight, ViewPos.x, ViewPos.y, HorizontalLayout, L"ui_start_game_screen_layout_v_right", 3, 0.f, .5f);
 
-	VerticalLayoutLeft->SetBoxAlignProps(0, CUIElement::Center, CUIElement::None, true);
 	VerticalLayoutLeft->SetBoxGapProps(0, 0, 0);
-	VerticalLayoutLeft->SetBoxSizeProps(0, LogoSize.x, LogoSize.y);
+	VerticalLayoutLeft->SetBoxSizeProps(0, LogoSize.x, LogoSize.y, true);
 
-	VerticalLayoutLeft->SetBoxAlignProps(1, CUIElement::Center, CUIElement::None, true);
 	VerticalLayoutLeft->SetBoxGapProps(1, SelectControlSize.y / 5, SelectControlSize.y / 2);
-	VerticalLayoutLeft->SetBoxSizeProps(1, SelectControlSize.x, SelectControlSize.y);
+	VerticalLayoutLeft->SetBoxSizeProps(1, SelectControlSize.x, SelectControlSize.y, true);
 
-	VerticalLayoutLeft->SetBoxAlignProps(2, CUIElement::Center, CUIElement::None, true);
 	VerticalLayoutLeft->SetBoxGapProps(2, SelectControlSize.y / 5, SelectControlSize.y / 2);
-	VerticalLayoutLeft->SetBoxSizeProps(2, SelectControlSize.x, SelectControlSize.y);
+	VerticalLayoutLeft->SetBoxSizeProps(2, SelectControlSize.x, SelectControlSize.y, true);
 
-	VerticalLayoutLeft->SetBoxAlignProps(3, CUIElement::Center, CUIElement::None, true);
 	VerticalLayoutLeft->SetBoxGapProps(3, SelectControlSize.y / 5, SelectControlSize.y / 2);
-	VerticalLayoutLeft->SetBoxSizeProps(3, SelectControlSize.x, SelectControlSize.y);
+	VerticalLayoutLeft->SetBoxSizeProps(3, SelectControlSize.x, SelectControlSize.y, true);
 
 	VerticalLayoutLeft->SetBoxGapProps(4, SelectControlSize.y / 5, SelectControlSize.y / 2);
 
-	VerticalLayoutMid->SetBoxAlignProps(0, CUIElement::Center, CUIElement::None, true);
 	VerticalLayoutMid->SetBoxGapProps(0, 0, 0);
-	VerticalLayoutMid->SetBoxSizeProps(0, 8, DividerSize);
+	VerticalLayoutMid->SetBoxSizeProps(0, 8, DividerSize, true);
 
-	VerticalLayoutMid->SetBoxAlignProps(1, CUIElement::Center, CUIElement::None, true);
 	VerticalLayoutMid->SetBoxGapProps(1, 1, StartBtnSize.y / 2);
-	VerticalLayoutMid->SetBoxSizeProps(1, StartBtnSize.x, StartBtnSize.y);
+	VerticalLayoutMid->SetBoxSizeProps(1, StartBtnSize.x, StartBtnSize.y, true);
 	VerticalLayoutMid->SetBoxGapProps(1, 2, StartBtnSize.y / 2);
 
 	VerticalLayoutRight->SetAdjustToLayer(VerticalLayoutLeft);

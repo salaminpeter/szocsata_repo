@@ -47,8 +47,8 @@ void CUIVerticalLayout::PositionLayoutBoxes()
 	float BoxesHeight = m_IsVertical ? GetHeightSum() + GetGapSum() : GetMaxHeight();
 	float BoxesWidth = m_IsVertical ? GetMaxWidth() : GetWidthSum() + GetGapSum();
 
-	int YPos = m_IsVertical ? m_Height - (m_Height - BoxesHeight) * m_TopGapPercent : 0;
-	int XPos = m_IsVertical ? 0 : (m_Width - BoxesWidth) * m_LeftGapPercent;
+	int YPos = m_Height - (m_Height - BoxesHeight) * m_TopGapPercent;
+	int XPos = (m_Width - BoxesWidth) * m_LeftGapPercent;
 
 	for (size_t i = 0; i < m_LayoutBoxes.size() - 1; ++i)
 	{

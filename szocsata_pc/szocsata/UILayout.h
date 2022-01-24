@@ -7,15 +7,14 @@ class CUILayout : public CUIElement
 {
 public:
 
-	CUILayout(float x, float y, float w, float h, int vx, int vy, CUIElement* parent, const wchar_t* id) :
+	CUILayout(float x, float y, float w, float h, int vx, int vy, CUIElement* parent, const wchar_t* id, int elemCount, float whRatio = 1.f, int minGap = 0.f, int maxGap = 0.f, int maxW = 0.f, int maxH = 0.f) :
 		CUIElement(parent, id, new CModel(false, 0, nullptr, nullptr), x, y, w, h, vx, vy, 0.f, 0.f)
 	{}
 
-	void SetBoxAlignProps(size_t idx, int alignmentH, int alignmentV, bool incSize);
 	void SetBoxGapProps(size_t idx, int minGap, int maxGap);
-	void SetBoxSizeProps(size_t idx, int maxWidth, int maxHeight);
+	void SetBoxSizeProps(size_t idx, int maxWidth, int maxHeight, bool incSize);
 
-	bool GetBoxProperties(size_t idx, int& x, int& y, int& w, int& h, int& alignH, int& alignV, int& minGap, int& maxGap, int& gap, int& maxW, int& maxH, bool& inc, float& whRatio);
+	bool GetBoxProperties(size_t idx, int& x, int& y, int& w, int& h, int& minGap, int& maxGap, int& gap, int& maxW, int& maxH, bool& inc, float& whRatio);
 
 	void SetAdjustToLayer(CUILayout* layer);
 	void AddLayerToAdjust(CUILayout* layer);
@@ -44,8 +43,6 @@ protected:
 		int m_BottomLeftY;
 		int m_Width;
 		int m_Height;
-		int m_AlignmentH;
-		int m_AlignmentV;
 		int m_MinGap;
 		int m_MaxGap;
 		int m_Gap;
@@ -54,7 +51,7 @@ protected:
 		bool m_IncSizeAllowed;
 		float m_WHRatio;
 
-		TLayoutBox(float x, float y, int minGap, int maxGap, int maxWidth, int maxHeight, float whRatio, bool incSize, int alignH, int alignV) :
+		TLayoutBox(float x, float y, int minGap, int maxGap, int maxWidth, int maxHeight, float whRatio, bool incSize) :
 			m_BottomLeftX(x), 
 			m_BottomLeftY(y), 
 			m_Width(maxWidth), 
@@ -65,9 +62,7 @@ protected:
 			m_MaxHeight(maxHeight),
 			m_WHRatio(whRatio),
 			m_Gap(0),
-			m_IncSizeAllowed(incSize),
-			m_AlignmentH(alignH),
-			m_AlignmentV(alignV)
+			m_IncSizeAllowed(incSize)
 		{}
 	};
 
