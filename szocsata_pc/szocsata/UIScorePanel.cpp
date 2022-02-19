@@ -3,13 +3,14 @@
 #include "GameManager.h"
 #include "UIText.h"
 
-#define SizeMul 0.04f; //TODO config
 
-
-CUIScorePanel::CUIScorePanel(CUIElement* parent, CGameManager* gameManager, const wchar_t* id, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridColorData, int x, int y, int w, int h, int vx, int vy, const char* textureID, float tx, float ty) :
+CUIScorePanel::CUIScorePanel(CUIElement* parent, CGameManager* gameManager, float textSize, float maxHeight, const wchar_t* id, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridColorData, int x, int y, int w, int h, int vx, int vy, const char* textureID, float tx, float ty) :
 	CUIPanel(parent, id, positionData, colorData, gridColorData, x, y, w, h, vx, vy, textureID, 0.f, 0.f),
+	m_TextSize(textSize),
+	m_MaxHeight(maxHeight),
 	m_GameManager(gameManager)
 {
+	m_KeepAspect = false;
 }
 
 void CUIScorePanel::ResizeElement(float widthPercent, float heightPercent) 
@@ -17,8 +18,7 @@ void CUIScorePanel::ResizeElement(float widthPercent, float heightPercent)
 	float MaxTextWidth = -1;
 	float MaxTextHeight = -1;
 
-	CUIElement* PlayerName = GetChild(L"ui_player_score_name_0");
-	float TextSize = PlayerName->GetHeight();
+	m_TextSize /= heightPercent;
 
 	size_t Idx = 0;
 	std::wstring Name;
@@ -30,10 +30,10 @@ void CUIScorePanel::ResizeElement(float widthPercent, float heightPercent)
 		std::wstringstream ScoreStrStream;
 		ScoreStrStream << Score;
 
-		float TextWidth = CUIText::GetTextWidthInPixels(Name.c_str(), TextSize);
+		float TextWidth = CUIText::GetTextWidthInPixels(Name.c_str(), m_TextSize);
 
-		glm::vec2 NameTopBottom = CUIText::GetTextTopBottom(Name.c_str(), TextSize);
-		glm::vec2 ScoreTopBottom = CUIText::GetTextTopBottom(ScoreStrStream.str(), TextSize);
+		glm::vec2 NameTopBottom = CUIText::GetTextTopBottom(Name.c_str(), m_TextSize);
+		glm::vec2 ScoreTopBottom = CUIText::GetTextTopBottom(ScoreStrStream.str(), m_TextSize);
 
 		float TextHeight = std::fmaxf(NameTopBottom.x - NameTopBottom.y, ScoreTopBottom.x - ScoreTopBottom.y);
 
@@ -45,7 +45,7 @@ void CUIScorePanel::ResizeElement(float widthPercent, float heightPercent)
 	}
 
 	float ScoreGap = MaxTextWidth / 3.f;
-	float ScoreSize = CUIText::GetTextWidthInPixels(L"0", TextSize);
+	float ScoreSize = CUIText::GetTextWidthInPixels(L"0", m_TextSize);
 	float XPos = (m_Width - (MaxTextWidth + ScoreGap + ScoreSize)) / 2;
 	m_ScoreXPosition = XPos + MaxTextWidth + ScoreGap;
 
@@ -59,8 +59,6 @@ void CUIScorePanel::Update()
 	int Score;
 	glm::vec3 Color;
 
-	float TextSize = m_GameManager->m_SurfaceHeigh * SizeMul;
-
 	while (m_GameManager->GetPlayerProperties(Idx, Name, Score, Color))
 	{
 		std::wstringstream Id;
@@ -69,7 +67,7 @@ void CUIScorePanel::Update()
 		std::wstringstream PlayerScore;
 		PlayerScore << Score;
 
-		float ScoreWidth = CUIText::GetTextWidthInPixels(PlayerScore.str(), TextSize);
+		float ScoreWidth = CUIText::GetTextWidthInPixels(PlayerScore.str(), m_TextSize);
 
 		CUIText* ScoreText = static_cast<CUIText*>(GetChild(Id.str().c_str()));
 		glm::vec2 ScoreTextPos = ScoreText->GetPosition(false);
@@ -81,12 +79,9 @@ void CUIScorePanel::Update()
 
 void CUIScorePanel::Init()
 {
-
 	float MaxTextWidth = -1;
 	float MaxTextHeight = -1;
-
-	float TextSize = m_GameManager->m_SurfaceHeigh * SizeMul;
-	float ScoreSize = CUIText::GetTextWidthInPixels(L"0", TextSize);
+	float ScoreSize = CUIText::GetTextWidthInPixels(L"0", m_TextSize);
 
 	size_t Idx = 0;
 	std::wstring Name;
@@ -98,10 +93,10 @@ void CUIScorePanel::Init()
 		std::wstringstream ScoreStrStream;
 		ScoreStrStream << Score;
 
-		float TextWidth = CUIText::GetTextWidthInPixels(Name.c_str(), TextSize);
+		float TextWidth = CUIText::GetTextWidthInPixels(Name.c_str(), m_TextSize);
 
-		glm::vec2 NameTopBottom = CUIText::GetTextTopBottom(Name.c_str(), TextSize);
-		glm::vec2 ScoreTopBottom = CUIText::GetTextTopBottom(ScoreStrStream.str(), TextSize);
+		glm::vec2 NameTopBottom = CUIText::GetTextTopBottom(Name.c_str(), m_TextSize);
+		glm::vec2 ScoreTopBottom = CUIText::GetTextTopBottom(ScoreStrStream.str(), m_TextSize);
 		
 		float TextHeight = std::fmaxf(NameTopBottom.x - NameTopBottom.y, ScoreTopBottom.x - ScoreTopBottom.y);
 
@@ -120,12 +115,8 @@ void CUIScorePanel::Init()
 	float Padding = 2 * IconSize;
 	float PanelWidth = MaxTextWidth + ScoreGap + ScoreSize + 2 * Padding;
 
-	CUIElement* PlayerLetterPanel = m_Parent->GetChild(L"ui_player_letter_panel");
-	CUIElement* OKBtn = m_Parent->GetChild(L"ui_ok_btn");
-
-	float h = OKBtn->GetPosition(false).y - (PlayerLetterPanel->GetPosition(false).y + PlayerLetterPanel->GetHeight());
-	
-	SetPosAndSize(m_Parent->GetWidth() - PanelWidth, OKBtn->GetPosition(false).y - h / 2 - PanelHeight / 2, PanelWidth, PanelHeight, false);
+	m_Width = PanelWidth;
+	m_Height = PanelHeight;
 
 	Idx = 0;
 
@@ -143,13 +134,13 @@ void CUIScorePanel::Init()
 
 		ScoreStrStream << Score;
 
-		glm::vec2 NameTopBottom = CUIText::GetTextTopBottom(Name, TextSize);
-		glm::vec2 ScoreTopBottom = CUIText::GetTextTopBottom(ScoreStrStream.str(), TextSize);
+		glm::vec2 NameTopBottom = CUIText::GetTextTopBottom(Name, m_TextSize);
+		glm::vec2 ScoreTopBottom = CUIText::GetTextTopBottom(ScoreStrStream.str(), m_TextSize);
 
 		float MaxNameScoreHeight = std::fmaxf(NameTopBottom.x - NameTopBottom.y, ScoreTopBottom.x - ScoreTopBottom.y);
 
 		Id << L"ui_player_score_name_" << Idx;
-		AddText(Name.c_str(), 0, 0, TextSize, "font.bmp", Id.str().c_str());
+		AddText(Name.c_str(), 0, 0, m_TextSize, "font.bmp", Id.str().c_str());
 		CUIElement* PlayerName = m_Children.back();
 		PlayerName->SetPosAndSize(XPos, YPos - NameTopBottom.y - (MaxTextHeight - MaxNameScoreHeight) / 2, PlayerName->GetWidth(), PlayerName->GetHeight(), false);
 
@@ -165,7 +156,7 @@ void CUIScorePanel::Init()
 		Id.str(L"");
 		Id.clear();
 		Id << L"ui_player_score_score_" << Idx;
-		AddText(L"", 0, 0, TextSize, "font.bmp", Id.str().c_str());
+		AddText(L"", 0, 0, m_TextSize, "font.bmp", Id.str().c_str());
 		m_Children.back()->SetPosAndSize(m_ScoreXPosition, YPos - NameTopBottom.y - (MaxTextHeight - MaxNameScoreHeight) / 2, m_Children.back()->GetWidth(), m_Children.back()->GetHeight(), false);
 		
 		YPos -= VertGap;

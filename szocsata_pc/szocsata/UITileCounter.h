@@ -13,6 +13,8 @@ public:
 	void SetCounter();
 	void SetPositionAndSize(float x, float y, float w, float h);
 
+	void ResizeElement(float widthPercent, float heightPercent) override;
+
 	int GetCount() {return m_Count;}
 
 private:

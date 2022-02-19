@@ -49,6 +49,8 @@ public:
 
 	float GetHeight() { return m_Height; }
 	float GetWidth() { return m_Width; }
+	void SetWidth(float w) { m_Width = w; }
+	void SetHeight(float h) { m_Height = h; }
 
 	glm::vec2 GetTexturePos() {	return m_TexturePosition;}
 	glm::vec2 GetTexturePos(size_t idx) { return m_Children[idx]->GetTexturePos();}
@@ -68,13 +70,20 @@ public:
 	bool IsEnabled() { return m_Enabled; }
 	void SetCheckChildEvent(bool b) { m_CheckChildEvents = b; }
 	void SetModifyColor(glm::vec4 modColor) {m_TextureModColor = modColor;}
+	void SetKeepAspect(bool keep) {m_KeepAspect = keep;}
 	int GetVisibleElemCount();
-	void Resize(float newSize, bool widthSize, int depth = 0);
+	void Resize(float newWidth, float newHeight, int depth = 0);
 
 	virtual void Render(CRenderer* renderer);
 	virtual bool HandleEventAtPos(int x, int y, EEventType event, CUIElement* root = nullptr, bool checkChildren = true, bool selfCheck = true);
 
-	virtual void AlignChildren() {}
+	virtual void AlignChildren() 
+	{
+		for (size_t i = 0; i < m_Children.size(); ++i)
+		{
+			m_Children[i]->AlignChildren();
+		}
+	}
 
 protected:
 
@@ -87,6 +96,8 @@ private:
 	void RenderInner(CRenderer* renderer, int& elemIdx, int& colorBufferID, int& textureOffset, int elemCount = 0);
 
 protected:
+	
+	const float m_MinResizeDif = 4.f;
 
 	CUIElement* m_Parent = nullptr;
 	CModel* m_Model = nullptr;
@@ -101,6 +112,7 @@ protected:
 	int m_Height;
 	bool m_Visible = true;
 	bool m_Enabled = true;
+	bool m_KeepAspect = true;
 	
 	bool m_CheckChildEvents = true;
 

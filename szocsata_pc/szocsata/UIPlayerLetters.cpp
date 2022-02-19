@@ -9,12 +9,13 @@
 #include "Renderer.h"
 
 
-CUIPlayerLetters::CUIPlayerLetters(CGameManager* gameManager, CUIManager* uiManager, CPlayer* player, CUIElement* parent, const wchar_t* id) :
-	CUIElement(parent, id, nullptr, 0, 0, 0, 0, 0, 0, 0, 0),
+CUIPlayerLetters::CUIPlayerLetters(CGameManager* gameManager, CUIManager* uiManager, CPlayer* player, CUIElement* parent, float x, float y, float w, float h, int vx, int vy, int letterCount, const wchar_t* id) :
+	CGridLayout(x, y, w, h, vx, vy, 20, 60, parent, id, letterCount),
 	m_GameManager(gameManager),
 	m_UIManager(uiManager),
 	m_Player(player)
 {
+	SetPosAndSize(x, y, w, h);
 	InitLetterTexPositions();
 }
 
@@ -65,7 +66,6 @@ void CUIPlayerLetters::OrderLetterElements()
 	}
 }
 
-
 void CUIPlayerLetters::InitLetterElements(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, float ViewPosX, float ViewPosY)
 {
 	m_PositionData = positionData;
@@ -88,7 +88,7 @@ void CUIPlayerLetters::AddUILetters(unsigned count)
 	for (unsigned i = 0; i < count; ++i)
 	{
 		CUIElement* NewLetter;
-		AddChild(NewLetter = new CUIButton(nullptr, m_PositionData, m_ColorData, 0, 0, 0, 0, m_ViewPosX, m_ViewPosY, "playerletters.bmp", L""));
+		NewLetter = new CUIButton(this, m_PositionData, m_ColorData, 0, 0, 100, 100, m_ViewPosX, m_ViewPosY, "playerletters.bmp", L"");
 		NewLetter->SetEvent(false, m_GameManager, &CGameManager::PlayerLetterReleased, std::move(i));
 	}
 }

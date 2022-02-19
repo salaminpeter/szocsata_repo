@@ -4,94 +4,95 @@
 #include <cmath>
 
 
-void CGridLayout::AllignGrid(int gridCount, bool recalcGridSize, bool useGapToEdge)
+void CGridLayout::AlignChildren()
 {
-	m_GridPositions.clear();
-	m_GridPositions.reserve(gridCount);
+	int ElemCount = m_LayoutBoxes.size();
+	int RowCount = 1;
+	int BestRowCount = 0;
+	float MinGridSize = m_Height;
+	float MinGridGap = MinGridSize / 4;
+	float GridSize = 0.f;
+	float MaxArea = 0.f;
+	bool AllignmentFound = false;
 
-	if (recalcGridSize)
+	//calculate best row count, grid size, and gaps
+	while (true)
 	{
-		int RowCount = 1;
-		int GridsInRow;
-		int BestRowCount = 0;
-		float BestSize = 0.f;
-		float MaxArea = 0.f;
-		bool AllignmentFound = false;
-
 		while (true)
 		{
-			while (true)
-			{
-				if (RowCount * m_MinGridSize + (RowCount + 1) * m_MinGridGap > m_Height)
-					break;
-
-				int MaxGridOnRow = gridCount / RowCount + (gridCount % RowCount ? 1 : 0);
-				int VGapCount = useGapToEdge ? (RowCount + 1) : (RowCount > 1 ? RowCount - 1 : 0);
-				int HGapCount = useGapToEdge ? (MaxGridOnRow + 1) : (MaxGridOnRow > 1 ? MaxGridOnRow - 1 : 0);
-				float MaxVSize = (m_Height - VGapCount * m_MinGridGap) / float(RowCount);
-				float MaxHSize = (m_Width - HGapCount * m_MinGridGap) / float(MaxGridOnRow);
-			
-				if (MaxHSize > m_MinGridSize)
-				{
-					float Size = std::fmin(MaxVSize, MaxHSize);
-			
-					if (MaxArea < Size * Size * gridCount)
-					{
-						MaxArea = Size * Size * gridCount;
-						BestSize = Size;
-						BestRowCount = RowCount;
-						AllignmentFound = true;
-					}
-				}
-
-				RowCount++;
-			}
-
-			if (AllignmentFound)
+			if (RowCount * MinGridSize + (RowCount + 1) * MinGridGap > m_Height)
 				break;
 
-			m_MinGridSize *= 0.8f;
-			m_MinGridGap *= 0.8f;
+			int MaxGridOnRow = ElemCount / RowCount + (ElemCount % RowCount ? 1 : 0);
+			int VGapCount = RowCount > 1 ? RowCount - 1 : 0;
+			int HGapCount = MaxGridOnRow > 1 ? MaxGridOnRow - 1 : 0;
+			float MaxVSize = (m_Height - VGapCount * MinGridGap) / float(RowCount);
+			float MaxHSize = (m_Width - HGapCount * MinGridGap) / float(MaxGridOnRow);
 
+			if (MaxHSize > MinGridSize)
+			{
+				float Size = std::fmin(MaxVSize, MaxHSize);
 
+				if (MaxArea < Size * Size * ElemCount)
+				{
+					MaxArea = Size * Size * ElemCount;
+					GridSize = Size;
+					BestRowCount = RowCount;
+					AllignmentFound = true;
+				}
+			}
+
+			RowCount++;
 		}
 
-		m_RowCount = BestRowCount;
-		m_GridSize = BestSize;
-		m_GridsInRow = gridCount / m_RowCount + (gridCount % m_RowCount ? 1 : 0);
-		m_GridGapHoriz = (m_Width - m_GridsInRow * m_GridSize) / (m_GridsInRow + 1.f);
-		m_GridGapVert = (m_Height - m_RowCount * m_GridSize) / (m_RowCount + 1.f);
+		if (AllignmentFound)
+			break;
+
+		MinGridSize *= 0.9f;
+		MinGridGap *= 0.9f;
 	}
 
-	float XPos = m_XPosition + (useGapToEdge ? m_GridGapHoriz : 0);
-	float YPos = m_YPosition + (useGapToEdge ? m_GridGapVert : 0);
-	float LastRowGrids = gridCount % m_GridsInRow;
-	float LastRowOffset = (m_Width - (LastRowGrids  * m_GridSize + (LastRowGrids + 1) * m_GridGapHoriz)) / 2.f;
+	int GridsInRow = ElemCount / BestRowCount + (ElemCount % BestRowCount ? 1 : 0);
+	float GridGapHoriz = (m_Width - GridsInRow * GridSize) / (GridsInRow + 1.f);
+	float GridGapVert = (m_Height - BestRowCount * GridSize) / (BestRowCount + 1.f);
 
-	for (int i = 0; i < gridCount; ++i)
+	//position layout boxes
+	float XPos = GridGapHoriz;
+	float YPos = GridGapVert;
+	float LastRowGrids = ElemCount % GridsInRow;
+	float LastRowOffset = (m_Width - (LastRowGrids  * GridSize + (LastRowGrids + 1) * GridGapHoriz)) / 2.f;
+
+	for (int i = 0; i < ElemCount; ++i)
 	{
-		if (i != 0 && (i % m_GridsInRow) == 0)
-		{ 
-			XPos = m_XPosition + m_GridGapHoriz;
-			YPos += m_GridGapVert + m_GridSize;
+		if (i != 0 && (i % GridsInRow) == 0)
+		{
+			XPos = GridGapHoriz;
+			YPos += GridGapVert + GridSize;
 		}
 
 		float RowOffset = 0.f;
 
-		if (gridCount % m_GridsInRow &&  gridCount - i < m_GridsInRow)
+		if (ElemCount % GridsInRow &&  ElemCount - i < GridsInRow)
 			RowOffset = LastRowOffset;
 
-		m_GridPositions.emplace_back(XPos + RowOffset, XPos + RowOffset + m_GridSize, YPos, YPos + m_GridSize);
+		m_LayoutBoxes[i].m_BottomLeftX = XPos + RowOffset;
+		m_LayoutBoxes[i].m_BottomLeftY = YPos;
+		m_LayoutBoxes[i].m_Width = GridSize;
+		m_LayoutBoxes[i].m_Height = GridSize;
 
-		XPos += m_GridGapHoriz + m_GridSize;
+		XPos += GridGapHoriz + GridSize;
 	}
+
+	LayoutChildren();
 }
 
 int CGridLayout::GetGridIdxAtPos(int x, int y)
 {
-	for (size_t i = 0; i < m_GridPositions.size(); ++i)
+	for (size_t i = 0; i < m_LayoutBoxes.size(); ++i)
 	{
-		if (x > m_GridPositions[i].m_Left && x < m_GridPositions[i].m_Right && y < m_GridPositions[i].m_Bottom && y > m_GridPositions[i].m_Top)
+		float GridSize = m_LayoutBoxes[i].m_Width;
+		
+		if (x > m_LayoutBoxes[i].m_BottomLeftX && x < m_LayoutBoxes[i].m_BottomLeftX + GridSize && y < m_LayoutBoxes[i].m_BottomLeftY + GridSize && y > m_LayoutBoxes[i].m_BottomLeftY)
 			return i;
 	}
 
@@ -100,8 +101,8 @@ int CGridLayout::GetGridIdxAtPos(int x, int y)
 
 float CGridLayout::GetElemSize()
 {
-	if (!m_GridPositions.size())
+	if (m_LayoutBoxes.size() == 0)
 		return -1;
 
-	return m_GridPositions[0].m_Right - m_GridPositions[0].m_Left;
+	return m_LayoutBoxes[0].m_Width;
 }

@@ -16,17 +16,14 @@ void CUILayout::LayoutChildren()
 		}
 
 		m_Children[i]->AlignChildren();
-
-		if ((m_LayoutBoxes[i].m_IncSizeAllowed && (m_Children[i]->GetWidth() < m_LayoutBoxes[i].m_Width || m_Children[i]->GetHeight() < m_LayoutBoxes[i].m_Height)) 
-											   || (m_Children[i]->GetWidth() > m_LayoutBoxes[i].m_Width || m_Children[i]->GetHeight() > m_LayoutBoxes[i].m_Height))
-		{
-			if (m_LayoutBoxes[i].m_Width > m_LayoutBoxes[i].m_Height)
-				m_Children[i]->Resize(m_LayoutBoxes[i].m_Width, true);
-			else
-				m_Children[i]->Resize(m_LayoutBoxes[i].m_Height, false);
-		}
-
 		m_Children[i]->SetPosition(m_LayoutBoxes[i].m_BottomLeftX, m_LayoutBoxes[i].m_BottomLeftY, false);
+
+		float WidthDiff = m_Children[i]->GetWidth() - m_LayoutBoxes[i].m_Width;
+		float HeightDiff = m_Children[i]->GetHeight() - m_LayoutBoxes[i].m_Height;
+
+		//resize element if needed
+		if ((m_LayoutBoxes[i].m_IncSizeAllowed && (WidthDiff < -1.f || HeightDiff < -1.f)) || (WidthDiff > 1.f || HeightDiff > 1.f))
+			m_Children[i]->Resize(m_LayoutBoxes[i].m_Width, m_LayoutBoxes[i].m_Height);
 	}
 
 	m_LayoutDone = true;
@@ -94,6 +91,14 @@ void CUILayout::AdjustToLayer()
 
 	PositionLayoutBoxes();
 	LayoutChildren();
+}
+
+void CUILayout::SetBoxWHRatio(size_t idx, float whRatio)
+{
+	if (idx >= m_LayoutBoxes.size())
+		return;
+
+	m_LayoutBoxes[idx].m_WHRatio = whRatio;
 }
 
 
@@ -165,7 +170,7 @@ float CUILayout::GetMaxHeight()
 
 	for (size_t i = 0; i < m_LayoutBoxes.size() - 1; ++i)
 		if (m_LayoutBoxes[i].m_Height > MaxHeight)
-			MaxHeight = m_LayoutBoxes[i].m_Width;
+			MaxHeight = m_LayoutBoxes[i].m_Height;
 
 	return MaxHeight;
 }
@@ -190,4 +195,18 @@ void CUILayout::SetAdjustToLayer(CUILayout* layer)
 void CUILayout::AddLayerToAdjust(CUILayout* layer)
 {
 	m_LayersToAdjust.push_back(layer);
+}
+
+void CUILayout::ResizeElement(float widthPercent, float heightPercent)
+{
+	for (size_t i = 0; i < m_LayoutBoxes.size() - 1; ++i)
+	{
+		m_LayoutBoxes[i].m_Width *= widthPercent;
+		m_LayoutBoxes[i].m_MaxWidth *= widthPercent;
+		m_LayoutBoxes[i].m_Height *= heightPercent;
+		m_LayoutBoxes[i].m_MaxHeight *= heightPercent;
+		m_LayoutBoxes[i].m_WHRatio = float(m_LayoutBoxes[i].m_Width) / float(m_LayoutBoxes[i].m_Height);
+	}
+
+	AlignChildren();
 }

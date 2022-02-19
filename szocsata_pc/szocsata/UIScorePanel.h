@@ -8,7 +8,7 @@ class CUIScorePanel : public CUIPanel
 {
 public:
 
-	CUIScorePanel(CUIElement* parent, CGameManager* gameManager, const wchar_t* id, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridColorData, int x, int y, int w, int h, int vx, int vy, const char* textureID, float tx, float ty);
+	CUIScorePanel(CUIElement* parent, CGameManager* gameManager, float textSize, float maxHeight, const wchar_t* id, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridColorData, int x, int y, int w, int h, int vx, int vy, const char* textureID, float tx, float ty);
 
 	void Update();
 	void Init();
@@ -20,5 +20,7 @@ protected:
 private:
 
 	CGameManager* m_GameManager;
+	float m_TextSize;
+	float m_MaxHeight;
 	float m_ScoreXPosition;
 };

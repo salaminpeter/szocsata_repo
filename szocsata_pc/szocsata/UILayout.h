@@ -9,16 +9,23 @@ public:
 
 	CUILayout(float x, float y, float w, float h, int vx, int vy, CUIElement* parent, const wchar_t* id, int elemCount, float whRatio = 1.f, int minGap = 0.f, int maxGap = 0.f, int maxW = 0.f, int maxH = 0.f) :
 		CUIElement(parent, id, new CModel(false, 0, nullptr, nullptr), x, y, w, h, vx, vy, 0.f, 0.f)
-	{}
+	{
+		m_KeepAspect = false;
+	}
 
 	void SetBoxGapProps(size_t idx, int minGap, int maxGap);
 	void SetBoxSizeProps(size_t idx, int maxWidth, int maxHeight, bool incSize);
+	void SetBoxWHRatio(size_t idx, float whRatio);
 
 	bool GetBoxProperties(size_t idx, int& x, int& y, int& w, int& h, int& minGap, int& maxGap, int& gap, int& maxW, int& maxH, bool& inc, float& whRatio);
 
 	void SetAdjustToLayer(CUILayout* layer);
 	void AddLayerToAdjust(CUILayout* layer);
 	void AdjustToLayer();
+
+	void ResizeElement(float widthPercent, float heightPercent) override;
+
+	glm::ivec2 GetLayoutBoxPosition(unsigned idx) const { return glm::ivec2(m_LayoutBoxes[idx].m_BottomLeftX, m_LayoutBoxes[idx].m_BottomLeftY);}
 
 protected:
 

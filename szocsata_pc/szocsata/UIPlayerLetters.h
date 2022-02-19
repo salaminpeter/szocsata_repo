@@ -1,6 +1,6 @@
 #pragma once
 
-#include "UIElement.h"
+#include "GridLayout.h"
 #include "BinaryBoolList.h"
 
 #include <map>
@@ -12,11 +12,11 @@ class CGameManager;
 class CUIManager;
 class CPlayer;
 
-class CUIPlayerLetters : public CUIElement
+class CUIPlayerLetters : public CGridLayout
 {
 public:
 	
-	CUIPlayerLetters(CGameManager* gameManager, CUIManager* uiManager, CPlayer* player, CUIElement* parent, const wchar_t* id);
+	CUIPlayerLetters(CGameManager* gameManager, CUIManager* uiManager, CPlayer* player, CUIElement* parent, float x, float y, float w, float h, int vx, int vy, int letterCount, const wchar_t* id);
 
 	void InitLetterTexPositions();
 	std::map<wchar_t, glm::vec2> m_LetterTexPos; //TODO ez ne legyen 100 helyen letrehozva!!!!

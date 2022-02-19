@@ -1,46 +1,37 @@
 #pragma once
 
+#include "UILayout.h"
+
 #include <vector>
 #include <glm/glm.hpp>
 
 
-class CGridLayout
+class CGridLayout : public CUILayout
 {
 public:
 
-	struct TGridPosition
+	CGridLayout(float x, float y, float w, float h, int vx, int vy, float minGap, float minSize, CUIElement* parent, const wchar_t* id, int elemCount) :
+		CUILayout(x, y, w, h, vx, vy, parent, id, elemCount), 
+		m_MinGridGap(minGap), 
+		m_MinGridSize(minSize)
 	{
-		float m_Left;
-		float m_Right;
-		float m_Top;
-		float m_Bottom;
+		m_LayoutBoxes.reserve(elemCount);
+		m_LayoutBoxes.insert(m_LayoutBoxes.end(), elemCount, TLayoutBox(0, 0, 0, 0, 0, 0, 1.f, true));
+	}
 
-		TGridPosition(float left, float right, float top, float bottom) : m_Left(left), m_Right(right), m_Top(top), m_Bottom(bottom) {}
-	};
 
-	CGridLayout(int x, int y, int width, int height, float minGap, float minSize) : m_XPosition(x), m_YPosition(y), m_Width(width), m_Height(height), m_MinGridGap(minGap), m_MinGridSize(minSize) {}
-
-	void AllignGrid(int gridCount, bool recalcGridSize, bool useGapToEdge = true);
 	int GetGridIdxAtPos(int x, int y);
 	float GetElemSize();
 
-	const TGridPosition& GetGridPosition(unsigned idx) const {return m_GridPositions[idx];}
-	int GridCount() {return m_GridPositions.size();}
-	glm::vec2 GetPosition() {return glm::vec2(m_XPosition, m_YPosition);}
+	virtual void AlignChildren() override;
 
 private:
 
-	int m_XPosition;
-	int m_YPosition;
-	int m_Width;
-	int m_Height;
-	int m_RowCount;
 	int m_GridsInRow;
-	float m_MinGridGap;
-	float m_MinGridSize;
 	float m_GridGapHoriz = 0.f;
 	float m_GridGapVert = 0.f;
 	float m_GridSize = 0.f;
-
-	std::vector<TGridPosition> m_GridPositions;
+	int m_RowCount;
+	float m_MinGridGap;
+	float m_MinGridSize;
 };

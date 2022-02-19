@@ -69,21 +69,36 @@ glm::vec2 CUIElement::GetAbsolutePosition()
 	return AbsPos;
 }
 
-void CUIElement::Resize(float newSize, bool widthSize, int depth)
+void CUIElement::Resize(float newWidth, float newHeight, int depth)
 {
 	if (m_Width == 0 || m_Height == 0)
 		return;
 
-	float WidthPercent = widthSize ? newSize / m_Width : ((float(m_Width) / float(m_Height)) * newSize) / m_Height;
-	float HeightPercent = widthSize ? ((float(m_Height) / float(m_Width)) * newSize) / m_Height : newSize / m_Height;
+	if (m_KeepAspect)
+	{
+		float ResizedHeight = (float(m_Height) / float(m_Width)) * newWidth;
+		float ResizedWidth = newWidth;
+
+		if (ResizedHeight > newHeight)
+		{
+			ResizedHeight = newHeight;
+			ResizedWidth = (float(m_Width) / float(m_Height)) * newHeight;
+		}
+				
+		newWidth = ResizedWidth;
+		newHeight = ResizedHeight;
+	}
+
+	float WidthPercent = newWidth / m_Width;
+	float HeightPercent = newHeight / m_Height;
 
 	float NewXPos = m_Parent && depth != 0 ? m_XPosition * WidthPercent : m_XPosition;
 	float NewYPos = m_Parent && depth != 0 ? m_YPosition * HeightPercent : m_YPosition;
 
-	SetPosAndSize(NewXPos, NewYPos, m_Width * WidthPercent, m_Height * HeightPercent);
+	SetPosAndSize(NewXPos, NewYPos, newWidth, newHeight);
 
 	for (size_t i = 0; i < m_Children.size(); ++i)
-		m_Children[i]->Resize(m_Children[i]->GetWidth() * WidthPercent, true, depth + 1);
+		m_Children[i]->Resize(m_Children[i]->GetWidth() * WidthPercent, m_Children[i]->GetHeight() * HeightPercent, depth + 1);
 
 	ResizeElement(WidthPercent, HeightPercent);
 }

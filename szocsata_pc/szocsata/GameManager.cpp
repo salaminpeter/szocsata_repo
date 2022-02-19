@@ -50,7 +50,6 @@ void CGameManager::AddPlayers(int playerCount, bool addComputer)
 		m_Players.back()->SetColor(PlayerColors[i].r, PlayerColors[i].g, PlayerColors[i].b);
 		m_LetterPool.DealLetters(m_Players.back()->GetLetters());
 		m_UIManager->AddPlayerLetters(m_Players.back(), m_Renderer->GetSquarePositionData(), m_Renderer->GetSquareColorGridData8x4());
-		m_UIManager->PositionPlayerLetters(m_Players.back()->GetName().c_str());
 		m_UIManager->GetPlayerLetters(m_Players.back()->GetName().c_str())->ShowLetters(false);
 	}
 
@@ -62,7 +61,6 @@ void CGameManager::AddPlayers(int playerCount, bool addComputer)
 		m_Players.push_back(m_Computer);
 		//TODO ezeket a uimanageres fuggvenyeket osszevonni egybe a uimanagerben
 		m_UIManager->AddPlayerLetters(m_Players.back(), m_Renderer->GetSquarePositionData(), m_Renderer->GetSquareColorGridData8x4());
-		m_UIManager->PositionPlayerLetters(m_Players.back()->GetName().c_str());
 		m_UIManager->GetPlayerLetters(m_Players.back()->GetName().c_str())->ShowLetters(false);
 	}
 
@@ -107,6 +105,7 @@ void CGameManager::SetTileCount()
 	CConfig::AddConfig("tile_count", TileCount);
 }
 
+#include "UIRowColLayout.h"
 
 void CGameManager::InitBasedOnTileCount()
 {
@@ -118,11 +117,11 @@ void CGameManager::InitBasedOnTileCount()
 	CompGameBoard.SetSize(TileCount);
 
 	InitLetterPool();
-	m_UIManager->CreateLayouts();
-	m_UIManager->PositionGameButtons();
-	m_UIManager->PositionLetterPanel();
+	m_UIManager->InitGameScreen(m_Renderer->GetSquarePositionData(), m_Renderer->GetSquareColorData(), m_Renderer->GetSquareColorGridData16x6());
 	InitPlayers();
-	PositionUIElements();
+	
+	((CUIHorizontalLayout*)(m_UIManager->GetUIElement(L"ui_game_screen_sub_layout3")))->SetBoxSizeProps(0, m_UIManager->GetScorePanelSize().x, m_UIManager->GetScorePanelSize().y, false);
+	m_UIManager->GetUIElement(L"ui_game_screen_main_layout")->AlignChildren();
 }
 
 void CGameManager::InitPlayers()
@@ -540,7 +539,6 @@ void CGameManager::DealCurrPlayerLetters()
 	m_CurrentPlayer->GetLetters().erase(remove(m_CurrentPlayer->GetLetters().begin(), m_CurrentPlayer->GetLetters().end(), ' '), m_CurrentPlayer->GetLetters().end());
 	PlayerLetters->SetLetters();
 
-	m_UIManager->PositionPlayerLetters(m_CurrentPlayer->GetName().c_str());
 	PlayerLetters->OrderLetterElements();
 
 	if (LetterPoolEmpty)
