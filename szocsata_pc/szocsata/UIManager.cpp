@@ -524,6 +524,7 @@ void CUIManager::InitUIElements(std::shared_ptr<CSquarePositionData> positionDat
 	m_RootDraggedLetterScreen = new CUIElement(nullptr, L"ui_dragged_letter_root", nullptr, 0.f, 0.f, m_GameManager->m_SurfaceWidth, m_GameManager->m_SurfaceHeigh, ViewPos.x, ViewPos.y, 0.f, 0.f);
 
 	Button = AddButton(m_RootDraggedLetterScreen, positionData, gridcolorData8x4, 0, 0, 0, 0, "view_ortho", "playerletters.bmp", L"ui_dragged_player_letter_btn", "textured");
+	Button->SetModifyColor(glm::vec4(1, 1, 1, 0.5));
 	Button->SetVisible(false);
 
 	//end screen ui elements
@@ -614,10 +615,9 @@ bool CUIManager::ComputerOpponentEnabled()
 
 float CUIManager::GetLetterSize()
 {
-// TODO !!!!! a icontextbutton nak  kell egy olyan tulajdonsag hogy kesobb is lehessen inicializalni
-// a mereteket, igy az tilecounter elemnel eleg volna megadni a meretet mikor a letterlayout kiszamolja egy playerletter meretet
-//	return m_ButtonsLayout->GetElemSize();
-	return m_UIScreenPanel->GetHeight() / 4;
+// TODO igy eleg ocsmany lekerni a betumeretet
+	float Size = m_RootGameScreen->GetChild(L"ui_player_letter_panel")->GetChild(size_t(0))->GetChild(size_t(0))->GetWidth();
+	return Size;
 }
 
 int CUIManager::GetTimeLimit()
@@ -820,6 +820,8 @@ void CUIManager::SetDraggedPlayerLetter(bool letterDragged, unsigned letterIdx, 
 	float TexY = letterTexPos.y; 
 
 	CUIElement* DraggedPlayerLetter = m_RootDraggedLetterScreen->GetChild(L"ui_dragged_player_letter_btn");
+	DraggedPlayerLetter->SetWidth(GetLetterSize());
+	DraggedPlayerLetter->SetHeight(GetLetterSize());
 	DraggedPlayerLetter->Enable(!disable);
 	DraggedPlayerLetter->SetVisible(!disable && letterDragged);
 	DraggedPlayerLetter->SetTexturePosition(glm::vec2(TexX, TexY));

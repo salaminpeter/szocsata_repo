@@ -10,7 +10,7 @@ CUIScorePanel::CUIScorePanel(CUIElement* parent, CGameManager* gameManager, floa
 	m_MaxHeight(maxHeight),
 	m_GameManager(gameManager)
 {
-	m_KeepAspect = false;
+	//m_KeepAspect = false;
 }
 
 void CUIScorePanel::ResizeElement(float widthPercent, float heightPercent) 
@@ -18,7 +18,7 @@ void CUIScorePanel::ResizeElement(float widthPercent, float heightPercent)
 	float MaxTextWidth = -1;
 	float MaxTextHeight = -1;
 
-	m_TextSize /= heightPercent;
+	m_TextSize *= heightPercent;
 
 	size_t Idx = 0;
 	std::wstring Name;

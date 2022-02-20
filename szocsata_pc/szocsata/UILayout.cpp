@@ -199,12 +199,12 @@ void CUILayout::AddLayerToAdjust(CUILayout* layer)
 
 void CUILayout::ResizeElement(float widthPercent, float heightPercent)
 {
-	for (size_t i = 0; i < m_LayoutBoxes.size() - 1; ++i)
+	for (size_t i = 0; i < m_Children.size(); ++i)
 	{
-		m_LayoutBoxes[i].m_Width *= widthPercent;
-		m_LayoutBoxes[i].m_MaxWidth *= widthPercent;
-		m_LayoutBoxes[i].m_Height *= heightPercent;
-		m_LayoutBoxes[i].m_MaxHeight *= heightPercent;
+		m_LayoutBoxes[i].m_Width = m_Children[i]->GetWidth();
+		m_LayoutBoxes[i].m_MaxWidth = m_Children[i]->GetWidth();
+		m_LayoutBoxes[i].m_Height = m_Children[i]->GetHeight();
+		m_LayoutBoxes[i].m_MaxHeight = m_Children[i]->GetHeight();
 		m_LayoutBoxes[i].m_WHRatio = float(m_LayoutBoxes[i].m_Width) / float(m_LayoutBoxes[i].m_Height);
 	}
 
