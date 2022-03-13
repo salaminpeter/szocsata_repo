@@ -890,7 +890,10 @@ bool CRenderer::EndInit()
 	m_SelectionModel->SetParent(m_BoardModel);
 	CalculateScreenSpaceGrid();
 
-	m_TextureManager->GenerateTexturesAtGameStart(m_GameManager->GetScorePanelSize().x, m_GameManager->GetScorePanelSize().y, m_GameManager->GetLetterSize());
+	m_TextureManager->GenerateTexturesAtGameStart(m_GameManager->GetUIElementSize(L"ui_score_panel").x, m_GameManager->GetUIElementSize(L"ui_score_panel").y, m_GameManager->GetLetterSize());
+	m_TextureManager->GenerateCurrPlayerLogoTexture(m_GameManager->GetUIElementSize(L"ui_current_palyer_logo").x, m_GameManager->GetUIElementSize(L"ui_current_palyer_logo").y);
+	m_TextureManager->GenerateTileCounterTexture(m_GameManager->GetUIElementSize(L"ui_tile_counter").x);
+	m_TextureManager->GenerateLetterPanelTexture(m_GameManager->GetUIElementSize(L"ui_player_letter_panel").x, m_GameManager->GetUIElementSize(L"ui_player_letter_panel").y);
 
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
