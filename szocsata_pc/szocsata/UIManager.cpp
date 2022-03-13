@@ -330,12 +330,6 @@ void CUIManager::InitStartGameScreen(std::shared_ptr<CSquarePositionData> positi
 	SelectControl->AddOption(L"4");
 	SelectControl->SetIndex(0);
 
-	//computer player on/off
-	SelectControl = AddSelectControl(VerticalLayoutRight, positionData, colorData, gridcolorData8x8, 0, 0, SelectControlSize.x, SelectControlSize.y, "view_ortho", "selectioncontrol.bmp", L"ui_select_computer_opponent", L"gépi játékos");
-	SelectControl->AddOption(L"be");
-	SelectControl->AddOption(L"ki");
-	SelectControl->SetIndex(0);
-
 	//board size
 	SelectControl = AddSelectControl(VerticalLayoutLeft, positionData, colorData, gridcolorData8x8, 0, 0, SelectControlSize.x, SelectControlSize.y, "view_ortho", "selectioncontrol.bmp", L"ui_select_board_size", L"pálya méret");
 	SelectControl->AddOption(L"7-7");
@@ -343,14 +337,6 @@ void CUIManager::InitStartGameScreen(std::shared_ptr<CSquarePositionData> positi
 	SelectControl->AddOption(L"9-9");
 	SelectControl->AddOption(L"10-10");
 	SelectControl->SetIndex(2);
-
-	//difficulty
-	SelectControl = AddSelectControl(VerticalLayoutRight, positionData, colorData, gridcolorData8x8, 0, 0, SelectControlSize.x, SelectControlSize.y, "view_ortho", "selectioncontrol.bmp", L"ui_select_difficulty", L"nehézség");
-	SelectControl->AddOption(L"könnyű");
-	SelectControl->AddOption(L"normál");
-	SelectControl->AddOption(L"nehéz");
-	SelectControl->AddOption(L"lehetetlen");
-	SelectControl->SetIndex(1);
 
 	//countdown time
 	SelectControl = AddSelectControl(VerticalLayoutLeft, positionData, colorData, gridcolorData8x8, 0, 0, SelectControlSize.x, SelectControlSize.y, "view_ortho", "selectioncontrol.bmp", L"ui_select_time_limit", L"idő korlát");
@@ -367,9 +353,23 @@ void CUIManager::InitStartGameScreen(std::shared_ptr<CSquarePositionData> positi
 	SelectControl->AddOption(L"5:00");
 	SelectControl->SetIndex(0);
 
+	//computer player on/off
+	SelectControl = AddSelectControl(VerticalLayoutRight, positionData, colorData, gridcolorData8x8, 0, 0, SelectControlSize.x, SelectControlSize.y, "view_ortho", "selectioncontrol.bmp", L"ui_select_computer_opponent", L"gépi játékos");
+	SelectControl->AddOption(L"be");
+	SelectControl->AddOption(L"ki");
+	SelectControl->SetIndex(0);
+
+	//difficulty
+	SelectControl = AddSelectControl(VerticalLayoutRight, positionData, colorData, gridcolorData8x8, 0, 0, SelectControlSize.x, SelectControlSize.y, "view_ortho", "selectioncontrol.bmp", L"ui_select_difficulty", L"nehézség");
+	SelectControl->AddOption(L"könnyű");
+	SelectControl->AddOption(L"normál");
+	SelectControl->AddOption(L"nehéz");
+	SelectControl->AddOption(L"lehetetlen");
+	SelectControl->SetIndex(1);
+
 	//invisible elem for correct alignment
-	CUIPanel* Placeholder = new CUIPanel(VerticalLayoutLeft, L"ui_placeholder_btn", nullptr, nullptr, nullptr, 0, 0, SelectControlSize.x, SelectControlSize.y, ViewPos.x, ViewPos.y, "", 0, 0);
-	
+	CUIPanel* Placeholder = new CUIPanel(VerticalLayoutRight, L"ui_placeholder_btn", positionData, colorData, gridcolorData8x8, 0, 0, SelectControlSize.x, SelectControlSize.y, ViewPos.x, ViewPos.y, "selectioncontrol.bmp", 0, 0);
+	Placeholder->SetVisible(false);
 
 	//divider
 	CUIPanel* Divider = new CUIPanel(VerticalLayoutMid, L"ui_divider_start_game_screen", positionData, colorData, nullptr, 0, 0, 8, DividerSize, ViewPos.x, ViewPos.y, "solid_color_texture_generated", 0, 0);

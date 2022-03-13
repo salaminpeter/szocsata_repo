@@ -5,15 +5,6 @@ void CUILayout::LayoutChildren()
 {
 	for (size_t i = 0; i < m_Children.size(); ++i)
 	{
-		CUILayout* ChildLayout = m_Children[i]->m_IsLayout ? static_cast<CUILayout*>(m_Children[i]) : nullptr;
-
-		//layout applyed from an other layout, set only position
-		if (m_Children[i]->m_IsLayout && ChildLayout->IsAdjustedToLayout())
-		{
-			m_Children[i]->SetPosition(m_LayoutBoxes[i].m_BottomLeftX, m_LayoutBoxes[i].m_BottomLeftY, false);
-			continue;
-		}
-
 		m_Children[i]->AlignChildren();
 		m_Children[i]->SetPosition(m_LayoutBoxes[i].m_BottomLeftX, m_LayoutBoxes[i].m_BottomLeftY, false);
 
@@ -26,11 +17,6 @@ void CUILayout::LayoutChildren()
 	}
 
 	m_LayoutDone = true;
-
-	//adjust "child" layouts
-	for (size_t i = 0; i < m_LayersToAdjust.size(); ++i)
-		m_LayersToAdjust[i]->AdjustToLayer();
-
 }
 
 bool CUILayout::GetBoxProperties(size_t idx, int& x, int& y, int& w, int& h, int& minGap, int& maxGap, int& gap, int& maxW, int& maxH, bool& inc, float& whRatio)
@@ -49,47 +35,6 @@ bool CUILayout::GetBoxProperties(size_t idx, int& x, int& y, int& w, int& h, int
 	maxH = m_LayoutBoxes[idx].m_MaxHeight;
 	inc = m_LayoutBoxes[idx].m_IncSizeAllowed;
 	whRatio = m_LayoutBoxes[idx].m_WHRatio;
-}
-
-void CUILayout::AdjustToLayer()
-{
-	//if layout to be adjusted to has not been adjusted skip
-	//when layout will be adjusted, it will adjust this layout
-	if (!m_AdjustToLayer->IsLayoutDone())
-		return;
-
-	int x; 
-	int y; 
-	int w; 
-	int h; 
-	int minGap; 
-	int maxGap; 
-	int gap; 
-	int maxW; 
-	int maxH; 
-	bool inc; 
-	float whRatio;
-
-	for (size_t i = 0; i < m_LayoutBoxes.size(); ++i)
-	{
-		//ellenorizni hogy m_AdjustToLayer-ben van e eleg layoutbox i indexhez! TODO
-		m_AdjustToLayer->GetBoxProperties(i, x, y, w, h, minGap, maxGap, gap, maxW, maxH, inc, whRatio);
-
-		m_LayoutBoxes[i].m_BottomLeftX = x;
-		m_LayoutBoxes[i].m_BottomLeftY = y;
-		m_LayoutBoxes[i].m_Width = w;
-		m_LayoutBoxes[i].m_Height = h;
-		m_LayoutBoxes[i].m_MinGap = minGap;
-		m_LayoutBoxes[i].m_MaxGap = maxGap;
-		m_LayoutBoxes[i].m_Gap = gap;
-		m_LayoutBoxes[i].m_MaxWidth = maxW;
-		m_LayoutBoxes[i].m_MaxHeight = maxH;
-		m_LayoutBoxes[i].m_IncSizeAllowed = inc;
-		m_LayoutBoxes[i].m_WHRatio = whRatio;
-	}
-
-	PositionLayoutBoxes();
-	LayoutChildren();
 }
 
 void CUILayout::SetBoxWHRatio(size_t idx, float whRatio)
@@ -183,17 +128,6 @@ float CUILayout::GetMaxWidth()
 			MaxWidth = m_LayoutBoxes[i].m_Width;
 
 	return MaxWidth;
-}
-
-void CUILayout::SetAdjustToLayer(CUILayout* layer)
-{
-	m_AdjustToLayer = layer;
-	layer->AddLayerToAdjust(this);
-}
-
-void CUILayout::AddLayerToAdjust(CUILayout* layer)
-{
-	m_LayersToAdjust.push_back(layer);
 }
 
 void CUILayout::ResizeElement(float widthPercent, float heightPercent)

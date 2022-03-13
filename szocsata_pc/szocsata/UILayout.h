@@ -21,10 +21,6 @@ public:
 
 	bool GetBoxProperties(size_t idx, int& x, int& y, int& w, int& h, int& minGap, int& maxGap, int& gap, int& maxW, int& maxH, bool& inc, float& whRatio);
 
-	void SetAdjustToLayer(CUILayout* layer);
-	void AddLayerToAdjust(CUILayout* layer);
-	void AdjustToLayer();
-
 	void ResizeElement(float widthPercent, float heightPercent) override;
 
 	glm::ivec2 GetLayoutBoxPosition(unsigned idx) const { return glm::ivec2(m_LayoutBoxes[idx].m_BottomLeftX, m_LayoutBoxes[idx].m_BottomLeftY);}
@@ -40,7 +36,6 @@ protected:
 	float GetMaxHeight();
 
 	bool IsLayoutDone() { return m_LayoutDone; }
-	bool IsAdjustedToLayout() { return m_AdjustToLayer != nullptr; }
 
 	virtual void PositionLayoutBoxes() {}
 
@@ -76,9 +71,6 @@ protected:
 	};
 
 	std::vector<TLayoutBox> m_LayoutBoxes;	
-
-	CUILayout* m_AdjustToLayer = nullptr;
-	std::vector<CUILayout*> m_LayersToAdjust;
 
 	bool m_LayoutDone = false;
 };
