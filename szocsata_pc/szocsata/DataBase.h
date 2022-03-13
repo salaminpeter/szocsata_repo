@@ -15,6 +15,9 @@ public:
 	
 	CWordTree::TNode* GetWordTreeRoot(wchar_t c)
 	{
+		if (m_WordTrees.find(c) == m_WordTrees.end())
+			return nullptr;
+
 		return m_WordTrees[c]->Root();
 	}
 		
