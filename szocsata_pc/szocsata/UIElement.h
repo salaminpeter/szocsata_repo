@@ -76,14 +76,7 @@ public:
 
 	virtual void Render(CRenderer* renderer);
 	virtual bool HandleEventAtPos(int x, int y, EEventType event, CUIElement* root = nullptr, bool checkChildren = true, bool selfCheck = true);
-
-	virtual void AlignChildren() 
-	{
-		for (size_t i = 0; i < m_Children.size(); ++i)
-		{
-			m_Children[i]->AlignChildren();
-		}
-	}
+	virtual void AlignChildren(); 
 
 protected:
 
@@ -91,6 +84,7 @@ protected:
 
 public:
 	std::vector<CUIElement*> m_Children;
+	bool m_IsLayout = false;
 
 private:
 	void RenderInner(CRenderer* renderer, int& elemIdx, int& colorBufferID, int& textureOffset, int elemCount = 0);

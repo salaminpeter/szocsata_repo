@@ -176,9 +176,9 @@ float CGameManager::GetLetterSize()
 	return m_UIManager->GetLetterSize();
 }
 
-glm::ivec2 CGameManager::GetScorePanelSize()
+glm::ivec2 CGameManager::GetUIElementSize(const wchar_t* id)
 {
-	return m_UIManager->GetScorePanelSize();
+	return glm::ivec2(m_UIManager->GetUIElement(id)->GetWidth(), m_UIManager->GetUIElement(id)->GetHeight());
 }
 
 std::wstring CGameManager::GetTimeStr(int msec)
@@ -994,7 +994,7 @@ void CGameManager::InitUIManager()
 
 void CGameManager::MiddleInitRender()
 {
-	glm::vec2 BtnSize = m_UIManager->GetElemSize(L"ui_settings_game_btn");
+	glm::vec2 BtnSize = m_UIManager->GetElemSize(L"ui_new_game_btn");
 	glm::vec2 SelectSize = m_UIManager->GetElemSize(L"ui_select_control_panel");
 	
 	m_Renderer->MiddleInit(BtnSize.x, BtnSize.y, SelectSize.x, SelectSize.y);

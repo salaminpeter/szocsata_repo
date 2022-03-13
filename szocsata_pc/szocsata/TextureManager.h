@@ -16,6 +16,9 @@ public:
 	void GenerateTexturesAtGameStart(float scorePanelWidth, float scorePanelHeight, float letterSize);
 	void GenerateSelectControlTexture(float selectControlWidth, float selectControlHeight);
 	void GenerateStartBtnTexture(float btnWidth, float btnHeight);
+	void GenerateCurrPlayerLogoTexture(float width, float height);
+	void GenerateTileCounterTexture(float size);
+	void GenerateLetterPanelTexture(float width, float height);
 	bool IsCurrentTexture(const char* texId);
 
 	const CTexture* GetTexture(const char* textureID);

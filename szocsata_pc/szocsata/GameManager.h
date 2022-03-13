@@ -112,7 +112,7 @@ public:
 	bool IsGamePaused();
 	void SetGamePaused(bool paused);
 
-	glm::ivec2 GetScorePanelSize();
+	glm::ivec2 GetUIElementSize(const wchar_t* id);
 	float GetLetterSize();
 	std::wstring GetTimeStr(int msec);
 

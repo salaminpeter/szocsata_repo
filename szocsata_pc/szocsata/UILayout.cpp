@@ -5,11 +5,10 @@ void CUILayout::LayoutChildren()
 {
 	for (size_t i = 0; i < m_Children.size(); ++i)
 	{
-		CUILayout* ChildLayout = dynamic_cast<CUILayout*>(m_Children[i]);
-		bool IsChildALayout = ChildLayout != nullptr;
+		CUILayout* ChildLayout = m_Children[i]->m_IsLayout ? static_cast<CUILayout*>(m_Children[i]) : nullptr;
 
 		//layout applyed from an other layout, set only position
-		if (IsChildALayout && ChildLayout->IsAdjustedToLayout())
+		if (m_Children[i]->m_IsLayout && ChildLayout->IsAdjustedToLayout())
 		{
 			m_Children[i]->SetPosition(m_LayoutBoxes[i].m_BottomLeftX, m_LayoutBoxes[i].m_BottomLeftY, false);
 			continue;

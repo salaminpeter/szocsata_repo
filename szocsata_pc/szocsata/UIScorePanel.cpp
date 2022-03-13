@@ -10,7 +10,6 @@ CUIScorePanel::CUIScorePanel(CUIElement* parent, CGameManager* gameManager, floa
 	m_MaxHeight(maxHeight),
 	m_GameManager(gameManager)
 {
-	//m_KeepAspect = false;
 }
 
 void CUIScorePanel::ResizeElement(float widthPercent, float heightPercent) 

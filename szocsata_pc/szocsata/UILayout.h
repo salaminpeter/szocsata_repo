@@ -3,6 +3,7 @@
 #include "UIElement.h"
 #include "Model.h"
 
+
 class CUILayout : public CUIElement
 {
 public:
@@ -11,6 +12,7 @@ public:
 		CUIElement(parent, id, new CModel(false, 0, nullptr, nullptr), x, y, w, h, vx, vy, 0.f, 0.f)
 	{
 		m_KeepAspect = false;
+		m_IsLayout = true;
 	}
 
 	void SetBoxGapProps(size_t idx, int minGap, int maxGap);

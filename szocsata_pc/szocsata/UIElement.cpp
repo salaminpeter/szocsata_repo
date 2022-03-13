@@ -160,6 +160,14 @@ void CUIElement::Render(CRenderer* renderer)
 	RenderInner(renderer, RenderedElements, ColorBufferID, TextureOffset, VisibleElements);
 };
 
+void CUIElement::AlignChildren()
+{
+	for (size_t i = 0; i < m_Children.size(); ++i)
+	{
+		m_Children[i]->AlignChildren();
+	}
+}
+
 bool CUIElement::HandleEventAtPos(int x, int y, EEventType event, CUIElement* root, bool checkChildren, bool selfCheck)
 { 
 	if (!root)

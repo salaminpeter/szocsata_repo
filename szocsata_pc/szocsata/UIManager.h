@@ -80,8 +80,6 @@ public:
 
 	void ShowCountDown();
 
-	void PositionGameButtons();
-
 	void EnableGameButtons(bool enable);
 
 	void CloseToast(double& timeFromStart, double& timeFromPrev);
