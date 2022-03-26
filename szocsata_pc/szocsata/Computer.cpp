@@ -161,7 +161,8 @@ void CComputer::GetWordsInFieldList(const std::wstring& letters, CWordTree::TNod
 		{
 			CBinaryBoolList UsedLetters = usedLetters;
 			UsedLetters.SetFlag(i, true);
-			GetWordsInFieldList(letters, m_GameManager->WordTreeRoot(letters[i]), UsedLetters, fieldList, wordStartIdx, pos, horizontal, charCount + 1);
+			CWordTree::TNode* RootNode = m_GameManager->WordTreeRoot(letters[i]);
+			GetWordsInFieldList(letters, RootNode, UsedLetters, fieldList, wordStartIdx, pos, horizontal, charCount + (RootNode || CurrentLetter != L'*' ? 1 : 0));
 		}
 
 		else if (ChildNode = node->FindChild(letters[i]))
