@@ -390,9 +390,19 @@ void CUIManager::InitGameScreen(std::shared_ptr<CSquarePositionData> positionDat
 	GameScreenLayout->SetBoxSizeProps(1, PanelWidth, LayoutBox1Height, true);
 
 	//0. (top) layout child - horizontallayout playerlogoval, es visszaszamlaloval
-	CUIHorizontalLayout* SubLayout0 = new CUIHorizontalLayout(0, PanelHeight - LayoutBox0Height, PanelWidth, LayoutBox0Height, ViewPos.x, ViewPos.y, GameScreenLayout, L"ui_game_screen_sub_layout0", 1, 0.5, 0.5);
+	bool CountdownActive = GetTimeLimit() != 0;
+	CUIHorizontalLayout* SubLayout0 = new CUIHorizontalLayout(0, PanelHeight - LayoutBox0Height, PanelWidth, LayoutBox0Height, ViewPos.x, ViewPos.y, GameScreenLayout, L"ui_game_screen_sub_layout0", 1/*(CountdownActive ? 2 : 1)*/, 0.5, 0.5);
+
 	SubLayout0->SetBoxSizeProps(0, PlayerLogoSize.x, PlayerLogoSize.y, true);
-	IconTextButton = AddIconTextButton(SubLayout0, L"", positionData, colorData, gridcolorData8x8, 0, 0, PlayerLogoSize.x, PlayerLogoSize.y, "view_ortho", "current_player_texture_generated", "kor_icon.bmp", L"ui_current_palyer_logo", "textured", 0.7f, 1.f, 0.7f, 0.f, CUIText::Center);
+	AddIconTextButton(SubLayout0, L"", positionData, colorData, gridcolorData8x8, 0, 0, PlayerLogoSize.x, PlayerLogoSize.y, "view_ortho", "current_player_texture_generated", "kor_icon.bmp", L"ui_current_palyer_logo", "textured", 0.7f, 1.f, 0.7f, 0.f, CUIText::Center);
+
+	if (CountdownActive)
+	{
+		SubLayout0->SetBoxGapProps(0, PlayerLogoSize.x / 10, PlayerLogoSize.x / 4);
+		SubLayout0->SetBoxSizeProps(1, PlayerLogoSize.x / 2, PlayerLogoSize.y, true);
+		SubLayout0->SetBoxGapProps(1, PlayerLogoSize.x / 10, PlayerLogoSize.x / 4);
+		AddIconTextButton(SubLayout0, L"", positionData, colorData, gridcolorData8x8, 0, 0, PlayerLogoSize.x / 2, PlayerLogoSize.y, "view_ortho", "countdown_panel_texture_generated", "hourglass_icon.bmp", L"ui_countdown_btn", "textured", 0.65f, .77f, 0.7f, PlayerLogoSize.x / 30);
+	}
 
 	//1. layout child - horizontallayout a gombokkal
 	CUIHorizontalLayout* SubLayout1 = new CUIHorizontalLayout(0, PanelHeight - SubLayout0->GetHeight() - ButtonSize.y, PanelWidth, LayoutBox1Height, ViewPos.x, ViewPos.y, GameScreenLayout, L"ui_game_screen_sub_layout1", 4, 0.5f, 0.5f, 1.f, ButtonSize.x / 2, (PanelWidth - 4 * ButtonSize.x) / 6, ButtonSize.x, ButtonSize.y);
@@ -506,8 +516,7 @@ void CUIManager::SetDimmPanelOpacity(float opacity)
 
 void CUIManager::ShowCountDown()
 {
-//	CUIElement* Panel = m_RootStartGameScreen->GetChild(L"ui_background_panel_start_game_screen");
-//	m_RootGameScreen->GetChild(L"ui_countdown_btn")->SetVisible(GetTimeLimit() != -1);
+	GetUIElement(L"ui_countdown_btn")->SetVisible(GetTimeLimit() != -1);
 }
 
 void CUIManager::SetCurrentPlayerName(const wchar_t* playerName, float r, float g, float b)
@@ -606,8 +615,8 @@ bool CUIManager::IsGameButton(const CUIButton* button) const
 
 void CUIManager::SetRemainingTimeStr(const wchar_t* timeStr)
 {
-//	CUIButton* Button = static_cast<CUIButton*>(m_RootGameScreen->GetChild(L"ui_countdown_btn"));
-//	Button->SetText(timeStr);
+	CUIButton* Button = static_cast<CUIButton*>(m_RootGameScreen->GetChild(L"ui_countdown_btn"));
+	Button->SetText(timeStr);
 }
 
 void CUIManager::ShowPlayerLetters(bool show, const wchar_t* playerId)

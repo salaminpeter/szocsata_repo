@@ -45,6 +45,10 @@ void CPlayerLetterAnimationManager::AnimatePlayerLetter(double& timeFromStart, d
 
 	if (timeFromStart > AnimTime)
 	{
+		//set final position
+		m_PlayerLetterAnimations[m_CurrentLetterIdx].m_PlayerLetter->Scale(m_PlayerLetterAnimations[m_CurrentLetterIdx].m_DestScale);
+		m_PlayerLetterAnimations[m_CurrentLetterIdx].m_PlayerLetter->SetPosAndSize(m_PlayerLetterAnimations[m_CurrentLetterIdx].m_DestX, m_PlayerLetterAnimations[m_CurrentLetterIdx].m_DestY, Scale, Scale);
+
 		m_TimerEventManager->StopTimer("player_letter_animation");
 
 		if (m_CurrentLetterIdx + 1 == m_PlayerLetterAnimations.size())

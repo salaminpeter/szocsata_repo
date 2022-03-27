@@ -54,7 +54,6 @@ public:
 	void EndInitRenderer();
 	void InitUIManager();
 	void ShowCountDown();
-	void PositionUIElements();
 	void RenderFrame();
 	void RenderUI();
 	void RenderTileAnimations();
