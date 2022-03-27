@@ -224,6 +224,12 @@ void CUIElement::DeleteRecursive()
 	m_Children.clear();
 }
 
+//get positon of pos relative to the elem (pos has to be absolute position!)
+glm::vec2 CUIElement::GetRelativePosition(glm::vec2 pos)
+{
+	return pos - GetAbsolutePosition();
+}
+
 glm::vec2 CUIElement::GetPosition(bool midPointOrigo)
 {
 	if (midPointOrigo)

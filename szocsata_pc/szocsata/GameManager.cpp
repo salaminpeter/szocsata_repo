@@ -544,13 +544,14 @@ void CGameManager::DealCurrPlayerLetters()
 	if (LetterPoolEmpty)
 	{
 		glm::vec2 TileCounterPos = m_UIManager->GetTileCounterPos();
+		glm::vec2 LetterPos = m_UIManager->GetUIElement(L"ui_player_letter_panel")->GetRelativePosition(TileCounterPos);
 
 		for (size_t i = 0; i < m_CurrentPlayer->GetLetters().length(); ++i)
 		{
 			if (m_CurrentPlayer->LetterUsed(i))
 			{
 				PlayerLetters->GetChild(i)->Scale(0.f);
-				m_PlayerLetterAnimationManager->AddAnimation(PlayerLetters->GetChild(i), PlayerLetters->GetChild(i)->GetWidth(), TileCounterPos.x, TileCounterPos.y, PlayerLetters->GetChild(i)->GetPosition().x, PlayerLetters->GetChild(i)->GetPosition().y);
+				m_PlayerLetterAnimationManager->AddAnimation(PlayerLetters->GetChild(i), PlayerLetters->GetChild(i)->GetWidth(), LetterPos.x, LetterPos.y, PlayerLetters->GetChild(i)->GetPosition().x, PlayerLetters->GetChild(i)->GetPosition().y);
 			}
 		}
 		m_PlayerLetterAnimationManager->StartAnimations();

@@ -40,6 +40,7 @@ public:
 	void SetPosAndSize(float x, float y, float w, float h, bool midPointOrigo = true);
 	void SetPosition(float x, float y, bool midPointOrigo = true);
 	glm::vec2 GetPosition(bool midPointOrigo = true);
+	glm::vec2 GetRelativePosition(glm::vec2 pos);
 	void DeleteRecursive();
 
 	glm::vec2 GetAbsolutePosition();
