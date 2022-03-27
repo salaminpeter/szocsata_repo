@@ -278,18 +278,9 @@ void CComputer::CalculateStep()
 
 	int Center = TileCount / 2;
 
-	for (int i = 0; i <= Center; ++i)
+	for (int i = 0; i < TileCount; ++i)
 	{
-		if (Center - i >= 0)
-		{
-			ComputeRowCol(Center - i, true);
-			ComputeRowCol(Center - i, false);
-		}
-
-		if (Center + i < TileCount && i != 0)
-		{
-			ComputeRowCol(Center + i, true);
-			ComputeRowCol(Center + i, false);
-		}
+		ComputeRowCol(i, true);
+		ComputeRowCol(i, false);
 	}
 }
