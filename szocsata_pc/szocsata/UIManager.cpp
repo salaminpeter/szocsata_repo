@@ -127,25 +127,6 @@ void CUIManager::InitRankingsPanel()
 	m_RankingsPanel->Init(); 
 }
 
-void CUIManager::PositionUIElements()
-{
-	CUIElement* DraggedPlayerLetter = m_RootDraggedLetterScreen->GetChild(L"ui_dragged_player_letter_btn");
-	DraggedPlayerLetter->SetModifyColor(glm::vec4(1, 1, 1, 0.5));
-
-	//position tile counter
-	CUITileCounter* TileCounter = ((CUITileCounter*)m_UIScreenPanel->GetChild(L"ui_tile_counter"));
-
-	float Size = TileCounter->GetWidth();//m_ButtonsLayout->GetElemSize() * 1.2f;
-	float XPos = (m_ScorePanel->GetPosition(false).x - Size) / 2;
-	float h = m_UIScreenPanel->GetChild(L"ui_ok_btn")->GetPosition(false).y - (m_PlayerLetterPanel->GetPosition(false).y + m_PlayerLetterPanel->GetHeight());
-	float YPos = m_UIScreenPanel->GetChild(L"ui_ok_btn")->GetPosition(false).y - h / 2 - Size / 2;
-
-	// TODO betumeretet hasznaljuk
-	//	((CUITileCounter*)m_UIScreenPanel->GetChild(L"ui_tile_counter"))->SetPositionAndSize(XPos, YPos, Size, Size);
-	//TileCounter->SetPositionAndSize(XPos, YPos, Size, Size);
-
-}
-
 void CUIManager::InitFont()
 {
 	//set font char box sizes

@@ -968,11 +968,6 @@ void CGameManager::PlayerLetterReleased(unsigned letterIdx)
 		m_Renderer->HideSelection(true);
 }
 
-void CGameManager::PositionUIElements()
-{
-	m_UIManager->PositionUIElements();
-}
-
 void CGameManager::SetDimmPanelOpacity(float opacity)
 {
 	m_UIManager->SetDimmPanelOpacity(opacity);

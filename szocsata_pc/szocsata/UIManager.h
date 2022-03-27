@@ -41,7 +41,6 @@ public:
 	~CUIManager();
 
 	void InitUIElements(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData8x8, std::shared_ptr<CSquareColorData> gridcolorData8x4);
-	void PositionUIElements();
 	void InitRankingsPanel();
 
 	glm::vec2 GetElemSize(const wchar_t* id);
