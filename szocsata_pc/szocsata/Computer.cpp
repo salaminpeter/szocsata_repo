@@ -127,6 +127,9 @@ void CComputer::GetWordsInFieldList(const std::wstring& letters, CWordTree::TNod
 	wchar_t CurrentLetter = fieldList[wordStartIdx + charCount]->m_Char;
 	int CurrentFieldHeight = fieldList[wordStartIdx + charCount]->m_Height;
 
+	//vizsgalando szo elott van egy betu a tablan akkor ezt a fazist ugorhatjuk mert mar az osszes lehetseges szo ellenorizve lett
+	if (wordStartIdx != 0 && charCount == 0 && fieldList[wordStartIdx - 1]->m_Char != L'*')
+		return;
 
 	if (CurrentLetter != L'*')
 	{
@@ -183,7 +186,7 @@ void CComputer::GetWordsInFieldList(const std::wstring& letters, CWordTree::TNod
 	}
 }
 
-void CComputer::ComputeRowCol(int idx, bool rows, std::vector<std::wstring*>& words)
+void CComputer::ComputeRowCol(int idx, bool rows)
 {
 	int TileCount;
 	CConfig::GetConfig("tile_count", TileCount);
@@ -270,8 +273,6 @@ void CComputer::CalculateStep()
 	int TileCount;
 	CConfig::GetConfig("tile_count", TileCount);
 
-	std::vector<std::wstring*> WordResults;
-
 	m_BestWords.clear();
 	m_UsedLetters.Reset();
 
@@ -281,14 +282,14 @@ void CComputer::CalculateStep()
 	{
 		if (Center - i >= 0)
 		{
-			ComputeRowCol(Center - i, true, WordResults);
-			ComputeRowCol(Center - i, false, WordResults);
+			ComputeRowCol(Center - i, true);
+			ComputeRowCol(Center - i, false);
 		}
 
 		if (Center + i < TileCount && i != 0)
 		{
-			ComputeRowCol(Center + i, true, WordResults);
-			ComputeRowCol(Center + i, false, WordResults);
+			ComputeRowCol(Center + i, true);
+			ComputeRowCol(Center + i, false);
 		}
 	}
 }
