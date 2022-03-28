@@ -118,7 +118,8 @@ void CGameManager::InitBasedOnTileCount()
 	InitLetterPool();
 	m_UIManager->InitGameScreen(m_Renderer->GetSquarePositionData(), m_Renderer->GetSquareColorData(), m_Renderer->GetSquareColorGridData16x6());
 	InitPlayers();
-	
+	m_UIManager->InitRankingsScreen(m_Renderer->GetSquarePositionData(), m_Renderer->GetSquareColorData(), m_Renderer->GetSquareColorGridData16x6());
+
 	((CUIHorizontalLayout*)(m_UIManager->GetUIElement(L"ui_game_screen_sub_layout3")))->SetBoxSizeProps(0, m_UIManager->GetScorePanelSize().x, m_UIManager->GetScorePanelSize().y, false);
 	m_UIManager->GetUIElement(L"ui_game_screen_main_layout")->AlignChildren();
 }
@@ -354,7 +355,6 @@ void CGameManager::NextPlayerTurn()
 	//letette e az osszes betujet a jatekos
 	if (m_CurrentPlayer->GetLetterCount() == 0)
 	{
-		m_UIManager->InitRankingsPanel();
 		SetGameState(EGameState::GameEnded);
 		return;
 	}
@@ -389,7 +389,6 @@ void CGameManager::NextPlayerTurn()
 
 void CGameManager::EndGameAfterLastPass()
 {
-	m_UIManager->InitRankingsPanel();
 	SetGameState(EGameState::GameEnded);
 }
 
@@ -1370,15 +1369,13 @@ void CGameManager::RenderUI()
 {
 	glDisable(GL_DEPTH_TEST);
 
+	m_UIManager->RenderUI();
+
 	if (GetGameState() != EGameState::OnRankingsScreen)
 	{
-		m_UIManager->RenderUI();
-	
 		m_UIManager->RenderDraggedLetter();
 		m_UIManager->RenderMessageBox();
 	}
-	else
-		m_UIManager->RenderRankingsPanel();
 
 	glEnable(GL_DEPTH_TEST);
 }

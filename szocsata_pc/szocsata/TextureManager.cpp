@@ -301,6 +301,11 @@ void CTextureManager::GenerateCurrPlayerLogoTexture(float width, float height)
 	GenerateRoundedBoxTexture(width / 2, height, height / 5, glm::vec4(0.89f, 0.71f, 0.51f, 0.5f), 2, glm::vec4(.41f, .21f, .09f, 1.f), "countdown_panel_texture_generated");
 }
 
+void CTextureManager::GenerateRankingsPanelTexture(float width, float height)
+{
+	GenerateRoundedBoxTexture(width, height, height / 10, glm::vec4(0.89f, 0.71f, 0.51f, 0.5f), 2, glm::vec4(.41f, .21f, .09f, 1.f), "rankings_panel_texture_generated");
+}
+
 void CTextureManager::GenerateLetterPanelTexture(float width, float height)
 {
 	GenerateRoundedBoxTexture(width, height, height / 10, glm::vec4(0.89f, 0.71f, 0.51f, 0.5f), 2, glm::vec4(.41f, .21f, .09f, 1.f), "player_letter_panel_texture_generated");

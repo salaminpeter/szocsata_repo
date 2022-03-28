@@ -122,11 +122,6 @@ glm::vec2 CUIManager::GetTileCounterPos()
 	return m_RootGameScreen->GetChild(L"ui_tile_counter")->GetAbsolutePosition();
 }
 
-void CUIManager::InitRankingsPanel() 
-{ 
-	m_RankingsPanel->Init(); 
-}
-
 void CUIManager::InitFont()
 {
 	//set font char box sizes
@@ -452,6 +447,27 @@ void CUIManager::InitGameScreen(std::shared_ptr<CSquarePositionData> positionDat
 	m_DimmPanel->SetVisible(false);
 }
 
+void CUIManager::InitRankingsScreen(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData8x8)
+{
+	glm::vec2 ViewPos = m_GameManager->GetViewPosition("view_ortho");
+	glm::vec2 PlayerLogoSize = GetElemSize(L"ui_current_palyer_logo");
+
+	m_RootGameEndScreen = new CUIElement(nullptr, L"ui_end_screen_root", nullptr, 0.f, 0.f, m_GameManager->m_SurfaceWidth, m_GameManager->m_SurfaceHeigh, ViewPos.x, ViewPos.y, 0.f, 0.f);
+
+	//background
+	CUIPanel* BackGroundPanelStartGameScreen = new CUIPanel(m_RootGameEndScreen, L"ui_background_panel_rankings_screen", positionData, colorData, gridcolorData8x8, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh / 2, m_GameManager->m_SurfaceWidth, m_GameManager->m_SurfaceHeigh, 0, 0, "background.bmp", 0, 0);
+
+	//rankings panel
+	glm::vec2 OkBtnSize = m_GameManager->GetUIElementSize(L"ui_start_game_btn");
+	glm::vec2 RankingsPanelSize = glm::vec2(PlayerLogoSize.x * 2, PlayerLogoSize.y * (m_GameManager->GetPlayerCount() + 2) + OkBtnSize.y);
+
+	//layout a rankings panel kozeprehelyezesehez
+	CUIVerticalLayout* EndScreenLayout = new CUIVerticalLayout(0.f, 0.f, m_GameManager->m_SurfaceWidth, m_GameManager->m_SurfaceHeigh, 0, 0, BackGroundPanelStartGameScreen, L"ui_end_screen_main_layout", 1, .5f, .5f, RankingsPanelSize.x / RankingsPanelSize.y, 0, 100, RankingsPanelSize.x, RankingsPanelSize.y);
+	m_RankingsPanel = new CUIRankingsPanel(EndScreenLayout, m_GameManager, L"ui_rankings_panel", positionData, colorData, gridcolorData8x8, 0, 0, RankingsPanelSize.x, RankingsPanelSize.y, ViewPos.x, ViewPos.y);
+	m_RankingsPanel->Init();
+	m_RootGameEndScreen->AlignChildren();
+}
+
 void CUIManager::InitUIElements(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData8x8, std::shared_ptr<CSquareColorData> gridcolorData8x4)
 {
 	InitFont();
@@ -486,10 +502,6 @@ void CUIManager::InitUIElements(std::shared_ptr<CSquarePositionData> positionDat
 	Button = AddButton(m_RootDraggedLetterScreen, positionData, gridcolorData8x4, 0, 0, 0, 0, "view_ortho", "playerletters.bmp", L"ui_dragged_player_letter_btn", "textured");
 	Button->SetModifyColor(glm::vec4(1, 1, 1, 0.5));
 	Button->SetVisible(false);
-
-	//end screen ui elements
-	m_RootGameEndScreen = new CUIElement(nullptr, L"ui_game_end_root", nullptr, 0.f, 0.f, m_GameManager->m_SurfaceWidth, m_GameManager->m_SurfaceHeigh, ViewPos.x, ViewPos.y, 0.f, 0.f);
-	m_RankingsPanel = new CUIRankingsPanel(m_RootGameEndScreen, m_GameManager, L"ui_rankings_panel", positionData, colorData, gridcolorData8x8, m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh / 2, 600, 1000, ViewPos.x, ViewPos.y, "panel.bmp", 0.f, 0.f);
 
 	InitStartGameScreen(positionData, colorData, gridcolorData8x8);
 
@@ -541,6 +553,12 @@ void CUIManager::UpdateScorePanel()
 void CUIManager::InitScorePanel()
 {
 	m_ScorePanel->Init();
+}
+
+void CUIManager::InitRankingsPanel()
+{
+	m_RankingsPanel->Init();
+	m_RootGameEndScreen->AlignChildren();
 }
 
 glm::ivec2 CUIManager::GetScorePanelSize()
@@ -698,11 +716,6 @@ void CUIManager::RenderUI()
 void CUIManager::RenderDraggedLetter()
 {
 	m_RootDraggedLetterScreen->GetChild(size_t(0))->Render(m_GameManager->GetRenderer());
-}
-
-void CUIManager::RenderRankingsPanel()
-{
-	m_RankingsPanel->Render(m_GameManager->GetRenderer());
 }
 
 void CUIManager::RenderMessageBox()

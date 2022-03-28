@@ -17,6 +17,7 @@ public:
 	void GenerateSelectControlTexture(float selectControlWidth, float selectControlHeight);
 	void GenerateStartBtnTexture(float btnWidth, float btnHeight);
 	void GenerateCurrPlayerLogoTexture(float width, float height);
+	void GenerateRankingsPanelTexture(float width, float height);
 	void GenerateTileCounterTexture(float size);
 	void GenerateLetterPanelTexture(float width, float height);
 	bool IsCurrentTexture(const char* texId);

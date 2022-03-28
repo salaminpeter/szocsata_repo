@@ -41,7 +41,6 @@ public:
 	~CUIManager();
 
 	void InitUIElements(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData8x8, std::shared_ptr<CSquareColorData> gridcolorData8x4);
-	void InitRankingsPanel();
 
 	glm::vec2 GetElemSize(const wchar_t* id);
 
@@ -68,7 +67,6 @@ public:
 
 	void RenderUI();
 	void RenderMessageBox();
-	void RenderRankingsPanel();
 	void RenderDraggedLetter();
 
 	void SetTileCounterValue(unsigned count);
@@ -90,6 +88,7 @@ public:
 
 	void UpdateScorePanel();
 	void InitScorePanel();
+	void InitRankingsPanel();
 	void InitFont();
 	glm::ivec2 GetScorePanelSize();
 
@@ -106,6 +105,7 @@ public:
 	void InitMainScreen(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData8x8);
 	void InitStartGameScreen(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData8x8);
 	void InitGameScreen(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData8x8);
+	void InitRankingsScreen(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData8x8);
 
 private:
 
