@@ -83,7 +83,6 @@ void CGameManager::FinishRenderInit()
 #else
 	SetTileCount();
 	InitBasedOnTileCount();
-	ShowCountDown();
 	EndInitRenderer();
 	SetGameState(CGameManager::BeginGame);
 #endif
@@ -1006,11 +1005,6 @@ void CGameManager::StartInitRenderer(int surfaceWidth, int surfaceHeight)
 
 	m_Renderer = new CRenderer(surfaceWidth, surfaceHeight, this);
 	m_Renderer->StartInit();
-}
-
-void CGameManager::ShowCountDown()
-{
-	m_UIManager->ShowCountDown();
 }
 
 void CGameManager::EndInitRenderer()

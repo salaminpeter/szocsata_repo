@@ -53,7 +53,6 @@ public:
 	void MiddleInitRender();
 	void EndInitRenderer();
 	void InitUIManager();
-	void ShowCountDown();
 	void RenderFrame();
 	void RenderUI();
 	void RenderTileAnimations();

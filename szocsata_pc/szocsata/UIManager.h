@@ -76,9 +76,6 @@ public:
 	int GetTileCounterValue();
 
 	void SetCurrentPlayerName(const wchar_t* playerName, float r, float g, float b);
-
-	void ShowCountDown();
-
 	void EnableGameButtons(bool enable);
 
 	void CloseToast(double& timeFromStart, double& timeFromPrev);
