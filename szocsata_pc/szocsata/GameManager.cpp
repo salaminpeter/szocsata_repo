@@ -84,9 +84,7 @@ void CGameManager::FinishRenderInit()
 	SetTileCount();
 	InitBasedOnTileCount();
 	EndInitRenderer();
-//	SetGameState(CGameManager::BeginGame);
-	SetGameState(CGameManager::GameEnded);
-
+	SetGameState(CGameManager::BeginGame);
 #endif
 }
 
