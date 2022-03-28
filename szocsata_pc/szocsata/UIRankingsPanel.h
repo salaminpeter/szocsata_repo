@@ -12,6 +12,7 @@ public:
 
 	void Init();
 	void FinishGame();
+	void SetFinalScores();
 
 private:
 

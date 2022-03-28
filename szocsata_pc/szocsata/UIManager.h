@@ -86,6 +86,7 @@ public:
 	bool ComputerOpponentEnabled();
 	void ShowPlayerLetters(bool show, const wchar_t* playerId);
 
+	void UpdateRankingsPanel();
 	void UpdateScorePanel();
 	void InitScorePanel();
 	void InitRankingsPanel();

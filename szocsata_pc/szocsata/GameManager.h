@@ -109,6 +109,7 @@ public:
 	void CheckAndUpdateTime(double& timeFromStart, double& timeFromPrev);
 	bool IsGamePaused();
 	void SetGamePaused(bool paused);
+	void EndGame();
 
 	glm::ivec2 GetUIElementSize(const wchar_t* id);
 	float GetLetterSize();

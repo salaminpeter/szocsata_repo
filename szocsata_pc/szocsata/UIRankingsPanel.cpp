@@ -37,8 +37,25 @@ void CUIRankingsPanel::Init()
 	}
 
 	CUIIconTextButton* EndGameButton = m_GameManager->GetUIManager()->AddIconTextButton(RankingsLayout, L"", m_PositionData, m_ColorData, nullptr, 0, 0, OkBtnSize.x, OkBtnSize.y, "view_ortho", "round_button_texture_generated", "ok_icon.bmp", L"ui_end_game_btn", "textured", .65f);
-	EndGameButton->SetEvent(false, m_GameManager, &CGameManager::GoToStartGameScrEvent);
+	EndGameButton->SetEvent(false, this, &CUIRankingsPanel::FinishGame);
 	EndGameButton->CenterIcon();
+}
+
+void CUIRankingsPanel::SetFinalScores()
+{
+	size_t Idx = 0;
+	std::wstring Name;
+	int Score;
+	glm::vec3 Color;
+	CUIElement* RankingsLayout = GetChild(L"ui_rankings_panel_layout");
+	
+	while (m_GameManager->GetPlayerProperties(Idx, Name, Score, Color))
+	{
+		std::wstringstream ss;
+		ss << Name << L" : " << Score;
+		static_cast<CUIText*>(RankingsLayout->GetChild(Idx)->GetChild(L"ui_button_text"))->SetText(ss.str().c_str());
+		Idx++;
+	}
 }
 
 void CUIRankingsPanel::FinishGame()

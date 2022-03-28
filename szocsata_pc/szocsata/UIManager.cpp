@@ -287,7 +287,6 @@ void CUIManager::InitStartGameScreen(std::shared_ptr<CSquarePositionData> positi
 	VerticalLayoutMid->SetBoxSizeProps(1, StartBtnSize.x, StartBtnSize.y, true);
 	VerticalLayoutMid->SetBoxGapProps(1, 2, StartBtnSize.y / 2);
 	
-	//VerticalLayoutRight->SetAdjustToLayer(VerticalLayoutLeft);
 	CUISelectControl* SelectControl = nullptr;
 
 	//player icon
@@ -544,6 +543,10 @@ void CUIManager::ClearUIElements()
 	delete m_Toast;
 }
 
+void CUIManager::UpdateRankingsPanel()
+{
+	m_RankingsPanel->SetFinalScores();
+}
 
 void CUIManager::UpdateScorePanel()
 {

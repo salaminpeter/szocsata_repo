@@ -84,7 +84,9 @@ void CGameManager::FinishRenderInit()
 	SetTileCount();
 	InitBasedOnTileCount();
 	EndInitRenderer();
-	SetGameState(CGameManager::BeginGame);
+//	SetGameState(CGameManager::BeginGame);
+	SetGameState(CGameManager::GameEnded);
+
 #endif
 }
 
@@ -355,7 +357,7 @@ void CGameManager::NextPlayerTurn()
 	//letette e az osszes betujet a jatekos
 	if (m_CurrentPlayer->GetLetterCount() == 0)
 	{
-		SetGameState(EGameState::GameEnded);
+		EndGame();
 		return;
 	}
 
@@ -389,7 +391,7 @@ void CGameManager::NextPlayerTurn()
 
 void CGameManager::EndGameAfterLastPass()
 {
-	SetGameState(EGameState::GameEnded);
+	EndGame();
 }
 
 
@@ -686,6 +688,11 @@ void CGameManager::SetGamePaused(bool paused)
 	m_GamePaused = paused;
 }
 
+void CGameManager::EndGame()
+{
+	m_UIManager->UpdateRankingsPanel();
+	SetGameState(EGameState::GameEnded);
+}
 
 CGameManager::EGameState CGameManager::GetGameState()
 {
