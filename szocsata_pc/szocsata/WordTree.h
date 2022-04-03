@@ -25,6 +25,11 @@ public:
 	{
 		m_Root = new TNode(firstChar, false, nullptr, 0);
 	}
+
+	~CWordTree()
+	{
+		Delete();
+	}
 	
 	TNode* Root()
 	{
@@ -32,6 +37,7 @@ public:
 	}
 
 	void AddWord(const std::wstring& word, TNode* node, int charIdx = 1);
+	void Delete(TNode* node = nullptr);
 
 private:
 

@@ -275,7 +275,7 @@ void CTextureManager::GenerateRoundedBoxTexture(int w, int h, int r, glm::vec4 c
 	m_Textures[textureID] = NewTexture;
 }
 
-void CTextureManager::GenerateTexturesAtGameStart(float scorePanelWidth, float scorePanelHeight, float letterSize)
+void CTextureManager::GenerateScorePanelTexture(float scorePanelWidth, float scorePanelHeight)
 {
 	GenerateRoundedBoxTexture(scorePanelWidth, scorePanelHeight, scorePanelHeight / 6, glm::vec4(0.89f, 0.71f, 0.51f, 0.4f), 2, glm::vec4(.41f, .21f, .09f, 1.f), "player_score_panel_texture_generated", true);
 }

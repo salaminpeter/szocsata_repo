@@ -15,6 +15,7 @@ public:
 		m_IsLayout = true;
 	}
 
+	void AddLayoutBoxes(int count, float whRatio = 1.f, int minGap = 0.f, int maxGap = 0.f, int maxW = 0.f, int maxH = 0.f);
 	void SetBoxGapProps(size_t idx, int minGap, int maxGap);
 	void SetBoxSizeProps(size_t idx, int maxWidth, int maxHeight, bool incSize);
 	void SetBoxWHRatio(size_t idx, float whRatio);

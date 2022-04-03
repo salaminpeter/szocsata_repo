@@ -20,6 +20,8 @@ public:
 	CTileAnimationManager() = default;
 	CTileAnimationManager(CTimerEventManager* timerEventMgr, CGameManager* gameManager);
 
+	~CTileAnimationManager();
+
 	void StarDataQuery() { m_QueryIndex = 0; }
 	glm::vec4 GetColor() { return m_Color; }
 

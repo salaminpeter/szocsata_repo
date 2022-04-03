@@ -74,14 +74,17 @@ CUIText* CUIManager::AddText(CUIElement* parent, const wchar_t* text, std::share
 	return NewText;
 }
 
-CUIPlayerLetters* CUIManager::AddPlayerLetters(CPlayer* player, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData)
+CUIPlayerLetters* CUIManager::AddPlayerLetters(CPlayer* player, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, bool addLetters)
 {
 	int LetterCount;
 	CConfig::GetConfig("letter_count", LetterCount);
 
 	glm::vec2 ViewPos = m_GameManager->GetViewPosition("view_ortho");
-	CUIPlayerLetters* PlayerLetters = new CUIPlayerLetters(m_GameManager, this, player, m_PlayerLetterPanel, 0, 0, m_PlayerLetterPanel->GetWidth(), m_PlayerLetterPanel->GetHeight(), ViewPos.x, ViewPos.y, LetterCount, player->GetName().c_str());
-	PlayerLetters->InitLetterElements(positionData, colorData, ViewPos.x, ViewPos.y);
+	CUIPlayerLetters* PlayerLetters = new CUIPlayerLetters(m_GameManager, this, player, m_PlayerLetterPanel, positionData, colorData, 0, 0, m_PlayerLetterPanel->GetWidth(), m_PlayerLetterPanel->GetHeight(), ViewPos.x, ViewPos.y, (addLetters ? LetterCount : 0), player->GetName().c_str());
+
+	if (addLetters)
+	    PlayerLetters->InitLetterElements(ViewPos.x, ViewPos.y);
+
 	PlayerLetters->SetVisible(true);
 
 	return PlayerLetters;
@@ -93,6 +96,14 @@ void CUIManager::PositionPlayerLetter(const std::wstring& playerId, size_t lette
 		pl->PositionPlayerLetter(letterIdx, x, y, size);
 }
 
+
+CUIPlayerLetters* CUIManager::GetPlayerLetters(size_t idx)
+{
+	if (idx >= m_PlayerLetterPanel->GetChildCount())
+		return nullptr;
+
+	return static_cast<CUIPlayerLetters*>(m_PlayerLetterPanel->GetChild(idx));
+}
 
 CUIPlayerLetters* CUIManager::GetPlayerLetters(const std::wstring& playerID)
 {
@@ -467,16 +478,11 @@ void CUIManager::InitRankingsScreen(std::shared_ptr<CSquarePositionData> positio
 	m_RootGameEndScreen->AlignChildren();
 }
 
-void CUIManager::InitUIElements(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData8x8, std::shared_ptr<CSquareColorData> gridcolorData8x4)
+void CUIManager::InitElements(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData8x8, std::shared_ptr<CSquareColorData> gridcolorData8x4)
 {
 	InitFont();
 
 	glm::vec2 ViewPos = m_GameManager->GetViewPosition("view_ortho");
-	CUIButton* Button = nullptr;
-	CUIIconTextButton* IconTextButton = nullptr;
-
-	//main screen ui elements
-	InitMainScreen(positionData, colorData, gridcolorData8x8);
 
 	//game screen ui elements
 	float Width = m_GameManager->m_SurfaceWidth - m_GameManager->m_SurfaceHeigh;
@@ -498,17 +504,25 @@ void CUIManager::InitUIElements(std::shared_ptr<CSquarePositionData> positionDat
 	//dragged letter root
 	m_RootDraggedLetterScreen = new CUIElement(nullptr, L"ui_dragged_letter_root", nullptr, 0.f, 0.f, m_GameManager->m_SurfaceWidth, m_GameManager->m_SurfaceHeigh, ViewPos.x, ViewPos.y, 0.f, 0.f);
 
-	Button = AddButton(m_RootDraggedLetterScreen, positionData, gridcolorData8x4, 0, 0, 0, 0, "view_ortho", "playerletters.bmp", L"ui_dragged_player_letter_btn", "textured");
+	CUIButton* Button = AddButton(m_RootDraggedLetterScreen, positionData, gridcolorData8x4, 0, 0, 0, 0, "view_ortho", "playerletters.bmp", L"ui_dragged_player_letter_btn", "textured");
 	Button->SetModifyColor(glm::vec4(1, 1, 1, 0.5));
 	Button->SetVisible(false);
-
-	InitStartGameScreen(positionData, colorData, gridcolorData8x8);
 
 	m_UIRoots.push_back(m_RootStartScreen);
 	m_UIRoots.push_back(m_RootStartGameScreen);
 	m_UIRoots.push_back(m_RootGameScreen);
 	m_UIRoots.push_back(m_RootGameEndScreen);
 	m_UIRoots.push_back(m_RootDraggedLetterScreen);
+}
+
+
+void CUIManager::InitStartScreenElements(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData8x8, std::shared_ptr<CSquareColorData> gridcolorData8x4)
+{
+	//star screens
+	InitMainScreen(positionData, colorData, gridcolorData8x8);
+	InitStartGameScreen(positionData, colorData, gridcolorData8x8);
+
+	m_UIInitialized = true;
 }
 
 void ShowCurrentPlayerLetters(bool show)
@@ -536,8 +550,8 @@ void CUIManager::ClearUIElements()
 {
 	std::vector<CUIElement*> MainPanels { m_RootStartScreen, m_RootStartGameScreen, m_RootGameScreen, m_RootDraggedLetterScreen, m_RootGameEndScreen };
 
-	for (size_t i = 0; i < MainPanels.size(); ++i)
-		delete MainPanels[i];
+	for (size_t i = 0; i < m_UIRoots.size(); ++i)
+		delete m_UIRoots[i];
 
 	delete m_MessageBoxOk;
 	delete m_Toast;
@@ -572,33 +586,38 @@ glm::ivec2 CUIManager::GetScorePanelSize()
 
 int CUIManager::GetBoardSize()
 {
-	CUIElement* Panel = m_RootStartGameScreen->GetChild(L"ui_background_panel_start_game_screen");
-	return static_cast<CUISelectControl*>(Panel->GetChild(L"ui_select_board_size"))->GetIndex();
+	return static_cast<CUISelectControl*>(GetUIElement(L"ui_select_board_size"))->GetIndex();
 }
 
 int CUIManager::GetDifficulty() 
 { 
-	CUIElement* Panel = m_RootStartGameScreen->GetChild(L"ui_background_panel_start_game_screen");
-	return static_cast<CUISelectControl*>(Panel->GetChild(L"ui_select_difficulty"))->GetIndex();
+	return static_cast<CUISelectControl*>(GetUIElement(L"ui_select_difficulty"))->GetIndex();
 }
 
 bool CUIManager::ComputerOpponentEnabled()
 {
 	CUIElement* Panel = m_RootStartGameScreen->GetChild(L"ui_background_panel_start_game_screen");
-	return static_cast<CUISelectControl*>(Panel->GetChild(L"ui_select_computer_opponent"))->GetIndex() == 0;
+	return static_cast<CUISelectControl*>(GetUIElement(L"ui_select_computer_opponent"))->GetIndex() == 0;
 }
 
 float CUIManager::GetLetterSize()
 {
-// TODO igy eleg ocsmany lekerni a betumeretet
-	float Size = m_RootGameScreen->GetChild(L"ui_player_letter_panel")->GetChild(size_t(0))->GetChild(size_t(0))->GetWidth();
-	return Size;
+	float LetterSize;
+
+	if (!static_cast<CUIPlayerLetterPanel*>(m_RootGameScreen->GetChild(L"ui_player_letter_panel"))->GetLetterSize(LetterSize))
+		LetterSize = -1;
+
+	return LetterSize;
+}
+
+int CUIManager::GetTimeLimitIdx()
+{
+	return static_cast<CUISelectControl*>(GetUIElement(L"ui_select_time_limit"))->GetIndex();
 }
 
 int CUIManager::GetTimeLimit()
 {
-	CUIElement* Panel = m_RootStartGameScreen->GetChild(L"ui_background_panel_start_game_screen");
-	int TimeLimitIdx = static_cast<CUISelectControl*>(Panel->GetChild(L"ui_select_time_limit"))->GetIndex();
+	int TimeLimitIdx = static_cast<CUISelectControl*>(GetUIElement(L"ui_select_time_limit"))->GetIndex();
 
 	switch (TimeLimitIdx)
 	{
@@ -620,9 +639,34 @@ int CUIManager::GetTimeLimit()
 
 int CUIManager::GetPlayerCount()
 {
-	CUIElement* Panel = m_RootStartGameScreen->GetChild(L"ui_background_panel_start_game_screen");
-	return static_cast<CUISelectControl*>(Panel->GetChild(L"ui_select_player_count"))->GetIndex();
+	return static_cast<CUISelectControl*>(GetUIElement(L"ui_select_player_count"))->GetIndex();
 }
+
+void CUIManager::SetDifficulty(int diff)
+{
+	static_cast<CUISelectControl*>(GetUIElement(L"ui_select_difficulty"))->SetIndex(diff);
+}
+
+void CUIManager::SetBoardSize(int size)
+{
+	static_cast<CUISelectControl*>(GetUIElement(L"ui_select_board_size"))->SetIndex(size);
+}
+
+void CUIManager::SetPlayerCount(int count)
+{
+	static_cast<CUISelectControl*>(GetUIElement(L"ui_select_player_count"))->SetIndex(count);
+}
+
+void CUIManager::SetTimeLimitIdx(int limit)
+{
+	static_cast<CUISelectControl*>(GetUIElement(L"ui_select_time_limit"))->SetIndex(limit);
+}
+
+void CUIManager::SetComputerOpponentEnabled(bool enabled)
+{
+	static_cast<CUISelectControl*>(GetUIElement(L"ui_select_computer_opponent"))->SetIndex(enabled ? 0 : 1);
+}
+
 
 bool CUIManager::IsGameButton(const CUIButton* button) const
 {
@@ -713,6 +757,9 @@ void CUIManager::RenderUI()
 {
 	CUIElement* Root = GetActiveScreenUIRoot();
 
+	if (!Root)
+		return;
+
 	Root->Render(m_GameManager->GetRenderer());
 }
 
@@ -766,12 +813,17 @@ void CUIManager::SetDraggedPlayerLetter(bool letterDragged, unsigned letterIdx, 
 	float TexX = letterTexPos.x; 
 	float TexY = letterTexPos.y; 
 
-	CUIElement* DraggedPlayerLetter = m_RootDraggedLetterScreen->GetChild(L"ui_dragged_player_letter_btn");
-	DraggedPlayerLetter->SetWidth(GetLetterSize());
-	DraggedPlayerLetter->SetHeight(GetLetterSize());
-	DraggedPlayerLetter->Enable(!disable);
-	DraggedPlayerLetter->SetVisible(!disable && letterDragged);
-	DraggedPlayerLetter->SetTexturePosition(glm::vec2(TexX, TexY));
+	float LetterSize = GetLetterSize();
+
+	if (LetterSize >= 0.f)
+	{
+		CUIElement* DraggedPlayerLetter = m_RootDraggedLetterScreen->GetChild(L"ui_dragged_player_letter_btn");
+		DraggedPlayerLetter->SetWidth(GetLetterSize());
+		DraggedPlayerLetter->SetHeight(GetLetterSize());
+		DraggedPlayerLetter->Enable(!disable);
+		DraggedPlayerLetter->SetVisible(!disable && letterDragged);
+		DraggedPlayerLetter->SetTexturePosition(glm::vec2(TexX, TexY));
+	}
 }
 
 

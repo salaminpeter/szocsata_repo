@@ -11,4 +11,5 @@ public:
 	{}
 
 	bool HandleEventAtPos(int x, int y, EEventType event, CUIElement* root = nullptr, bool checkChildren = true, bool selfCheck = true) override;
+	bool GetLetterSize(float& size);
 };

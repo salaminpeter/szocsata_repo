@@ -1,13 +1,18 @@
 package com.example.szocsata_android;
 
+import androidx.annotation.MainThread;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.MotionEventCompat;
 
 import android.accessibilityservice.FingerprintGestureController;
+import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.res.AssetManager;
 import android.graphics.Point;
 import android.graphics.PointF;
 import android.opengl.GLSurfaceView;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -24,15 +29,20 @@ public class MainActivity extends AppCompatActivity {
         System.loadLibrary("native-lib");
     }
 
+    public native void ClearResources();
+
     private static Point m_FingerPos0 = new Point();
     private static Point m_FingerPos1 = new Point();
     private static boolean m_MultyTouch = false;
     private static double Distance = 0;
 
+    private static MainActivity obj;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        obj = this;
         hideStatusBar();
         setContentView(R.layout.activity_main);
         m_OpenGLView = findViewById(R.id.openGLView);
@@ -156,6 +166,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onPause(){
         super.onPause();
         m_OpenGLView.onPause();
+        m_OpenGLView.StopGameLoop();
+        ClearResources();
     }
     @Override
     public void onPointerCaptureChanged(boolean hasCapture) {
@@ -173,6 +185,11 @@ public class MainActivity extends AppCompatActivity {
                         // Hide the nav bar and status bar
                         | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                         | View.SYSTEM_UI_FLAG_FULLSCREEN);
+    }
+
+    public static String GetWorkingDir()
+    {
+        return ((Context) obj).getFilesDir().toString();
     }
 
     /**

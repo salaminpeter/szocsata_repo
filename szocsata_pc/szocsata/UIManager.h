@@ -40,8 +40,6 @@ public:
 
 	~CUIManager();
 
-	void InitUIElements(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData8x8, std::shared_ptr<CSquareColorData> gridcolorData8x4);
-
 	glm::vec2 GetElemSize(const wchar_t* id);
 
 	glm::vec2 GetTileCounterPos();
@@ -50,12 +48,13 @@ public:
 	CUIIconTextButton* AddIconTextButton(CUIElement* parent, const wchar_t* text, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData, float x, float y, float w, float h, const char* ViewID, const char* textureID, const char* iconIextureID, const wchar_t* id, const char* shaderID = "textured", float iconSize = 0.65f, float iconWHRatio = 1.f, float charSize = 0.35f, float padding = 0.f, CUIText::ETextAlign align = CUIText::Left);
 	CUISelectControl* AddSelectControl(CUIElement* parent, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData, float x, float y, float w, float h, const char* ViewID, const char* textureID, const wchar_t* id, const wchar_t* description);
 	CUIText* AddText(CUIElement* parent, const wchar_t* text, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, float x, float y, float fontHeight, const char* ViewID, const char* textureID, const wchar_t* id, float r = 0.92f, float g = 0.92f, float b = 0.92f);
-	CUIPlayerLetters* AddPlayerLetters(CPlayer* player, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData);
+	CUIPlayerLetters* AddPlayerLetters(CPlayer* player, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, bool addLetters = true);
 	CUIElement* GetUIElement(const wchar_t* id);
 	
 	void PositionPlayerLetter(const std::wstring& playerId, size_t letterIdx, float x, float y, float size);
 
 	CUIPlayerLetters* GetPlayerLetters(const std::wstring& playerID);
+	CUIPlayerLetters* GetPlayerLetters(size_t idx);
 
 	void HandleTouchEvent(int x, int y);
 	void HandleReleaseEvent(int x, int y);
@@ -82,6 +81,13 @@ public:
 	int GetBoardSize();
 	int GetPlayerCount();
 	int GetTimeLimit();
+	int GetTimeLimitIdx();
+	void SetDifficulty(int diff);
+	void SetBoardSize(int size);
+	void SetPlayerCount(int count);
+	void SetTimeLimitIdx(int limit);
+	void SetComputerOpponentEnabled(bool enabled);
+
 	float GetLetterSize();
 	bool ComputerOpponentEnabled();
 	void ShowPlayerLetters(bool show, const wchar_t* playerId);
@@ -103,10 +109,15 @@ public:
 
 	void SetRemainingTimeStr(const wchar_t* timeStr);
 
+	void InitElements(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData8x8, std::shared_ptr<CSquareColorData> gridcolorData8x4);
+	void InitStartScreenElements(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData8x8, std::shared_ptr<CSquareColorData> gridcolorData8x4);
+
 	void InitMainScreen(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData8x8);
 	void InitStartGameScreen(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData8x8);
 	void InitGameScreen(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData8x8);
 	void InitRankingsScreen(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData8x8);
+
+
 
 private:
 
@@ -146,4 +157,5 @@ public: //TODO
 	bool m_PlayerLetterDragged = false;
 	bool m_GameButtonsDisabled = false;
 	bool m_StartScreenActive = true;
+	bool m_UIInitialized = false;
 };

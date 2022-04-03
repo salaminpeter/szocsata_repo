@@ -13,7 +13,7 @@ public:
 	bool ActivateTexture(const char* texId);
 	void AntialiasTexture(std::vector<uint8_t>& imageData, int width, int height, glm::ivec3 innerColor, float radius, int depth = 1);
 	void GenerateTextures(float viewWidth, float viewHeight);
-	void GenerateTexturesAtGameStart(float scorePanelWidth, float scorePanelHeight, float letterSize);
+	void GenerateScorePanelTexture(float scorePanelWidth, float scorePanelHeight);
 	void GenerateSelectControlTexture(float selectControlWidth, float selectControlHeight);
 	void GenerateStartBtnTexture(float btnWidth, float btnHeight);
 	void GenerateCurrPlayerLogoTexture(float width, float height);

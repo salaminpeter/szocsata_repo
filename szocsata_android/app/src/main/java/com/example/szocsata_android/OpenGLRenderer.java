@@ -1,13 +1,16 @@
 package com.example.szocsata_android;
 
 import android.opengl.GLSurfaceView;
+import android.os.Build;
+
+import androidx.annotation.RequiresApi;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 public class OpenGLRenderer implements GLSurfaceView.Renderer {
 
-    Thread GameThread = null;
+    Thread m_GameThread = null;
     GLSurfaceView m_ParentView;
 
     OpenGLRenderer(GLSurfaceView surfaceView) {
@@ -21,10 +24,13 @@ public class OpenGLRenderer implements GLSurfaceView.Renderer {
 
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
-        InitGameManager(width, height);
-        SetThisInGameManager(this);
 
-        GameThread = new Thread(new Runnable() {
+        if (CreateGameManager()) {
+            SetThisInGameManager(this);
+            InitGameManager(width, height);
+        }
+
+        m_GameThread = new Thread(new Runnable() {
             public void run()
             {
                 while (true)
@@ -32,7 +38,7 @@ public class OpenGLRenderer implements GLSurfaceView.Renderer {
             }
         });
 
-        GameThread.start();
+        m_GameThread.start();
     }
     
     public void FinishRenderInit()
@@ -51,7 +57,13 @@ public class OpenGLRenderer implements GLSurfaceView.Renderer {
         Render();
     }
 
+    public void StopGameThread()
+    {
+        m_GameThread.interrupt();
+    }
+
     public native void InitGameManager(int surfaceWidth, int surfaceHeight);
+    public native boolean CreateGameManager();
     public native void Render();
     public native void GameLoop();
     public native void EndInitAndStart();

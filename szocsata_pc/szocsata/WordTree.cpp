@@ -2,6 +2,18 @@
 #include "WordTree.h"
 
 
+void CWordTree::Delete(TNode* node)
+{
+	if (!node)
+		node = m_Root;
+
+	for (auto it = node->m_Children.begin(); it != node->m_Children.end(); ++it)
+	{
+		Delete(*it);
+		delete *it;
+	}
+}
+
 void CWordTree::AddWord(const std::wstring& word, TNode* node, int charIdx)
 {
 	if (word.length() == 1)
@@ -12,7 +24,7 @@ void CWordTree::AddWord(const std::wstring& word, TNode* node, int charIdx)
 
 	TNode* CharNode = nullptr;
 
-	for (std::list<TNode*>::iterator it = node->m_Children.begin(); it != node->m_Children.end(); ++it)
+	for (auto it = node->m_Children.begin(); it != node->m_Children.end(); ++it)
 	{
 		if ((*it)->m_Char == word[charIdx])
 		{
@@ -35,7 +47,7 @@ void CWordTree::AddWord(const std::wstring& word, TNode* node, int charIdx)
 
 CWordTree::TNode* CWordTree::TNode::FindChild(wchar_t chr)
 {
-	for (std::list<TNode*>::iterator it = m_Children.begin(); it != m_Children.end(); ++it)
+	for (auto it = m_Children.begin(); it != m_Children.end(); ++it)
 	{
 		if ((*it)->m_Char == chr)
 			return (*it);

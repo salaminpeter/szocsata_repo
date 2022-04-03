@@ -33,7 +33,6 @@
 CRenderer::CRenderer(int screenWidth, int screenHeight, CGameManager* gameManager) :
 	m_ScreenWidth(screenWidth),
 	m_ScreenHeight(screenHeight),
-	m_Inited(false),
 	m_GameManager(gameManager),
 	m_ZoomCenter(-1.f, -1.f)
 {
@@ -272,7 +271,7 @@ void CRenderer::RotateCamera(float rotateAngle, float tiltAngle, bool intersectW
 		m_CameraRotAngle = m_CameraRotAngle > 360.f ? m_CameraRotAngle - 360. : m_CameraRotAngle;
 	}
 
-	
+
 	if (NeedLookAt)
 	{
 		m_Views["board_perspecive"]->InitCamera(CameraPos, LookAtBoardIntPos, glm::vec3(0, 0, 1));
@@ -456,7 +455,7 @@ void CRenderer::ZoomCameraCentered(float dist, float origoX, float origoY)
 
 		m_ZoomInited = true;
 	}
-	
+
 	if (std::fabs(m_CameraCurrZoomDistance + dist) > m_CameraZoomDistance)
 	{
 		bool ZoomOut = dist < 0;
@@ -485,7 +484,7 @@ void CRenderer::GetFitToScreemProps(float& tilt, float& rotation, float& zoom, f
 	glm::vec3 CameraLookAt = m_Views["board_perspecive"]->GetCameraLookAt();
 	glm::vec3 CameraPosition = m_Views["board_perspecive"]->GetCameraPosition();
 	glm::vec2 ProjectedLookatXY = glm::vec2(CameraLookAt.x, CameraLookAt.y);
-	glm::vec3 Normal = glm::cross(glm::vec3(ProjectedLookatXY, 0.f) , glm::vec3(0.f, 1.f, 0.f));
+	glm::vec3 Normal = glm::cross(glm::vec3(ProjectedLookatXY, 0.f), glm::vec3(0.f, 1.f, 0.f));
 	rotation = glm::degrees(std::acos(CameraLookAt.y / glm::length(ProjectedLookatXY))) * (Normal.z < 0 ? -1 : 1);
 
 	//zoom
@@ -637,7 +636,7 @@ TPosition CRenderer::GetTilePos(int x, int y)
 
 		int BoardHeight = m_GameManager->Board(m_ScreenSpaceTiles[i].m_X, TileCount - m_ScreenSpaceTiles[i].m_Y - 1).m_Height;
 
-		if (IntersectionCount == 2  && y > std::min(h0, h1) && y < std::max(h0, h1) && (MaxHeight == -1 || MaxHeight < BoardHeight)) 
+		if (IntersectionCount == 2 && y > std::min(h0, h1) && y < std::max(h0, h1) && (MaxHeight == -1 || MaxHeight < BoardHeight))
 		{
 			Result.x = m_ScreenSpaceTiles[i].m_X;
 			Result.y = m_ScreenSpaceTiles[i].m_Y;
@@ -648,7 +647,7 @@ TPosition CRenderer::GetTilePos(int x, int y)
 	return Result;
 }
 
-bool CRenderer::MiddleInit(float startBtnW, float startBtnH, float selectCtrlW, float selectCtrlH)
+bool CRenderer::GenerateStartScreenTextures(float startBtnW, float startBtnH, float selectCtrlW, float selectCtrlH)
 {
 	m_TextureManager->GenerateSelectControlTexture(selectCtrlW, selectCtrlH);
 	m_TextureManager->GenerateStartBtnTexture(startBtnW, startBtnH);
@@ -657,20 +656,18 @@ bool CRenderer::MiddleInit(float startBtnW, float startBtnH, float selectCtrlW, 
 }
 
 //init parts of renderer which does not require the tilecount config (will be set on start screen by user)
-bool CRenderer::StartInit()
+void CRenderer::InitRenderer()
 {
-	m_Inited = true;
-
 	InitLetterTexPositions();
 
 	float LetterHeight;
 	float BoardHeight;
-	
+
 	CConfig::GetConfig("letter_height", LetterHeight);
 	CConfig::GetConfig("board_height", BoardHeight);
 
 	CConfig::AddConfig("camera_min_height", BoardHeight / 2.f + LetterHeight * 5.f + 2.5f);
-	
+
 	//TODO config!!!!
 	CConfig::AddConfig("letter_side_lod", 5);
 	CConfig::AddConfig("letter_side_radius", 0.1f);
@@ -737,11 +734,11 @@ bool CRenderer::StartInit()
 	m_TextureManager->AddTexture("controller_icon.bmp", 4);
 	m_TextureManager->AddTexture("shadow.bmp", 4);
 
-	float Width = m_GameManager->m_SurfaceWidth/* - m_GameManager->m_SurfaceHeigh*/;
-	float Height = m_GameManager->m_SurfaceHeigh;
-	m_TextureManager->GenerateTextures(Width, Height);
+	m_TextureManager->GenerateTextures(m_GameManager->m_SurfaceWidth, m_GameManager->m_SurfaceHeigh);
 
-	return true;
+	m_GameManager->SetTaskFinished("init_renderer_task");
+
+	m_EnginelsInited = true;
 }
 
 void CRenderer::EnableBlending(bool enable)
@@ -785,7 +782,7 @@ float CRenderer::SetBoardSize()
 
 	float BoardSize = ((TileCount + 1) * TileGap + TileCount * TileSize) / 2.f;
 	CConfig::AddConfig("board_size", BoardSize);
-	
+
 	return BoardSize;
 }
 
@@ -797,16 +794,19 @@ void CRenderer::ClearResources()
 
 	m_LettersOnBoard.clear();
 
-	m_LetterPositionData.reset();
-	m_LetterColorData.reset();
+	if (m_LetterPositionData)
+		m_LetterPositionData.reset();
+
+	if (m_LetterColorData)
+		m_LetterColorData.reset();
 
 	//delete board / board tiles / selection
 	delete m_BoardTiles;
-	delete m_SelectionModel;
+	//delete m_SelectionModel;
 	delete m_BoardModel;
 
 	m_RoundedSquarePositionData.reset();
-	
+
 	//remove ui elements
 	m_GameManager->GetUIManager()->ClearUIElements();
 
@@ -814,7 +814,7 @@ void CRenderer::ClearResources()
 	m_SquareColorData.reset();
 }
 
-bool CRenderer::EndInit()
+bool CRenderer::GenerateModels()
 {
 	float LetterHeight;
 	float TileSize;
@@ -848,7 +848,7 @@ bool CRenderer::EndInit()
 	m_RoundedSquarePositionData = std::make_shared<CRoundedSquarePositionData>(TileSize);
 	m_RoundedSquarePositionData->GeneratePositionBuffer();
 
-	m_LetterPositionData = std::make_shared<CRoundedBoxPositionData>(TileSize, LetterHeight, LetterSideLOD, LetterSideRadius, LetterEdgeLOD, LetterEdgeRadius); 
+	m_LetterPositionData = std::make_shared<CRoundedBoxPositionData>(TileSize, LetterHeight, LetterSideLOD, LetterSideRadius, LetterEdgeLOD, LetterEdgeRadius);
 	m_LetterPositionData->GeneratePositionBuffer();
 
 	std::vector<glm::vec3> Inner = m_LetterPositionData->GetTopVertices(true);
@@ -893,7 +893,7 @@ bool CRenderer::EndInit()
 	glm::vec2 PlayerLogoSize = m_GameManager->GetUIElementSize(L"ui_current_palyer_logo");
 	glm::vec2 OkBtnSize = m_GameManager->GetUIElementSize(L"ui_start_game_btn");
 
-	m_TextureManager->GenerateTexturesAtGameStart(m_GameManager->GetUIElementSize(L"ui_score_panel").x, m_GameManager->GetUIElementSize(L"ui_score_panel").y, m_GameManager->GetLetterSize());
+	m_TextureManager->GenerateScorePanelTexture(m_GameManager->GetUIElementSize(L"ui_score_panel").x, m_GameManager->GetUIElementSize(L"ui_score_panel").y);
 	m_TextureManager->GenerateCurrPlayerLogoTexture(PlayerLogoSize.x, PlayerLogoSize.y);
 	m_TextureManager->GenerateTileCounterTexture(m_GameManager->GetUIElementSize(L"ui_tile_counter").x);
 	m_TextureManager->GenerateLetterPanelTexture(m_GameManager->GetUIElementSize(L"ui_player_letter_panel").x, m_GameManager->GetUIElementSize(L"ui_player_letter_panel").y);
@@ -909,6 +909,8 @@ bool CRenderer::EndInit()
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glActiveTexture(GL_TEXTURE0);
+
+	m_3DModelsInited = true;
 
 	return true;
 }
@@ -967,8 +969,8 @@ void CRenderer::InitLetterTexPositions()
 
 void CRenderer::RemoveTopLetter(int x, int y)
 {
-	 int Idx = -1;
-	 float MaxHeight = 0.f;
+	int Idx = -1;
+	float MaxHeight = 0.f;
 
 	for (size_t i = 0; i < m_LettersOnBoard.size(); ++i)
 	{

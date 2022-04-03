@@ -1,11 +1,26 @@
 #include "stdafx.h"
 #include "TimerEventManager.h"
 #include "Timer.h"
-#include <algorithm>
 
+#include <algorithm>
+#include <mutex>
+
+CTimerEventManager::~CTimerEventManager()
+{
+	const std::lock_guard<std::mutex> lock(m_Lock);
+
+	auto it = m_TimerEvents.begin();
+
+	while (it != m_TimerEvents.end())
+	{
+		delete (*it++);
+	}
+}
 
 void CTimerEventManager::Loop()
 {
+	const std::lock_guard<std::mutex> lock(m_Lock);
+
 	if (CTimer::GetCurrentTime() - m_LastLoopTime < m_Frequency)
 		return;
 	

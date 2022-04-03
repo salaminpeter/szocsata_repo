@@ -9,8 +9,10 @@
 #include "Renderer.h"
 
 
-CUIPlayerLetters::CUIPlayerLetters(CGameManager* gameManager, CUIManager* uiManager, CPlayer* player, CUIElement* parent, float x, float y, float w, float h, int vx, int vy, int letterCount, const wchar_t* id) :
+CUIPlayerLetters::CUIPlayerLetters(CGameManager* gameManager, CUIManager* uiManager, CPlayer* player, CUIElement* parent, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, float x, float y, float w, float h, int vx, int vy, int letterCount, const wchar_t* id) :
 	CGridLayout(x, y, w, h, vx, vy, 20, 60, parent, id, letterCount),
+	m_PositionData(positionData),
+	m_ColorData(colorData),
 	m_GameManager(gameManager),
 	m_UIManager(uiManager),
 	m_Player(player)
@@ -18,6 +20,28 @@ CUIPlayerLetters::CUIPlayerLetters(CGameManager* gameManager, CUIManager* uiMana
 	SetPosAndSize(x, y, w, h);
 	InitLetterTexPositions();
 }
+
+void CUIPlayerLetters::AlignChildren()
+{
+	CGridLayout::AlignChildren();
+
+	if (m_DisableLayout)
+	{
+		std::wstring& Letters = m_Player->GetLetters();
+		size_t Idx = 0;
+
+		for (size_t i = 0; i < Letters.length(); ++i)
+		{
+			if (Letters.at(i) != L' ') {
+				m_Children[Idx]->SetPosition(m_LayoutBoxes[i].m_BottomLeftX, m_LayoutBoxes[i].m_BottomLeftY, false);
+				m_Children[Idx]->SetWidth(m_LayoutBoxes[i].m_Width);
+				m_Children[Idx]->SetHeight(m_LayoutBoxes[i].m_Height);
+				++Idx;
+			}
+		}
+	}
+}
+
 
 void CUIPlayerLetters::InitLetterTexPositions()
 {
@@ -66,30 +90,30 @@ void CUIPlayerLetters::OrderLetterElements()
 	}
 }
 
-void CUIPlayerLetters::InitLetterElements(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, float ViewPosX, float ViewPosY)
+void CUIPlayerLetters::InitLetterElements(float ViewPosX, float ViewPosY)
 {
-	m_PositionData = positionData;
-	m_ColorData = colorData;
+	//TODO Viewpos is konstruktorba kell nem ide!
 	m_ViewPosX = ViewPosX;
 	m_ViewPosY = ViewPosY;
 
 	int LetterCount;
 	CConfig::GetConfig("letter_count", LetterCount);
-	std::wstring& letters = m_Player->GetLetters();
 
 	AddUILetters(LetterCount);
-
-	for (size_t i = 0; i < m_Children.size(); ++i)
-		m_Children[i]->SetTexturePosition(m_LetterTexPos[letters[i]] / glm::vec2(8, 4));
 }
 
 void CUIPlayerLetters::AddUILetters(unsigned count)
 {
+	std::wstring& letters = m_Player->GetLetters();
+	size_t Idx = 0;
+
 	for (unsigned i = 0; i < count; ++i)
 	{
-		CUIElement* NewLetter;
-		NewLetter = new CUIButton(this, m_PositionData, m_ColorData, 0, 0, 100, 100, m_ViewPosX, m_ViewPosY, "playerletters.bmp", L"");
-		NewLetter->SetEvent(false, m_GameManager, &CGameManager::PlayerLetterReleased, std::move(i));
+		if (letters[i] != L' ') {
+			CUIElement *NewLetter = new CUIButton(this, m_PositionData, m_ColorData, 0, 0, 100, 100, m_ViewPosX, m_ViewPosY, "playerletters.bmp", L"");
+			NewLetter->SetEvent(false, m_GameManager, &CGameManager::PlayerLetterReleased, std::move(Idx++));
+			NewLetter->SetTexturePosition(m_LetterTexPos[letters[i]] / glm::vec2(8, 4));
+		}
 	}
 }
 

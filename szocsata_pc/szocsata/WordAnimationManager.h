@@ -13,6 +13,10 @@ class CBinaryBoolList;
 
 class CWordAnimationManager
 {
+public:
+
+	~CWordAnimationManager();
+
 private:
 	
 	enum ELetterAnimState {Waiting, InProgress, Finished};

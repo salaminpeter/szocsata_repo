@@ -2,6 +2,7 @@
 
 #include <list>
 #include <string>
+#include <mutex>
 
 #include "Event.h"
 
@@ -50,6 +51,8 @@ class CTimerEventManager
 {
 public:
 	
+	~CTimerEventManager();
+
 	template <typename ClassType, typename... ArgTypes>
 	void AddTimerEvent(ClassType* funcClass, typename CEvent<ClassType, double&, double&>::TFuncPtrType eventPtr, typename CEvent<ClassType, ArgTypes...>::TFuncPtrType finishedEventPtr, const char* id)
 	{
@@ -76,6 +79,8 @@ private:
 	
 	const int m_Frequency = 10;
 	double m_LastLoopTime = 0;
+
+	std::mutex m_Lock;
 
 	std::list<CTimerEvent*> m_TimerEvents;
 };

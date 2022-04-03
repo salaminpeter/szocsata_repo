@@ -10,6 +10,8 @@
 
 CGameManager* gm;
 CInputManager* InputManager;
+std::mutex m_GMLock;
+
 
 JavaVM* g_VM;
 
@@ -39,13 +41,13 @@ Java_com_example_szocsata_1android_OpenGLRenderer_Render(JNIEnv *env, jobject th
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_szocsata_1android_OpenGLRenderer_InitGameManager(JNIEnv *env, jobject thiz, jint surface_width, jint surface_height) {
-    gm = new CGameManager();
     gm->m_JavaVM = g_VM;
     InputManager = new CInputManager(gm);
     gm->StartInitRenderer(surface_width, surface_height);
     gm->InitUIManager();
     gm->MiddleInitRender();
     gm->SetGameState(CGameManager::OnStartScreen);
+    gm->LoadState();
 }
 
 
@@ -66,7 +68,10 @@ Java_com_example_szocsata_1android_MainActivity_HandleReleaseEvent(JNIEnv *env, 
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_szocsata_1android_OpenGLRenderer_GameLoop(JNIEnv *env, jobject thiz) {
-    gm->GameLoop();
+    const std::lock_guard<std::mutex> lock(m_GMLock);
+
+    if (gm)
+        gm->GameLoop();
 }
 
 
@@ -106,9 +111,37 @@ Java_com_example_szocsata_1android_OpenGLRenderer_SetThisInGameManager(JNIEnv *e
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_szocsata_1android_OpenGLRenderer_EndInitAndStart(JNIEnv *env, jobject thiz) {
+
     gm->SetTileCount();
-    gm->InitBasedOnTileCount();
-    gm->ShowCountDown();
+    gm->InitBasedOnTileCount(!gm->m_StartOnGameScreen);
     gm->EndInitRenderer();
-    gm->SetGameState(CGameManager::BeginGame);
+    gm->LoadPlayerAndBoardState();
+
+    if (gm->m_StartOnGameScreen)
+        gm->SetGameState(CGameManager::TurnInProgress);
+    else
+        gm->SetGameState(CGameManager::BeginGame);
+
+    gm->m_InitDone = true;
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_szocsata_1android_MainActivity_ClearResources(JNIEnv *env, jobject thiz) {
+    const std::lock_guard<std::mutex> lock(m_GMLock);
+    gm->SaveState();
+    delete gm;
+    gm = nullptr;
+}
+
+extern "C"
+JNIEXPORT bool JNICALL
+Java_com_example_szocsata_1android_OpenGLRenderer_CreateGameManager(JNIEnv *env, jobject thiz)
+{
+    const std::lock_guard<std::mutex> lock(m_GMLock);
+    if (gm)
+        return false;
+
+    gm = new CGameManager();
+    return true;
 }

@@ -59,6 +59,12 @@ void CUILayout::SetBoxSizeProps(size_t idx, int maxWidth, int maxHeight, bool in
 	m_LayoutBoxes[idx].m_IncSizeAllowed = incSize;
 }
 
+void CUILayout::AddLayoutBoxes(int count, float whRatio, int minGap, int maxGap, int maxW, int maxH)
+{
+	m_LayoutBoxes.reserve(count);
+	m_LayoutBoxes.insert(m_LayoutBoxes.end(), count, TLayoutBox(0, 0, minGap, maxGap, maxW, maxH, whRatio, true));
+}
+
 void CUILayout::SetBoxGapProps(size_t idx, int minGap, int maxGap)
 {
 	if (idx >= m_LayoutBoxes.size())

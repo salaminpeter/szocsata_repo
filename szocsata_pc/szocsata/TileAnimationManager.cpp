@@ -23,6 +23,11 @@ CTileAnimationManager::CTileAnimationManager(CTimerEventManager* timerEventMgr, 
 {
 }
 
+CTileAnimationManager::~CTileAnimationManager()
+{
+	m_TimerEventManager->StopTimer("tile_animation");
+}
+
 void CTileAnimationManager::AddTile(int x, int y)
 {
 	glm::ivec2 TilePos(x, y);

@@ -8,6 +8,8 @@
 #include "BinaryBoolList.h"
 #include "DataBase.h"
 #include "WordTree.h"
+#include "GameState.h"
+#include "TaskManager.h"
 #include "glm\gtc\matrix_transform.hpp"
 
 #define WIN_HEADER_SIZE 31     //ocsmany!!!
@@ -28,31 +30,39 @@ class CLetterModel;
 class CCameraAnimationManager;
 class CPlayerLetterAnimationManager;
 class CDimmBGAnimationManager;
+class CGameState;
+class CGameThread;
 
 class CGameManager
 {
 public:
 	
-	enum EGameState { NextTurn, WaintingOnAnimation, WaitingForMessageBox, TurnInProgress, GameAboutToEnd, GameEnded, BeginGame, Paused, OnStartGameScreen, OnStartScreen, OnRankingsScreen, None};
+	enum EGameState { NextTurn, WaintingOnAnimation, WaitingForMessageBox, TurnInProgress, GameEnded, BeginGame, Paused, OnStartGameScreen, OnStartScreen, OnRankingsScreen, None};
 
 	CGameManager();
 
 	~CGameManager()
 	{
+		delete m_State;
 		delete m_Renderer;
+		delete m_UIManager;
+		delete m_TileAnimations;
+		delete m_WordAnimation;
+		delete m_TimerEventManager;
+		delete m_GameThread;
 	}
 
-	void AddPlayers(int playerCount, bool addComputer);
+	void AddPlayers(int playerCount, bool addComputer, bool addLetters = true);
 	void StartGame();
-	void InitBasedOnTileCount();
-	void InitPlayers();
+	void InitBasedOnTileCount(bool addLetters);
+	void InitPlayers(bool addLetters);
 	void SetTileCount();
 	void InitLetterPool();
 	int CalculateScore(const TWordPos& word, std::vector<TWordPos>* crossingWords = nullptr);
-	void StartInitRenderer(int surfaceWidth, int surfaceHeight);
-	void MiddleInitRender();
-	void EndInitRenderer();
+	void CreateRenderer(int surfaceWidth, int surfaceHeight);
+	void GenerateStartScreenTextures();
 	void InitUIManager();
+	void InitStartUIScreens();
 	void RenderFrame();
 	void RenderUI();
 	void RenderTileAnimations();
@@ -96,11 +106,13 @@ public:
 	void AddWordSelectionAnimationForComputer();
 	void UpdatePlayerScores();
 	std::wstring GetNextPlayerName();
-	wchar_t GetChOnBoard(int x, int y) { return m_GameBoard(x, y).m_Char; }
 	int GetDifficulty();
 	bool AllPlayersPassed();
+	void SetPlayerLetters(size_t idx, const std::wstring& letters);
+	std::wstring GetPlayerLetters(size_t idx);
 	bool GetPlayerProperties(size_t idx, std::wstring& name, int& score, glm::vec3& color);
 	bool GameScreenActive();
+	bool GameScreenActive(EGameState state);
 	void ShowNextPlayerPopup();
 	bool TileAnimationFinished();
 	bool PlayerLetterAnimationFinished();
@@ -110,13 +122,16 @@ public:
 	bool IsGamePaused();
 	void SetGamePaused(bool paused);
 	void EndGame();
+	void ExecuteTaskOnThread(const char* id, int threadId);
 
 	glm::ivec2 GetUIElementSize(const wchar_t* id);
 	float GetLetterSize();
 	std::wstring GetTimeStr(int msec);
-
+	std::string GetWorkingDir();
 	std::wstring GetWordAtPos(bool horizontal, int& x, int& y);
+	void SetBoardSize();
 
+	wchar_t GetChOnBoard(int x, int y) { return m_GameBoard(x, y).m_Char; }
 	CWordTree::TNode* WordTreeRoot(wchar_t c) {return m_DataBase.GetWordTreeRoot(c);}
 	TField& Board(int x, int y) {return m_GameBoard(x, y);}
 	std::wstring CurrentPlayerName() {return m_CurrentPlayer ? m_CurrentPlayer->GetName() : L"";}
@@ -124,11 +139,38 @@ public:
 	void SetLastTouchOnBoardView(bool onBoardView) { m_LastTouchOnBoardView = onBoardView; }
 	void SetLastTouchPos(int x, int y) { m_LastTouchX = x; m_LastTouchY = y; }
 	CPlayer* GetCurrentPlayer() {return m_CurrentPlayer;}
+	CPlayer* GetPlayer(size_t idx) {return m_Players[idx];}
+ 	void SaveState() { m_State->SaveGameState(); }
+	void LoadState() { m_State->LoadGameState(); }
+	void LoadPlayerAndBoardState() { m_State->LoadPlayerAndBoardState(); }
+	void SetTaskFinished(const char* id) { m_TaskManager.SetTaskFinished(id); }
+
+	void ShowStartScreenTask();
+	void BeginGameTask();
+	void InitRendererTask();
+	void GenerateModelsTask();
+
+
+	//TODO valamiert nem mukodik a perfect forwarding az osszes ilyen fuggvenynel, csak jobberteket lehet parameternek adni
+	template <typename ClassType, typename... ArgTypes>
+	std::shared_ptr<CTask> AddTask(ClassType* funcClass, typename CEvent<ClassType, ArgTypes...>::TFuncPtrType funcPtr, const char* id, CTaskManager::ERunSource runThread, ArgTypes... args)
+	{
+		return m_TaskManager.AddTask(this, funcPtr, id, runThread, std::forward<ArgTypes>(args)...);
+	}
+
+
 
 #ifdef PLATFORM_ANDROID
 	void SetRendererObject(jobject obj) {
 	    m_RendererObject = obj;
 	}
+
+	void SetActivityObject(jobject obj) {
+		m_ActivityObject = obj;
+	}
+#else
+	std::string m_TaskToStartID;
+	std::mutex m_TaskMutex;
 #endif
 
 	CRenderer* GetRenderer() { return m_Renderer; }
@@ -136,6 +178,8 @@ public:
 	CTimerEventManager* GetTimerEventManager() {return m_TimerEventManager;}
 	int GetLetterPoolCount() {return m_LetterPool.GetRemainingLetterCount(); }
 	void AddPlacedLetterSelection(int x, int y) {m_PlacedLetterSelections.push_back(glm::ivec2(x, y));}
+	void StartTask(const char* id) {m_TaskManager.StartTask(id);}
+	void StartGameThread();
 
 	glm::vec2 GetViewPosition(const char* viewId);
 	bool PositionOnBoardView(int x, int y);
@@ -176,7 +220,10 @@ private:
 	CGameBoard m_GameBoard;
 	CGameBoard m_TmpGameBoard;
 	CDataBase m_DataBase;
+	CTaskManager m_TaskManager;
 	CRenderer* m_Renderer = nullptr;
+	CGameThread* m_GameThread;
+
 
 	CUIManager* m_UIManager;
 	CTimerEventManager* m_TimerEventManager;
@@ -185,6 +232,7 @@ private:
 	CCameraAnimationManager* m_CameraAnimationManager;
 	CPlayerLetterAnimationManager* m_PlayerLetterAnimationManager;
 	CDimmBGAnimationManager* m_DimmBGAnimationManager;
+    CGameState* m_State;
 
 	public: //TODO
 	bool m_Dragged = false;
@@ -200,9 +248,13 @@ private:
 	int m_SurfaceHeigh;
 	bool m_NextPlayerPopupShown = false;
 
+	bool m_StartOnGameScreen = false;
+	bool m_InitDone = false;
+
 #ifdef PLATFORM_ANDROID
 	JavaVM* m_JavaVM;
-	jobject m_RendererObject = nullptr;
+    jobject m_RendererObject = nullptr;
+    jobject m_ActivityObject = nullptr;
 #endif
 
 	EGameState m_GameState = EGameState::None;

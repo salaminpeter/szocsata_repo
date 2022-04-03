@@ -16,28 +16,39 @@
 #include "CameraAnimationManager.h"
 #include "PlayerLetterAnimationManager.h"
 #include "DimmBGAnimationManager.h"
+#include "UIRowColLayout.h"
+#include "Player.h"
+#include "GameThread.h"
 
 #define GL_GLEXT_PROTOTYPES 1
 #define GL3_PROTOTYPES 1
 #include <GLES3\gl3.h>
 
 
-CGameManager::CGameManager()
+CGameManager::CGameManager() : m_TaskManager(this)
 {
 	CConfig::LoadConfigs("config.txt");
 
 	m_DataBase.LoadDataBase("dic.txt");
 
+	m_State = new CGameState(this);
 	m_TimerEventManager = new CTimerEventManager();
 	m_TileAnimations = new CTileAnimationManager(m_TimerEventManager, this);
 	m_WordAnimation = new CWordAnimationManager(m_TimerEventManager, this); //TODO!!!!!!!!!!!
 	m_CameraAnimationManager = new CCameraAnimationManager(m_TimerEventManager, this); //TODO!!!!!!!!!!!
 	m_PlayerLetterAnimationManager = new CPlayerLetterAnimationManager(this, m_TimerEventManager); //TODO!!!!!!!!!!!
 	m_DimmBGAnimationManager = new CDimmBGAnimationManager(this, m_TimerEventManager);
+	m_GameThread = new CGameThread(this);
 }
 
 
-void CGameManager::AddPlayers(int playerCount, bool addComputer)
+void CGameManager::StartGameThread() 
+{ 
+	m_GameThread->Start(); 
+}
+
+
+void CGameManager::AddPlayers(int playerCount, bool addComputer, bool addLetters)
 {
 	int LetterCount;
 	CConfig::GetConfig("letter_count", LetterCount);
@@ -48,8 +59,15 @@ void CGameManager::AddPlayers(int playerCount, bool addComputer)
 	{
 		m_Players.push_back(new CPlayer(this));
 		m_Players.back()->SetColor(PlayerColors[i].r, PlayerColors[i].g, PlayerColors[i].b);
-		m_LetterPool.DealLetters(m_Players.back()->GetLetters());
-		m_UIManager->AddPlayerLetters(m_Players.back(), m_Renderer->GetSquarePositionData(), m_Renderer->GetSquareColorGridData8x4());
+
+		if (addLetters)
+			m_LetterPool.DealLetters(m_Players.back()->GetLetters());
+
+		CUIPlayerLetters* PlayerLetters = m_UIManager->AddPlayerLetters(m_Players.back(), m_Renderer->GetSquarePositionData(), m_Renderer->GetSquareColorGridData8x4(), addLetters);
+
+		if (!addLetters)
+			PlayerLetters->AddLayoutBoxes(LetterCount);
+
 		m_UIManager->GetPlayerLetters(m_Players.back()->GetName().c_str())->ShowLetters(false);
 	}
 
@@ -57,10 +75,16 @@ void CGameManager::AddPlayers(int playerCount, bool addComputer)
 	{ 
 		m_Computer = new CComputer(this);
 		m_Computer->SetColor(PlayerColors.back().r, PlayerColors.back().g, PlayerColors.back().b);
-		m_LetterPool.DealLetters(m_Computer->GetLetters());
+
+		if (addLetters)
+			m_LetterPool.DealLetters(m_Computer->GetLetters());
+
 		m_Players.push_back(m_Computer);
-		//TODO ezeket a uimanageres fuggvenyeket osszevonni egybe a uimanagerben
-		m_UIManager->AddPlayerLetters(m_Players.back(), m_Renderer->GetSquarePositionData(), m_Renderer->GetSquareColorGridData8x4());
+		CUIPlayerLetters* PlayerLetters = m_UIManager->AddPlayerLetters(m_Players.back(), m_Renderer->GetSquarePositionData(), m_Renderer->GetSquareColorGridData8x4(), addLetters);
+
+		if (!addLetters)
+			PlayerLetters->AddLayoutBoxes(LetterCount);
+		
 		m_UIManager->GetPlayerLetters(m_Players.back()->GetName().c_str())->ShowLetters(false);
 	}
 
@@ -82,9 +106,8 @@ void CGameManager::FinishRenderInit()
 	env->CallVoidMethod(m_RendererObject, Method);
 #else
 	SetTileCount();
-	InitBasedOnTileCount();
-	EndInitRenderer();
-	SetGameState(CGameManager::BeginGame);
+	InitBasedOnTileCount(true);
+	SetTaskFinished("game_started_task");
 #endif
 }
 
@@ -104,30 +127,41 @@ void CGameManager::SetTileCount()
 	CConfig::AddConfig("tile_count", TileCount);
 }
 
-#include "UIRowColLayout.h"
-
-void CGameManager::InitBasedOnTileCount()
+void CGameManager::SetBoardSize()
 {
+	//board size already set
+	if (m_GameBoard.Size() != 0)
+		return;
+
 	int TileCount;
 	CConfig::GetConfig("tile_count", TileCount);
 
 	m_GameBoard.SetSize(TileCount);
 	m_TmpGameBoard.SetSize(TileCount);
 	CompGameBoard.SetSize(TileCount);
-
-	InitLetterPool();
-	m_UIManager->InitGameScreen(m_Renderer->GetSquarePositionData(), m_Renderer->GetSquareColorData(), m_Renderer->GetSquareColorGridData16x6());
-	InitPlayers();
-	m_UIManager->InitRankingsScreen(m_Renderer->GetSquarePositionData(), m_Renderer->GetSquareColorData(), m_Renderer->GetSquareColorGridData16x6());
-
-	((CUIHorizontalLayout*)(m_UIManager->GetUIElement(L"ui_game_screen_sub_layout3")))->SetBoxSizeProps(0, m_UIManager->GetScorePanelSize().x, m_UIManager->GetScorePanelSize().y, false);
-	m_UIManager->GetUIElement(L"ui_game_screen_main_layout")->AlignChildren();
 }
 
-void CGameManager::InitPlayers()
+void CGameManager::InitBasedOnTileCount(bool addLetters)
+{
+	SetBoardSize();
+	InitLetterPool();
+	m_UIManager->InitGameScreen(m_Renderer->GetSquarePositionData(), m_Renderer->GetSquareColorData(), m_Renderer->GetSquareColorGridData16x6());
+	InitPlayers(addLetters);
+	m_UIManager->InitRankingsScreen(m_Renderer->GetSquarePositionData(), m_Renderer->GetSquareColorData(), m_Renderer->GetSquareColorGridData16x6());
+
+	if (addLetters)
+	{
+		((CUIHorizontalLayout*)(m_UIManager->GetUIElement(L"ui_game_screen_sub_layout3")))->SetBoxSizeProps(0, m_UIManager->GetScorePanelSize().x, m_UIManager->GetScorePanelSize().y, false);
+		m_UIManager->GetUIElement(L"ui_game_screen_main_layout")->AlignChildren();
+	}
+
+	SetTaskFinished("board_size_set_task");
+}
+
+void CGameManager::InitPlayers(bool addLetters)
 {
 	int PlayerCount = m_UIManager->GetPlayerCount() + 1;
-	AddPlayers(PlayerCount, m_UIManager->ComputerOpponentEnabled());
+	AddPlayers(PlayerCount, m_UIManager->ComputerOpponentEnabled(), addLetters);
 	m_UIManager->InitScorePanel();
 	UpdatePlayerScores();
 }
@@ -180,6 +214,23 @@ glm::ivec2 CGameManager::GetUIElementSize(const wchar_t* id)
 {
 	return glm::ivec2(m_UIManager->GetUIElement(id)->GetWidth(), m_UIManager->GetUIElement(id)->GetHeight());
 }
+
+std::string CGameManager::GetWorkingDir()
+{
+	std::string res;
+
+#ifdef PLATFORM_ANDROID
+	JNIEnv *env;
+	m_JavaVM->GetEnv((void **)&env, JNI_VERSION_1_6);
+	jclass Class = env->FindClass("com/example/szocsata_android/MainActivity");
+	jmethodID Method = env->GetStaticMethodID(Class, "GetWorkingDir", "()Ljava/lang/String;");
+	jstring str = static_cast<jstring>(env->CallStaticObjectMethod(Class, Method));
+	res = env->GetStringUTFChars(str, nullptr);
+#endif
+
+	return res;
+}
+
 
 std::wstring CGameManager::GetTimeStr(int msec)
 {
@@ -284,12 +335,33 @@ void CGameManager::ShowNextPlayerPopup()
 	}
 }
 
+bool CGameManager::GameScreenActive(EGameState state)
+{
+    return (state != EGameState::OnRankingsScreen && state != EGameState::OnStartGameScreen && state != EGameState::OnStartScreen);
+}
 
 bool CGameManager::GameScreenActive()
 {
 	return (GetGameState() != EGameState::OnRankingsScreen && GetGameState() != EGameState::OnStartGameScreen && GetGameState() != EGameState::OnStartScreen);
 }
 
+void CGameManager::SetPlayerLetters(size_t idx, const std::wstring& letters)
+{
+	if (m_Players.size() <= idx)
+		return;
+
+	for (size_t i = 0; i < letters.length(); ++i)
+		if (letters.at(i) != L' ')
+			m_Players[idx]->SetLetter(i, letters.at(i));
+}
+
+std::wstring CGameManager::GetPlayerLetters(size_t idx)
+{
+	if (m_Players.size() <= idx)
+		return L"";
+
+	return m_Players[idx]->GetLetters();
+}
 
 bool CGameManager::GetPlayerProperties(size_t idx, std::wstring& name, int& score, glm::vec3& color)
 {
@@ -667,6 +739,45 @@ void CGameManager::AddWordSelectionAnimationForComputer()
 	AddWordSelectionAnimation(m_Computer->BestWord(m_ComputerWordIdx).m_CrossingWords, true);
 }
 
+void CGameManager::ShowStartScreenTask()
+{
+	SetGameState(CGameManager::OnStartScreen);
+	SetTaskFinished("show_startscreen_task");
+}
+
+void CGameManager::BeginGameTask()
+{
+	SetGameState(CGameManager::BeginGame);
+	SetTaskFinished("begin_game_task");
+}
+
+void CGameManager::InitRendererTask()
+{
+	m_Renderer->InitRenderer();
+	SetTaskFinished("init_renderer_task");
+}
+
+void CGameManager::GenerateModelsTask()
+{
+	m_Renderer->GenerateModels();
+	SetTaskFinished("generate_models_task");
+}
+
+void CGameManager::ExecuteTaskOnThread(const char* id, int threadId)
+{
+	if (threadId == CTaskManager::GameThread)
+		m_GameThread->AddTaskToExecute(id);
+
+//windowsos hekk itt nincsen ui threadunk
+#ifdef WIN32
+	else if (threadId == CTaskManager::RenderThread)
+	{ 
+		const std::lock_guard<std::mutex> lock(m_TaskMutex);
+		m_TaskToStartID = id;
+	}
+#endif
+}
+
 void CGameManager::SetGameState(int state)
 {
 	const std::lock_guard<std::mutex> lock(m_GameStateLock);
@@ -676,7 +787,7 @@ void CGameManager::SetGameState(int state)
 
 bool CGameManager::IsGamePaused()
 {
-	const std::lock_guard<std::mutex> lock(m_GamePausedLock);
+	const std::lock_guard<std::mutex> lock(m_GamePausedLock); //TODO gamestatel allitani!
 	return m_GamePaused;
 }
 
@@ -700,29 +811,32 @@ CGameManager::EGameState CGameManager::GetGameState()
 
 void CGameManager::GameLoop()
 {
-	if (GetGameState() == EGameState::BeginGame)
-		StartGame();
-
-	if (GetGameState() != EGameState::GameEnded)
+	while (true)
 	{
-		m_TimerEventManager->Loop();
+		if (GetGameState() == EGameState::BeginGame)
+			StartGame();
 
-		if (IsGamePaused())
-			return;
+		if (GetGameState() != EGameState::GameEnded)
+		{
+			m_TimerEventManager->Loop();
 
-		if (GetGameState() == EGameState::WaitingForMessageBox && !CUIMessageBox::m_ActiveMessageBox)
-		{ 
-			m_DimmBGAnimationManager->StartAnimation(false);
-			SetGameState(EGameState::NextTurn);
+			if (IsGamePaused())
+				return;
+
+			if (GetGameState() == EGameState::WaitingForMessageBox && !CUIMessageBox::m_ActiveMessageBox)
+			{ 
+				m_DimmBGAnimationManager->StartAnimation(false);
+				SetGameState(EGameState::NextTurn);
+			}
+
+			if (GetGameState() == EGameState::NextTurn)
+				NextPlayerTurn();
 		}
-
-		if (GetGameState() == EGameState::NextTurn)
-			NextPlayerTurn();
-	}
-	else
-	{ 
-		m_Renderer->ClearBuffers();
-		SetGameState(EGameState::OnRankingsScreen);
+		else
+		{ 
+			m_Renderer->ClearBuffers();
+			SetGameState(EGameState::OnRankingsScreen);
+		}
 	}
 }
 
@@ -976,30 +1090,40 @@ void CGameManager::SetDimmPanelOpacity(float opacity)
 	m_UIManager->SetDimmPanelOpacity(opacity);
 }
 
+void CGameManager::InitStartUIScreens()
+{
+	m_UIManager->InitStartScreenElements(m_Renderer->GetSquarePositionData(), m_Renderer->GetSquareColorData(), m_Renderer->GetSquareColorGridData16x6(), m_Renderer->GetSquareColorGridData8x4());
+	SetTaskFinished("init_uimanager_startscreens_task");
+}
+
 void CGameManager::InitUIManager()
 {
+	//create ui manager + basic elements
+	m_UIManager = new CUIManager(this, m_TimerEventManager);
+	m_UIManager->InitElements(m_Renderer->GetSquarePositionData(), m_Renderer->GetSquareColorData(), m_Renderer->GetSquareColorGridData16x6(), m_Renderer->GetSquareColorGridData8x4());
+
+	//set fps if needed
 	int ShowFps;
 	bool ConfigFound = CConfig::GetConfig("show_fps", ShowFps);
-	ShowFps &= ConfigFound;
 
-	m_UIManager = new CUIManager(this, m_TimerEventManager);
-	m_UIManager->InitUIElements(m_Renderer->GetSquarePositionData(), m_Renderer->GetSquareColorData(), m_Renderer->GetSquareColorGridData16x6(), m_Renderer->GetSquareColorGridData8x4());
-
-	if (ShowFps)
+	if (ShowFps && ConfigFound)
 		m_UIManager->SetText(L"ui_fps_text", L"fps : 0");
 
 	m_TileAnimations->SetUIManager(m_UIManager);
+
+	SetTaskFinished("init_uimanager_task");
 }
 
-void CGameManager::MiddleInitRender()
+void CGameManager::GenerateStartScreenTextures()
 {
 	glm::vec2 BtnSize = m_UIManager->GetElemSize(L"ui_new_game_btn");
 	glm::vec2 SelectSize = m_UIManager->GetElemSize(L"ui_select_control_panel");
 	
-	m_Renderer->MiddleInit(BtnSize.x, BtnSize.y, SelectSize.x, SelectSize.y);
+	m_Renderer->GenerateStartScreenTextures(BtnSize.x, BtnSize.y, SelectSize.x, SelectSize.y);
+	SetTaskFinished("generate_startscreen_textures_task");
 }
 
-void CGameManager::StartInitRenderer(int surfaceWidth, int surfaceHeight)
+void CGameManager::CreateRenderer(int surfaceWidth, int surfaceHeight)
 {
 	m_SurfaceWidth = surfaceWidth;
 	m_SurfaceHeigh = surfaceHeight;
@@ -1008,12 +1132,7 @@ void CGameManager::StartInitRenderer(int surfaceWidth, int surfaceHeight)
 	CConfig::AddConfig("window_height", surfaceHeight);
 
 	m_Renderer = new CRenderer(surfaceWidth, surfaceHeight, this);
-	m_Renderer->StartInit();
-}
-
-void CGameManager::EndInitRenderer()
-{
-	m_Renderer->EndInit();
+	SetTaskFinished("create_renderer_task");
 }
 
 glm::vec2 CGameManager::GetViewPosition(const char* viewId) 
@@ -1434,7 +1553,7 @@ void CGameManager::RenderFrame()
 
 	typedef std::chrono::high_resolution_clock Clock;
 	
-	if (m_Renderer && m_Renderer->IsInited())
+	if (m_Renderer && m_Renderer->EngineInited())
 	{
 		if (ShowFps && frames == 0)
 			LastRenderTime = Clock::now();
@@ -1442,7 +1561,7 @@ void CGameManager::RenderFrame()
 		{
 			const std::lock_guard<std::recursive_mutex> lock(m_Renderer->GetRenderLock());
 
-			if (GameScreenActive())
+			if (m_Renderer->ModelsInited() && GameScreenActive())
 			{
 				m_Renderer->Render();
 				RenderTileAnimations();
@@ -1450,8 +1569,9 @@ void CGameManager::RenderFrame()
 			}
 			else
 				m_Renderer->ClearBuffers();
-
-			RenderUI();
+			
+			if (m_UIManager && m_UIManager->m_UIInitialized)
+				RenderUI();
 		}
 
 		if (ShowFps)

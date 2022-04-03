@@ -8,6 +8,11 @@
 #include "Config.h"
 #include "UIPlayerLetters.h"
 
+CWordAnimationManager::~CWordAnimationManager()
+{
+	m_TimerEventManager->StopTimer("add_word_animation");
+}
+
 
 void CWordAnimationManager::AddWordAnimation(std::wstring word, const std::vector<size_t>& uiLetterIndices, CUIPlayerLetters* playerLetters, int x, int y, bool horizontal, bool nextPlayerIfFinished)
 {
@@ -32,12 +37,14 @@ void CWordAnimationManager::AddWordAnimation(std::wstring word, const std::vecto
 	{
 		if (m_GameManager->GetChOnBoard(x, TileCount - y - 1) != word.at(i))
 		{
+			if (UILetterIdx >= uiLetterIndices.size())
+				int i = 0;
 			int LetterCount = m_GameManager->Board(x, TileCount - y - 1).m_Height;
 			float DestHeight = (BoardHeight + LetterCount * LetterHeight + LetterHeight / 2);
 			float DistanceToBoard = 4.f - DestHeight; //TODO config 3
 			CLetterModel* LetterModel = m_GameManager->AddLetterToBoard(x, y, word.at(i), 4.f);  //TODO config 3
 			LetterModel->SetVisibility(false);
-			m_LetterAnimations.emplace_back(LetterModel, DistanceToBoard, DestHeight, uiLetterIndices[UILetterIdx], x, y);
+			m_LetterAnimations.emplace_back(LetterModel, DistanceToBoard, DestHeight, uiLetterIndices[UILetterIdx], x, y); //TODO!!!!! UILetterIdx - el valamilyen esetben tulcimzunk es kress van!!
 			UILetterIdx++;
 		}
 
