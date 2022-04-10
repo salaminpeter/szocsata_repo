@@ -23,7 +23,6 @@ public class OpenGLView extends GLSurfaceView {
 
     public void StopGameLoop()
     {
-        ((OpenGLRenderer)(m_Renderer)).StopGameThread();
     }
 
     private void Init(MainActivity activity) {

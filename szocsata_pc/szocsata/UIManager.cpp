@@ -521,8 +521,6 @@ void CUIManager::InitStartScreenElements(std::shared_ptr<CSquarePositionData> po
 	//star screens
 	InitMainScreen(positionData, colorData, gridcolorData8x8);
 	InitStartGameScreen(positionData, colorData, gridcolorData8x8);
-
-	m_UIInitialized = true;
 }
 
 void ShowCurrentPlayerLetters(bool show)

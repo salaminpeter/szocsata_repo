@@ -3,6 +3,7 @@
 #include <list>
 #include <memory>
 #include <mutex>
+#include <thread>
 
 #include "Event.h"
 
@@ -10,12 +11,42 @@ class CEventBase;
 class CTask;
 class CGameManager;
 
+class CTask
+{
+public: //TODO
+
+    enum ERunSource {RenderThread, GameThread};
+
+    CEventBase* m_Task = nullptr;
+    std::list<std::shared_ptr<const CTask>> m_DependencyList;
+    std::string m_ID;
+    bool m_TaskStarted = false;
+    bool m_TaskFinished = false;
+    bool m_TaskStopped = true;
+    ERunSource m_RunOnThread ;//= CTaskManager::CurrentThread;
+
+    CTask(const char* id, ERunSource thread) : m_ID(id), m_RunOnThread(thread) {}
+
+    void AddDependencie(std::shared_ptr<CTask> dep)
+    {
+        m_DependencyList.insert(m_DependencyList.begin(), dep);
+    }
+
+    template <typename ClassType, typename... ArgTypes>
+    void SetTask(ClassType* funcClass, typename CEvent<ClassType, ArgTypes...>::TFuncPtrType funcPtr, ArgTypes&&... args)
+    {
+        m_Task = new CEvent<ClassType, ArgTypes...>(funcClass, funcPtr, std::forward<ArgTypes>(args)...);
+    }
+
+    bool DependenciesResolved();
+    void Start();
+};
+
+
 class CTaskManager
 {
 public:
 	
-	enum ERunSource {RenderThread, GameThread};
-
 	CTaskManager(CGameManager* gm) : m_GameManager(gm)
 	{
 		m_Thread = new std::thread(&CTaskManager::TaskLoop, this);
@@ -28,7 +59,7 @@ public:
 
 
 	template <typename ClassType, typename... ArgTypes>
-	std::shared_ptr<CTask> AddTask(ClassType* funcClass, typename CEvent<ClassType, ArgTypes...>::TFuncPtrType funcPtr, const char* id, ERunSource runThread, ArgTypes&&... args)
+	std::shared_ptr<CTask> AddTask(ClassType* funcClass, typename CEvent<ClassType, ArgTypes...>::TFuncPtrType funcPtr, const char* id, CTask::ERunSource runThread, ArgTypes&&... args)
 	{
 		const std::lock_guard<std::recursive_mutex> lock(m_Lock);
 
@@ -67,31 +98,3 @@ private:
 	std::shared_ptr<CTask> GetTask(const char* id);
 };
 
-class CTask
-{
-public: //TODO
-
-	CEventBase* m_Task = nullptr;
-	std::list<std::shared_ptr<const CTask>> m_DependencyList;
-	std::string m_ID;
-	bool m_TaskStarted = false;
-	bool m_TaskFinished = false;
-	bool m_TaskStopped = true;
-	CTaskManager::ERunSource m_RunOnThread ;//= CTaskManager::CurrentThread;
-
-	CTask(const char* id, CTaskManager::ERunSource thread) : m_ID(id), m_RunOnThread(thread) {}
-
-	void AddDependencie(std::shared_ptr<CTask> dep) 
-	{ 
-		m_DependencyList.insert(m_DependencyList.begin(), dep); 
-	}
-
-	template <typename ClassType, typename... ArgTypes>
-	void SetTask(ClassType* funcClass, typename CEvent<ClassType, ArgTypes...>::TFuncPtrType funcPtr, ArgTypes&&... args)
-	{
-		m_Task = new CEvent<ClassType, ArgTypes...>(funcClass, funcPtr, std::forward<ArgTypes>(args)...);
-	}
-	
-	bool DependenciesResolved();
-	void Start();
-};

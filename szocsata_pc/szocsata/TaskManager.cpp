@@ -43,7 +43,7 @@ void CTaskManager::SetTaskFinished(const char* taskId)
 	Task->m_TaskFinished = true;
 }
 
-void CTaskManager::StartTask(const char* id, bool runDirectly)
+void CTaskManager::StartTask(const char* id, bool runDirectly) 
 {
 	const std::lock_guard<std::recursive_mutex> lock(m_Lock);
 
@@ -51,11 +51,17 @@ void CTaskManager::StartTask(const char* id, bool runDirectly)
 
 	if (!Task)
 		return;
-	
+
 	if (runDirectly)
 		Task->Start();
 	else
+	{
+#ifdef WIN32
 		m_GameManager->m_TaskToStartID = Task->m_ID;
+#else
+		m_GameManager->RunTaskOnRenderThread(Task->m_ID.c_str());
+#endif
+	}
 }
 
 void CTaskManager::TaskLoop()
@@ -75,7 +81,7 @@ void CTaskManager::TaskLoop()
 
 				if (!(*it)->m_TaskStarted)
 				{
-					if (!(*it)->DependenciesResolved() || (*it)->m_TaskFinished || (*it)->m_TaskStarted || (*it)->m_TaskStopped)
+					if (!(*it)->DependenciesResolved() || (*it)->m_TaskStarted)
 						continue;
 
 					(*it)->m_TaskStarted = true;

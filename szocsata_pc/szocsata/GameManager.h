@@ -50,6 +50,7 @@ public:
 		delete m_WordAnimation;
 		delete m_TimerEventManager;
 		delete m_GameThread;
+		delete m_TaskManager;
 	}
 
 	void AddPlayers(int playerCount, bool addComputer, bool addLetters = true);
@@ -95,7 +96,7 @@ public:
 	void RemovePlacedLetterSelAtPos(int x, int y);
 	int GetPlayerStepIdxAtPos(int x, int y);
 	void DealCurrPlayerLetters();
-	void PlayerLetterReleased(unsigned letterIdx);
+	void PlayerLetterReleased(size_t letterIdx);
 	void EndGameAfterLastPass();
 	void GameLoop();
 	void SetGameState(int state);
@@ -143,7 +144,7 @@ public:
  	void SaveState() { m_State->SaveGameState(); }
 	void LoadState() { m_State->LoadGameState(); }
 	void LoadPlayerAndBoardState() { m_State->LoadPlayerAndBoardState(); }
-	void SetTaskFinished(const char* id) { m_TaskManager.SetTaskFinished(id); }
+	void SetTaskFinished(const char* id) { m_TaskManager->SetTaskFinished(id); }
 
 	void ShowStartScreenTask();
 	void BeginGameTask();
@@ -151,11 +152,12 @@ public:
 	void GenerateModelsTask();
 
 
-	//TODO valamiert nem mukodik a perfect forwarding az osszes ilyen fuggvenynel, csak jobberteket lehet parameternek adni
+
+    //TODO valamiert nem mukodik a perfect forwarding az osszes ilyen fuggvenynel, csak jobberteket lehet parameternek adni
 	template <typename ClassType, typename... ArgTypes>
-	std::shared_ptr<CTask> AddTask(ClassType* funcClass, typename CEvent<ClassType, ArgTypes...>::TFuncPtrType funcPtr, const char* id, CTaskManager::ERunSource runThread, ArgTypes... args)
+	std::shared_ptr<CTask> AddTask(ClassType* funcClass, typename CEvent<ClassType, ArgTypes...>::TFuncPtrType funcPtr, const char* id, CTask::ERunSource runThread, ArgTypes... args)
 	{
-		return m_TaskManager.AddTask(this, funcPtr, id, runThread, std::forward<ArgTypes>(args)...);
+		return m_TaskManager->AddTask(this, funcPtr, id, runThread, std::forward<ArgTypes>(args)...);
 	}
 
 
@@ -178,8 +180,12 @@ public:
 	CTimerEventManager* GetTimerEventManager() {return m_TimerEventManager;}
 	int GetLetterPoolCount() {return m_LetterPool.GetRemainingLetterCount(); }
 	void AddPlacedLetterSelection(int x, int y) {m_PlacedLetterSelections.push_back(glm::ivec2(x, y));}
-	void StartTask(const char* id) {m_TaskManager.StartTask(id);}
+	void StartTask(const char* id) {m_TaskManager->StartTask(id);}
 	void StartGameThread();
+
+#ifdef PLATFORM_ANDROID
+	void RunTaskOnRenderThread(const char* id);
+#endif
 
 	glm::vec2 GetViewPosition(const char* viewId);
 	bool PositionOnBoardView(int x, int y);
@@ -220,7 +226,7 @@ private:
 	CGameBoard m_GameBoard;
 	CGameBoard m_TmpGameBoard;
 	CDataBase m_DataBase;
-	CTaskManager m_TaskManager;
+	CTaskManager* m_TaskManager;
 	CRenderer* m_Renderer = nullptr;
 	CGameThread* m_GameThread;
 

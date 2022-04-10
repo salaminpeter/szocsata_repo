@@ -166,8 +166,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onPause(){
         super.onPause();
         m_OpenGLView.onPause();
-        m_OpenGLView.StopGameLoop();
-        ClearResources();
+        //m_OpenGLView.StopGameLoop();
+//        ClearResources();
     }
     @Override
     public void onPointerCaptureChanged(boolean hasCapture) {

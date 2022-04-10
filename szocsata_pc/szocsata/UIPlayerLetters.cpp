@@ -84,9 +84,9 @@ void CUIPlayerLetters::InitLetterTexPositions()
 
 void CUIPlayerLetters::OrderLetterElements()
 {
-	for (unsigned i = 0; i < m_Children.size(); ++i)
+	for (size_t i = 0; i < m_Children.size(); ++i)
 	{
-		m_Children[i]->SetEvent(false, m_GameManager, &CGameManager::PlayerLetterReleased, std::move(i));
+		m_Children[i]->SetEvent(false, m_GameManager, &CGameManager::PlayerLetterReleased, std::move(i));  //TODO szar az egesz event miert kell move???
 	}
 }
 
@@ -111,8 +111,9 @@ void CUIPlayerLetters::AddUILetters(unsigned count)
 	{
 		if (letters[i] != L' ') {
 			CUIElement *NewLetter = new CUIButton(this, m_PositionData, m_ColorData, 0, 0, 100, 100, m_ViewPosX, m_ViewPosY, "playerletters.bmp", L"");
-			NewLetter->SetEvent(false, m_GameManager, &CGameManager::PlayerLetterReleased, std::move(Idx++));
+			NewLetter->SetEvent(false, m_GameManager, &CGameManager::PlayerLetterReleased, std::move(Idx)); //TODO szar az egesz event miert kell move???
 			NewLetter->SetTexturePosition(m_LetterTexPos[letters[i]] / glm::vec2(8, 4));
+			Idx++;
 		}
 	}
 }

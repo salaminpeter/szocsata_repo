@@ -25,7 +25,7 @@
 #include <GLES3\gl3.h>
 
 
-CGameManager::CGameManager() : m_TaskManager(this)
+CGameManager::CGameManager()
 {
 	CConfig::LoadConfigs("config.txt");
 
@@ -39,6 +39,7 @@ CGameManager::CGameManager() : m_TaskManager(this)
 	m_PlayerLetterAnimationManager = new CPlayerLetterAnimationManager(this, m_TimerEventManager); //TODO!!!!!!!!!!!
 	m_DimmBGAnimationManager = new CDimmBGAnimationManager(this, m_TimerEventManager);
 	m_GameThread = new CGameThread(this);
+	m_TaskManager = new CTaskManager(this);
 }
 
 
@@ -109,7 +110,35 @@ void CGameManager::FinishRenderInit()
 	InitBasedOnTileCount(true);
 	SetTaskFinished("game_started_task");
 #endif
+
 }
+
+
+#ifdef PLATFORM_ANDROID
+
+extern jclass g_OpenGLRendererClass;
+
+void CGameManager::RunTaskOnRenderThread(const char* id)
+{
+	JNIEnv* env;
+	m_JavaVM->AttachCurrentThread(&env, NULL);
+	jmethodID Method = env->GetMethodID(g_OpenGLRendererClass, "RunTaskOnRenderThreadMain", "(Ljava/lang/String;)V");
+	jstring JStringId = env->NewStringUTF(id);
+	env->CallVoidMethod(m_RendererObject, Method, JStringId);
+    env->DeleteLocalRef(JStringId);
+
+    if (env->ExceptionCheck())
+    {
+        env->ExceptionDescribe();
+        env->ExceptionClear();
+        m_JavaVM->DetachCurrentThread();
+        return;
+    }
+
+    m_JavaVM->DetachCurrentThread();
+}
+#endif
+
 
 void CGameManager::SetTileCount()
 {
@@ -743,6 +772,7 @@ void CGameManager::ShowStartScreenTask()
 {
 	SetGameState(CGameManager::OnStartScreen);
 	SetTaskFinished("show_startscreen_task");
+	m_UIManager->m_UIInitialized = true;
 }
 
 void CGameManager::BeginGameTask()
@@ -765,12 +795,17 @@ void CGameManager::GenerateModelsTask()
 
 void CGameManager::ExecuteTaskOnThread(const char* id, int threadId)
 {
-	if (threadId == CTaskManager::GameThread)
+#ifdef PLATFORM_ANDROID
+	if (threadId == CTask::GameThread)
 		m_GameThread->AddTaskToExecute(id);
+	else if (threadId == CTask::RenderThread)
+		RunTaskOnRenderThread(id);
 
 //windowsos hekk itt nincsen ui threadunk
-#ifdef WIN32
-	else if (threadId == CTaskManager::RenderThread)
+#else
+	if (threadId == CTask::GameThread)
+		m_GameThread->AddTaskToExecute(id);
+	else if (threadId == CTask::RenderThread)
 	{ 
 		const std::lock_guard<std::mutex> lock(m_TaskMutex);
 		m_TaskToStartID = id;
@@ -1027,7 +1062,7 @@ int CGameManager::CalculateScore(const TWordPos& word, std::vector<TWordPos>* cr
 	return CrossingWordsValid ? Score : 0;
 }
 
-void CGameManager::PlayerLetterReleased(unsigned letterIdx)
+void CGameManager::PlayerLetterReleased(size_t letterIdx)
 {
 	m_UIManager->SetDraggedPlayerLetter(false, 0, glm::vec2(0.f, 0.f), glm::vec2(0.f, 0.f), true);
 
