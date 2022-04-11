@@ -23,7 +23,7 @@ public:
 
 
 	void InitLetterElements();
-	void AddUILetters(unsigned count);
+	void AddUILetters(unsigned count, bool allLetters = false);
 	void OrderLetterElements();
 	void PositionPlayerLetter(size_t lettedIdx, float x, float y, float size);
 	void ShowLetters(bool show);

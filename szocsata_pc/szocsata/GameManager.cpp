@@ -70,6 +70,8 @@ void CGameManager::AddPlayers(int playerCount, bool addComputer, bool addLetters
 		if (addLetters)
 			m_LetterPool.DealLetters(m_Players.back()->GetLetters());
 
+		m_Players.back()->SetAllLetters();
+
 		CUIPlayerLetters* PlayerLetters = m_UIManager->AddPlayerLetters(m_Players.back(), m_Renderer->GetSquarePositionData(), m_Renderer->GetSquareColorGridData8x4(), addLetters);
 
 		if (!addLetters)
@@ -85,6 +87,8 @@ void CGameManager::AddPlayers(int playerCount, bool addComputer, bool addLetters
 
 		if (addLetters)
 			m_LetterPool.DealLetters(m_Computer->GetLetters());
+
+		m_Computer->SetAllLetters();
 
 		m_Players.push_back(m_Computer);
 		CUIPlayerLetters* PlayerLetters = m_UIManager->AddPlayerLetters(m_Players.back(), m_Renderer->GetSquarePositionData(), m_Renderer->GetSquareColorGridData8x4(), addLetters);
@@ -237,11 +241,13 @@ void CGameManager::AddWordSelectionAnimation(const std::vector<TWordPos>& wordPo
 }
 
 
-void CGameManager::StartPlayerTurn(CPlayer* player)
+void CGameManager::StartPlayerTurn(CPlayer* player, bool saveBoard)
 {
 	m_CurrentPlayer = player;
 	SetGameState(EGameState::TurnInProgress);
-	m_TmpGameBoard = m_GameBoard;
+
+	if (saveBoard)
+		m_TmpGameBoard = m_GameBoard;
 }
 
 bool CGameManager::TileAnimationFinished() 
@@ -426,12 +432,12 @@ void CGameManager::SetPlayerLetters(size_t idx, const std::wstring& letters, boo
 	}
 }
 
-std::wstring CGameManager::GetPlayerLetters(size_t idx)
+std::wstring CGameManager::GetPlayerLetters(size_t idx, bool allLetters)
 {
 	if (m_Players.size() <= idx)
 		return L"";
 
-	return m_Players[idx]->GetLetters();
+	return allLetters ? m_Players[idx]->GetAllLetters() : m_Players[idx]->GetLetters();
 }
 
 bool CGameManager::GetPlayerProperties(size_t idx, std::wstring& name, int& score, glm::vec3& color)
@@ -678,6 +684,7 @@ void CGameManager::DealCurrPlayerLetters()
 	CUIPlayerLetters* PlayerLetters = m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName().c_str());
 	m_LetterPool.DealLetters(m_CurrentPlayer->GetLetters());
 	m_CurrentPlayer->GetLetters().erase(remove(m_CurrentPlayer->GetLetters().begin(), m_CurrentPlayer->GetLetters().end(), ' '), m_CurrentPlayer->GetLetters().end());
+	m_CurrentPlayer->SetAllLetters();
 	PlayerLetters->SetLetters();
 
 	PlayerLetters->OrderLetterElements();

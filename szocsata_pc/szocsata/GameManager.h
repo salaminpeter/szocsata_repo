@@ -84,7 +84,7 @@ public:
 	void HandleZoomEndEvent();
     void HandleMultyDragEvent(int x0, int y0, int x1, int y1);
 
-	void StartPlayerTurn(CPlayer* player);
+	void StartPlayerTurn(CPlayer* player, bool saveBoard = true);
 	void StartComputerturn();
 	bool EndComputerTurn();
 	bool EndPlayerTurn(bool stillHaveTime = true);
@@ -111,7 +111,7 @@ public:
 	int GetDifficulty();
 	bool AllPlayersPassed();
 	void SetPlayerLetters(size_t idx, const std::wstring& letters, bool addEmptyLetters = false);
-	std::wstring GetPlayerLetters(size_t idx);
+	std::wstring GetPlayerLetters(size_t idx, bool allLetters = false);
 	bool GetPlayerProperties(size_t idx, std::wstring& name, int& score, glm::vec3& color);
 	bool GameScreenActive();
 	bool GameScreenActive(EGameState state);
@@ -177,9 +177,13 @@ public:
 	CRenderer* GetRenderer() { return m_Renderer; }
 	CUIManager* GetUIManager() { return m_UIManager; }
 	CTimerEventManager* GetTimerEventManager() {return m_TimerEventManager;}
+	const std::vector<TPlayerStep>& GetPlayerSteps() {return m_PlayerSteps;}
 	int GetLetterPoolCount() {return m_LetterPool.GetRemainingLetterCount(); }
 	void AddPlacedLetterSelection(int x, int y) {m_PlacedLetterSelections.push_back(glm::ivec2(x, y));}
 	void StartTask(const char* id) {m_TaskManager->StartTask(id);}
+	void AddPlayerStep(wchar_t c, int letterIdx, int xPos, int yPos) {	m_PlayerSteps.emplace_back(c, xPos, yPos, letterIdx);}
+
+
 	void StartGameThread();
 	bool GameStateFileFound();
 

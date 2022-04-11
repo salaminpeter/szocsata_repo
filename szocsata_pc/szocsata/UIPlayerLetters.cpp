@@ -98,9 +98,9 @@ void CUIPlayerLetters::InitLetterElements()
 	AddUILetters(LetterCount);
 }
 
-void CUIPlayerLetters::AddUILetters(unsigned count)
+void CUIPlayerLetters::AddUILetters(unsigned count, bool allLetters)
 {
-	std::wstring& letters = m_Player->GetLetters();
+	std::wstring& letters = allLetters ? m_Player->GetAllLetters() : m_Player->GetLetters();
 	size_t Idx = 0;
 
 	for (unsigned i = 0; i < count; ++i)

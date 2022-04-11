@@ -35,8 +35,11 @@ public:
 	int GetScore() {return m_Score;}
 	std::wstring GetName() {return m_Name;}
 	std::wstring&  GetLetters() {return m_Letters;}
+	std::wstring&  GetAllLetters() {return m_AllLetters;}
 	CBinaryBoolList GetUsedLetters() {return m_UsedLetters;}
 	glm::vec3 GetColor() {return m_Color;}
+	void SetAllLetters() {m_AllLetters = m_Letters;}
+	void SetAllLetters(const wchar_t* letters) {m_AllLetters = letters;}
 
 public:
 
@@ -46,7 +49,8 @@ public:
 	
 	glm::vec3 m_Color;
 	CGameManager* m_GameManager;
-	std::wstring m_Letters;
+	std::wstring m_Letters;  //betuk, ahol a mar elhelyezettek helyett spaceek vannak
+	std::wstring m_AllLetters; //a komplett betusor
 	std::wstring m_Name;
 	CBinaryBoolList m_UsedLetters;
 	int m_Score = 0;
