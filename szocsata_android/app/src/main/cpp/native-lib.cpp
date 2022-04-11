@@ -104,7 +104,6 @@ Java_com_example_szocsata_1android_OpenGLRenderer_InitGameManager(JNIEnv *env, j
         std::shared_ptr<CTask> GenerateGameScrTextTask = gm->AddTask(gm, &CGameManager::GenerateGameScreenTextures, "generate_game_screen_textures_task", CTask::RenderThread);
         std::shared_ptr<CTask> GenerateModelsTask = gm->AddTask(gm, &CGameManager::GenerateModelsTask, "generate_models_task", CTask::RenderThread);
         std::shared_ptr<CTask> LoadPlayerBoardStateTask = gm->AddTask(gm, &CGameManager::LoadPlayerAndBoardState, "load_palyer_and_board_state_task", CTask::RenderThread);
-        std::shared_ptr<CTask> AlignGameScreenTask = gm->AddTask(gm, &CGameManager::AlignGameScreenTask, "align_game_screen_task", CTask::RenderThread);
         std::shared_ptr<CTask> ResumeOnSavedScreenTask = gm->AddTask(gm, &CGameManager::ShowSavedScreenTask, "resume_on_saved_screen_task", CTask::RenderThread);
 
         InitRendererTask->AddDependencie(CreateRendererTask);
@@ -119,8 +118,7 @@ Java_com_example_szocsata_1android_OpenGLRenderer_InitGameManager(JNIEnv *env, j
         GenerateModelsTask->AddDependencie(LoadGameStateTask);
         LoadPlayerBoardStateTask->AddDependencie(GenerateModelsTask);
         LoadPlayerBoardStateTask->AddDependencie(InitPlayersTask);
-        AlignGameScreenTask->AddDependencie(LoadPlayerBoardStateTask);
-        ResumeOnSavedScreenTask->AddDependencie(AlignGameScreenTask);
+        ResumeOnSavedScreenTask->AddDependencie(LoadPlayerBoardStateTask);
 
         CreateRendererTask->m_TaskStopped = false;
         InitRendererTask->m_TaskStopped = false;
@@ -134,7 +132,6 @@ Java_com_example_szocsata_1android_OpenGLRenderer_InitGameManager(JNIEnv *env, j
         GenerateGameScrTextTask->m_TaskStopped = false;
         GenerateModelsTask->m_TaskStopped = false;
         LoadPlayerBoardStateTask->m_TaskStopped = false;
-        AlignGameScreenTask->m_TaskStopped = false;
         ResumeOnSavedScreenTask->m_TaskStopped = false;
     }
 

@@ -79,8 +79,6 @@ void CGameState::LoadPlayerAndBoardState()
 	int TileCount;
 	CConfig::GetConfig("tile_count", TileCount);
 
-	m_GameManager->SetBoardSize();
-
 	float LetterHeight;
 	float BoardHeight;
 
@@ -118,16 +116,29 @@ void CGameState::LoadPlayerAndBoardState()
 
 		m_GameManager->SetPlayerLetters(i, Letters);
 		m_GameManager->GetUIManager()->GetPlayerLetters(i)->AddUILetters(LetterCount);
+		m_GameManager->GetUIManager()->GetPlayerLetters(i)->ShowLetters(false);
 		m_GameManager->GetUIManager()->GetPlayerLetters(i)->SetVisible(false);
 	}
 
-	m_GameManager->StartPlayerTurn(m_GameManager->GetPlayer(0));
-	m_GameManager->GetUIManager()->GetPlayerLetters(0)->SetVisible(true);
-	m_GameManager->GetUIManager()->GetPlayerLetters(0)->DiasbleLayoutPositioning(true);
+	if (m_GameManager->GameScreenActive(m_GameManager->m_SavedGameState))
+	{
+		std::wstring Name;
+		int Score;
+		glm::vec3 Color;
 
-	((CUILayout*)(m_GameManager->GetUIManager()->GetUIElement(L"ui_game_screen_sub_layout3")))->SetBoxSizeProps(0, m_GameManager->GetUIManager()->GetScorePanelSize().x, m_GameManager->GetUIManager()->GetScorePanelSize().y, false);
+		m_GameManager->GetPlayerProperties(0, Name, Score, Color);
+		m_GameManager->StartPlayerTurn(m_GameManager->GetPlayer(0));
+		m_GameManager->GetUIManager()->SetCurrentPlayerName(Name.c_str(), Color.r, Color.g,
+															Color.b);
+		m_GameManager->GetUIManager()->GetPlayerLetters(0)->DiasbleLayoutPositioning(true);
+		m_GameManager->GetUIManager()->GetPlayerLetters(0)->SetLetterVisibility(CBinaryBoolList());
+		m_GameManager->GetUIManager()->GetPlayerLetters(0)->ShowLetters(true);
+		m_GameManager->GetUIManager()->GetPlayerLetters(0)->SetVisible(true);
 
-	m_GameManager->GetUIManager()->GetPlayerLetters(0)->DiasbleLayoutPositioning(false);
+		((CUILayout *) (m_GameManager->GetUIManager()->GetUIElement(L"ui_game_screen_sub_layout3")))->SetBoxSizeProps(0,m_GameManager->GetUIManager()->GetScorePanelSize().x, m_GameManager->GetUIManager()->GetScorePanelSize().y, false);
+		m_GameManager->GetUIManager()->GetUIElement(L"ui_game_screen_main_layout")->AlignChildren();
+	}
+
 }
 
 void CGameState::LoadGameState()

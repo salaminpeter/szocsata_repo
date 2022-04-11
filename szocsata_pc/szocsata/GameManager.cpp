@@ -201,16 +201,6 @@ void CGameManager::InitPlayersTask()
 	SetTaskFinished("init_players_task");
 }
 
-void CGameManager::AlignGameScreenTask()
-{
-	if (GameScreenActive(m_SavedGameState))
-	{
-		((CUIHorizontalLayout*)(m_UIManager->GetUIElement(L"ui_game_screen_sub_layout3")))->SetBoxSizeProps(0, m_UIManager->GetScorePanelSize().x, m_UIManager->GetScorePanelSize().y, false);
-		m_UIManager->GetUIElement(L"ui_game_screen_main_layout")->AlignChildren();
-	}
-
-	SetTaskFinished("align_game_screen_task");
-}
 
 void CGameManager::InitPlayers(bool addLetters)
 {

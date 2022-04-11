@@ -22,7 +22,7 @@ public:
 	std::map<wchar_t, glm::vec2> m_LetterTexPos; //TODO ez ne legyen 100 helyen letrehozva!!!!
 
 
-	void InitLetterElements(float ViewPosX, float ViewPosY);
+	void InitLetterElements();
 	void AddUILetters(unsigned count);
 	void OrderLetterElements();
 	void PositionPlayerLetter(size_t lettedIdx, float x, float y, float size);
@@ -45,7 +45,5 @@ private:
 	std::shared_ptr<CSquarePositionData> m_PositionData;
 	std::shared_ptr<CSquareColorData> m_ColorData;
 
-	int m_ViewPosX;
-	int m_ViewPosY;
 	bool m_DisableLayout = false;
 };

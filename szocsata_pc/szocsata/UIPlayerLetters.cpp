@@ -90,12 +90,8 @@ void CUIPlayerLetters::OrderLetterElements()
 	}
 }
 
-void CUIPlayerLetters::InitLetterElements(float ViewPosX, float ViewPosY)
+void CUIPlayerLetters::InitLetterElements()
 {
-	//TODO Viewpos is konstruktorba kell nem ide!
-	m_ViewPosX = ViewPosX;
-	m_ViewPosY = ViewPosY;
-
 	int LetterCount;
 	CConfig::GetConfig("letter_count", LetterCount);
 
@@ -110,7 +106,7 @@ void CUIPlayerLetters::AddUILetters(unsigned count)
 	for (unsigned i = 0; i < count; ++i)
 	{
 		if (letters[i] != L' ') {
-			CUIElement *NewLetter = new CUIButton(this, m_PositionData, m_ColorData, 0, 0, 100, 100, m_ViewPosX, m_ViewPosY, "playerletters.bmp", L"");
+			CUIElement *NewLetter = new CUIButton(this, m_PositionData, m_ColorData, 0, 0, 100, 100, m_ViewXPosition, m_ViewYPosition, "playerletters.bmp", L"");
 			NewLetter->SetEvent(false, m_GameManager, &CGameManager::PlayerLetterReleased, std::move(Idx)); //TODO szar az egesz event miert kell move???
 			NewLetter->SetTexturePosition(m_LetterTexPos[letters[i]] / glm::vec2(8, 4));
 			Idx++;
@@ -170,6 +166,11 @@ bool CUIPlayerLetters::HandleEventAtPos(int x, int y, EEventType event, CUIEleme
 {
 	for (size_t i = 0; i < m_Children.size(); ++i)
 	{
+		bool b0 = m_Children[i]->IsEnabled();
+		bool b1 = m_Children[i]->IsVisible();
+		bool b2 = m_Children[i]->PositionInElement(x, y);
+
+
 		if (m_Children[i]->IsEnabled() && m_Children[i]->IsVisible() && m_Children[i]->PositionInElement(x, y))
 		{
 			//player letter clicked - release

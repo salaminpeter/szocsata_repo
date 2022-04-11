@@ -83,7 +83,7 @@ CUIPlayerLetters* CUIManager::AddPlayerLetters(CPlayer* player, std::shared_ptr<
 	CUIPlayerLetters* PlayerLetters = new CUIPlayerLetters(m_GameManager, this, player, m_PlayerLetterPanel, positionData, colorData, 0, 0, m_PlayerLetterPanel->GetWidth(), m_PlayerLetterPanel->GetHeight(), ViewPos.x, ViewPos.y, (addLetters ? LetterCount : 0), player->GetName().c_str());
 
 	if (addLetters)
-	    PlayerLetters->InitLetterElements(ViewPos.x, ViewPos.y);
+	    PlayerLetters->InitLetterElements();
 
 	PlayerLetters->SetVisible(true);
 

@@ -155,7 +155,6 @@ public:
 	void GenerateModelsTask();
     void InitGameScreenTask();
     void InitPlayersTask();
-    void AlignGameScreenTask();
 
     //TODO valamiert nem mukodik a perfect forwarding az osszes ilyen fuggvenynel, csak jobberteket lehet parameternek adni
 	template <typename ClassType, typename... ArgTypes>

@@ -23,7 +23,6 @@ CUIText::CUIText(CUIElement* parent, std::shared_ptr<CSquarePositionData> positi
 	m_Text(text)
 {
 	m_CheckChildEvents = false;
-	InitFontTexPositions();
 	SetText(text);
 	SetColor(r, g, b);
 	PositionElement();
