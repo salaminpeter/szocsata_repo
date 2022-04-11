@@ -15,6 +15,7 @@ std::mutex m_GMLock;
 
 JavaVM* g_VM;
 jclass g_OpenGLRendererClass;
+jclass g_MainActivityClass;
 
 extern "C"
 JNIEXPORT jint JNICALL
@@ -24,8 +25,12 @@ JNI_OnLoad(JavaVM *jvm, void *reserved)
 
     JNIEnv *env;
     g_VM->GetEnv((void **)&env, JNI_VERSION_1_6);
+
     jclass cls = (*env).FindClass("com/example/szocsata_android/OpenGLRenderer");
     g_OpenGLRendererClass = (jclass)(*env).NewGlobalRef(cls);
+
+    jclass cls1 = (*env).FindClass("com/example/szocsata_android/MainActivity");
+    g_MainActivityClass = (jclass)(*env).NewGlobalRef(cls1);
 
     return JNI_VERSION_1_6;
 }
@@ -51,42 +56,87 @@ JNIEXPORT void JNICALL
 Java_com_example_szocsata_1android_OpenGLRenderer_InitGameManager(JNIEnv *env, jobject thiz, jint surface_width, jint surface_height) {
     gm->m_JavaVM = g_VM;
     InputManager = new CInputManager(gm);
-    /*
-    gm->StartInitRenderer(surface_width, surface_height);
-    gm->InitUIManager();
-    gm->MiddleInitRender();
-    gm->SetGameState(CGameManager::OnStartScreen);
-    gm->LoadState();
-     */
-//    gm->LoadState();
-    std::shared_ptr<CTask> CreateRendererTask = gm->AddTask(gm, &CGameManager::CreateRenderer, "create_renderer_task", CTask::RenderThread, surface_width, surface_height);
-    std::shared_ptr<CTask> InitRendererTask = gm->AddTask(gm, &CGameManager::InitRendererTask, "init_renderer_task", CTask::RenderThread);
-    std::shared_ptr<CTask> InitUIManagerTask = gm->AddTask(gm, &CGameManager::InitUIManager, "init_uimanager_task", CTask::RenderThread);
-    std::shared_ptr<CTask> InitUIStartScreensTask = gm->AddTask(gm, &CGameManager::InitStartUIScreens, "init_uimanager_startscreens_task", CTask::RenderThread);
-    std::shared_ptr<CTask> GenerateStartScrTextTask = gm->AddTask(gm, &CGameManager::GenerateStartScreenTextures, "generate_startscreen_textures_task", CTask::RenderThread);
-    std::shared_ptr<CTask> ShowStartScreenTask = gm->AddTask(gm, &CGameManager::ShowStartScreenTask, "show_startscreen_task", CTask::RenderThread);
-    std::shared_ptr<CTask> BoardSizeSetTask = gm->AddTask(gm, nullptr, "board_size_set_task", CTask::RenderThread);
-    std::shared_ptr<CTask> GenerateModelsTask = gm->AddTask(gm, &CGameManager::GenerateModelsTask, "generate_models_task", CTask::RenderThread);
-    std::shared_ptr<CTask> BeginGameTask = gm->AddTask(gm, &CGameManager::BeginGameTask, "begin_game_task", CTask::RenderThread);
-    std::shared_ptr<CTask> GameStartedTask = gm->AddTask(gm, nullptr, "game_started_task", CTask::RenderThread);
 
-    InitRendererTask->AddDependencie(CreateRendererTask);
-    InitUIManagerTask->AddDependencie(InitRendererTask);
-    InitUIStartScreensTask->AddDependencie(InitUIManagerTask);
-    GenerateStartScrTextTask->AddDependencie(InitUIStartScreensTask);
-    ShowStartScreenTask->AddDependencie(GenerateStartScrTextTask);
-    GenerateModelsTask->AddDependencie(BoardSizeSetTask);
-    BeginGameTask->AddDependencie(GenerateModelsTask);
-    BeginGameTask->AddDependencie(GameStartedTask);
+    bool ResumeGame = gm->GameStateFileFound();
 
-    CreateRendererTask->m_TaskStopped = false;
-    InitRendererTask->m_TaskStopped = false;
-    InitUIManagerTask->m_TaskStopped = false;
-    InitUIStartScreensTask->m_TaskStopped = false;
-    GenerateStartScrTextTask->m_TaskStopped = false;
-    ShowStartScreenTask->m_TaskStopped = false;
-    GenerateModelsTask->m_TaskStopped = false;
-    BeginGameTask->m_TaskStopped = false;
+    if (!ResumeGame)
+    {
+        std::shared_ptr<CTask> CreateRendererTask = gm->AddTask(gm, &CGameManager::CreateRenderer, "create_renderer_task", CTask::RenderThread, surface_width, surface_height);
+        std::shared_ptr<CTask> InitRendererTask = gm->AddTask(gm, &CGameManager::InitRendererTask, "init_renderer_task", CTask::RenderThread);
+        std::shared_ptr<CTask> InitUIManagerTask = gm->AddTask(gm, &CGameManager::InitUIManager, "init_uimanager_task", CTask::RenderThread);
+        std::shared_ptr<CTask> InitUIStartScreensTask = gm->AddTask(gm, &CGameManager::InitStartUIScreens, "init_uimanager_startscreens_task", CTask::RenderThread);
+        std::shared_ptr<CTask> GenerateStartScrTextTask = gm->AddTask(gm, &CGameManager::GenerateStartScreenTextures, "generate_startscreen_textures_task", CTask::RenderThread);
+        std::shared_ptr<CTask> ShowStartScreenTask = gm->AddTask(gm, &CGameManager::ShowStartScreenTask, "show_startscreen_task", CTask::RenderThread);
+        std::shared_ptr<CTask> BoardSizeSetTask = gm->AddTask(gm, nullptr, "board_size_set_task", CTask::RenderThread);
+        std::shared_ptr<CTask> GenerateModelsTask = gm->AddTask(gm, &CGameManager::GenerateModelsTask, "generate_models_task", CTask::RenderThread);
+        std::shared_ptr<CTask> BeginGameTask = gm->AddTask(gm, &CGameManager::BeginGameTask, "begin_game_task", CTask::RenderThread);
+        std::shared_ptr<CTask> GameStartedTask = gm->AddTask(gm, nullptr, "game_started_task", CTask::RenderThread);
+
+        InitRendererTask->AddDependencie(CreateRendererTask);
+        InitUIManagerTask->AddDependencie(InitRendererTask);
+        InitUIStartScreensTask->AddDependencie(InitUIManagerTask);
+        GenerateStartScrTextTask->AddDependencie(InitUIStartScreensTask);
+        ShowStartScreenTask->AddDependencie(GenerateStartScrTextTask);
+        GenerateModelsTask->AddDependencie(BoardSizeSetTask);
+        BeginGameTask->AddDependencie(GenerateModelsTask);
+        BeginGameTask->AddDependencie(GameStartedTask);
+
+        CreateRendererTask->m_TaskStopped = false;
+        InitRendererTask->m_TaskStopped = false;
+        InitUIManagerTask->m_TaskStopped = false;
+        InitUIStartScreensTask->m_TaskStopped = false;
+        GenerateStartScrTextTask->m_TaskStopped = false;
+        ShowStartScreenTask->m_TaskStopped = false;
+        GenerateModelsTask->m_TaskStopped = false;
+        BeginGameTask->m_TaskStopped = false;
+    }
+    else
+    {
+        std::shared_ptr<CTask> CreateRendererTask = gm->AddTask(gm, &CGameManager::CreateRenderer, "create_renderer_task", CTask::RenderThread, surface_width, surface_height);
+        std::shared_ptr<CTask> InitRendererTask = gm->AddTask(gm, &CGameManager::InitRendererTask, "init_renderer_task", CTask::RenderThread);
+        std::shared_ptr<CTask> InitUIManagerTask = gm->AddTask(gm, &CGameManager::InitUIManager, "init_uimanager_task", CTask::RenderThread);
+        std::shared_ptr<CTask> InitUIStartScreensTask = gm->AddTask(gm, &CGameManager::InitStartUIScreens, "init_uimanager_startscreens_task", CTask::RenderThread);
+        std::shared_ptr<CTask> GenerateStartScrTextTask = gm->AddTask(gm, &CGameManager::GenerateStartScreenTextures, "generate_startscreen_textures_task", CTask::RenderThread);
+        std::shared_ptr<CTask> LoadGameStateTask = gm->AddTask(gm, &CGameManager::LoadState, "load_game_state_task", CTask::CurrentThread);
+        std::shared_ptr<CTask> InitGameScreenTask = gm->AddTask(gm, &CGameManager::InitGameScreenTask, "init_game_screen_task", CTask::RenderThread);
+        std::shared_ptr<CTask> InitLetterPoolTask = gm->AddTask(gm, &CGameManager::InitLetterPool, "init_letter_pool_task", CTask::RenderThread);
+        std::shared_ptr<CTask> InitPlayersTask = gm->AddTask(gm, &CGameManager::InitPlayersTask, "init_players_task", CTask::RenderThread);
+        std::shared_ptr<CTask> GenerateGameScrTextTask = gm->AddTask(gm, &CGameManager::GenerateGameScreenTextures, "generate_game_screen_textures_task", CTask::RenderThread);
+        std::shared_ptr<CTask> GenerateModelsTask = gm->AddTask(gm, &CGameManager::GenerateModelsTask, "generate_models_task", CTask::RenderThread);
+        std::shared_ptr<CTask> LoadPlayerBoardStateTask = gm->AddTask(gm, &CGameManager::LoadPlayerAndBoardState, "load_palyer_and_board_state_task", CTask::RenderThread);
+        std::shared_ptr<CTask> AlignGameScreenTask = gm->AddTask(gm, &CGameManager::AlignGameScreenTask, "align_game_screen_task", CTask::RenderThread);
+        std::shared_ptr<CTask> ResumeOnSavedScreenTask = gm->AddTask(gm, &CGameManager::ShowSavedScreenTask, "resume_on_saved_screen_task", CTask::RenderThread);
+
+        InitRendererTask->AddDependencie(CreateRendererTask);
+        InitUIManagerTask->AddDependencie(InitRendererTask);
+        InitUIStartScreensTask->AddDependencie(InitUIManagerTask);
+        GenerateStartScrTextTask->AddDependencie(InitUIStartScreensTask);
+        LoadGameStateTask->AddDependencie(GenerateStartScrTextTask);
+        InitGameScreenTask->AddDependencie(LoadGameStateTask);
+        InitLetterPoolTask->AddDependencie(InitGameScreenTask);
+        InitPlayersTask->AddDependencie(InitLetterPoolTask);
+        GenerateGameScrTextTask->AddDependencie(InitPlayersTask);
+        GenerateModelsTask->AddDependencie(LoadGameStateTask);
+        LoadPlayerBoardStateTask->AddDependencie(GenerateModelsTask);
+        LoadPlayerBoardStateTask->AddDependencie(InitPlayersTask);
+        AlignGameScreenTask->AddDependencie(LoadPlayerBoardStateTask);
+        ResumeOnSavedScreenTask->AddDependencie(AlignGameScreenTask);
+
+        CreateRendererTask->m_TaskStopped = false;
+        InitRendererTask->m_TaskStopped = false;
+        InitUIManagerTask->m_TaskStopped = false;
+        InitUIStartScreensTask->m_TaskStopped = false;
+        GenerateStartScrTextTask->m_TaskStopped = false;
+        LoadGameStateTask->m_TaskStopped = false;
+        InitGameScreenTask->m_TaskStopped = false;
+        InitLetterPoolTask->m_TaskStopped = false;
+        InitPlayersTask->m_TaskStopped = false;
+        GenerateGameScrTextTask->m_TaskStopped = false;
+        GenerateModelsTask->m_TaskStopped = false;
+        LoadPlayerBoardStateTask->m_TaskStopped = false;
+        AlignGameScreenTask->m_TaskStopped = false;
+        ResumeOnSavedScreenTask->m_TaskStopped = false;
+    }
 
     gm->StartGameThread();
 }
@@ -145,6 +195,7 @@ Java_com_example_szocsata_1android_OpenGLRenderer_EndInitAndStart(JNIEnv *env, j
 
     gm->SetTileCount();
     gm->InitBasedOnTileCount(true);
+    gm->GenerateGameScreenTextures();
     gm->SetTaskFinished("game_started_task");
 
     /*
@@ -186,4 +237,18 @@ Java_com_example_szocsata_1android_OpenGLRenderer_RunTaskOnRenderThread(JNIEnv *
     const char *nativeStringId = env->GetStringUTFChars(id, 0);
     gm->StartTask(nativeStringId);
     env->ReleaseStringUTFChars(id, nativeStringId);
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_szocsata_1android_MainActivity_StopGameLoop(JNIEnv *env, jobject thiz)
+{
+    gm->m_StopGameLoop = true;
+    gm->StopTaskThread();
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_szocsata_1android_MainActivity_ResumeGame(JNIEnv *env, jobject thiz)
+{
 }

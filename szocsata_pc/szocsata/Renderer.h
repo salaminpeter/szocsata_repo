@@ -38,11 +38,13 @@ public:
 	~CRenderer()
 	{
 		delete m_ShaderManager;
+		ClearResources();
 	}
 
-	bool StartInit();
-	bool EndInit();
-	bool MiddleInit(float startBtnW, float startBtnH, float selectCtrlW, float selectCtrlH);
+	void InitRenderer();
+	bool GenerateModels();
+    bool GenerateStartScreenTextures(float startBtnW, float startBtnH, float selectCtrlW, float selectCtrlH);
+    void GenerateGameScreenTextures();
 	void Render();
 	void ClearBuffers();
 	void AddView(const char* viewId, int x, int y, int w, int h);
@@ -82,7 +84,8 @@ public:
 	void EnableBlending(bool enable);
 
 	void HideSelection(bool hide) { m_SelectionVisible = !hide; } //TODO setvisibleblabla... atirni
-	bool IsInited() { return m_Inited; }
+	bool ModelsInited() { return m_3DModelsInited; }
+	bool EngineInited() { return m_EnginelsInited; }
 	float GetCameraTiltAngle() { return m_CameraTiltAngle; }
 	float GetCameraRotAngle() { return m_CameraRotAngle; }
 
@@ -119,11 +122,9 @@ private:
 
 	std::map<wchar_t, TPosition> m_LetterTexPos;
 
-	bool  m_Inited;
-
-	CModel* m_BoardModel;
-	CModel* m_SelectionModel;
-	CBoardTiles* m_BoardTiles;
+	CModel* m_BoardModel = nullptr;
+	CModel* m_SelectionModel = nullptr;
+	CBoardTiles* m_BoardTiles = nullptr;
 	std::vector<CLetterModel*> m_LettersOnBoard;
 
 	glm::vec4 m_LightPosition;
@@ -134,6 +135,8 @@ private:
 	float m_CameraCurrZoomDistance;
 	float m_LastZoomDist;
 	bool m_ZoomInited = false;
+	bool m_3DModelsInited = false;
+	bool m_EnginelsInited = false;
 	EZoomEndType m_ZoomEndType = EZoomEndType::None;
 
 

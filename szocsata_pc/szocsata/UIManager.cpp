@@ -778,6 +778,9 @@ CUIElement* CUIManager::GetUIElement(const wchar_t* id)
 
 	for (int i = 0; i < 5; ++i)
 	{
+		if (Roots[i] == nullptr)
+			continue;
+
 		CUIElement* e = Roots[i]->GetChild(id);
 
 		if (e)

@@ -62,6 +62,7 @@ public:
 	int CalculateScore(const TWordPos& word, std::vector<TWordPos>* crossingWords = nullptr);
 	void CreateRenderer(int surfaceWidth, int surfaceHeight);
 	void GenerateStartScreenTextures();
+	void GenerateGameScreenTextures();
 	void InitUIManager();
 	void InitStartUIScreens();
 	void RenderFrame();
@@ -142,16 +143,19 @@ public:
 	CPlayer* GetCurrentPlayer() {return m_CurrentPlayer;}
 	CPlayer* GetPlayer(size_t idx) {return m_Players[idx];}
  	void SaveState() { m_State->SaveGameState(); }
-	void LoadState() { m_State->LoadGameState(); }
-	void LoadPlayerAndBoardState() { m_State->LoadPlayerAndBoardState(); }
+	void LoadState();
+	void LoadPlayerAndBoardState();
 	void SetTaskFinished(const char* id) { m_TaskManager->SetTaskFinished(id); }
+	void StopTaskThread() {m_TaskManager->StopThread();}
 
-	void ShowStartScreenTask();
+    void ShowStartScreenTask();
+    void ShowSavedScreenTask();
 	void BeginGameTask();
 	void InitRendererTask();
 	void GenerateModelsTask();
-
-
+    void InitGameScreenTask();
+    void InitPlayersTask();
+    void AlignGameScreenTask();
 
     //TODO valamiert nem mukodik a perfect forwarding az osszes ilyen fuggvenynel, csak jobberteket lehet parameternek adni
 	template <typename ClassType, typename... ArgTypes>
@@ -161,14 +165,10 @@ public:
 	}
 
 
-
 #ifdef PLATFORM_ANDROID
-	void SetRendererObject(jobject obj) {
+	void SetRendererObject(jobject obj)
+	{
 	    m_RendererObject = obj;
-	}
-
-	void SetActivityObject(jobject obj) {
-		m_ActivityObject = obj;
 	}
 #else
 	std::string m_TaskToStartID;
@@ -182,6 +182,7 @@ public:
 	void AddPlacedLetterSelection(int x, int y) {m_PlacedLetterSelections.push_back(glm::ivec2(x, y));}
 	void StartTask(const char* id) {m_TaskManager->StartTask(id);}
 	void StartGameThread();
+	bool GameStateFileFound();
 
 #ifdef PLATFORM_ANDROID
 	void RunTaskOnRenderThread(const char* id);
@@ -253,6 +254,7 @@ private:
 	int m_SurfaceWidth;
 	int m_SurfaceHeigh;
 	bool m_NextPlayerPopupShown = false;
+	bool m_StopGameLoop = false;
 
 	bool m_StartOnGameScreen = false;
 	bool m_InitDone = false;
@@ -260,10 +262,10 @@ private:
 #ifdef PLATFORM_ANDROID
 	JavaVM* m_JavaVM;
     jobject m_RendererObject = nullptr;
-    jobject m_ActivityObject = nullptr;
 #endif
 
-	EGameState m_GameState = EGameState::None;
+    EGameState m_GameState = EGameState::None;
+    EGameState m_SavedGameState = EGameState::None;
 	EGameState m_PrevGameState = EGameState::None;
 
 	std::mutex m_GameStateLock;

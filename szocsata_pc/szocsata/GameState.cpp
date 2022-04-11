@@ -34,7 +34,7 @@ void CGameState::SaveGameState()
 	StateFile.write((char *)&ComputerOpponentEnabled, sizeof(bool));
 	StateFile.write((char *)&Difficulty, sizeof(int));
 
-	if (GameState != CGameManager::OnStartGameScreen && GameState != CGameManager::OnStartScreen && GameState != CGameManager::OnRankingsScreen)
+	if (m_GameManager->GameScreenActive(static_cast<CGameManager::EGameState>(GameState)))
 	{
 		int TileCount;
 		CConfig::GetConfig("tile_count", TileCount);
@@ -126,7 +126,6 @@ void CGameState::LoadPlayerAndBoardState()
 	m_GameManager->GetUIManager()->GetPlayerLetters(0)->DiasbleLayoutPositioning(true);
 
 	((CUILayout*)(m_GameManager->GetUIManager()->GetUIElement(L"ui_game_screen_sub_layout3")))->SetBoxSizeProps(0, m_GameManager->GetUIManager()->GetScorePanelSize().x, m_GameManager->GetUIManager()->GetScorePanelSize().y, false);
-	m_GameManager->GetUIManager()->GetUIElement(L"ui_game_screen_main_layout")->AlignChildren();
 
 	m_GameManager->GetUIManager()->GetPlayerLetters(0)->DiasbleLayoutPositioning(false);
 }
@@ -158,21 +157,25 @@ void CGameState::LoadGameState()
     if (StateFile.fail())
         return;
 
+    /*
     if (!m_GameManager->GameScreenActive(static_cast<CGameManager::EGameState>(GameState)))
 		m_GameManager->SetGameState(GameState);
     else
 		m_GameManager->m_StartOnGameScreen = true;
-
+    */
 	m_GameManager->GetUIManager()->SetPlayerCount(PlayerCountIdx);
 	m_GameManager->GetUIManager()->SetBoardSize(BoardSize);
 	m_GameManager->GetUIManager()->SetTimeLimitIdx(TimeLimit);
 	m_GameManager->GetUIManager()->SetComputerOpponentEnabled(ComputerOpponentEnabled);
 	m_GameManager->GetUIManager()->SetDifficulty(Difficulty);
 	m_GameManager->SetTileCount();
+	m_GameManager->SetBoardSize();
+	m_GameManager->m_SavedGameState = static_cast<CGameManager::EGameState>(GameState);
 
+	/*
 	if (GameState != CGameManager::OnStartGameScreen && GameState != CGameManager::OnStartScreen && GameState != CGameManager::OnRankingsScreen)
 		m_GameManager->FinishRenderInit();
-
+*/
 
 	StateFile.close();
 }

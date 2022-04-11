@@ -647,6 +647,18 @@ TPosition CRenderer::GetTilePos(int x, int y)
 	return Result;
 }
 
+void CRenderer::GenerateGameScreenTextures()
+{
+	glm::vec2 PlayerLogoSize = m_GameManager->GetUIElementSize(L"ui_current_palyer_logo");
+	glm::vec2 OkBtnSize = m_GameManager->GetUIElementSize(L"ui_start_game_btn");
+
+	m_TextureManager->GenerateScorePanelTexture(m_GameManager->GetUIElementSize(L"ui_score_panel").x, m_GameManager->GetUIElementSize(L"ui_score_panel").y);
+	m_TextureManager->GenerateCurrPlayerLogoTexture(PlayerLogoSize.x, PlayerLogoSize.y);
+	m_TextureManager->GenerateTileCounterTexture(m_GameManager->GetUIElementSize(L"ui_tile_counter").x);
+	m_TextureManager->GenerateLetterPanelTexture(m_GameManager->GetUIElementSize(L"ui_player_letter_panel").x, m_GameManager->GetUIElementSize(L"ui_player_letter_panel").y);
+	m_TextureManager->GenerateRankingsPanelTexture(PlayerLogoSize.x * 2, PlayerLogoSize.y * (m_GameManager->GetPlayerCount() + 2) + OkBtnSize.y);
+}
+
 bool CRenderer::GenerateStartScreenTextures(float startBtnW, float startBtnH, float selectCtrlW, float selectCtrlH)
 {
 	m_TextureManager->GenerateSelectControlTexture(selectCtrlW, selectCtrlH);
@@ -889,15 +901,6 @@ bool CRenderer::GenerateModels()
 	m_SelectionModel = new CSelectionModel(m_RoundedSquarePositionData);
 	m_SelectionModel->SetParent(m_BoardModel);
 	CalculateScreenSpaceGrid();
-
-	glm::vec2 PlayerLogoSize = m_GameManager->GetUIElementSize(L"ui_current_palyer_logo");
-	glm::vec2 OkBtnSize = m_GameManager->GetUIElementSize(L"ui_start_game_btn");
-
-	m_TextureManager->GenerateScorePanelTexture(m_GameManager->GetUIElementSize(L"ui_score_panel").x, m_GameManager->GetUIElementSize(L"ui_score_panel").y);
-	m_TextureManager->GenerateCurrPlayerLogoTexture(PlayerLogoSize.x, PlayerLogoSize.y);
-	m_TextureManager->GenerateTileCounterTexture(m_GameManager->GetUIElementSize(L"ui_tile_counter").x);
-	m_TextureManager->GenerateLetterPanelTexture(m_GameManager->GetUIElementSize(L"ui_player_letter_panel").x, m_GameManager->GetUIElementSize(L"ui_player_letter_panel").y);
-	m_TextureManager->GenerateRankingsPanelTexture(PlayerLogoSize.x * 2, PlayerLogoSize.y * (m_GameManager->GetPlayerCount() + 2) + OkBtnSize.y);
 
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);

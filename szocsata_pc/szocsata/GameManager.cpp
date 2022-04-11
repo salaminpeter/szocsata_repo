@@ -23,6 +23,7 @@
 #define GL_GLEXT_PROTOTYPES 1
 #define GL3_PROTOTYPES 1
 #include <GLES3\gl3.h>
+#include <fstream>
 
 
 CGameManager::CGameManager()
@@ -42,6 +43,11 @@ CGameManager::CGameManager()
 	m_TaskManager = new CTaskManager(this);
 }
 
+bool CGameManager::GameStateFileFound()
+{
+	std::ifstream f(GetWorkingDir() + "/state.dat");
+	return f.good();
+}
 
 void CGameManager::StartGameThread() 
 { 
@@ -95,6 +101,7 @@ void CGameManager::AddPlayers(int playerCount, bool addComputer, bool addLetters
 void CGameManager::InitLetterPool()
 {
 	m_LetterPool.Init();
+    SetTaskFinished("init_letter_pool_task");
 }
 
 void CGameManager::FinishRenderInit()
@@ -187,6 +194,24 @@ void CGameManager::InitBasedOnTileCount(bool addLetters)
 	SetTaskFinished("board_size_set_task");
 }
 
+void CGameManager::InitPlayersTask()
+{
+	bool AddLetters = !GameScreenActive(m_SavedGameState);
+	InitPlayers(AddLetters);
+	SetTaskFinished("init_players_task");
+}
+
+void CGameManager::AlignGameScreenTask()
+{
+	if (GameScreenActive(m_SavedGameState))
+	{
+		((CUIHorizontalLayout*)(m_UIManager->GetUIElement(L"ui_game_screen_sub_layout3")))->SetBoxSizeProps(0, m_UIManager->GetScorePanelSize().x, m_UIManager->GetScorePanelSize().y, false);
+		m_UIManager->GetUIElement(L"ui_game_screen_main_layout")->AlignChildren();
+	}
+
+	SetTaskFinished("align_game_screen_task");
+}
+
 void CGameManager::InitPlayers(bool addLetters)
 {
 	int PlayerCount = m_UIManager->GetPlayerCount() + 1;
@@ -249,12 +274,35 @@ std::string CGameManager::GetWorkingDir()
 	std::string res;
 
 #ifdef PLATFORM_ANDROID
-	JNIEnv *env;
+
+	extern jclass g_MainActivityClass;
+
+	JNIEnv* env;
+
 	m_JavaVM->GetEnv((void **)&env, JNI_VERSION_1_6);
-	jclass Class = env->FindClass("com/example/szocsata_android/MainActivity");
-	jmethodID Method = env->GetStaticMethodID(Class, "GetWorkingDir", "()Ljava/lang/String;");
-	jstring str = static_cast<jstring>(env->CallStaticObjectMethod(Class, Method));
-	res = env->GetStringUTFChars(str, nullptr);
+
+	if (env)
+	{
+		jclass Class = env->FindClass("com/example/szocsata_android/MainActivity");
+		jmethodID Method = env->GetStaticMethodID(Class, "GetWorkingDir", "()Ljava/lang/String;");
+		jstring str = static_cast<jstring>(env->CallStaticObjectMethod(Class, Method));
+		res = env->GetStringUTFChars(str, nullptr);
+	}
+	else {
+		m_JavaVM->AttachCurrentThread(&env, NULL);
+		jmethodID Method = env->GetStaticMethodID(g_MainActivityClass, "GetWorkingDir","()Ljava/lang/String;");
+		jstring str = static_cast<jstring>(env->CallStaticObjectMethod(g_MainActivityClass, Method));
+		res = env->GetStringUTFChars(str, nullptr);
+
+		if (env->ExceptionCheck()) {
+			env->ExceptionDescribe();
+			env->ExceptionClear();
+			m_JavaVM->DetachCurrentThread();
+			return "";
+		}
+
+		m_JavaVM->DetachCurrentThread();
+	}
 #endif
 
 	return res;
@@ -768,6 +816,32 @@ void CGameManager::AddWordSelectionAnimationForComputer()
 	AddWordSelectionAnimation(m_Computer->BestWord(m_ComputerWordIdx).m_CrossingWords, true);
 }
 
+void CGameManager::LoadPlayerAndBoardState()
+{
+    if (GameScreenActive(m_SavedGameState))
+    	m_State->LoadPlayerAndBoardState();
+
+	SetTaskFinished("load_palyer_and_board_state_task");
+}
+
+void CGameManager::LoadState()
+{
+	m_State->LoadGameState();
+	SetTaskFinished("load_game_state_task");
+}
+
+void CGameManager::ShowSavedScreenTask()
+{
+	if (!GameScreenActive(m_SavedGameState))
+		SetGameState(m_SavedGameState);
+	else
+		SetGameState(TurnInProgress);
+
+	SetTaskFinished("show_savedscreen_task");
+	m_UIManager->m_UIInitialized = true;
+
+}
+
 void CGameManager::ShowStartScreenTask()
 {
 	SetGameState(CGameManager::OnStartScreen);
@@ -787,6 +861,14 @@ void CGameManager::InitRendererTask()
 	SetTaskFinished("init_renderer_task");
 }
 
+void CGameManager::InitGameScreenTask()
+{
+    if (GameScreenActive(m_SavedGameState))
+        m_UIManager->InitGameScreen(m_Renderer->GetSquarePositionData(), m_Renderer->GetSquareColorData(), m_Renderer->GetSquareColorGridData8x4());
+
+    SetTaskFinished("init_game_screen_task");
+}
+
 void CGameManager::GenerateModelsTask()
 {
 	m_Renderer->GenerateModels();
@@ -800,6 +882,11 @@ void CGameManager::ExecuteTaskOnThread(const char* id, int threadId)
 		m_GameThread->AddTaskToExecute(id);
 	else if (threadId == CTask::RenderThread)
 		RunTaskOnRenderThread(id);
+	else if (threadId == CTask::CurrentThread)
+	{
+		m_TaskManager->StartTask(id);
+	}
+
 
 //windowsos hekk itt nincsen ui threadunk
 #else
@@ -848,6 +935,9 @@ void CGameManager::GameLoop()
 {
 	while (true)
 	{
+		if (m_StopGameLoop)
+			return;
+
 		if (GetGameState() == EGameState::BeginGame)
 			StartGame();
 
@@ -1147,6 +1237,14 @@ void CGameManager::InitUIManager()
 	m_TileAnimations->SetUIManager(m_UIManager);
 
 	SetTaskFinished("init_uimanager_task");
+}
+
+void CGameManager::GenerateGameScreenTextures()
+{
+    if (GameScreenActive(m_SavedGameState))
+        m_Renderer->GenerateGameScreenTextures();
+
+    SetTaskFinished("generate_game_screen_textures_task");
 }
 
 void CGameManager::GenerateStartScreenTextures()
@@ -1624,18 +1722,17 @@ void CGameManager::RenderFrame()
 
 					std::wstringstream ss;
 					ss << L"fps : " << int(fps);
-					m_UIManager->SetText(L"ui_fps_text", ss.str().c_str());
-					frames = 0;
-				}
-			}
-			else
-			{
-				frames++;
-			}
-		}
+                    m_UIManager->SetText(L"ui_fps_text", ss.str().c_str());
+                    frames = 0;
+                }
+            }
+            else
+            {
+                frames++;
+            }
+        }
 #ifndef PLATFORM_ANDROID
-		OpenGLFunctions::SwapBuffers();
+        OpenGLFunctions::SwapBuffers();
 #endif
-	}
+    }
 }
-

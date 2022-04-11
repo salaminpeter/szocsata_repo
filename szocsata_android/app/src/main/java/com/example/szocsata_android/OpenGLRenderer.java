@@ -42,12 +42,12 @@ public class OpenGLRenderer implements GLSurfaceView.Renderer {
         });
     }
 
-    public  void RunTaskOnRenderThreadMain(String id) {
+    public void RunTaskOnRenderThreadMain(String id) {
         m_ParentView.queueEvent(new Runnable(){
             @Override
             public void run() {
                 RunTaskOnRenderThread(id);
-                if (id.equals("show_startscreen_task")) {
+                if (id.equals("show_startscreen_task") || id.equals("resume_on_saved_screen_task")) {
                     m_DoRender = true;
                 }
             }

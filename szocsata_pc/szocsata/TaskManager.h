@@ -15,7 +15,7 @@ class CTask
 {
 public: //TODO
 
-    enum ERunSource {RenderThread, GameThread};
+    enum ERunSource {RenderThread, GameThread, CurrentThread};
 
     CEventBase* m_Task = nullptr;
     std::list<std::shared_ptr<const CTask>> m_DependencyList;
@@ -54,7 +54,7 @@ public:
 
 	~CTaskManager()
 	{
-		delete m_Thread;
+		//delete m_Thread; //TODO nem lehet egyszeruen deletelni, joinolni kell hozaa
 	}
 
 
@@ -81,7 +81,8 @@ public:
 	void AddDependencie(const char* taskId, const char* depId);
 	void SetTaskFinished(const char* taskId);
 	void TaskLoop();
-	void StartTask(const char* id, bool runDirectly = true);
+	void StartTask(const char* id);
+	void StopThread() {m_StopTaskThread = true;}
 
 private:
 	
@@ -91,6 +92,7 @@ private:
 	std::recursive_mutex m_Lock;
 	std::thread* m_Thread;
 	CGameManager* m_GameManager;
+	bool m_StopTaskThread = false;
 
 
 private:
