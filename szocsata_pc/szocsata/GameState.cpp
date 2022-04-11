@@ -55,6 +55,9 @@ void CGameState::SaveGameState()
 
         for (size_t i = 0; i < PlayerCount; ++i)
 		{
+        	unsigned int UsedLetters = m_GameManager->GetPlayer(0)->GetUsedLetters().GetList();
+			StateFile.write((char *)&UsedLetters, sizeof(unsigned int));
+
 			std::wstring Letters = m_GameManager->GetPlayerLetters(i);
 			int LetterCount = Letters.length();
 			StateFile.write((char *)&LetterCount, sizeof(int));
@@ -107,6 +110,10 @@ void CGameState::LoadPlayerAndBoardState()
 	int PlayerCount = PlayerCountIdx + 1 + (ComputerOpponentEnabled ? 1 : 0);
 	for (size_t i = 0; i < PlayerCount; ++i)
 	{
+		unsigned int UsedLetters;
+		StateFile.read((char *)&UsedLetters, sizeof(unsigned int));
+		m_GameManager->GetPlayer(i)->SetUsedLetters(UsedLetters);
+
 		int LetterCount;
 		StateFile.read((char *)&LetterCount, sizeof(int));
 		std::wstring Letters(LetterCount, L' ');
@@ -114,7 +121,7 @@ void CGameState::LoadPlayerAndBoardState()
 		for (size_t j = 0; j < LetterCount; ++j)
 			StateFile.read((char *)&Letters.at(j), sizeof(wchar_t));
 
-		m_GameManager->SetPlayerLetters(i, Letters);
+		m_GameManager->SetPlayerLetters(i, Letters, true);
 		m_GameManager->GetUIManager()->GetPlayerLetters(i)->AddUILetters(LetterCount);
 		m_GameManager->GetUIManager()->GetPlayerLetters(i)->ShowLetters(false);
 		m_GameManager->GetUIManager()->GetPlayerLetters(i)->SetVisible(false);
@@ -126,13 +133,13 @@ void CGameState::LoadPlayerAndBoardState()
 		int Score;
 		glm::vec3 Color;
 
+		CPlayer* CurrentPlayer = m_GameManager->GetPlayer(0);
+
 		m_GameManager->GetPlayerProperties(0, Name, Score, Color);
-		m_GameManager->StartPlayerTurn(m_GameManager->GetPlayer(0));
-		m_GameManager->GetUIManager()->SetCurrentPlayerName(Name.c_str(), Color.r, Color.g,
-															Color.b);
+		m_GameManager->StartPlayerTurn(CurrentPlayer);
+		m_GameManager->GetUIManager()->SetCurrentPlayerName(CurrentPlayer->GetName().c_str(), CurrentPlayer->GetColor().r, CurrentPlayer->GetColor().g, CurrentPlayer->GetColor().b);
 		m_GameManager->GetUIManager()->GetPlayerLetters(0)->DiasbleLayoutPositioning(true);
-		m_GameManager->GetUIManager()->GetPlayerLetters(0)->SetLetterVisibility(CBinaryBoolList());
-		m_GameManager->GetUIManager()->GetPlayerLetters(0)->ShowLetters(true);
+		m_GameManager->GetUIManager()->GetPlayerLetters(0)->SetLetterVisibility(CurrentPlayer->GetUsedLetters());
 		m_GameManager->GetUIManager()->GetPlayerLetters(0)->SetVisible(true);
 
 		((CUILayout *) (m_GameManager->GetUIManager()->GetUIElement(L"ui_game_screen_sub_layout3")))->SetBoxSizeProps(0,m_GameManager->GetUIManager()->GetScorePanelSize().x, m_GameManager->GetUIManager()->GetScorePanelSize().y, false);

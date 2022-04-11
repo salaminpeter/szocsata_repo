@@ -412,14 +412,18 @@ bool CGameManager::GameScreenActive()
 	return (GetGameState() != EGameState::OnRankingsScreen && GetGameState() != EGameState::OnStartGameScreen && GetGameState() != EGameState::OnStartScreen);
 }
 
-void CGameManager::SetPlayerLetters(size_t idx, const std::wstring& letters)
+void CGameManager::SetPlayerLetters(size_t idx, const std::wstring& letters, bool addEmptyLetters)
 {
 	if (m_Players.size() <= idx)
 		return;
 
 	for (size_t i = 0; i < letters.length(); ++i)
-		if (letters.at(i) != L' ')
-			m_Players[idx]->SetLetter(i, letters.at(i));
+	{
+		bool LetterEmpty = letters.at(i) == L' ';
+
+		if (LetterEmpty || addEmptyLetters)
+			m_Players[idx]->SetLetter(i, LetterEmpty ? L'V' : letters.at(i));
+	}
 }
 
 std::wstring CGameManager::GetPlayerLetters(size_t idx)

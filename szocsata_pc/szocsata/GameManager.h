@@ -110,7 +110,7 @@ public:
 	std::wstring GetNextPlayerName();
 	int GetDifficulty();
 	bool AllPlayersPassed();
-	void SetPlayerLetters(size_t idx, const std::wstring& letters);
+	void SetPlayerLetters(size_t idx, const std::wstring& letters, bool addEmptyLetters = false);
 	std::wstring GetPlayerLetters(size_t idx);
 	bool GetPlayerProperties(size_t idx, std::wstring& name, int& score, glm::vec3& color);
 	bool GameScreenActive();
