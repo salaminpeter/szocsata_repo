@@ -43,6 +43,18 @@ void CTaskManager::SetTaskFinished(const char* taskId)
 	Task->m_TaskFinished = true;
 }
 
+void CTaskManager::Reset()
+{
+	PauseThread();
+
+	{
+        const std::lock_guard<std::recursive_mutex> lock(m_Lock);
+        m_TaskList.clear();
+    }
+
+    ResumeThread();
+}
+
 void CTaskManager::StartTask(const char* id)
 {
 	const std::lock_guard<std::recursive_mutex> lock(m_Lock);
@@ -62,10 +74,19 @@ void CTaskManager::TaskLoop()
 		if (m_StopTaskThread)
 			return;
 
-		if (CTimer::GetCurrentTime() - m_LastLoopTime < m_Frequency)
+		if (m_PauseTaskThread)
 			continue;
 
+		/*
+		if (CTimer::GetCurrentTime() - m_LastLoopTime < m_Frequency)
+			continue;
+		 */
+		static int ii = 0;
+
+		if (ii == 50)
+
 		{
+			ii = 0;
 			const std::lock_guard<std::recursive_mutex> lock(m_Lock);
 
 			for (auto it = m_TaskList.begin(); it != m_TaskList.end(); ++it)
@@ -79,10 +100,15 @@ void CTaskManager::TaskLoop()
 						continue;
 
 					(*it)->m_TaskStarted = true;
-					m_GameManager->ExecuteTaskOnThread((*it)->m_ID.c_str(), (*it)->m_RunOnThread);
+					if ((*it)->m_ID == "generate_models_task")
+						int i = 0;
+					if ((*it)->m_Task)
+						m_GameManager->ExecuteTaskOnThread((*it)->m_ID.c_str(), (*it)->m_RunOnThread);
 				}
 			}
 		}
+
+		ii++;
 
 		m_LastLoopTime = CTimer::GetCurrentTime();
 	}

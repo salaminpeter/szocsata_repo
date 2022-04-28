@@ -647,8 +647,17 @@ TPosition CRenderer::GetTilePos(int x, int y)
 	return Result;
 }
 
+void CRenderer::GenerateTileColorData()
+{
+
+}
+
 void CRenderer::GenerateGameScreenTextures()
 {
+	//mar inicializalva vannak a game screen texturak
+//	if (m_TextureManager->GetTexture("player_score_panel_texture_generated"))
+//		return;
+
 	glm::vec2 PlayerLogoSize = m_GameManager->GetUIElementSize(L"ui_current_palyer_logo");
 	glm::vec2 OkBtnSize = m_GameManager->GetUIElementSize(L"ui_start_game_btn");
 
@@ -700,7 +709,7 @@ void CRenderer::InitRenderer()
 	m_LetterTextureData16x6 = std::make_shared<CSquareColorData>();
 	m_LetterTextureData16x6->m_DivX = 16.f;
 	m_LetterTextureData16x6->m_DivY = 6.f;
-	m_LetterTextureData16x6->GenerateTextureCoordBuffer(std::vector<glm::vec3>());
+	 m_LetterTextureData16x6->GenerateTextureCoordBuffer(std::vector<glm::vec3>());
 
 	m_LetterTextureData8x4 = std::make_shared<CSquareColorData>();
 	m_LetterTextureData8x4->m_DivX = 8.f;
@@ -764,6 +773,40 @@ void CRenderer::EnableBlending(bool enable)
 		glDisable(GL_BLEND);
 }
 
+void CRenderer::GenerateBoardModel()
+{
+	const std::lock_guard<std::recursive_mutex> lock(m_RenderLock);
+
+	int TileCount;
+	CConfig::GetConfig("tile_count", TileCount);
+
+	SetBoardSize();
+	m_BoardModel = new CBoardBaseModel();
+	m_BoardTiles = new CBoardTiles(TileCount, this, m_GameManager, m_BoardModel);
+}
+
+
+void CRenderer::DeleteBuffers()
+{
+	std::vector<unsigned int> BufferIds =
+			{
+					m_LetterPositionData->GetVertexBufferId(),
+					m_LetterPositionData->GetIndexBufferId(),
+					m_TilePositionData->GetVertexBufferId(),
+					m_TilePositionData->GetIndexBufferId(),
+					m_RoundedSquarePositionData->GetVertexBufferId(),
+					m_RoundedSquarePositionData->GetIndexBufferId(),
+					m_SquarePositionData->GetVertexBufferId(),
+					m_SquarePositionData->GetIndexBufferId(),
+					m_TileColorData->GetBufferId(),
+					m_SquareColorData->GetBufferId(),
+					m_LetterTextureData16x6->GetBufferId(),
+					m_LetterTextureData8x4->GetBufferId()
+			};
+
+	glDeleteBuffers(BufferIds.size(), &BufferIds[0]);
+}
+
 glm::vec2 CRenderer::GetTextureSize(const char* textureID)
 {
 	const CTexture* Texture = m_TextureManager->GetTexture(textureID);
@@ -798,8 +841,32 @@ float CRenderer::SetBoardSize()
 	return BoardSize;
 }
 
+void CRenderer::ClearGameScreenResources()
+{
+    const std::lock_guard<std::recursive_mutex> lock(m_RenderLock);
+
+    //delete letters on board //TODO wordanimationban meg van egy hivatkozas a CLettermodellre!!!
+	for (size_t i = 0; i < m_LettersOnBoard.size(); ++i)
+		delete m_LettersOnBoard[i];
+
+	m_LettersOnBoard.clear();
+
+	//delete board / board tiles / selection
+	delete m_BoardTiles;
+	//delete m_SelectionModel;
+	delete m_BoardModel;
+
+    m_BoardTiles = nullptr;
+	m_BoardModel = nullptr;
+
+	//remove ui elements from game screen
+	m_GameManager->GetUIManager()->ClearGameScreenUIElements();
+}
+
 void CRenderer::ClearResources()
 {
+    const std::lock_guard<std::recursive_mutex> lock(m_RenderLock);
+
 	//delete letters on board //TODO wordanimationban meg van egy hivatkozas a CLettermodellre!!!
 	for (size_t i = 0; i < m_LettersOnBoard.size(); ++i)
 		delete m_LettersOnBoard[i];

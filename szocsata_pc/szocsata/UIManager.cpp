@@ -425,7 +425,7 @@ void CUIManager::InitGameScreen(std::shared_ptr<CSquarePositionData> positionDat
 	IconTextButton->CenterIcon();
 
 	IconTextButton = AddIconTextButton(SubLayout1, L"", positionData, colorData, nullptr, 0, 0, m_UIScreenPanel->GetHeight() / 8, m_UIScreenPanel->GetHeight() / 8, "view_ortho", "round_button_texture_generated", "exit_icon.bmp", L"ui_exit_btn", "textured", 0.6f, .86f);
-	IconTextButton->SetEvent(false, m_GameManager, &CGameManager::EndPlayerTurnEvent);
+	IconTextButton->SetEvent(false, m_GameManager, &CGameManager::ResetToStartScreen);
 	IconTextButton->CenterIcon();
 
 	//2. layout child - letter box, score box
@@ -542,6 +542,11 @@ void CUIManager::SetCurrentPlayerName(const wchar_t* playerName, float r, float 
 	CUIIconTextButton* CurrPlayerLogo = static_cast<CUIIconTextButton*>(m_UIScreenPanel->GetChild(L"ui_current_palyer_logo"));
 	CurrPlayerLogo->SetText(playerName);
 	CurrPlayerLogo->SetIconColor(r, g, b);
+}
+
+void CUIManager::ClearGameScreenUIElements()
+{
+	delete m_RootGameScreen;
 }
 
 void CUIManager::ClearUIElements()
@@ -974,3 +979,4 @@ void CUIManager::SetTileCounterValue()
 {
 	m_UITileCounter->SetCounter();
 }
+ 

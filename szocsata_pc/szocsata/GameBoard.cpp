@@ -21,6 +21,14 @@ void CGameBoard::SetSize(int size)
 	}
 }
 
+void CGameBoard::Reset()
+{
+	for (size_t i = 0; i < mFields.size(); ++i)
+		mFields[i].clear();
+
+	mFields.clear();
+}
+
 
 void CGameBoard::AddWord(TWordPos& word)
 {

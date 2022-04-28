@@ -9,6 +9,8 @@ class CTextureManager
 {
 public:
 
+	~CTextureManager() {DeleteTextures();}
+
 	void AddTexture(const char* path, int colorDepth = 3, bool filter = true);
 	bool ActivateTexture(const char* texId);
 	void AntialiasTexture(std::vector<uint8_t>& imageData, int width, int height, glm::ivec3 innerColor, float radius, int depth = 1);
@@ -21,6 +23,7 @@ public:
 	void GenerateTileCounterTexture(float size);
 	void GenerateLetterPanelTexture(float width, float height);
 	bool IsCurrentTexture(const char* texId);
+	void DeleteTextures();
 
 	const CTexture* GetTexture(const char* textureID);
 

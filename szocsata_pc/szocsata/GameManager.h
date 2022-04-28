@@ -53,7 +53,9 @@ public:
 		delete m_TaskManager;
 	}
 
+	void ResetToStartScreen();
 	void AddPlayers(int playerCount, bool addComputer, bool addLetters = true);
+	void RemovePlayers();
 	void StartGame();
 	void InitBasedOnTileCount(bool addLetters);
 	void InitPlayers(bool addLetters);
@@ -125,6 +127,7 @@ public:
 	void SetGamePaused(bool paused);
 	void EndGame();
 	void ExecuteTaskOnThread(const char* id, int threadId);
+	void StopThreads();
 
 	glm::ivec2 GetUIElementSize(const wchar_t* id);
 	float GetLetterSize();
@@ -135,7 +138,8 @@ public:
 
 	wchar_t GetChOnBoard(int x, int y) { return m_GameBoard(x, y).m_Char; }
 	CWordTree::TNode* WordTreeRoot(wchar_t c) {return m_DataBase.GetWordTreeRoot(c);}
-	TField& Board(int x, int y) {return m_GameBoard(x, y);}
+    TField& Board(int x, int y) {return m_GameBoard(x, y);}
+    TField& TmpBoard(int x, int y) {return m_TmpGameBoard(x, y);}
 	std::wstring CurrentPlayerName() {return m_CurrentPlayer ? m_CurrentPlayer->GetName() : L"";}
 	int GetPlayerCount() {return m_Players.size();}
 	void SetLastTouchOnBoardView(bool onBoardView) { m_LastTouchOnBoardView = onBoardView; }
@@ -147,14 +151,18 @@ public:
 	void LoadPlayerAndBoardState();
 	void SetTaskFinished(const char* id) { m_TaskManager->SetTaskFinished(id); }
 	void StopTaskThread() {m_TaskManager->StopThread();}
+    void RevertGameBoard() {m_GameBoard = m_TmpGameBoard;}
+
 
     void ShowStartScreenTask();
     void ShowSavedScreenTask();
 	void BeginGameTask();
 	void InitRendererTask();
 	void GenerateModelsTask();
-    void InitGameScreenTask();
+	void GenerateBoardModelTask();
+	void InitGameScreenTask();
     void InitPlayersTask();
+    void StartGameLoopTask();
 
     //TODO valamiert nem mukodik a perfect forwarding az osszes ilyen fuggvenynel, csak jobberteket lehet parameternek adni
 	template <typename ClassType, typename... ArgTypes>
@@ -182,6 +190,10 @@ public:
 	void AddPlacedLetterSelection(int x, int y) {m_PlacedLetterSelections.push_back(glm::ivec2(x, y));}
 	void StartTask(const char* id) {m_TaskManager->StartTask(id);}
 	void AddPlayerStep(wchar_t c, int letterIdx, int xPos, int yPos) {	m_PlayerSteps.emplace_back(c, xPos, yPos, letterIdx);}
+	int GetLetterCount(int idx) {return m_LetterPool.GetLetterCount(idx);}
+	void SetLetterCount(int idx, int count) {m_LetterPool.SetLetterCount(idx, count);}
+	size_t GetCharacterCount() {return m_LetterPool.GetCharacterCount();}
+	void PauseGameLoop(bool pause) {m_PauseGameLoop = pause;}
 
 
 	void StartGameThread();
@@ -235,13 +247,13 @@ private:
 	CGameThread* m_GameThread;
 
 
-	CUIManager* m_UIManager;
-	CTimerEventManager* m_TimerEventManager;
-	CTileAnimationManager* m_TileAnimations;
-	CWordAnimationManager* m_WordAnimation;
-	CCameraAnimationManager* m_CameraAnimationManager;
-	CPlayerLetterAnimationManager* m_PlayerLetterAnimationManager;
-	CDimmBGAnimationManager* m_DimmBGAnimationManager;
+	CUIManager* m_UIManager = nullptr;
+	CTimerEventManager* m_TimerEventManager = nullptr;
+	CTileAnimationManager* m_TileAnimations = nullptr;
+	CWordAnimationManager* m_WordAnimation = nullptr;
+	CCameraAnimationManager* m_CameraAnimationManager = nullptr;
+	CPlayerLetterAnimationManager* m_PlayerLetterAnimationManager = nullptr;
+	CDimmBGAnimationManager* m_DimmBGAnimationManager = nullptr;
     CGameState* m_State;
 
 	public: //TODO
@@ -258,6 +270,7 @@ private:
 	int m_SurfaceHeigh;
 	bool m_NextPlayerPopupShown = false;
 	bool m_StopGameLoop = false;
+	bool m_PauseGameLoop = false;
 
 	bool m_StartOnGameScreen = false;
 	bool m_InitDone = false;

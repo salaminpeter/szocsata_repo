@@ -120,7 +120,7 @@ void CWordAnimationManager::AnimationFinished()
 	m_GameManager->DealComputerLettersEvent();
 }
 
-void CWordAnimationManager::Cancel()
+void CWordAnimationManager::Reset()
 {
 	m_TimerEventManager->StopTimer("add_word_animation");
 

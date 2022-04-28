@@ -52,7 +52,6 @@ public:
 	bool HasTexture() {return !m_TextureId.empty();}
 	
 	int GetColorBufferID();
-	int GetPositionBufferID();
 
 	std::shared_ptr<CModelColorData> GetColorData() { return m_ColorData; }
 	std::shared_ptr<CModelPositionData> GetPositionData() { return m_PositionData; }

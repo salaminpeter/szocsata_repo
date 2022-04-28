@@ -54,6 +54,55 @@ void CGameManager::StartGameThread()
 	m_GameThread->Start(); 
 }
 
+void CGameManager::ResetToStartScreen()
+{
+	m_State->RemoveSaveFile();
+	PauseGameLoop(true);  //TODO meg kene varni hogy a  m_StopGameLoop ervenyesuljon csak utana tovabbmenni!!
+	SetGameState(CGameManager::OnStartScreen);
+	m_Renderer->SetModelsInited(false);
+    m_UIManager->m_UIInitialized = false;
+	m_Renderer->ClearGameScreenResources();
+    m_UIManager->m_UIInitialized = true;
+	m_TileAnimations->Reset();
+	m_WordAnimation->Reset();
+	m_TimerEventManager->Reset();
+	m_TaskManager->Reset();
+
+	//TODO torolni az osszes cuccot amit a GenerateModelsTask al ujra letrehozok!!!!!!!!!!!!!!!!!
+	//tasks for generating board / tile model
+    std::shared_ptr<CTask> BoardSizeSetTask = AddTask(this, nullptr, "board_size_set_task", CTask::RenderThread);
+    std::shared_ptr<CTask> GenerateBoardModelTask = AddTask(this, &CGameManager::GenerateModelsTask, "generate_models_task", CTask::RenderThread);
+
+    //tasks for starting game
+	std::shared_ptr<CTask> BeginGameTask = AddTask(this, &CGameManager::BeginGameTask, "begin_game_task", CTask::RenderThread);
+	std::shared_ptr<CTask> GameStartedTask = AddTask(this, nullptr, "game_started_task", CTask::RenderThread);
+
+	std::shared_ptr<CTask> StartGmLoopTask = AddTask(this, &CGameManager::StartGameLoopTask, "start_game_loop_task", CTask::CurrentThread);
+
+	BeginGameTask->AddDependencie(GameStartedTask);
+	BeginGameTask->AddDependencie(GenerateBoardModelTask);
+	GenerateBoardModelTask->AddDependencie(BoardSizeSetTask);
+	StartGmLoopTask->AddDependencie(BeginGameTask);
+    
+	BoardSizeSetTask->m_TaskStopped = false;
+	GenerateBoardModelTask->m_TaskStopped = false;
+	GameStartedTask->m_TaskStopped = false;
+	BeginGameTask->m_TaskStopped = false;
+
+	RemovePlayers();
+	m_GameBoard.Reset();
+	m_TmpGameBoard.Reset();
+	StartGameLoopTask();
+}
+
+void CGameManager::RemovePlayers()
+{
+	for (size_t i = 0; i < m_Players.size(); ++i)
+		delete m_Players[i];
+
+	m_Players.clear();
+	m_CurrentPlayer = nullptr;
+}
 
 void CGameManager::AddPlayers(int playerCount, bool addComputer, bool addLetters)
 {
@@ -196,6 +245,11 @@ void CGameManager::InitBasedOnTileCount(bool addLetters)
 	}
 
 	SetTaskFinished("board_size_set_task");
+}
+
+void CGameManager::StartGameLoopTask()
+{
+    m_PauseGameLoop = false;
 }
 
 void CGameManager::InitPlayersTask()
@@ -865,7 +919,7 @@ void CGameManager::InitRendererTask()
 void CGameManager::InitGameScreenTask()
 {
     if (GameScreenActive(m_SavedGameState))
-        m_UIManager->InitGameScreen(m_Renderer->GetSquarePositionData(), m_Renderer->GetSquareColorData(), m_Renderer->GetSquareColorGridData8x4());
+        m_UIManager->InitGameScreen(m_Renderer->GetSquarePositionData(), m_Renderer->GetSquareColorData(), m_Renderer->GetSquareColorGridData16x6());
 
     SetTaskFinished("init_game_screen_task");
 }
@@ -875,6 +929,20 @@ void CGameManager::GenerateModelsTask()
 	m_Renderer->GenerateModels();
 	SetTaskFinished("generate_models_task");
 }
+
+void CGameManager::GenerateBoardModelTask()
+{
+	m_Renderer->GenerateBoardModel();
+	SetTaskFinished("generate_models_task");
+	m_Renderer->SetModelsInited(true);
+}
+
+void CGameManager::StopThreads()
+{
+	m_StopGameLoop = true;
+	StopTaskThread();
+}
+
 
 void CGameManager::ExecuteTaskOnThread(const char* id, int threadId)
 {
@@ -938,6 +1006,9 @@ void CGameManager::GameLoop()
 	{
 		if (m_StopGameLoop)
 			return;
+
+		if (m_PauseGameLoop)
+			continue;
 
 		if (GetGameState() == EGameState::BeginGame)
 			StartGame();
@@ -1695,6 +1766,7 @@ void CGameManager::RenderFrame()
 		{
 			const std::lock_guard<std::recursive_mutex> lock(m_Renderer->GetRenderLock());
 
+			bool ga = GameScreenActive();
 			if (m_Renderer->ModelsInited() && GameScreenActive())
 			{
 				m_Renderer->Render();

@@ -76,6 +76,23 @@ int CLetterPool::GetRemainingLetterCount()
 	return Count;
 }
 
+int CLetterPool::GetLetterCount(int idx)
+{
+    if (idx >= m_LetterIdx.size())
+        return -1;
+
+    return m_Letters[m_LetterIdx[idx]];
+}
+
+bool CLetterPool::SetLetterCount(int idx, int count)
+{
+    if (idx >= m_LetterIdx.size())
+        return false;
+
+    m_Letters[m_LetterIdx[idx]] = count;
+    return true;
+}
+
 void CLetterPool::Init()
 {
 	m_LetterIdx.resize(32);

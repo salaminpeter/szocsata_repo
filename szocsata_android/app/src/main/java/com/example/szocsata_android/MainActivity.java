@@ -166,7 +166,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onPause(){
         super.onPause();
         m_OpenGLView.onPause();
-        StopGameLoop();
         ClearResources();
     }
     @Override
@@ -203,6 +202,4 @@ public class MainActivity extends AppCompatActivity {
     public native void HandleMultyTouchStartEvent(int x0, int y0, int x1, int y1);
     public native void HandleMultyTouchEvent(int x0, int y0, int x1, int y1);
     public native void HandleMultyTouchEndEvent();
-    public native void StopGameLoop();
-    public native void ResumeGame();
 }

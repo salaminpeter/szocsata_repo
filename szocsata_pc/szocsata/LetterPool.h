@@ -14,6 +14,10 @@ public:
 	int GetRemainingLetterCount();
 
 	bool Empty() {return m_LetterIdx.size() == 0;}
+	int GetLetterCount(int idx);
+	bool SetLetterCount(int idx, int count);
+
+	size_t GetCharacterCount() {return m_LetterIdx.size();}
 
 private:
 	

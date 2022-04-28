@@ -47,6 +47,12 @@ void CTileAnimationManager::StartAnimation(bool positive)
 	m_TimerEventManager->StartTimer("tile_animation");
 }
 
+void CTileAnimationManager::Reset() 
+{ 
+	m_TimerEventManager->StopTimer("tile_animation");
+	m_TilePositions.clear();
+}
+
 void CTileAnimationManager::AnimFinishedEvent()
 {
 	m_GameManager->ShowNextPlayerPopup();

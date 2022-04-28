@@ -13,6 +13,7 @@ class CTimerEvent
 public:
 
 	CTimerEvent(const char* id) : m_Id(id) {}
+	~CTimerEvent();
 
 	template <typename ClassType>
 	void SetEvent(ClassType* funcClass, typename CEvent<ClassType, double&, double&>::TFuncPtrType funcPtr)
@@ -64,6 +65,7 @@ public:
 	}
 
 	void Loop();
+	void Reset();
 
 	void StartTimer(const char* id) { ChangeTimerState(true, false ,id); }
 	void StopTimer(const char* id) { ChangeTimerState(false, false, id); }

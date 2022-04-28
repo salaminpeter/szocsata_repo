@@ -22,6 +22,7 @@ public:
 	void SavePlayerSteps(const std::vector<TPlayerStep>& playerSteps);
 	void SaveLetterPoolState(const std::map<wchar_t, int>& letterPool);
 	void SaveCameraState(float tiltAngle, float RotAngle);
+	void RemoveSaveFile();
 
 private:
 	

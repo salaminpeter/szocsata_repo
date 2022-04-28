@@ -113,12 +113,7 @@ float CModel::GetBoundingRadius()
 	return m_BoundingSphereRadius;
 }
 
-int CModel::GetPositionBufferID()
-{
-	return m_PositionData->GetPositionBufferId();
-}
-
-int CModel::GetColorBufferID() 
+int CModel::GetColorBufferID()
 {
 	 return m_ColorData->GetBufferId(); 
 }

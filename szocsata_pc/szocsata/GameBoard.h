@@ -13,6 +13,7 @@ public:
 
 	void AddWord(TWordPos& word);
 	void SetSize(int size);
+	void Reset();
 
 	int Size()
 	{

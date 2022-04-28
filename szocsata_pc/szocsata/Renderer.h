@@ -38,6 +38,8 @@ public:
 	~CRenderer()
 	{
 		delete m_ShaderManager;
+        delete m_TextureManager;
+        DeleteBuffers();
 		ClearResources();
 	}
 
@@ -45,6 +47,7 @@ public:
 	bool GenerateModels();
     bool GenerateStartScreenTextures(float startBtnW, float startBtnH, float selectCtrlW, float selectCtrlH);
     void GenerateGameScreenTextures();
+	void GenerateTileColorData();
 	void Render();
 	void ClearBuffers();
 	void AddView(const char* viewId, int x, int y, int w, int h);
@@ -77,17 +80,21 @@ public:
 	float GetFittedViewProps(float fovY, bool topView, glm::vec2& camPos);
 	void CameraFitToViewAnim(float tilt, float rotation, float zoom, float move, const glm::vec2& dir);
 	void ClearResources();
+	void ClearGameScreenResources();
 	float SetBoardSize();
 	void SetTileVisible(int x, int y, bool visible);
 	bool IsCurrentTexture(const char* texId);
 	glm::vec2 GetTextureSize(const char* textureID);
 	void EnableBlending(bool enable);
+	void DeleteBuffers();
+	void GenerateBoardModel();
 
 	void HideSelection(bool hide) { m_SelectionVisible = !hide; } //TODO setvisibleblabla... atirni
 	bool ModelsInited() { return m_3DModelsInited; }
 	bool EngineInited() { return m_EnginelsInited; }
 	float GetCameraTiltAngle() { return m_CameraTiltAngle; }
 	float GetCameraRotAngle() { return m_CameraRotAngle; }
+	void SetModelsInited(bool inited) {m_3DModelsInited = inited;}
 
 	std::recursive_mutex& GetRenderLock() {return m_RenderLock;}
 

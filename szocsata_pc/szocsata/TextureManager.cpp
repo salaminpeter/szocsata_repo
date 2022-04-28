@@ -19,6 +19,18 @@ void CTextureManager::AddTexture(const char* path, int colorDepth, bool filter)
 	m_Textures[path] = NewTexture;
 }
 
+void CTextureManager::DeleteTextures()
+{
+	std::vector<unsigned> TextureIds;
+	TextureIds.reserve(m_Textures.size());
+
+	for (auto it = m_Textures.begin(); it != m_Textures.end(); ++it)
+		TextureIds.push_back(it->second->texture);
+
+	glDeleteTextures(TextureIds.size(), &TextureIds[0]);
+}
+
+
 const CTexture* CTextureManager::GetTexture(const char* textureID)
 {
 	if (m_Textures.find(textureID) == m_Textures.end())

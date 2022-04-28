@@ -100,6 +100,7 @@ public:
 	glm::ivec2 GetScorePanelSize();
 
 	void ClearUIElements();
+	void ClearGameScreenUIElements();
 
 	void SetDimmPanelOpacity(float opacity);
 

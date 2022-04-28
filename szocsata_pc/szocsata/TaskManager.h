@@ -26,6 +26,7 @@ public: //TODO
     ERunSource m_RunOnThread ;//= CTaskManager::CurrentThread;
 
     CTask(const char* id, ERunSource thread) : m_ID(id), m_RunOnThread(thread) {}
+	~CTask() {delete m_Task;}
 
     void AddDependencie(std::shared_ptr<CTask> dep)
     {
@@ -35,7 +36,10 @@ public: //TODO
     template <typename ClassType, typename... ArgTypes>
     void SetTask(ClassType* funcClass, typename CEvent<ClassType, ArgTypes...>::TFuncPtrType funcPtr, ArgTypes&&... args)
     {
-        m_Task = new CEvent<ClassType, ArgTypes...>(funcClass, funcPtr, std::forward<ArgTypes>(args)...);
+    	if (funcPtr)
+        	m_Task = new CEvent<ClassType, ArgTypes...>(funcClass, funcPtr, std::forward<ArgTypes>(args)...);
+    	else
+    		m_Task = nullptr;
     }
 
     bool DependenciesResolved();
@@ -82,7 +86,11 @@ public:
 	void SetTaskFinished(const char* taskId);
 	void TaskLoop();
 	void StartTask(const char* id);
-	void StopThread() {m_StopTaskThread = true;}
+	void Reset();
+
+	void StopThread() { m_StopTaskThread = true; }
+	void PauseThread() { m_PauseTaskThread = true; }
+	void ResumeThread() { m_PauseTaskThread = false; }
 
 private:
 	
@@ -93,6 +101,7 @@ private:
 	std::thread* m_Thread;
 	CGameManager* m_GameManager;
 	bool m_StopTaskThread = false;
+	bool m_PauseTaskThread = false;
 
 
 private:

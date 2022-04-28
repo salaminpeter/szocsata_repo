@@ -7,6 +7,11 @@
 
 CTimerEventManager::~CTimerEventManager()
 {
+	Reset();
+}
+
+void CTimerEventManager::Reset()
+{
 	const std::lock_guard<std::mutex> lock(m_Lock);
 
 	auto it = m_TimerEvents.begin();
@@ -15,7 +20,11 @@ CTimerEventManager::~CTimerEventManager()
 	{
 		delete (*it++);
 	}
+
+	m_TimerEvents.clear();
+	m_LastLoopTime = 0;
 }
+
 
 void CTimerEventManager::Loop()
 {
@@ -62,6 +71,13 @@ CTimerEvent* CTimerEventManager::GetTimerEvent(const char* id)
 	}
 
 	return nullptr;
+}
+
+
+CTimerEvent::~CTimerEvent() 
+{ 
+	delete m_Event; 
+	delete m_FinishedEvent; 
 }
 
 
