@@ -51,9 +51,9 @@ JNIEXPORT void JNICALL
 Java_com_example_szocsata_1android_OpenGLRenderer_Render(JNIEnv *env, jobject thiz) {
     gm->RenderFrame();
 }
-extern "C"
-JNIEXPORT void JNICALL
-Java_com_example_szocsata_1android_OpenGLRenderer_InitGameManager(JNIEnv *env, jobject thiz, jint surface_width, jint surface_height) {
+
+void InitGameManager(int surfWidth, int surfHeight)
+{
     gm->m_JavaVM = g_VM;
     InputManager = new CInputManager(gm);
 
@@ -61,7 +61,7 @@ Java_com_example_szocsata_1android_OpenGLRenderer_InitGameManager(JNIEnv *env, j
 
     if (!ResumeGame)
     {
-        std::shared_ptr<CTask> CreateRendererTask = gm->AddTask(gm, &CGameManager::CreateRenderer, "create_renderer_task", CTask::RenderThread, surface_width, surface_height);
+        std::shared_ptr<CTask> CreateRendererTask = gm->AddTask(gm, &CGameManager::CreateRenderer, "create_renderer_task", CTask::RenderThread, surfWidth, surfHeight);
         std::shared_ptr<CTask> InitRendererTask = gm->AddTask(gm, &CGameManager::InitRendererTask, "init_renderer_task", CTask::RenderThread);
         std::shared_ptr<CTask> InitUIManagerTask = gm->AddTask(gm, &CGameManager::InitUIManager, "init_uimanager_task", CTask::RenderThread);
         std::shared_ptr<CTask> InitUIStartScreensTask = gm->AddTask(gm, &CGameManager::InitStartUIScreens, "init_uimanager_startscreens_task", CTask::RenderThread);
@@ -92,7 +92,7 @@ Java_com_example_szocsata_1android_OpenGLRenderer_InitGameManager(JNIEnv *env, j
     }
     else
     {
-        std::shared_ptr<CTask> CreateRendererTask = gm->AddTask(gm, &CGameManager::CreateRenderer, "create_renderer_task", CTask::RenderThread, surface_width, surface_height);
+        std::shared_ptr<CTask> CreateRendererTask = gm->AddTask(gm, &CGameManager::CreateRenderer, "create_renderer_task", CTask::RenderThread, surfWidth, surfHeight);
         std::shared_ptr<CTask> InitRendererTask = gm->AddTask(gm, &CGameManager::InitRendererTask, "init_renderer_task", CTask::RenderThread);
         std::shared_ptr<CTask> InitUIManagerTask = gm->AddTask(gm, &CGameManager::InitUIManager, "init_uimanager_task", CTask::RenderThread);
         std::shared_ptr<CTask> InitUIStartScreensTask = gm->AddTask(gm, &CGameManager::InitStartUIScreens, "init_uimanager_startscreens_task", CTask::RenderThread);
@@ -136,6 +136,12 @@ Java_com_example_szocsata_1android_OpenGLRenderer_InitGameManager(JNIEnv *env, j
     }
 
     gm->StartGameThread();
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_szocsata_1android_OpenGLRenderer_InitGameManager(JNIEnv *env, jobject thiz, jint surface_width, jint surface_height) {
+    InitGameManager(surface_width, surface_height);
 }
 
 
@@ -206,10 +212,24 @@ Java_com_example_szocsata_1android_OpenGLRenderer_EndInitAndStart(JNIEnv *env, j
     gm->m_InitDone = true;
 }
 
+void ExitToStartScreen()
+{
+    int w = gm->m_SurfaceWidth;
+    int h = gm->m_SurfaceHeigh;
+    gm->StopThreads();
+    delete gm;
+    gm = nullptr;
+    InitGameManager(w, h);
+}
+
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_szocsata_1android_MainActivity_ClearResources(JNIEnv *env, jobject thiz) {
+    if (!gm)
+        return;
+
     const std::lock_guard<std::mutex> lock(m_GMLock);
+    gm->StopThreads();
     gm->SaveState();
     delete gm;
     gm = nullptr;

@@ -101,7 +101,9 @@ void CGameManager::RemovePlayers()
 		delete m_Players[i];
 
 	m_Players.clear();
+	m_PlayerSteps.clear();
 	m_CurrentPlayer = nullptr;
+	CPlayer::m_PlayerCount = 0;
 }
 
 void CGameManager::AddPlayers(int playerCount, bool addComputer, bool addLetters)
@@ -1036,7 +1038,6 @@ void CGameManager::GameLoop()
 		}
 	}
 }
-
 
 std::wstring CGameManager::GetWordAtPos(bool horizontal, int& x, int& y)
 {

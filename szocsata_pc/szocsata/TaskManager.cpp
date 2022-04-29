@@ -4,12 +4,33 @@
 #include "Timer.h"
 #include "GameManager.h"
 
+#include <chrono>
+
+
+void CTaskManager::FreeTask(const char* taskId)
+{
+	for (auto it = m_TaskList.begin(); it != m_TaskList.end(); ++it)
+	{
+		if ((*it)->m_ID == taskId)
+		{
+			for (auto it1 = (*it)->m_DependencyList.begin(); it1 != (*it)->m_DependencyList.end(); ++it1)
+				(*it1).reset();
+
+			(*it).reset();
+
+			if (*it == nullptr)
+				m_TaskList.remove(nullptr);
+
+			return;
+		}
+	}
+}
 
 std::shared_ptr<CTask> CTaskManager::GetTask(const char* id)
 {
-	const std::lock_guard<std::recursive_mutex> lock(m_Lock);
+    const std::lock_guard<std::recursive_mutex> lock(m_Lock);
 
-	for (auto it = m_TaskList.begin(); it != m_TaskList.end(); ++it)
+    for (auto it = m_TaskList.begin(); it != m_TaskList.end(); ++it)
 	{
 		if ((*it)->m_ID == id)
 			return (*it);
@@ -33,7 +54,7 @@ void CTaskManager::AddDependencie(const char* taskId, const char* depId)
 
 void CTaskManager::SetTaskFinished(const char* taskId)
 {
-	const std::lock_guard<std::recursive_mutex> lock(m_Lock);
+	const std::lock_guard<std::recursive_mutex> lock(m_Lock);  // TODO valamiert deadlock lesz ha sima mutexte hasznalunk pedig azt kene !!!!, ez igy nem lesz jo ki kell javitani!!!!!!!!!!!!!
 
 	std::shared_ptr<CTask> Task = GetTask(taskId);
 
@@ -41,6 +62,7 @@ void CTaskManager::SetTaskFinished(const char* taskId)
 		return;
 
 	Task->m_TaskFinished = true;
+//	FreeTask(taskId);
 }
 
 void CTaskManager::Reset()
@@ -77,17 +99,12 @@ void CTaskManager::TaskLoop()
 		if (m_PauseTaskThread)
 			continue;
 
-		/*
+
 		if (CTimer::GetCurrentTime() - m_LastLoopTime < m_Frequency)
 			continue;
-		 */
-		static int ii = 0;
-
-		if (ii == 50)
 
 		{
-			ii = 0;
-			const std::lock_guard<std::recursive_mutex> lock(m_Lock);
+            const std::lock_guard<std::recursive_mutex> lock(m_Lock);
 
 			for (auto it = m_TaskList.begin(); it != m_TaskList.end(); ++it)
 			{
@@ -100,15 +117,11 @@ void CTaskManager::TaskLoop()
 						continue;
 
 					(*it)->m_TaskStarted = true;
-					if ((*it)->m_ID == "generate_models_task")
-						int i = 0;
 					if ((*it)->m_Task)
 						m_GameManager->ExecuteTaskOnThread((*it)->m_ID.c_str(), (*it)->m_RunOnThread);
 				}
 			}
-		}
-
-		ii++;
+        }
 
 		m_LastLoopTime = CTimer::GetCurrentTime();
 	}

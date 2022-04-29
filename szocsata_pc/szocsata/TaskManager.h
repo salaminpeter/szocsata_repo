@@ -107,5 +107,6 @@ private:
 private:
 
 	std::shared_ptr<CTask> GetTask(const char* id);
+	void FreeTask(const char* taskId);
 };
 

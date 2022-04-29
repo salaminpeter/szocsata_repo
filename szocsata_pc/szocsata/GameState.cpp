@@ -14,6 +14,12 @@
 
 void CGameState::SaveGameState()
 {	
+	if (m_GameManager->GetGameState() == CGameManager::OnStartScreen)
+	{
+		RemoveSaveFile();
+		return;
+	}
+
 	std::string FilePath = m_GameManager->GetWorkingDir() + "/state.dat";
 	std::ofstream StateFile(FilePath, std::ofstream::binary);
 
@@ -43,8 +49,8 @@ void CGameState::SaveGameState()
 		{
 			for (int y = 0; y < TileCount; ++y)
 			{
-				wchar_t chr = m_GameManager->Board(x, y).m_Char;
-				int height = m_GameManager->Board(x, y).m_Height;
+				wchar_t chr = m_GameManager->TmpBoard(x, y).m_Char;
+				int height = m_GameManager->TmpBoard(x, y).m_Height;
 
 				StateFile.write((char *)&chr, sizeof(wchar_t));
 				StateFile.write((char *)&height, sizeof(int));
@@ -84,6 +90,16 @@ void CGameState::SaveGameState()
 		}
 	}
 
+	size_t CharCount = m_GameManager->GetCharacterCount();
+	StateFile.write((char *)&CharCount, sizeof(size_t));
+
+	for (size_t i = 0; i < CharCount ; ++i)
+	{
+		size_t LetterCount = m_GameManager->GetLetterCount(i);
+		StateFile.write((char *)&LetterCount, sizeof(size_t));
+	}
+
+	
 	StateFile.close();
 }
 
@@ -116,13 +132,15 @@ void CGameState::LoadPlayerAndBoardState()
 			StateFile.read((char *)&chr, sizeof(wchar_t));
 			StateFile.read((char *)&height, sizeof(int));
 
-			m_GameManager->Board(x, y).m_Char = chr;
-			m_GameManager->Board(x, y).m_Height = height;
+			m_GameManager->TmpBoard(x, y).m_Char = chr;
+			m_GameManager->TmpBoard(x, y).m_Height = height;
 
 			for (int h = 0; h < height; ++h)
 				m_GameManager->AddLetterToBoard(x, TileCount - y - 1, chr, BoardHeight / 2.f + h * LetterHeight + LetterHeight / 2.f);
 		}
 	}
+
+	m_GameManager->RevertGameBoard();
 
 	int PlayerCount = PlayerCountIdx + 1 + (ComputerOpponentEnabled ? 1 : 0);
 
@@ -167,6 +185,18 @@ void CGameState::LoadPlayerAndBoardState()
 		StateFile.read((char *)&YPos, sizeof(int));
 
 		m_GameManager->AddPlayerStep(Chr, Idx, XPos, YPos);
+        m_GameManager->AddLetterToBoard(XPos, YPos, Chr, BoardHeight / 2.f + m_GameManager->Board(XPos, TileCount - YPos - 1).m_Height * LetterHeight + LetterHeight / 2.f);
+		m_GameManager->Board(XPos, TileCount - YPos - 1).m_Height++;
+    }
+
+	size_t CharCount;
+	StateFile.read((char *)&CharCount, sizeof(size_t));
+
+	for (size_t i = 0; i < CharCount ; ++i)
+	{
+		size_t LetterCount;
+		StateFile.read((char *)&LetterCount, sizeof(size_t));
+		m_GameManager->SetLetterCount(i, LetterCount);
 	}
 
 	if (m_GameManager->GameScreenActive(m_GameManager->m_SavedGameState))
@@ -187,6 +217,8 @@ void CGameState::LoadPlayerAndBoardState()
 		((CUILayout *) (m_GameManager->GetUIManager()->GetUIElement(L"ui_game_screen_sub_layout3")))->SetBoxSizeProps(0,m_GameManager->GetUIManager()->GetScorePanelSize().x, m_GameManager->GetUIManager()->GetScorePanelSize().y, false);
 		m_GameManager->GetUIManager()->GetUIElement(L"ui_game_screen_main_layout")->AlignChildren();
 	}
+
+
 
 }
 
@@ -278,6 +310,11 @@ void CGameState::SaveCameraState(float tiltAngle, float rotAngle)
 	m_CameraRotAngle = rotAngle;
 }
 
+void CGameState::RemoveSaveFile()
+{
+	std::string FilePath = m_GameManager->GetWorkingDir() + "/state.dat";
+	std::remove(FilePath.c_str());
+}
 
 
 
