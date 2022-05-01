@@ -4,6 +4,7 @@
 
 #include <vector>
 #include <memory>
+#include <mutex>
 #include <glm/glm.hpp>
 
 class CUIButton;
@@ -110,7 +111,7 @@ public:
 
 	void SetRemainingTimeStr(const wchar_t* timeStr);
 
-	void InitElements(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData8x8, std::shared_ptr<CSquareColorData> gridcolorData8x4);
+	void InitBaseElements(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData8x8, std::shared_ptr<CSquareColorData> gridcolorData8x4);
 	void InitStartScreenElements(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData8x8, std::shared_ptr<CSquareColorData> gridcolorData8x4);
 
 	void InitMainScreen(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData8x8);
@@ -118,7 +119,7 @@ public:
 	void InitGameScreen(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData8x8);
 	void InitRankingsScreen(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData8x8);
 
-
+	std::recursive_mutex& GetUILock() { return m_UILock; }
 
 private:
 
@@ -133,11 +134,11 @@ public: //TODO
 
 	std::vector<CUIElement*> m_UIRoots;
 
-	CUIElement* m_RootStartScreen;
-	CUIElement* m_RootStartGameScreen;
-	CUIElement* m_RootGameScreen;
-	CUIElement* m_RootDraggedLetterScreen;
-	CUIElement* m_RootGameEndScreen;
+	CUIElement* m_RootStartScreen = nullptr;
+	CUIElement* m_RootStartGameScreen = nullptr;
+	CUIElement* m_RootGameScreen = nullptr;
+	CUIElement* m_RootDraggedLetterScreen = nullptr;
+	CUIElement* m_RootGameEndScreen = nullptr;
 
 	CUITileCounter* m_UITileCounter;
 	CUIMessageBox* m_MessageBoxOk;
@@ -148,11 +149,12 @@ public: //TODO
 	CUIPlayerLetterPanel* m_PlayerLetterPanel;
 	CUIPanel* m_UIScreenPanel;
 	CUIPanel* m_DimmPanel;
-	CGridLayout* m_ButtonsLayout;
 
 	CUIVerticalLayout* m_MainScreenBtnLayout;
 
 	glm::vec2 m_LastDraggedPlayerLetterPos;
+
+	std::recursive_mutex m_UILock;
 
 	size_t m_DraggedPlayerLetterIdx;
 	bool m_PlayerLetterDragged = false;

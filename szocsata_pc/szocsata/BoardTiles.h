@@ -38,6 +38,7 @@ class CBoardTiles
 public:
 
 	CBoardTiles(int tileCount, CRenderer* renderer, CGameManager* gameManager, CModel* parent);
+
 	glm::vec2 GetTilePosition(int x, int y);
 	void RenderTiles();
 	void SetTileVisible(int x, int y, bool visible);

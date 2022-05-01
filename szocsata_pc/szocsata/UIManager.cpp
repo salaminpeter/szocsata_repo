@@ -25,8 +25,6 @@
 CUIManager::~CUIManager()
 {
 	ClearUIElements();
-
-	delete m_ButtonsLayout;
 }
 
 
@@ -372,6 +370,8 @@ void CUIManager::InitStartGameScreen(std::shared_ptr<CSquarePositionData> positi
 
 void CUIManager::InitGameScreen(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData8x8)
 {
+	const std::lock_guard<std::recursive_mutex> lock(m_UILock);
+
 	glm::vec2 ViewPos = m_GameManager->GetViewPosition("view_ortho");
 	
 	m_RootGameScreen = new CUIElement(nullptr, L"ui_game_screen_root", nullptr, 0.f, 0.f, m_GameManager->m_SurfaceWidth, m_GameManager->m_SurfaceHeigh, ViewPos.x, ViewPos.y, 0.f, 0.f);
@@ -459,6 +459,8 @@ void CUIManager::InitGameScreen(std::shared_ptr<CSquarePositionData> positionDat
 
 void CUIManager::InitRankingsScreen(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData8x8)
 {
+	const std::lock_guard<std::recursive_mutex> lock(m_UILock);
+
 	glm::vec2 ViewPos = m_GameManager->GetViewPosition("view_ortho");
 	glm::vec2 PlayerLogoSize = GetElemSize(L"ui_current_palyer_logo");
 
@@ -478,8 +480,10 @@ void CUIManager::InitRankingsScreen(std::shared_ptr<CSquarePositionData> positio
 	m_RootGameEndScreen->AlignChildren();
 }
 
-void CUIManager::InitElements(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData8x8, std::shared_ptr<CSquareColorData> gridcolorData8x4)
+void CUIManager::InitBaseElements(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData8x8, std::shared_ptr<CSquareColorData> gridcolorData8x4)
 {
+	const std::lock_guard<std::recursive_mutex> lock(m_UILock);
+
 	InitFont();
 
 	glm::vec2 ViewPos = m_GameManager->GetViewPosition("view_ortho");
@@ -518,6 +522,8 @@ void CUIManager::InitElements(std::shared_ptr<CSquarePositionData> positionData,
 
 void CUIManager::InitStartScreenElements(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData8x8, std::shared_ptr<CSquareColorData> gridcolorData8x4)
 {
+	const std::lock_guard<std::recursive_mutex> lock(m_UILock);
+
 	//star screens
 	InitMainScreen(positionData, colorData, gridcolorData8x8);
 	InitStartGameScreen(positionData, colorData, gridcolorData8x8);
@@ -547,17 +553,22 @@ void CUIManager::SetCurrentPlayerName(const wchar_t* playerName, float r, float 
 void CUIManager::ClearGameScreenUIElements()
 {
 	delete m_RootGameScreen;
+	delete m_RootGameEndScreen;
+
+	m_RootGameScreen = m_RootGameEndScreen = nullptr;
 }
 
 void CUIManager::ClearUIElements()
 {
-	std::vector<CUIElement*> MainPanels { m_RootStartScreen, m_RootStartGameScreen, m_RootGameScreen, m_RootDraggedLetterScreen, m_RootGameEndScreen };
+	const std::lock_guard<std::recursive_mutex> lock(m_UILock);
 
 	for (size_t i = 0; i < m_UIRoots.size(); ++i)
 		delete m_UIRoots[i];
 
+	m_UIRoots.clear();
 	delete m_MessageBoxOk;
 	delete m_Toast;
+	delete m_MessageBoxResumeGame;
 }
 
 void CUIManager::UpdateRankingsPanel()
@@ -758,6 +769,11 @@ void CUIManager::CloseToast(double& timeFromStart, double& timeFromPrev)
 
 void CUIManager::RenderUI()
 {
+	const std::lock_guard<std::recursive_mutex> lock(m_UILock);
+
+	if (!m_UIInitialized)
+		return;
+
 	CUIElement* Root = GetActiveScreenUIRoot();
 
 	if (!Root)

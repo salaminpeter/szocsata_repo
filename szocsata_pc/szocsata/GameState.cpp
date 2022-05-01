@@ -61,6 +61,9 @@ void CGameState::SaveGameState()
 
         for (size_t i = 0; i < PlayerCount; ++i)
 		{
+			int Score = m_GameManager->GetPlayer(i)->GetScore();
+			StateFile.write((char *)&Score, sizeof(int));
+
         	unsigned int UsedLetters = m_GameManager->GetPlayer(i)->GetUsedLetters().GetList();
 			StateFile.write((char *)&UsedLetters, sizeof(unsigned int));
 
@@ -146,6 +149,9 @@ void CGameState::LoadPlayerAndBoardState()
 
 	for (size_t i = 0; i < PlayerCount; ++i)
 	{
+		int Score;
+		StateFile.read((char *)&Score, sizeof(int));
+
 		unsigned int UsedLetters;
 		StateFile.read((char *)&UsedLetters, sizeof(unsigned int));
 		m_GameManager->GetPlayer(i)->SetUsedLetters(UsedLetters);
@@ -162,6 +168,7 @@ void CGameState::LoadPlayerAndBoardState()
             StateFile.read((char *)&AllLetters.at(j), sizeof(wchar_t));
 
         m_GameManager->GetPlayer(i)->SetAllLetters(AllLetters.c_str());
+		m_GameManager->GetPlayer(i)->AddScore(Score);
         m_GameManager->SetPlayerLetters(i, AllLetters, true);
 		m_GameManager->GetUIManager()->GetPlayerLetters(i)->AddUILetters(LetterCount, true);
 		m_GameManager->GetUIManager()->GetPlayerLetters(i)->ShowLetters(false);
@@ -213,9 +220,6 @@ void CGameState::LoadPlayerAndBoardState()
 		m_GameManager->GetUIManager()->GetPlayerLetters(0)->DiasbleLayoutPositioning(true);
 		m_GameManager->GetUIManager()->GetPlayerLetters(0)->SetLetterVisibility(CurrentPlayer->GetUsedLetters());
 		m_GameManager->GetUIManager()->GetPlayerLetters(0)->SetVisible(true);
-
-		((CUILayout *) (m_GameManager->GetUIManager()->GetUIElement(L"ui_game_screen_sub_layout3")))->SetBoxSizeProps(0,m_GameManager->GetUIManager()->GetScorePanelSize().x, m_GameManager->GetUIManager()->GetScorePanelSize().y, false);
-		m_GameManager->GetUIManager()->GetUIElement(L"ui_game_screen_main_layout")->AlignChildren();
 	}
 
 
@@ -263,6 +267,9 @@ void CGameState::LoadGameState()
 	m_GameManager->SetTileCount();
 	m_GameManager->SetBoardSize();
 	m_GameManager->m_SavedGameState = static_cast<CGameManager::EGameState>(GameState);
+
+//	((CUILayout *) (m_GameManager->GetUIManager()->GetUIElement(L"ui_game_screen_sub_layout3")))->SetBoxSizeProps(0, m_GameManager->GetUIManager()->GetScorePanelSize().x, m_GameManager->GetUIManager()->GetScorePanelSize().y, false);
+//	m_GameManager->etUIManager()->GetUIElement(L"ui_game_screen_main_layout")->AlignChildren();
 
 	/*
 	if (GameState != CGameManager::OnStartGameScreen && GameState != CGameManager::OnStartScreen && GameState != CGameManager::OnRankingsScreen)

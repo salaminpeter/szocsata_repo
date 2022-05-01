@@ -58,20 +58,24 @@ void CGameManager::ResetToStartScreen()
 {
 	m_State->RemoveSaveFile();
 	PauseGameLoop(true);  //TODO meg kene varni hogy a  m_StopGameLoop ervenyesuljon csak utana tovabbmenni!!
+	m_NextPlayerPopupShown = false;
 	SetGameState(CGameManager::OnStartScreen);
 	m_Renderer->SetModelsInited(false);
-    m_UIManager->m_UIInitialized = false;
-	m_Renderer->ClearGameScreenResources();
-    m_UIManager->m_UIInitialized = true;
 	m_TileAnimations->Reset();
 	m_WordAnimation->Reset();
 	m_TimerEventManager->Reset();
 	m_TaskManager->Reset();
+	m_Renderer->DisableSelection();
+
+	{
+		const std::lock_guard<std::recursive_mutex> lock(m_Renderer->GetRenderLock());
+		m_Renderer->ClearGameScreenResources();
+	}
 
 	//TODO torolni az osszes cuccot amit a GenerateModelsTask al ujra letrehozok!!!!!!!!!!!!!!!!!
 	//tasks for generating board / tile model
     std::shared_ptr<CTask> BoardSizeSetTask = AddTask(this, nullptr, "board_size_set_task", CTask::RenderThread);
-    std::shared_ptr<CTask> GenerateBoardModelTask = AddTask(this, &CGameManager::GenerateModelsTask, "generate_models_task", CTask::RenderThread);
+    std::shared_ptr<CTask> GenerateModelsTask = AddTask(this, &CGameManager::GenerateModelsTask, "generate_models_task", CTask::RenderThread);
 
     //tasks for starting game
 	std::shared_ptr<CTask> BeginGameTask = AddTask(this, &CGameManager::BeginGameTask, "begin_game_task", CTask::RenderThread);
@@ -80,19 +84,19 @@ void CGameManager::ResetToStartScreen()
 	std::shared_ptr<CTask> StartGmLoopTask = AddTask(this, &CGameManager::StartGameLoopTask, "start_game_loop_task", CTask::CurrentThread);
 
 	BeginGameTask->AddDependencie(GameStartedTask);
-	BeginGameTask->AddDependencie(GenerateBoardModelTask);
-	GenerateBoardModelTask->AddDependencie(BoardSizeSetTask);
+	BeginGameTask->AddDependencie(GenerateModelsTask);
+	GenerateModelsTask->AddDependencie(BoardSizeSetTask);
 	StartGmLoopTask->AddDependencie(BeginGameTask);
     
-	BoardSizeSetTask->m_TaskStopped = false;
-	GenerateBoardModelTask->m_TaskStopped = false;
-	GameStartedTask->m_TaskStopped = false;
-	BeginGameTask->m_TaskStopped = false;
-
 	RemovePlayers();
 	m_GameBoard.Reset();
 	m_TmpGameBoard.Reset();
 	StartGameLoopTask();
+
+	BoardSizeSetTask->m_TaskStopped = false;
+	GenerateModelsTask->m_TaskStopped = false;
+	GameStartedTask->m_TaskStopped = false;
+	BeginGameTask->m_TaskStopped = false;
 }
 
 void CGameManager::RemovePlayers()
@@ -102,6 +106,7 @@ void CGameManager::RemovePlayers()
 
 	m_Players.clear();
 	m_PlayerSteps.clear();
+	m_PlacedLetterSelections.clear();
 	m_CurrentPlayer = nullptr;
 	CPlayer::m_PlayerCount = 0;
 }
@@ -920,8 +925,11 @@ void CGameManager::InitRendererTask()
 
 void CGameManager::InitGameScreenTask()
 {
-    if (GameScreenActive(m_SavedGameState))
-        m_UIManager->InitGameScreen(m_Renderer->GetSquarePositionData(), m_Renderer->GetSquareColorData(), m_Renderer->GetSquareColorGridData16x6());
+    if (GameScreenActive(m_SavedGameState)) 
+	{
+		m_UIManager->InitGameScreen(m_Renderer->GetSquarePositionData(), m_Renderer->GetSquareColorData(), m_Renderer->GetSquareColorGridData16x6());
+		m_UIManager->InitRankingsScreen(m_Renderer->GetSquarePositionData(), m_Renderer->GetSquareColorData(), m_Renderer->GetSquareColorGridData16x6());
+	}
 
     SetTaskFinished("init_game_screen_task");
 }
@@ -930,13 +938,6 @@ void CGameManager::GenerateModelsTask()
 {
 	m_Renderer->GenerateModels();
 	SetTaskFinished("generate_models_task");
-}
-
-void CGameManager::GenerateBoardModelTask()
-{
-	m_Renderer->GenerateBoardModel();
-	SetTaskFinished("generate_models_task");
-	m_Renderer->SetModelsInited(true);
 }
 
 void CGameManager::StopThreads()
@@ -1298,7 +1299,7 @@ void CGameManager::InitUIManager()
 {
 	//create ui manager + basic elements
 	m_UIManager = new CUIManager(this, m_TimerEventManager);
-	m_UIManager->InitElements(m_Renderer->GetSquarePositionData(), m_Renderer->GetSquareColorData(), m_Renderer->GetSquareColorGridData16x6(), m_Renderer->GetSquareColorGridData8x4());
+	m_UIManager->InitBaseElements(m_Renderer->GetSquarePositionData(), m_Renderer->GetSquareColorData(), m_Renderer->GetSquareColorGridData16x6(), m_Renderer->GetSquareColorGridData8x4());
 
 	//set fps if needed
 	int ShowFps;
@@ -1777,7 +1778,7 @@ void CGameManager::RenderFrame()
 			else
 				m_Renderer->ClearBuffers();
 			
-			if (m_UIManager && m_UIManager->m_UIInitialized)
+			if (m_UIManager)
 				RenderUI();
 		}
 

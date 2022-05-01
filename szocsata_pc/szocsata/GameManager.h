@@ -159,7 +159,6 @@ public:
 	void BeginGameTask();
 	void InitRendererTask();
 	void GenerateModelsTask();
-	void GenerateBoardModelTask();
 	void InitGameScreenTask();
     void InitPlayersTask();
     void StartGameLoopTask();

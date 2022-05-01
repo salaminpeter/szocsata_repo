@@ -6,7 +6,7 @@
 #include "../../../../../szocsata_pc/szocsata/FileHandler.h"
 #include "../../../../../szocsata_pc/szocsata/IOManager.h"
 #include "../../../../../szocsata_pc/szocsata/InputManager.h"
-
+#include "../../../../../szocsata_pc/szocsata/UIManager.h"
 
 CGameManager* gm;
 CInputManager* InputManager;
@@ -196,6 +196,7 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_szocsata_1android_OpenGLRenderer_EndInitAndStart(JNIEnv *env, jobject thiz) {
 
+    gm->GetUIManager()->m_UIInitialized = false;
     gm->SetTileCount();
     gm->InitBasedOnTileCount(true);
     gm->GenerateGameScreenTextures();
@@ -209,6 +210,7 @@ Java_com_example_szocsata_1android_OpenGLRenderer_EndInitAndStart(JNIEnv *env, j
     else
         gm->SetGameState(CGameManager::BeginGame);
 */
+    gm->GetUIManager()->m_UIInitialized = true;
     gm->m_InitDone = true;
 }
 

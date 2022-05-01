@@ -654,10 +654,6 @@ void CRenderer::GenerateTileColorData()
 
 void CRenderer::GenerateGameScreenTextures()
 {
-	//mar inicializalva vannak a game screen texturak
-//	if (m_TextureManager->GetTexture("player_score_panel_texture_generated"))
-//		return;
-
 	glm::vec2 PlayerLogoSize = m_GameManager->GetUIElementSize(L"ui_current_palyer_logo");
 	glm::vec2 OkBtnSize = m_GameManager->GetUIElementSize(L"ui_start_game_btn");
 
@@ -709,7 +705,7 @@ void CRenderer::InitRenderer()
 	m_LetterTextureData16x6 = std::make_shared<CSquareColorData>();
 	m_LetterTextureData16x6->m_DivX = 16.f;
 	m_LetterTextureData16x6->m_DivY = 6.f;
-	 m_LetterTextureData16x6->GenerateTextureCoordBuffer(std::vector<glm::vec3>());
+	m_LetterTextureData16x6->GenerateTextureCoordBuffer(std::vector<glm::vec3>());
 
 	m_LetterTextureData8x4 = std::make_shared<CSquareColorData>();
 	m_LetterTextureData8x4->m_DivX = 8.f;
@@ -853,11 +849,14 @@ void CRenderer::ClearGameScreenResources()
 
 	//delete board / board tiles / selection
 	delete m_BoardTiles;
-	//delete m_SelectionModel;
+	delete m_SelectionModel;
 	delete m_BoardModel;
 
-    m_BoardTiles = nullptr;
-	m_BoardModel = nullptr;
+	m_RoundedSquarePositionData.reset();
+	m_LetterPositionData.reset();
+	m_LetterColorData.reset();
+	m_TilePositionData.reset();
+	m_TileColorData.reset();
 
 	//remove ui elements from game screen
 	m_GameManager->GetUIManager()->ClearGameScreenUIElements();
