@@ -457,6 +457,12 @@ void CUIManager::InitGameScreen(std::shared_ptr<CSquarePositionData> positionDat
 	m_DimmPanel->SetVisible(false);
 }
 
+void CUIManager::SetScorePanelLayoutBox()
+{
+    static_cast<CUILayout*>(GetUIElement(L"ui_game_screen_sub_layout3"))->SetBoxSizeProps(0, m_ScorePanel->GetWidth(), m_ScorePanel->GetHeight(), false);
+    GetUIElement(L"ui_game_screen_main_layout")->AlignChildren();
+}
+
 void CUIManager::InitRankingsScreen(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData8x8)
 {
 	const std::lock_guard<std::recursive_mutex> lock(m_UILock);

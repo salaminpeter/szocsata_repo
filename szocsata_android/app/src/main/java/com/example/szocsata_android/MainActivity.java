@@ -36,7 +36,11 @@ public class MainActivity extends AppCompatActivity {
     private static boolean m_MultyTouch = false;
     private static double Distance = 0;
 
+    private boolean m_PauseHandled = true;
+
     private static MainActivity obj;
+
+    public void setPauseDone(boolean done) {m_PauseHandled = done; }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -157,14 +161,26 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+        m_PauseHandled = false;
+    }
+
+    @Override
     protected void onResume(){
         super.onResume();
         hideStatusBar();
         m_OpenGLView.onResume();
     }
+
     @Override
     protected void onPause(){
         super.onPause();
+
+        if (m_PauseHandled)
+            return;
+
+        m_PauseHandled = true;
         m_OpenGLView.onPause();
         ClearResources();
     }

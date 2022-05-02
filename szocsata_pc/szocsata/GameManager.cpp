@@ -899,6 +899,8 @@ void CGameManager::ShowSavedScreenTask()
 	else
 		SetGameState(TurnInProgress);
 
+	m_UIManager->SetScorePanelLayoutBox();
+
 	SetTaskFinished("show_savedscreen_task");
 	m_UIManager->m_UIInitialized = true;
 

@@ -119,6 +119,8 @@ public:
 	void InitGameScreen(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData8x8);
 	void InitRankingsScreen(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData8x8);
 
+	void SetScorePanelLayoutBox();
+
 	std::recursive_mutex& GetUILock() { return m_UILock; }
 
 private:

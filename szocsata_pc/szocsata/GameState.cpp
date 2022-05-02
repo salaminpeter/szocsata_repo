@@ -253,12 +253,6 @@ void CGameState::LoadGameState()
     if (StateFile.fail())
         return;
 
-    /*
-    if (!m_GameManager->GameScreenActive(static_cast<CGameManager::EGameState>(GameState)))
-		m_GameManager->SetGameState(GameState);
-    else
-		m_GameManager->m_StartOnGameScreen = true;
-    */
 	m_GameManager->GetUIManager()->SetPlayerCount(PlayerCountIdx);
 	m_GameManager->GetUIManager()->SetBoardSize(BoardSize);
 	m_GameManager->GetUIManager()->SetTimeLimitIdx(TimeLimit);
@@ -267,14 +261,6 @@ void CGameState::LoadGameState()
 	m_GameManager->SetTileCount();
 	m_GameManager->SetBoardSize();
 	m_GameManager->m_SavedGameState = static_cast<CGameManager::EGameState>(GameState);
-
-//	((CUILayout *) (m_GameManager->GetUIManager()->GetUIElement(L"ui_game_screen_sub_layout3")))->SetBoxSizeProps(0, m_GameManager->GetUIManager()->GetScorePanelSize().x, m_GameManager->GetUIManager()->GetScorePanelSize().y, false);
-//	m_GameManager->etUIManager()->GetUIElement(L"ui_game_screen_main_layout")->AlignChildren();
-
-	/*
-	if (GameState != CGameManager::OnStartGameScreen && GameState != CGameManager::OnStartScreen && GameState != CGameManager::OnRankingsScreen)
-		m_GameManager->FinishRenderInit();
-*/
 
 	StateFile.close();
 }
