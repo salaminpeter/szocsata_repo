@@ -11,6 +11,7 @@ class CEventBase;
 class CTask;
 class CGameManager;
 
+
 class CTask
 {
 public: //TODO
@@ -50,7 +51,6 @@ public: //TODO
 class CTaskManager
 {
 public:
-	
 	CTaskManager(CGameManager* gm) : m_GameManager(gm)
 	{
 		m_Thread = new std::thread(&CTaskManager::TaskLoop, this);
@@ -65,7 +65,7 @@ public:
 	template <typename ClassType, typename... ArgTypes>
 	std::shared_ptr<CTask> AddTask(ClassType* funcClass, typename CEvent<ClassType, ArgTypes...>::TFuncPtrType funcPtr, const char* id, CTask::ERunSource runThread, ArgTypes&&... args)
 	{
-		const std::lock_guard<std::recursive_mutex> lock(m_Lock);
+		const std::lock_guard<std::mutex> lock(m_Lock);
 
 		std::shared_ptr<CTask> FoundTask = GetTask(id);
 		if (FoundTask)
@@ -84,8 +84,9 @@ public:
 	
 	void AddDependencie(const char* taskId, const char* depId);
 	void SetTaskFinished(const char* taskId);
+	void FinishTask(const char* taskId);
 	void TaskLoop();
-	void StartTask(const char* id);
+	void StartTask(const char* id, bool onCurrentThread = false);
 	void Reset();
 
 	void StopThread() { m_StopTaskThread = true; }
@@ -97,7 +98,7 @@ private:
 	const int m_Frequency = 10;
 	std::list<std::shared_ptr<CTask>> m_TaskList;
 	double m_LastLoopTime = 0;
-	std::recursive_mutex m_Lock;
+	std::mutex m_Lock;
 	std::thread* m_Thread;
 	CGameManager* m_GameManager;
 	bool m_StopTaskThread = false;

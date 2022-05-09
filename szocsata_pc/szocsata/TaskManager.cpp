@@ -6,6 +6,9 @@
 
 #include <chrono>
 
+namespace Logger {
+	void Log(const char *msg);
+}
 
 void CTaskManager::FreeTask(const char* taskId)
 {
@@ -28,8 +31,6 @@ void CTaskManager::FreeTask(const char* taskId)
 
 std::shared_ptr<CTask> CTaskManager::GetTask(const char* id)
 {
-    const std::lock_guard<std::recursive_mutex> lock(m_Lock);
-
     for (auto it = m_TaskList.begin(); it != m_TaskList.end(); ++it)
 	{
 		if ((*it)->m_ID == id)
@@ -41,7 +42,7 @@ std::shared_ptr<CTask> CTaskManager::GetTask(const char* id)
 
 void CTaskManager::AddDependencie(const char* taskId, const char* depId)
 {
-	const std::lock_guard<std::recursive_mutex> lock(m_Lock);
+	const std::lock_guard<std::mutex> lock(m_Lock);
 
 	std::shared_ptr<CTask> Task = GetTask(taskId);
 	std::shared_ptr<CTask> Dep = GetTask(depId);
@@ -52,41 +53,49 @@ void CTaskManager::AddDependencie(const char* taskId, const char* depId)
 	Task->AddDependencie(Dep);
 }
 
-void CTaskManager::SetTaskFinished(const char* taskId)
+void CTaskManager::FinishTask(const char *taskId)
 {
-	const std::lock_guard<std::recursive_mutex> lock(m_Lock);  // TODO valamiert deadlock lesz ha sima mutexte hasznalunk pedig azt kene !!!!, ez igy nem lesz jo ki kell javitani!!!!!!!!!!!!!
+    const std::lock_guard<std::mutex> lock(m_Lock);
 
 	std::shared_ptr<CTask> Task = GetTask(taskId);
 
-	if (!Task)
-		return;
+    if (!Task)
+        return;
 
-	Task->m_TaskFinished = true;
-//	FreeTask(taskId);
+    Task->m_TaskFinished = true;
+    FreeTask(taskId);
+}
+
+void CTaskManager::SetTaskFinished(const char* taskId)
+{
+	std::thread* FinishTaskThread = new std::thread(&CTaskManager::FinishTask, this, taskId); //TODO nagyon ocsmany leak!!!!!
 }
 
 void CTaskManager::Reset()
 {
-	PauseThread();
+	const std::lock_guard<std::mutex> lock(m_Lock);
+    m_TaskList.clear();
+ }
 
-	{
-        const std::lock_guard<std::recursive_mutex> lock(m_Lock);
-        m_TaskList.clear();
-    }
-
-    ResumeThread();
-}
-
-void CTaskManager::StartTask(const char* id)
+void CTaskManager::StartTask(const char* id, bool onCurrentThread)
 {
-	const std::lock_guard<std::recursive_mutex> lock(m_Lock);
+	if (!onCurrentThread)
+		m_Lock.lock();
 
 	std::shared_ptr<CTask> Task = GetTask(id);
 
 	if (!Task)
+	{
+		if (!onCurrentThread)
+			m_Lock.unlock();
+
 		return;
+	}
 
 	Task->Start();
+
+	if (!onCurrentThread)
+		m_Lock.unlock();
 }
 
 void CTaskManager::TaskLoop()
@@ -104,7 +113,7 @@ void CTaskManager::TaskLoop()
 			continue;
 
 		{
-            const std::lock_guard<std::recursive_mutex> lock(m_Lock);
+            const std::lock_guard<std::mutex> lock(m_Lock);
 
 			for (auto it = m_TaskList.begin(); it != m_TaskList.end(); ++it)
 			{
@@ -121,7 +130,7 @@ void CTaskManager::TaskLoop()
 						m_GameManager->ExecuteTaskOnThread((*it)->m_ID.c_str(), (*it)->m_RunOnThread);
 				}
 			}
-        }
+		}
 
 		m_LastLoopTime = CTimer::GetCurrentTime();
 	}

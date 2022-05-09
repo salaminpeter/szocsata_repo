@@ -8,6 +8,16 @@
 #include "../../../../../szocsata_pc/szocsata/InputManager.h"
 #include "../../../../../szocsata_pc/szocsata/UIManager.h"
 
+#include <android/log.h>
+
+namespace Logger
+{
+    void Log(const char* msg)
+    {
+        __android_log_write(ANDROID_LOG_ERROR, "ENLOGOM", msg);
+    }
+}
+
 CGameManager* gm;
 CInputManager* InputManager;
 std::mutex m_GMLock;
