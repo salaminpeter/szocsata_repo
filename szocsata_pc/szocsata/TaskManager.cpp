@@ -3,12 +3,21 @@
 #include "Event.h"
 #include "Timer.h"
 #include "GameManager.h"
+#include "ThreadDump.h"
 
 #include <chrono>
+#include <future>
 
 namespace Logger {
 	void Log(const char *msg);
 }
+
+CTaskManager::CTaskManager(CGameManager* gm) : m_GameManager(gm)
+{
+	m_Thread = new std::thread(&CTaskManager::TaskLoop, this);
+	m_ThreadDump = std::make_unique<CThreadDump>();
+}
+
 
 void CTaskManager::FreeTask(const char* taskId)
 {
@@ -53,22 +62,28 @@ void CTaskManager::AddDependencie(const char* taskId, const char* depId)
 	Task->AddDependencie(Dep);
 }
 
-void CTaskManager::FinishTask(const char *taskId)
+void CTaskManager::FinishTask(const char *taskId, std::atomic<bool>* flag)
 {
-    const std::lock_guard<std::mutex> lock(m_Lock);
+	{
+		const std::lock_guard<std::mutex> lock(m_Lock);
 
-	std::shared_ptr<CTask> Task = GetTask(taskId);
+		std::shared_ptr<CTask> Task = GetTask(taskId);
 
-    if (!Task)
-        return;
+		if (!Task)
+			return;
 
-    Task->m_TaskFinished = true;
-    FreeTask(taskId);
+		Task->m_TaskFinished = true;
+		FreeTask(taskId);
+	}
+
+	*flag = true;
 }
 
 void CTaskManager::SetTaskFinished(const char* taskId)
 {
-	std::thread* FinishTaskThread = new std::thread(&CTaskManager::FinishTask, this, taskId); //TODO nagyon ocsmany leak!!!!!
+	std::atomic<bool>* IsFinished = new std::atomic<bool>(false);
+	std::thread* FinishTaskThread = new std::thread(&CTaskManager::FinishTask, this, taskId, IsFinished); //TODO nagyon ocsmany leak!!!!!
+	m_ThreadDump->AddThread(FinishTaskThread, IsFinished);
 }
 
 void CTaskManager::Reset()
@@ -131,6 +146,8 @@ void CTaskManager::TaskLoop()
 				}
 			}
 		}
+
+		m_ThreadDump->DeleteStoppedThreads();
 
 		m_LastLoopTime = CTimer::GetCurrentTime();
 	}

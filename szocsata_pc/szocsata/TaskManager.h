@@ -4,12 +4,15 @@
 #include <memory>
 #include <mutex>
 #include <thread>
+#include <atomic>
 
 #include "Event.h"
+#include "ThreadDump.h"
 
 class CEventBase;
 class CTask;
 class CGameManager;
+class CThreadDump;
 
 
 class CTask
@@ -51,16 +54,8 @@ public: //TODO
 class CTaskManager
 {
 public:
-	CTaskManager(CGameManager* gm) : m_GameManager(gm)
-	{
-		m_Thread = new std::thread(&CTaskManager::TaskLoop, this);
-	}
-
-	~CTaskManager()
-	{
-		//delete m_Thread; //TODO nem lehet egyszeruen deletelni, joinolni kell hozaa
-	}
-
+	CTaskManager(CGameManager* gm);
+	~CTaskManager() = default;
 
 	template <typename ClassType, typename... ArgTypes>
 	std::shared_ptr<CTask> AddTask(ClassType* funcClass, typename CEvent<ClassType, ArgTypes...>::TFuncPtrType funcPtr, const char* id, CTask::ERunSource runThread, ArgTypes&&... args)
@@ -84,7 +79,7 @@ public:
 	
 	void AddDependencie(const char* taskId, const char* depId);
 	void SetTaskFinished(const char* taskId);
-	void FinishTask(const char* taskId);
+	void FinishTask(const char* taskId, std::atomic<bool>* flag);
 	void TaskLoop();
 	void StartTask(const char* id, bool onCurrentThread = false);
 	void Reset();
@@ -103,6 +98,8 @@ private:
 	CGameManager* m_GameManager;
 	bool m_StopTaskThread = false;
 	bool m_PauseTaskThread = false;
+
+	std::unique_ptr<CThreadDump> m_ThreadDump;
 
 
 private:
