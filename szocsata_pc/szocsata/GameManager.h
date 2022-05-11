@@ -51,6 +51,8 @@ public:
 		delete m_TimerEventManager;
 		delete m_GameThread;
 		delete m_TaskManager;
+
+		RemovePlayers();
 	}
 
 	void ResetToStartScreen();
@@ -60,7 +62,7 @@ public:
 	void InitBasedOnTileCount(bool addLetters);
 	void InitPlayers(bool addLetters);
 	void SetTileCount();
-	void InitLetterPool();
+	void InitLetterPool(bool initLettersCount = true);
 	int CalculateScore(const TWordPos& word, std::vector<TWordPos>* crossingWords = nullptr);
 	void CreateRenderer(int surfaceWidth, int surfaceHeight);
 	void GenerateStartScreenTextures();
@@ -135,6 +137,7 @@ public:
 	std::string GetWorkingDir();
 	std::wstring GetWordAtPos(bool horizontal, int& x, int& y);
 	void SetBoardSize();
+	void SetTileCounterCount();
 
 	wchar_t GetChOnBoard(int x, int y) { return m_GameBoard(x, y).m_Char; }
 	CWordTree::TNode* WordTreeRoot(wchar_t c) {return m_DataBase.GetWordTreeRoot(c);}
@@ -152,7 +155,6 @@ public:
 	void SetTaskFinished(const char* id) { m_TaskManager->SetTaskFinished(id); }
 	void StopTaskThread() {m_TaskManager->StopThread();}
     void RevertGameBoard() {m_GameBoard = m_TmpGameBoard;}
-
 
     void ShowStartScreenTask();
     void ShowSavedScreenTask();
@@ -193,6 +195,7 @@ public:
 	void SetLetterCount(int idx, int count) {m_LetterPool.SetLetterCount(idx, count);}
 	size_t GetCharacterCount() {return m_LetterPool.GetCharacterCount();}
 	void PauseGameLoop(bool pause) {m_PauseGameLoop = pause;}
+	bool ResumedOnGameScreen() {return GameScreenActive(m_SavedGameState);}
 
 
 	void StartGameThread();

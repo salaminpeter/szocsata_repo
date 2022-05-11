@@ -108,7 +108,6 @@ void CGameManager::RemovePlayers()
 	m_PlayerSteps.clear();
 	m_PlacedLetterSelections.clear();
 	m_CurrentPlayer = nullptr;
-	CPlayer::m_PlayerCount = 0;
 }
 
 void CGameManager::AddPlayers(int playerCount, bool addComputer, bool addLetters)
@@ -158,9 +157,14 @@ void CGameManager::AddPlayers(int playerCount, bool addComputer, bool addLetters
 	m_UIManager->SetTileCounterValue(m_LetterPool.GetRemainingLetterCount());
 }
 
-void CGameManager::InitLetterPool()
+void CGameManager::SetTileCounterCount()
 {
-	m_LetterPool.Init();
+	m_UIManager->SetTileCounterValue(m_LetterPool.GetRemainingLetterCount());
+}
+
+void CGameManager::InitLetterPool(bool initLettersCount)
+{
+	m_LetterPool.Init(initLettersCount);
     SetTaskFinished("init_letter_pool_task");
 }
 

@@ -206,6 +206,8 @@ void CGameState::LoadPlayerAndBoardState()
 		m_GameManager->SetLetterCount(i, LetterCount);
 	}
 
+	m_GameManager->SetTileCounterCount();
+
 	if (m_GameManager->GameScreenActive(m_GameManager->m_SavedGameState))
 	{
 		std::wstring Name;

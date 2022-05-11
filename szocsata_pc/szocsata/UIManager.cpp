@@ -997,8 +997,4 @@ void CUIManager::SetTileCounterValue(unsigned count)
 	m_UITileCounter->SetCounter(count);
 }
 
-void CUIManager::SetTileCounterValue()
-{
-	m_UITileCounter->SetCounter();
-}
  

@@ -70,7 +70,6 @@ public:
 	void RenderDraggedLetter();
 
 	void SetTileCounterValue(unsigned count);
-	void SetTileCounterValue();
 	int GetTileCounterValue();
 
 	void SetCurrentPlayerName(const wchar_t* playerName, float r, float g, float b);

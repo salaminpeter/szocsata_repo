@@ -102,6 +102,7 @@ void InitGameManager(int surfWidth, int surfHeight)
     }
     else
     {
+        bool ResumedOnGameScreen = gm->ResumedOnGameScreen();
         std::shared_ptr<CTask> CreateRendererTask = gm->AddTask(gm, &CGameManager::CreateRenderer, "create_renderer_task", CTask::RenderThread, surfWidth, surfHeight);
         std::shared_ptr<CTask> InitRendererTask = gm->AddTask(gm, &CGameManager::InitRendererTask, "init_renderer_task", CTask::RenderThread);
         std::shared_ptr<CTask> InitUIManagerTask = gm->AddTask(gm, &CGameManager::InitUIManager, "init_uimanager_task", CTask::RenderThread);
@@ -109,7 +110,7 @@ void InitGameManager(int surfWidth, int surfHeight)
         std::shared_ptr<CTask> GenerateStartScrTextTask = gm->AddTask(gm, &CGameManager::GenerateStartScreenTextures, "generate_startscreen_textures_task", CTask::RenderThread);
         std::shared_ptr<CTask> LoadGameStateTask = gm->AddTask(gm, &CGameManager::LoadState, "load_game_state_task", CTask::CurrentThread);
         std::shared_ptr<CTask> InitGameScreenTask = gm->AddTask(gm, &CGameManager::InitGameScreenTask, "init_game_screen_task", CTask::RenderThread);
-        std::shared_ptr<CTask> InitLetterPoolTask = gm->AddTask(gm, &CGameManager::InitLetterPool, "init_letter_pool_task", CTask::RenderThread);
+        std::shared_ptr<CTask> InitLetterPoolTask = gm->AddTask(gm, &CGameManager::InitLetterPool, "init_letter_pool_task", CTask::RenderThread, !ResumedOnGameScreen);
         std::shared_ptr<CTask> InitPlayersTask = gm->AddTask(gm, &CGameManager::InitPlayersTask, "init_players_task", CTask::RenderThread);
         std::shared_ptr<CTask> GenerateGameScrTextTask = gm->AddTask(gm, &CGameManager::GenerateGameScreenTextures, "generate_game_screen_textures_task", CTask::RenderThread);
         std::shared_ptr<CTask> GenerateModelsTask = gm->AddTask(gm, &CGameManager::GenerateModelsTask, "generate_models_task", CTask::RenderThread);
@@ -222,16 +223,6 @@ Java_com_example_szocsata_1android_OpenGLRenderer_EndInitAndStart(JNIEnv *env, j
 */
     gm->GetUIManager()->m_UIInitialized = true;
     gm->m_InitDone = true;
-}
-
-void ExitToStartScreen()
-{
-    int w = gm->m_SurfaceWidth;
-    int h = gm->m_SurfaceHeigh;
-    gm->StopThreads();
-    delete gm;
-    gm = nullptr;
-    InitGameManager(w, h);
 }
 
 extern "C"

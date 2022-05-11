@@ -10,7 +10,7 @@ public:
 	CLetterPool();
 
 	void DealLetters(std::wstring& letters);
-	void Init();
+	void Init(bool initLettersCount = true);
 	int GetRemainingLetterCount();
 
 	bool Empty() {return m_LetterIdx.size() == 0;}

@@ -93,7 +93,7 @@ bool CLetterPool::SetLetterCount(int idx, int count)
     return true;
 }
 
-void CLetterPool::Init()
+void CLetterPool::Init(bool initLettersCount)
 {
 	m_LetterIdx.resize(32);
 
@@ -130,38 +130,40 @@ void CLetterPool::Init()
 	m_LetterIdx[30] = L'z';
 	m_LetterIdx[31] = L'y';
 
-	m_Letters[L'a'] = 8;
-	m_Letters[L'á'] = 5;
-	m_Letters[L'b'] = 4;
-	m_Letters[L'c'] = 3;
-	m_Letters[L'd'] = 4;
-	m_Letters[L'e'] = 10;
-	m_Letters[L'é'] = 6;
-	m_Letters[L'f'] = 3;
-	m_Letters[L'g'] = 4;
-	m_Letters[L'h'] = 3;
-	m_Letters[L'i'] = 6;
-	m_Letters[L'í'] = 3;
-	m_Letters[L'j'] = 3;
-	m_Letters[L'k'] = 6;
-	m_Letters[L'l'] = 7;
-	m_Letters[L'm'] = 6;
-	m_Letters[L'n'] = 7;
-	m_Letters[L'o'] = 4;
-	m_Letters[L'ó'] = 5;
-	m_Letters[L'ö'] = 4;
-	m_Letters[L'ő'] = 4;
-	m_Letters[L'p'] = 3;
-	m_Letters[L'r'] = 4;
-	m_Letters[L's'] = 7;
-	m_Letters[L't'] = 7;
-	m_Letters[L'v'] = 4;
-	m_Letters[L'u'] = 3;
-	m_Letters[L'ú'] = 3;
-	m_Letters[L'ü'] = 4;
-	m_Letters[L'ű'] = 4;
-	m_Letters[L'z'] = 4;
-	m_Letters[L'y'] = 5;
+	if (initLettersCount) {
+		m_Letters[L'a'] = 8;
+		m_Letters[L'á'] = 5;
+		m_Letters[L'b'] = 4;
+		m_Letters[L'c'] = 3;
+		m_Letters[L'd'] = 4;
+		m_Letters[L'e'] = 10;
+		m_Letters[L'é'] = 6;
+		m_Letters[L'f'] = 3;
+		m_Letters[L'g'] = 4;
+		m_Letters[L'h'] = 3;
+		m_Letters[L'i'] = 6;
+		m_Letters[L'í'] = 3;
+		m_Letters[L'j'] = 3;
+		m_Letters[L'k'] = 6;
+		m_Letters[L'l'] = 7;
+		m_Letters[L'm'] = 6;
+		m_Letters[L'n'] = 7;
+		m_Letters[L'o'] = 4;
+		m_Letters[L'ó'] = 5;
+		m_Letters[L'ö'] = 4;
+		m_Letters[L'ő'] = 4;
+		m_Letters[L'p'] = 3;
+		m_Letters[L'r'] = 4;
+		m_Letters[L's'] = 7;
+		m_Letters[L't'] = 7;
+		m_Letters[L'v'] = 4;
+		m_Letters[L'u'] = 3;
+		m_Letters[L'ú'] = 3;
+		m_Letters[L'ü'] = 4;
+		m_Letters[L'ű'] = 4;
+		m_Letters[L'z'] = 4;
+		m_Letters[L'y'] = 5;
+	}
 
 	//set letter count based on board dimensions
 	int TileCount;

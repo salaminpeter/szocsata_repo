@@ -13,6 +13,7 @@ class CPlayer
 public:
 	
 	CPlayer(CGameManager* gameManager);
+	~CPlayer() {--m_PlayerCount;}
 
 	void AddLetters(const std::vector<wchar_t>& letters);
 	void ArrangeLetters();
