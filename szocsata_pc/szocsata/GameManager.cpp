@@ -686,9 +686,10 @@ bool CGameManager::EndPlayerTurn(bool stillHaveTime)
 		}
 		//ha letelt az ido jatekos passz
 		else
+		{
 			HandlePlayerPass();
-
-		AddNextPlayerTasksPass();
+			AddNextPlayerTasksPass();
+		}
 
 		return false;
 	}
@@ -704,9 +705,10 @@ bool CGameManager::EndPlayerTurn(bool stillHaveTime)
 		}
 		//ha letelt az ido jatekos passz
 		else
+		{
 			HandlePlayerPass();
-
-		AddNextPlayerTasksPass();
+			AddNextPlayerTasksPass();
+		}
 
 		return false;
 	}
@@ -722,9 +724,10 @@ bool CGameManager::EndPlayerTurn(bool stillHaveTime)
 			AddWordSelectionAnimation(CrossingWords, false);
 		//ha letelt az ido jatekos passz
 		else
+		{
 			HandlePlayerPass();
-
-		AddNextPlayerTasksPass();
+			AddNextPlayerTasksPass();
+		}
 
 		return false;
 	}
