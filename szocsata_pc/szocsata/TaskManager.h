@@ -4,7 +4,6 @@
 #include <memory>
 #include <mutex>
 #include <thread>
-#include <atomic>
 
 #include "Event.h"
 #include "ThreadDump.h"

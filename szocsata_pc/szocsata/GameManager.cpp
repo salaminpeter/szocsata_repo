@@ -58,7 +58,6 @@ void CGameManager::ResetToStartScreen()
 {
 	m_State->RemoveSaveFile();
 	PauseGameLoop(true);  //TODO meg kene varni hogy a  m_StopGameLoop ervenyesuljon csak utana tovabbmenni!!
-	m_NextPlayerPopupShown = false;
 	SetGameState(CGameManager::OnStartScreen);
 	m_Renderer->SetModelsInited(false);
 	m_TileAnimations->Reset();
@@ -263,6 +262,11 @@ void CGameManager::StartGameLoopTask()
     m_PauseGameLoop = false;
 }
 
+void CGameManager::NextPlayerTask()
+{
+	SetGameState(CGameManager::NextTurn);
+}
+
 void CGameManager::InitPlayersTask()
 {
 	bool AddLetters = !GameScreenActive(m_SavedGameState);
@@ -282,6 +286,7 @@ void CGameManager::InitPlayers(bool addLetters)
 void CGameManager::StartGame()
 {
 	ShowNextPlayerPopup();
+	NextPlayerTurn();
 }
 
 void CGameManager::AddWordSelectionAnimation(const std::vector<TWordPos>& wordPos, bool positive)
@@ -448,9 +453,9 @@ bool CGameManager::SelectionPosIllegal(int x, int y)
 	return false;
 }
 
-void CGameManager::StartDimmingAnimation()
+void CGameManager::StartDimmingAnimation(bool fadeIn)
 {
-	m_DimmBGAnimationManager->StartAnimation();
+	m_DimmBGAnimationManager->StartAnimation(fadeIn);
 }
 
 bool CGameManager::PlayerLetterAnimationFinished()
@@ -460,17 +465,9 @@ bool CGameManager::PlayerLetterAnimationFinished()
 
 void CGameManager::ShowNextPlayerPopup()
 {
-	const std::lock_guard<std::mutex> lock(m_PlayerPopupLock);
-
-	bool ShowPopup = !m_NextPlayerPopupShown && m_PlayerLetterAnimationManager->Finished() && m_TileAnimations->Finished();
-
-	if (ShowPopup)
-	{
-		m_NextPlayerPopupShown = true;
-		m_UIManager->EnableGameButtons(true);
-		m_UIManager->SetRemainingTimeStr(GetTimeStr(m_UIManager->GetTimeLimit()).c_str());
-		m_UIManager->ShowMessageBox(CUIMessageBox::Ok, GetNextPlayerName().c_str());
-	}
+	m_UIManager->EnableGameButtons(true);
+	m_UIManager->SetRemainingTimeStr(GetTimeStr(m_UIManager->GetTimeLimit()).c_str());
+	m_UIManager->ShowMessageBox(CUIMessageBox::Ok, GetNextPlayerName().c_str());
 }
 
 bool CGameManager::GameScreenActive(EGameState state)
@@ -610,13 +607,9 @@ void CGameManager::EndGameAfterLastPass()
 void CGameManager::HandlePlayerPass()
 {
 	m_CurrentPlayer->m_Passed = true;
-	bool AllPassed = AllPlayersPassed();
 	m_PlacedLetterSelections.clear();
 	UndoAllSteps();
 	m_PlayerSteps.clear();
-
-	//TODO biztos passzolni akarsz msgbox!
-	m_UIManager->ShowToast(L"passz", AllPassed);
 }
 
 //ret 1 - horizontal 0 - not horizontal -1 - undefined
@@ -633,13 +626,15 @@ int CGameManager::PlayerWordHorizontal()
 
 bool CGameManager::EndPlayerTurn(bool stillHaveTime)
 {	
-	m_NextPlayerPopupShown = false;
 	m_Renderer->HideSelection(true);
 
+	bool PlayerPass = m_CurrentPlayer->GetUsedLetterCount() == 0;
+
 	//jatekos passz
-	if (m_CurrentPlayer->GetUsedLetterCount() == 0)
+	if (PlayerPass)
 	{
 		HandlePlayerPass();
+		AddNextPlayerTasksPass();
 		return false;
 	}
 
@@ -693,6 +688,8 @@ bool CGameManager::EndPlayerTurn(bool stillHaveTime)
 		else
 			HandlePlayerPass();
 
+		AddNextPlayerTasksPass();
+
 		return false;
 	}
 
@@ -708,6 +705,8 @@ bool CGameManager::EndPlayerTurn(bool stillHaveTime)
 		//ha letelt az ido jatekos passz
 		else
 			HandlePlayerPass();
+
+		AddNextPlayerTasksPass();
 
 		return false;
 	}
@@ -725,9 +724,12 @@ bool CGameManager::EndPlayerTurn(bool stillHaveTime)
 		else
 			HandlePlayerPass();
 
+		AddNextPlayerTasksPass();
+
 		return false;
 	}
 
+	AddNextPlayerTasksNormal();
 	DealCurrPlayerLetters();
 	AddWordSelectionAnimation(CrossingWords, true);
 	m_PlacedLetterSelections.clear();
@@ -782,7 +784,6 @@ void CGameManager::DealComputerLettersEvent()
 
 bool CGameManager::EndComputerTurn()
 {
-	m_NextPlayerPopupShown = false;
 	m_TimerEventManager->StopTimer("time_limit_event");
 
 	int TileCount;
@@ -796,6 +797,7 @@ bool CGameManager::EndComputerTurn()
 
 	if (!ComputerPass)
 	{
+		AddNextPlayerTasksNormal();
 		ComputerStep = m_Computer->BestWord(m_ComputerWordIdx);
 		ComputerWord = ComputerStep.m_Word;
 		CrossingWords = &ComputerStep.m_CrossingWords;
@@ -806,6 +808,7 @@ bool CGameManager::EndComputerTurn()
 	if (ComputerPass || !ComputerWord.m_Word)
 	{
 		HandlePlayerPass();
+		AddNextPlayerTasksPass();
 		return false;
 	}
 
@@ -952,6 +955,51 @@ void CGameManager::StopThreads()
 	StopTaskThread();
 }
 
+void CGameManager::AddNextPlayerTasksNormal()
+{
+	std::shared_ptr<CTask> ShowNextPlayerPopupTask = AddTask(this, &CGameManager::ShowNextPlayerPopup, "show_next_player_popup_task", CTask::RenderThread);
+	std::shared_ptr<CTask> FinishDealLettersTask = AddTask(this, nullptr, "finish_player_deal_letters_task", CTask::RenderThread);
+	std::shared_ptr<CTask> FinishWordAnimationTask = AddTask(this, nullptr, "finish_word_animation_task", CTask::RenderThread);
+	std::shared_ptr<CTask> NextPlayerTurnTask = AddTask(this, &CGameManager::NextPlayerTask, "next_player_turn_task", CTask::RenderThread);
+	std::shared_ptr<CTask> ClosePlayerPopupTask = AddTask(this, nullptr, "msg_box_button_close_task", CTask::RenderThread);
+
+	ShowNextPlayerPopupTask->AddDependencie(FinishDealLettersTask);
+	ShowNextPlayerPopupTask->AddDependencie(FinishWordAnimationTask);
+	NextPlayerTurnTask->AddDependencie(ClosePlayerPopupTask);
+
+	ShowNextPlayerPopupTask->m_TaskStopped = false;
+	FinishDealLettersTask->m_TaskStopped = false;
+	FinishWordAnimationTask->m_TaskStopped = false;
+	NextPlayerTurnTask->m_TaskStopped = false;
+	ClosePlayerPopupTask->m_TaskStopped = false;
+}
+
+void CGameManager::AddNextPlayerTasksPass()
+{
+	bool AllPassed = AllPlayersPassed();
+
+	std::shared_ptr<CTask> ShowNextPlayerPopupTask = AddTask(this, AllPassed ? &CGameManager::EndGameAfterLastPass : &CGameManager::ShowNextPlayerPopup, "show_next_player_popup_task", CTask::RenderThread);
+	std::shared_ptr<CTask> WaitForPassedMsgTask = AddTask(this, nullptr, "wait_for_passed_msg_task", CTask::RenderThread);
+	std::shared_ptr<CTask> ClosePlayerPopupTask = nullptr;
+	std::shared_ptr<CTask> NextPlayerTurnTask = nullptr;
+
+	if (!AllPassed) {
+		ClosePlayerPopupTask = AddTask(this, nullptr, "msg_box_button_close_task", CTask::RenderThread);
+		NextPlayerTurnTask = AddTask(this, &CGameManager::NextPlayerTask, "next_player_turn_task", CTask::RenderThread);
+		ShowNextPlayerPopupTask->AddDependencie(WaitForPassedMsgTask);
+		NextPlayerTurnTask->AddDependencie(ClosePlayerPopupTask);
+	}
+
+	WaitForPassedMsgTask->m_TaskStopped = false;
+	m_UIManager->ShowToast(L"passz");
+	ShowNextPlayerPopupTask->m_TaskStopped = false;
+
+	if (NextPlayerTurnTask && ClosePlayerPopupTask)
+	{
+		NextPlayerTurnTask->m_TaskStopped = false;
+		ClosePlayerPopupTask->m_TaskStopped = false;
+	}
+}
 
 void CGameManager::ExecuteTaskOnThread(const char* id, int threadId)
 {
@@ -1029,14 +1077,11 @@ void CGameManager::GameLoop()
 			if (IsGamePaused())
 				return;
 
-			if (GetGameState() == EGameState::WaitingForMessageBox && !CUIMessageBox::m_ActiveMessageBox)
+			if (GetGameState() == EGameState::NextTurn)
 			{ 
 				m_DimmBGAnimationManager->StartAnimation(false);
-				SetGameState(EGameState::NextTurn);
-			}
-
-			if (GetGameState() == EGameState::NextTurn)
 				NextPlayerTurn();
+			}
 		}
 		else
 		{ 
@@ -1360,9 +1405,8 @@ void CGameManager::HandleReleaseEvent(int x, int y)
 	
     m_TouchX = -1;
 
-    bool mb = !CUIMessageBox::m_ActiveMessageBox;
 	//ha van message boxunk akkor a ui view kezeli a release eventet
-	if (m_LastTouchOnBoardView && !CUIMessageBox::m_ActiveMessageBox && GameScreenActive())
+	if (m_LastTouchOnBoardView && !CUIMessageBox::ActiveMessageBox() && GameScreenActive())
 		HandleReleaseEventFromBoardView(x, WindowHeigth - y);
 	else
 		HandleReleaseEventFromUIView(x, WindowHeigth - y);
@@ -1547,7 +1591,7 @@ void CGameManager::HandleToucheEvent(int x, int y)
 	int WindowHeigth;
 	CConfig::GetConfig("window_height", WindowHeigth);
 
-	if (GameScreenActive() && !CUIMessageBox::m_ActiveMessageBox)
+	if (GameScreenActive() && !CUIMessageBox::ActiveMessageBox())
 	{
 		bool OnBoardView = (x <= WindowHeigth);
 		m_Dragged = true;

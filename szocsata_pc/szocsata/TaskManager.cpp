@@ -26,7 +26,9 @@ void CTaskManager::FreeTask(const char* taskId)
 		if ((*it)->m_ID == taskId)
 		{
 			for (auto it1 = (*it)->m_DependencyList.begin(); it1 != (*it)->m_DependencyList.end(); ++it1)
+			{ 
 				(*it1).reset();
+			}
 
 			(*it).reset();
 
@@ -137,7 +139,7 @@ void CTaskManager::TaskLoop()
 
 				if (!(*it)->m_TaskStarted)
 				{
-					if (!(*it)->DependenciesResolved() || (*it)->m_TaskStarted)
+					if (!(*it)->DependenciesResolved())
 						continue;
 
 					(*it)->m_TaskStarted = true;
@@ -147,7 +149,8 @@ void CTaskManager::TaskLoop()
 			}
 		}
 
-		m_ThreadDump->DeleteStoppedThreads();
+		if (m_ThreadDump)
+			m_ThreadDump->DeleteStoppedThreads();
 
 		m_LastLoopTime = CTimer::GetCurrentTime();
 	}

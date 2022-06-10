@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "ThreadDump.h"
 
+#include <algorithm>
+
 void CThreadDump::AddThread(std::thread* t, std::atomic<bool>* flag)
 { 
 	m_Threads.emplace_back(t, flag); 

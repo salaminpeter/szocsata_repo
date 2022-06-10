@@ -122,7 +122,7 @@ public:
 	void ShowNextPlayerPopup();
 	bool TileAnimationFinished();
 	bool PlayerLetterAnimationFinished();
-	void StartDimmingAnimation();
+	void StartDimmingAnimation(bool fadeIn);
 	bool SelectionPosIllegal(int x, int y);
 	void CheckAndUpdateTime(double& timeFromStart, double& timeFromPrev);
 	bool IsGamePaused();
@@ -130,6 +130,8 @@ public:
 	void EndGame();
 	void ExecuteTaskOnThread(const char* id, int threadId);
 	void StopThreads();
+	void AddNextPlayerTasksPass();
+	void AddNextPlayerTasksNormal();
 
 	glm::ivec2 GetUIElementSize(const wchar_t* id);
 	float GetLetterSize();
@@ -164,12 +166,13 @@ public:
 	void InitGameScreenTask();
     void InitPlayersTask();
     void StartGameLoopTask();
+    void NextPlayerTask();
 
     //TODO valamiert nem mukodik a perfect forwarding az osszes ilyen fuggvenynel, csak jobberteket lehet parameternek adni
 	template <typename ClassType, typename... ArgTypes>
 	std::shared_ptr<CTask> AddTask(ClassType* funcClass, typename CEvent<ClassType, ArgTypes...>::TFuncPtrType funcPtr, const char* id, CTask::ERunSource runThread, ArgTypes... args)
 	{
-		return m_TaskManager->AddTask(this, funcPtr, id, runThread, std::forward<ArgTypes>(args)...);
+		return m_TaskManager->AddTask(funcClass, funcPtr, id, runThread, std::forward<ArgTypes>(args)...);
 	}
 
 
@@ -270,7 +273,6 @@ private:
 	int m_PlacedLetterTouchY;
 	int m_SurfaceWidth;
 	int m_SurfaceHeigh;
-	bool m_NextPlayerPopupShown = false;
 	bool m_StopGameLoop = false;
 	bool m_PauseGameLoop = false;
 

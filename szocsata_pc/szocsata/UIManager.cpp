@@ -708,28 +708,29 @@ void CUIManager::ShowPlayerLetters(bool show, const wchar_t* playerId)
 	pl->SetVisible(show);
 }
 
-void CUIManager::ShowToast(const wchar_t* text, bool endGame)
+void CUIManager::ShowToast(const wchar_t* text)
 {
-	CUIMessageBox::m_ActiveMessageBox = m_Toast;
 	ShowMessageBox(CUIMessageBox::NoButton, text);
-	m_Toast->SetFinishGame(endGame);
 	m_Toast->StartTimer();
 }
 
-
 void CUIManager::ShowMessageBox(int type, const wchar_t* text)
 {
+	const std::lock_guard<std::mutex> lock(CUIMessageBox::m_Lock);
+
 	if (type == CUIMessageBox::Ok)
 		CUIMessageBox::m_ActiveMessageBox = m_MessageBoxOk;
 	else if (type == CUIMessageBox::Resume)
 		CUIMessageBox::m_ActiveMessageBox = m_MessageBoxResumeGame;
+	else if (type == CUIMessageBox::NoButton)
+		CUIMessageBox::m_ActiveMessageBox = m_Toast;
 
 	CUIMessageBox::m_ActiveMessageBox->SetText(text);
 	
 	m_GameManager->SetGameState(CGameManager::WaitingForMessageBox);
 
 	if (type != CUIMessageBox::NoButton)
-		m_GameManager->StartDimmingAnimation();
+		m_GameManager->StartDimmingAnimation(true);
 }
 
 
@@ -764,12 +765,12 @@ void CUIManager::CloseToast(double& timeFromStart, double& timeFromPrev)
 	{
 		m_TimerEventManager->StopTimer("ui_toast_id");
 
-		CUIMessageBox::m_ActiveMessageBox = nullptr;
+		{
+			const std::lock_guard<std::mutex> lock(CUIMessageBox::m_Lock);
+			CUIMessageBox::m_ActiveMessageBox = nullptr;
+		}
 
-		if (!m_Toast->FinishGame())
-			m_GameManager->ShowNextPlayerPopup();
-		else
-			m_GameManager->EndGameAfterLastPass();
+		m_GameManager->SetTaskFinished("wait_for_passed_msg_task");
 	}
 }
 
@@ -795,6 +796,8 @@ void CUIManager::RenderDraggedLetter()
 
 void CUIManager::RenderMessageBox()
 {
+	const std::lock_guard<std::mutex> lock(CUIMessageBox::m_Lock);
+
 	if (CUIMessageBox::m_ActiveMessageBox)
 		CUIMessageBox::m_ActiveMessageBox->Render(m_GameManager->GetRenderer());
 }
@@ -858,10 +861,14 @@ void CUIManager::SetDraggedPlayerLetter(bool letterDragged, unsigned letterIdx, 
 void CUIManager::HandleTouchEvent(int x, int y)
 {
 	//ha van aktiv message box csak arra kezeljunk eventeket
-	if (CUIMessageBox::m_ActiveMessageBox)
 	{
-		CUIMessageBox::m_ActiveMessageBox->HandleEventAtPos(x, y, CUIElement::TouchEvent);
-		return;
+		const std::lock_guard<std::mutex> lock(CUIMessageBox::m_Lock);
+
+		if (CUIMessageBox::m_ActiveMessageBox)
+		{
+			CUIMessageBox::m_ActiveMessageBox->HandleEventAtPos(x, y, CUIElement::TouchEvent);
+			return;
+		}
 	}
 	
 	CUIElement* Root = GetActiveScreenUIRoot();
@@ -874,7 +881,7 @@ void CUIManager::HandleTouchEvent(int x, int y)
 void CUIManager::HandleDragEvent(int x, int y)
 {
 	//ha van aktiv message box nincs drag
-	if (CUIMessageBox::m_ActiveMessageBox)
+	if (CUIMessageBox::ActiveMessageBox())
 		return;
 
 	CUIElement* DraggedPlayerLetter = m_RootDraggedLetterScreen->GetChild(L"ui_dragged_player_letter_btn");
@@ -945,10 +952,14 @@ void CUIManager::HandleDragEvent(int x, int y)
 void CUIManager::HandleReleaseEvent(int x, int y)
 {
 	//ha van aktiv message box csak arra kezeljunk eventeket
-	if (CUIMessageBox::m_ActiveMessageBox)
 	{
-		CUIMessageBox::m_ActiveMessageBox->HandleEventAtPos(x, y, CUIElement::ReleaseEvent);
-		return;
+		const std::lock_guard<std::mutex> lock(CUIMessageBox::m_Lock);
+
+		if (CUIMessageBox::m_ActiveMessageBox)
+		{
+			CUIMessageBox::m_ActiveMessageBox->HandleEventAtPos(x, y, CUIElement::ReleaseEvent);
+			return;
+		}
 	}
 
 	m_RootDraggedLetterScreen->GetChild(L"ui_dragged_player_letter_btn")->SetVisible(false);

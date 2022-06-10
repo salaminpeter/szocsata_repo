@@ -63,7 +63,7 @@ public:
 
 	void SetText(const wchar_t* id, const wchar_t* text);
 	void ShowMessageBox(int type, const wchar_t* text);
-	void ShowToast(const wchar_t* text, bool endGame = false);
+	void ShowToast(const wchar_t* text);
 
 	void RenderUI();
 	void RenderMessageBox();

@@ -19,13 +19,9 @@ public:
 
 	void StartTimer();
 
-	void SetFinishGame(bool finish) { m_EndGameAfterFinished = finish; }
-	bool FinishGame() { return m_EndGameAfterFinished; }
-
 private:
 
 	unsigned m_TimeOut;
 	CTimerEventManager* m_TimerEventManager;
 	CUIManager* m_UIManager;
-	bool m_EndGameAfterFinished = false;
 };

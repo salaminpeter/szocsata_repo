@@ -1,5 +1,7 @@
 #pragma once
 
+#include <mutex>
+
 #include "UIPanel.h"
 
 class CUIText;
@@ -18,8 +20,11 @@ public:
 
 public:
 
+	static CUIMessageBox* ActiveMessageBox();
+
 	static CUIMessageBox* m_ActiveMessageBox;
 	static int m_RetValue;
+	static std::mutex m_Lock;
 
 private:
 

@@ -20,7 +20,7 @@ void CPlayerLetterAnimationManager::StartAnimations()
 
 void CPlayerLetterAnimationManager::AnimFinishedEvent()
 {
-	m_GameManager->ShowNextPlayerPopup();
+	m_GameManager->SetTaskFinished("finish_player_deal_letters_task");
 }
 
 

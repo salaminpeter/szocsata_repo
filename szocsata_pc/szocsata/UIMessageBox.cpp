@@ -6,6 +6,7 @@
 
 CUIMessageBox* CUIMessageBox::m_ActiveMessageBox = nullptr;
 int CUIMessageBox::m_RetValue = false;
+std::mutex CUIMessageBox::m_Lock;
 
 
 CUIMessageBox::CUIMessageBox(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridColorData, int x, int y, int w, int h, int vx, int vy, EType type, CGameManager* gameManager) :
@@ -44,8 +45,10 @@ void CUIMessageBox::ButtonPressed(int ret)
 		m_GameManager->PauseGameEvent();
 	}
 
+	m_GameManager->StartDimmingAnimation(false);
 	m_RetValue = ret;
 	m_ActiveMessageBox = nullptr;
+	m_GameManager->SetTaskFinished("msg_box_button_close_task");
 }
 
 void CUIMessageBox::SetText(const wchar_t* text)
@@ -55,3 +58,10 @@ void CUIMessageBox::SetText(const wchar_t* text)
 	Text->SetText(text);
 	Text->Align(CUIText::Center);
 }
+
+CUIMessageBox* CUIMessageBox::ActiveMessageBox()
+{
+	const std::lock_guard<std::mutex> lock(m_Lock);
+	return m_ActiveMessageBox;
+}
+

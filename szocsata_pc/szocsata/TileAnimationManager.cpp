@@ -55,7 +55,7 @@ void CTileAnimationManager::Reset()
 
 void CTileAnimationManager::AnimFinishedEvent()
 {
-	m_GameManager->ShowNextPlayerPopup();
+	m_GameManager->SetTaskFinished("finish_word_animation_task");
 }
 
 void CTileAnimationManager::UpdateColorEvent(double& timeFromStart, double& timeFromPrev)
