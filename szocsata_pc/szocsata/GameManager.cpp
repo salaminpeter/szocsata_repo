@@ -844,6 +844,7 @@ void CGameManager::StartComputerturn()
 	if (m_Computer->BestWordCount() == 0)
 	{
 		HandlePlayerPass();
+		AddNextPlayerTasksPass();
 		return;
 	}
 
@@ -867,6 +868,7 @@ void CGameManager::StartComputerturn()
 	{
 		//coputer passz
 		HandlePlayerPass();
+		AddNextPlayerTasksPass();
 		return;
 	}
 
