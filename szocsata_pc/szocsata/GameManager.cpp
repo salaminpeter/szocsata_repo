@@ -963,17 +963,21 @@ void CGameManager::StopThreads()
 void CGameManager::AddNextPlayerTasksNormal()
 {
 	std::shared_ptr<CTask> ShowNextPlayerPopupTask = AddTask(this, &CGameManager::ShowNextPlayerPopup, "show_next_player_popup_task", CTask::RenderThread);
-	std::shared_ptr<CTask> FinishDealLettersTask = AddTask(this, nullptr, "finish_player_deal_letters_task", CTask::RenderThread);
 	std::shared_ptr<CTask> FinishWordAnimationTask = AddTask(this, nullptr, "finish_word_animation_task", CTask::RenderThread);
 	std::shared_ptr<CTask> NextPlayerTurnTask = AddTask(this, &CGameManager::NextPlayerTask, "next_player_turn_task", CTask::RenderThread);
 	std::shared_ptr<CTask> ClosePlayerPopupTask = AddTask(this, nullptr, "msg_box_button_close_task", CTask::RenderThread);
 
-	ShowNextPlayerPopupTask->AddDependencie(FinishDealLettersTask);
+	if (m_LetterPool.GetRemainingLetterCount() > 0)
+	{
+		std::shared_ptr<CTask> FinishDealLettersTask = AddTask(this, nullptr, "finish_player_deal_letters_task", CTask::RenderThread);
+		ShowNextPlayerPopupTask->AddDependencie(FinishDealLettersTask);
+		FinishDealLettersTask->m_TaskStopped = false;
+	}
+
 	ShowNextPlayerPopupTask->AddDependencie(FinishWordAnimationTask);
 	NextPlayerTurnTask->AddDependencie(ClosePlayerPopupTask);
 
 	ShowNextPlayerPopupTask->m_TaskStopped = false;
-	FinishDealLettersTask->m_TaskStopped = false;
 	FinishWordAnimationTask->m_TaskStopped = false;
 	NextPlayerTurnTask->m_TaskStopped = false;
 	ClosePlayerPopupTask->m_TaskStopped = false;
