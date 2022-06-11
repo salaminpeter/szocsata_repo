@@ -48,7 +48,10 @@ void CUIMessageBox::ButtonPressed(int ret)
 	m_GameManager->StartDimmingAnimation(false);
 	m_RetValue = ret;
 	m_ActiveMessageBox = nullptr;
-	m_GameManager->SetTaskFinished("msg_box_button_close_task");
+
+	//TODO ez igy ocsmany
+	if (m_Type != Resume)
+		m_GameManager->SetTaskFinished("msg_box_button_close_task");
 }
 
 void CUIMessageBox::SetText(const wchar_t* text)

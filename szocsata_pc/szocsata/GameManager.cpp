@@ -1073,7 +1073,7 @@ void CGameManager::GameLoop()
 		if (m_StopGameLoop)
 			return;
 
-		if (m_PauseGameLoop)
+		if (IsGamePaused())
 			continue;
 
 		if (GetGameState() == EGameState::BeginGame)
@@ -1083,10 +1083,7 @@ void CGameManager::GameLoop()
 		{
 			m_TimerEventManager->Loop();
 
-			if (IsGamePaused())
-				return;
-
-			if (GetGameState() == EGameState::NextTurn)
+			if (!IsGamePaused() && GetGameState() == EGameState::NextTurn)
 			{ 
 				m_DimmBGAnimationManager->StartAnimation(false);
 				NextPlayerTurn();
