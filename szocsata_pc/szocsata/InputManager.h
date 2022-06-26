@@ -36,6 +36,8 @@ private:
 	bool m_FirstTouch = false;
 	bool m_SecondTouch = false;
 	bool m_ReleaseTouchHappened = false;
+	bool m_Dragged = false;
+	bool m_DoubleClickTimePassed = false;
 
 	CGameManager* m_GameManager;
 	std::mutex m_InputLock;

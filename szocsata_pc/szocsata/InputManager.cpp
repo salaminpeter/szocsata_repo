@@ -12,25 +12,28 @@ void CInputManager::HandleTouchEvent(int x, int y)
 	int WindowHeigth;
 	CConfig::GetConfig("window_height", WindowHeigth);
 
-	bool OnBoardView = m_GameManager->GameScreenActive() && x <= WindowHeigth;
-
-	//if not on board view just handle touch event
-	if (!OnBoardView)
-	{
-		m_GameManager->HandleToucheEvent(x, y);
-		return;
+	//first touch event 
+	if (!m_FirstTouch && !m_SecondTouch)
+	{ 
+		m_FirstTouch = true;
+		m_Dragged = true;
+		m_DoubleClickTimePassed = false;
 	}
 
-	//wait for double click
-	if (m_FirstTouch && !m_SecondTouch)
+	//second touch event
+	else if (m_FirstTouch && !m_SecondTouch)
+	{ 
 		m_SecondTouch = true;
-
-	m_FirstTouch = true;
-	m_GameManager->SetLastTouchOnBoardView(true);
+		m_FirstTouch = false;
+		m_ReleaseTouchHappened = false;
+	}
+	
+	bool OnBoardView = m_GameManager->GameScreenActive() && x <= WindowHeigth;
+	m_GameManager->SetLastTouchOnBoardView(OnBoardView);
 	m_GameManager->SetLastTouchPos(x, WindowHeigth - y);
 
 	//dupla clicket csak board viewra nezunk
-	if (!m_SecondTouch)
+	if (m_FirstTouch)
 	{
 		m_Touch0X = x;
 		m_Touch0Y = y;
@@ -108,29 +111,33 @@ void CInputManager::HandleReleaseEvent(int x, int y)
 {
 	const std::lock_guard<std::mutex> lock(m_InputLock);
 
+	//dragging stop, CheckDoubleClickEvent already finished, have to handle release event here
+	if (m_DoubleClickTimePassed && m_Dragged)
+	{
+		m_FirstTouch = false;
+		m_SecondTouch = false; 
+		m_Dragged = false;
+		m_ReleaseTouchHappened = false;
+		m_GameManager->HandleReleaseEvent(x, y);
+		return;
+	}
+		
 	//waiting for duobleclick
 	if (m_FirstTouch)
 	{
+		m_Dragged = false;
 		m_ReleaseTouchHappened = true;
 		m_Touch1X = x;
 		m_Touch1Y = y;
-		return;
 	}
-
-	//if doubleclicked on board view dont handle release event = dont select field
-	if (m_SecondTouch)
-	{
-		m_SecondTouch = false;
-		return;
-	}
-
-	m_GameManager->HandleReleaseEvent(x, y);
 }
 
 void CInputManager::HandleDragEvent(int x, int y)
 {
 	const std::lock_guard<std::mutex> lock(m_InputLock);
-	m_GameManager->HandleDragEvent(x, y);
+	
+	if (m_Dragged)
+		m_GameManager->HandleDragEvent(x, y);
 }
 
 
@@ -153,6 +160,10 @@ void CInputManager::CheckDoubleClickEvent(double& timeFromStart, double& timeFro
 		if (m_ReleaseTouchHappened)
 			m_GameManager->HandleReleaseEvent(m_Touch1X, m_Touch1Y);
 
-		m_FirstTouch = m_SecondTouch = m_ReleaseTouchHappened = false;
+		if (!(m_FirstTouch && m_Dragged))
+			m_FirstTouch = false;
+
+		m_SecondTouch = m_ReleaseTouchHappened = false;
+		m_DoubleClickTimePassed = true;
 	}
 }

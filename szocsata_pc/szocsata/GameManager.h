@@ -262,7 +262,6 @@ private:
     CGameState* m_State;
 
 	public: //TODO
-	bool m_Dragged = false;
 	bool m_LastTouchOnBoardView;
 	int m_LastTouchX;
 	int m_LastTouchY;

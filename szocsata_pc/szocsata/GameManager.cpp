@@ -1074,7 +1074,10 @@ void CGameManager::GameLoop()
 			return;
 
 		if (IsGamePaused())
+		{
+			m_TimerEventManager->Loop();
 			continue;
+		}
 
 		if (GetGameState() == EGameState::BeginGame)
 			StartGame();
@@ -1414,14 +1417,14 @@ void CGameManager::HandleReleaseEvent(int x, int y)
 	//ha van message boxunk akkor a ui view kezeli a release eventet
 	if (m_LastTouchOnBoardView && !CUIMessageBox::ActiveMessageBox() && GameScreenActive())
 		HandleReleaseEventFromBoardView(x, WindowHeigth - y);
-	else
+
+	if ((GameScreenActive() && !m_LastTouchOnBoardView) || !GameScreenActive() || CUIMessageBox::ActiveMessageBox())
 		HandleReleaseEventFromUIView(x, WindowHeigth - y);
 }
 
 void CGameManager::HandleReleaseEventFromBoardView(int x, int y)
 {
 	m_Renderer->CalculateScreenSpaceGrid();
-	m_Dragged = false;
 
 	float Offset = std::sqrtf((m_LastTouchX - x) * (m_LastTouchX - x) + (m_LastTouchY - y) * (m_LastTouchY - y));
 
@@ -1437,7 +1440,6 @@ void CGameManager::HandleReleaseEventFromBoardView(int x, int y)
 
 void CGameManager::HandleReleaseEventFromUIView(int x, int y)
 {
-	m_Dragged = false;
 	m_UIManager->HandleReleaseEvent(x, y);
 }
 
@@ -1600,7 +1602,6 @@ void CGameManager::HandleToucheEvent(int x, int y)
 	if (GameScreenActive() && !CUIMessageBox::ActiveMessageBox())
 	{
 		bool OnBoardView = (x <= WindowHeigth);
-		m_Dragged = true;
 		m_LastTouchOnBoardView = OnBoardView;
 		m_LastTouchX = x;
 		m_LastTouchY = WindowHeigth - y;
@@ -1653,7 +1654,7 @@ void CGameManager::HandleDragFromUIView(int x, int y)
 		return;
 
 	//only let drag ui letter if previously dragged letter is placed
-	if (m_Dragged && PlayerLetterAnimationFinished())
+	if (PlayerLetterAnimationFinished())
 		m_UIManager->HandleDragEvent(x, y);
 }
 
@@ -1663,7 +1664,7 @@ void CGameManager::HandleDragFromBoardView(int x, int y)
 		return;
 
 	//rotate board
-	if (m_Dragged && m_PlacedLetterTouchX == -1)
+	if (m_PlacedLetterTouchX == -1)
 	{
 		float ZRotAngle = float(x - m_TouchX) / 3.;
 		float YRotAngle = float(m_TouchY - y) / 3.;
@@ -1671,7 +1672,7 @@ void CGameManager::HandleDragFromBoardView(int x, int y)
 		m_Renderer->RotateCamera(-ZRotAngle, YRotAngle);
 	}
 	//placed letter back to dragged letter
-	else if (m_Dragged)
+	else
 	{
 		RemovePlacedLetterSelAtPos(m_PlacedLetterTouchX, m_PlacedLetterTouchY);
 		m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName())->SetLetterDragged(m_PlayerSteps[m_PlayerStepIdxUndo].m_LetterIdx, x, y);
@@ -1700,7 +1701,6 @@ void CGameManager::HandleZoomEvent(float dist, int origoX, int origoY)
 	if (origoX > m_SurfaceHeigh)
 		return;
 
-	m_Dragged = false;
 	m_Renderer->ZoomCameraCentered(dist, origoX, origoY);
 }
 
@@ -1709,7 +1709,6 @@ void CGameManager::HandleZoomEvent(float dist)
 	if (!GameScreenActive())
 		return;
 
-	m_Dragged = false;
 	m_Renderer->ZoomCameraSimple(dist);
 }
 
@@ -1719,7 +1718,6 @@ void CGameManager::HandleMultyDragEvent(int x0, int y0, int x1, int y1)
 	if (!GameScreenActive())
 		return;
 
-    m_Dragged = false;
     m_Renderer->DragCamera(x0, y0, x1, y1);
 }
 
