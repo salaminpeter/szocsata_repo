@@ -170,11 +170,32 @@ void CGameManager::InitLetterPool(bool initLettersCount)
 void CGameManager::FinishRenderInit()
 {
 #ifdef PLATFORM_ANDROID
-	JNIEnv *env;
-	m_JavaVM->GetEnv((void **)&env, JNI_VERSION_1_6);
-	jclass Class = env->FindClass("com/example/szocsata_android/OpenGLRenderer");
-	jmethodID Method = env->GetMethodID(Class, "FinishRenderInit", "()V");
-	env->CallVoidMethod(m_RendererObject, Method);
+    extern jclass g_MainActivityClass;
+    extern jclass g_OpenGLRendererClass;
+
+    JNIEnv* env;
+    m_JavaVM->GetEnv((void **)&env, JNI_VERSION_1_6);
+
+    if (env)
+    {
+        jclass Class = env->FindClass("com/example/szocsata_android/OpenGLRenderer");
+        jmethodID Method = env->GetMethodID(Class, "FinishRenderInit", "()V");
+        env->CallVoidMethod(m_RendererObject, Method);
+    }
+    else {
+        m_JavaVM->AttachCurrentThread(&env, NULL);
+        jmethodID Method = env->GetMethodID(g_OpenGLRendererClass, "FinishRenderInit", "()V");
+        env->CallVoidMethod(m_RendererObject, Method);
+
+        if (env->ExceptionCheck()) {
+            env->ExceptionDescribe();
+            env->ExceptionClear();
+            m_JavaVM->DetachCurrentThread();
+            return;
+        }
+
+        m_JavaVM->DetachCurrentThread();
+    }
 #else
 	SetTileCount();
 	InitBasedOnTileCount(true);
