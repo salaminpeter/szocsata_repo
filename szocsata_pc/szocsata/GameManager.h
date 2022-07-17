@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include <chrono>
+#include <algorithm>
 
 #include "Computer.h"
 #include "LetterPool.h"
@@ -80,6 +81,7 @@ public:
 	void HandleReleaseEventFromUIView(int x, int y);
 	void HandleReleaseEvent(int x, int y);
 	void HandleToucheEvent(int x, int y);
+	bool HandleDoubleClickEvent(int x, int y);
 	void HandleDragEvent(int x, int y);
 	void HandleDragFromBoardView(int x, int y);
 	void HandleDragFromUIView(int x, int y);
@@ -102,7 +104,6 @@ public:
 	int GetPlayerStepIdxAtPos(int x, int y);
 	void DealCurrPlayerLetters();
 	void PlayerLetterReleased(size_t letterIdx);
-	void EndGameAfterLastPass();
 	void GameLoop();
 	void SetGameState(int state);
 	void DealComputerLettersEvent();
@@ -111,6 +112,8 @@ public:
 	CLetterModel* AddLetterToBoard(int x, int y, wchar_t c, float height);
 	void AddWordSelectionAnimationForComputer();
 	void UpdatePlayerScores();
+	bool EndGameIfPlayerFinished();
+	bool PlayerFinished();
 	std::wstring GetNextPlayerName();
 	int GetDifficulty();
 	bool AllPlayersPassed();
@@ -164,6 +167,7 @@ public:
 	void InitRendererTask();
 	void GenerateModelsTask();
 	void InitGameScreenTask();
+	void ReturnToSavedStateTask();
     void InitPlayersTask();
     void StartGameLoopTask();
     void NextPlayerTask();

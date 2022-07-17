@@ -53,7 +53,7 @@ std::shared_ptr<CTask> CTaskManager::GetTask(const char* id)
 
 void CTaskManager::AddDependencie(const char* taskId, const char* depId)
 {
-	const std::lock_guard<std::mutex> lock(m_Lock);
+	const std::lock_guard<std::recursive_mutex> lock(m_Lock);
 
 	std::shared_ptr<CTask> Task = GetTask(taskId);
 	std::shared_ptr<CTask> Dep = GetTask(depId);
@@ -66,18 +66,17 @@ void CTaskManager::AddDependencie(const char* taskId, const char* depId)
 
 void CTaskManager::FinishTask(const char *taskId, std::atomic<bool>* flag)
 {
-	{
-		const std::lock_guard<std::mutex> lock(m_Lock);
+	const std::lock_guard<std::recursive_mutex> lock(m_Lock);
 
-		std::shared_ptr<CTask> Task = GetTask(taskId);
+	std::shared_ptr<CTask> Task = GetTask(taskId);
 
-		if (!Task)
-			return;
+	if (!Task) {
+		Logger::Log((std::string("CTaskManager::FinishTask end lock") + ss.str()).c_str());
+		return;
+    }
 
-		Task->m_TaskFinished = true;
-		FreeTask(taskId);
-	}
-
+	Task->m_TaskFinished = true;
+	FreeTask(taskId);
 	*flag = true;
 }
 
@@ -90,29 +89,20 @@ void CTaskManager::SetTaskFinished(const char* taskId)
 
 void CTaskManager::Reset()
 {
-	const std::lock_guard<std::mutex> lock(m_Lock);
+	const std::lock_guard<std::recursive_mutex> lock(m_Lock);
     m_TaskList.clear();
- }
+}
 
 void CTaskManager::StartTask(const char* id, bool onCurrentThread)
 {
-	if (!onCurrentThread)
-		m_Lock.lock();
+	const std::lock_guard<std::recursive_mutex> lock(m_Lock);
 
 	std::shared_ptr<CTask> Task = GetTask(id);
 
 	if (!Task)
-	{
-		if (!onCurrentThread)
-			m_Lock.unlock();
-
 		return;
-	}
 
 	Task->Start();
-
-	if (!onCurrentThread)
-		m_Lock.unlock();
 }
 
 void CTaskManager::TaskLoop()
@@ -122,15 +112,11 @@ void CTaskManager::TaskLoop()
 		if (m_StopTaskThread)
 			return;
 
-		if (m_PauseTaskThread)
-			continue;
-
-
 		if (CTimer::GetCurrentTime() - m_LastLoopTime < m_Frequency)
 			continue;
 
 		{
-            const std::lock_guard<std::mutex> lock(m_Lock);
+			const std::lock_guard<std::recursive_mutex> lock(m_Lock);
 
 			for (auto it = m_TaskList.begin(); it != m_TaskList.end(); ++it)
 			{

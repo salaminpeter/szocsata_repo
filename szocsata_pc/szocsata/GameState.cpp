@@ -27,6 +27,7 @@ void CGameState::SaveGameState()
 		return;
 
 	int GameState = m_GameManager->GetGameState();
+	int OnGameScreen = m_GameManager->GameScreenActive(static_cast<CGameManager::EGameState>(GameState));
 	int PlayerCountIdx = m_GameManager->GetUIManager()->GetPlayerCount();
 	int BoardSize = m_GameManager->GetUIManager()->GetBoardSize();
 	int TimeLimit = m_GameManager->GetUIManager()->GetTimeLimitIdx();
@@ -40,8 +41,10 @@ void CGameState::SaveGameState()
 	StateFile.write((char *)&ComputerOpponentEnabled, sizeof(bool));
 	StateFile.write((char *)&Difficulty, sizeof(int));
 
-	if (m_GameManager->GameScreenActive(static_cast<CGameManager::EGameState>(GameState)))
+	if (OnGameScreen)
 	{
+		m_GameManager->SetTileCount();
+
 		int TileCount;
 		CConfig::GetConfig("tile_count", TileCount);
 
@@ -115,9 +118,6 @@ void CGameState::LoadPlayerAndBoardState()
 	if (StateFile.fail())
 		return;
 
-	int TileCount;
-	CConfig::GetConfig("tile_count", TileCount);
-
 	float LetterHeight;
 	float BoardHeight;
 
@@ -126,6 +126,9 @@ void CGameState::LoadPlayerAndBoardState()
 
 	int PlayerCountIdx = m_GameManager->GetUIManager()->GetPlayerCount();
 	bool ComputerOpponentEnabled = m_GameManager->GetUIManager()->ComputerOpponentEnabled();
+
+	int TileCount;
+	CConfig::GetConfig("tile_count", TileCount);
 
 	for (int x = 0; x < TileCount; ++x) {
 		for (int y = 0; y < TileCount; ++y) {

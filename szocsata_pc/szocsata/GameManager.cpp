@@ -290,8 +290,7 @@ void CGameManager::NextPlayerTask()
 
 void CGameManager::InitPlayersTask()
 {
-	bool AddLetters = !GameScreenActive(m_SavedGameState);
-	InitPlayers(AddLetters);
+	InitPlayers(false);
 	SetTaskFinished("init_players_task");
 }
 
@@ -489,6 +488,8 @@ void CGameManager::ShowNextPlayerPopup()
 	m_UIManager->EnableGameButtons(true);
 	m_UIManager->SetRemainingTimeStr(GetTimeStr(m_UIManager->GetTimeLimit()).c_str());
 	m_UIManager->ShowMessageBox(CUIMessageBox::Ok, GetNextPlayerName().c_str());
+
+	SetTaskFinished("show_next_player_popup_task");
 }
 
 bool CGameManager::GameScreenActive(EGameState state)
@@ -584,13 +585,6 @@ void CGameManager::NextPlayerTurn()
 		NextPlayerIdx = CurrPlayerIdx == m_Players.size() - 1 ? 0 : CurrPlayerIdx + 1;
 	}
 
-	//letette e az osszes betujet a jatekos
-	if (m_CurrentPlayer->GetLetterCount() == 0)
-	{
-		EndGame();
-		return;
-	}
-
 	m_Players[NextPlayerIdx]->m_Passed = false;
 	SetGameState(EGameState::TurnInProgress);
 
@@ -618,12 +612,6 @@ void CGameManager::NextPlayerTurn()
 		StartPlayerTurn(m_Players[NextPlayerIdx]);
 	}
 }
-
-void CGameManager::EndGameAfterLastPass()
-{
-	EndGame();
-}
-
 
 void CGameManager::HandlePlayerPass()
 {
@@ -753,6 +741,10 @@ bool CGameManager::EndPlayerTurn(bool stillHaveTime)
 		return false;
 	}
 
+	//letette e az osszes betujet a jatekos es nem lehet tobbet huzni
+	if (EndGameIfPlayerFinished())
+		return true;
+
 	AddNextPlayerTasksNormal();
 	DealCurrPlayerLetters();
 	AddWordSelectionAnimation(CrossingWords, true);
@@ -843,12 +835,16 @@ bool CGameManager::EndComputerTurn()
 
 	size_t WordLength = ComputerWord.m_Word->length();
 
-	std::vector<size_t> LetterIndices = m_CurrentPlayer->GetLetterIndicesForWord(*ComputerWord.m_Word);
-	m_WordAnimation->AddWordAnimation(*ComputerWord.m_Word, LetterIndices, m_UIManager->GetPlayerLetters(m_Computer->GetName()), ComputerWord.m_X, TileCount - ComputerWord.m_Y - 1, ComputerWord.m_Horizontal);
-	m_GameBoard.AddWord(ComputerWord);
-	UpdatePlayerScores();
-	SetGameState(EGameState::WaintingOnAnimation);
-	m_Renderer->DisableSelection();
+	if (WordLength)
+	{
+		std::vector<size_t> LetterIndices = m_CurrentPlayer->GetLetterIndicesForWord(*ComputerWord.m_Word);
+		bool PlayerFinishedGame = PlayerFinished();
+		m_WordAnimation->AddWordAnimation(*ComputerWord.m_Word, LetterIndices, m_UIManager->GetPlayerLetters(m_Computer->GetName()), ComputerWord.m_X, TileCount - ComputerWord.m_Y - 1, ComputerWord.m_Horizontal, !PlayerFinishedGame);
+		m_GameBoard.AddWord(ComputerWord);
+		UpdatePlayerScores();
+		SetGameState(EGameState::WaintingOnAnimation);
+		m_Renderer->DisableSelection();
+	}
 
 	return false;
 }
@@ -893,7 +889,26 @@ void CGameManager::StartComputerturn()
 		return;
 	}
 
+	if (EndGameIfPlayerFinished())
+		return;
+
 	EndComputerTurn();
+}
+
+bool CGameManager::PlayerFinished()
+{
+	return (m_CurrentPlayer->GetLetterCount() == 0 && m_LetterPool.GetRemainingLetterCount() == 0);
+}
+
+bool CGameManager::EndGameIfPlayerFinished()
+{
+	if (PlayerFinished())
+	{
+		EndGame();
+		return true;
+	}
+
+	return false;
 }
 
 void CGameManager::UpdatePlayerScores()
@@ -930,11 +945,12 @@ void CGameManager::ShowSavedScreenTask()
 	if (!GameScreenActive(m_SavedGameState))
 		SetGameState(m_SavedGameState);
 	else
+	{
 		SetGameState(TurnInProgress);
+		m_UIManager->SetScorePanelLayoutBox();
+	}
 
-	m_UIManager->SetScorePanelLayoutBox();
-
-	SetTaskFinished("show_savedscreen_task");
+	SetTaskFinished("resume_on_saved_screen_task");
 	m_UIManager->m_UIInitialized = true;
 
 }
@@ -958,14 +974,54 @@ void CGameManager::InitRendererTask()
 	SetTaskFinished("init_renderer_task");
 }
 
-void CGameManager::InitGameScreenTask()
+void CGameManager::ReturnToSavedStateTask()
 {
-    if (GameScreenActive(m_SavedGameState)) 
+	std::shared_ptr<CTask> GenerateModelsTask = AddTask(this, &CGameManager::GenerateModelsTask, "generate_models_task", CTask::RenderThread);
+	std::shared_ptr<CTask> ResumeOnSavedScreenTask = AddTask(this, &CGameManager::ShowSavedScreenTask, "resume_on_saved_screen_task", CTask::RenderThread);
+
+	if (ResumedOnGameScreen())
 	{
-		m_UIManager->InitGameScreen(m_Renderer->GetSquarePositionData(), m_Renderer->GetSquareColorData(), m_Renderer->GetSquareColorGridData16x6());
-		m_UIManager->InitRankingsScreen(m_Renderer->GetSquarePositionData(), m_Renderer->GetSquareColorData(), m_Renderer->GetSquareColorGridData16x6());
+		std::shared_ptr<CTask> InitGameScreenTask = AddTask(this, &CGameManager::InitGameScreenTask, "init_game_screen_task", CTask::RenderThread);
+		std::shared_ptr<CTask> InitLetterPoolTask = AddTask(this, &CGameManager::InitLetterPool, "init_letter_pool_task", CTask::RenderThread, !ResumedOnGameScreen());
+		std::shared_ptr<CTask> InitPlayersTask = AddTask(this, &CGameManager::InitPlayersTask, "init_players_task", CTask::RenderThread);
+		std::shared_ptr<CTask> GenerateGameScrTextTask = AddTask(this, &CGameManager::GenerateGameScreenTextures, "generate_game_screen_textures_task", CTask::RenderThread);
+		std::shared_ptr<CTask> LoadPlayerBoardStateTask = AddTask(this, &CGameManager::LoadPlayerAndBoardState, "load_palyer_and_board_state_task", CTask::RenderThread);
+
+		m_TaskManager->AddDependencie("generate_models_task", "load_game_state_task");
+		m_TaskManager->AddDependencie("init_game_screen_task", "load_game_state_task");
+		m_TaskManager->AddDependencie("init_game_screen_task", "return_to_saved_state_task");
+		InitLetterPoolTask->AddDependencie(InitGameScreenTask);
+        InitPlayersTask->AddDependencie(InitLetterPoolTask);
+		GenerateGameScrTextTask->AddDependencie(InitPlayersTask);
+		LoadPlayerBoardStateTask->AddDependencie(GenerateModelsTask);
+		LoadPlayerBoardStateTask->AddDependencie(InitPlayersTask);
+		ResumeOnSavedScreenTask->AddDependencie(LoadPlayerBoardStateTask);
+
+		InitGameScreenTask->m_TaskStopped = false;
+		InitLetterPoolTask->m_TaskStopped = false;
+		InitPlayersTask->m_TaskStopped = false;
+		GenerateGameScrTextTask->m_TaskStopped = false;
+		LoadPlayerBoardStateTask->m_TaskStopped = false;
+	}
+	else
+	{
+		std::shared_ptr<CTask> BoardSizeSetTask = AddTask(this, nullptr, "board_size_set_task", CTask::RenderThread);
+
+		m_TaskManager->AddDependencie("generate_models_task", "board_size_set_task");
+		m_TaskManager->AddDependencie("resume_on_saved_screen_task", "init_uimanager_startscreens_task");
+		GenerateModelsTask->AddDependencie(BoardSizeSetTask);
 	}
 
+	GenerateModelsTask->m_TaskStopped = false;
+	ResumeOnSavedScreenTask->m_TaskStopped = false;
+
+	SetTaskFinished("return_to_saved_state_task");
+}
+
+void CGameManager::InitGameScreenTask()
+{
+	m_UIManager->InitGameScreen(m_Renderer->GetSquarePositionData(), m_Renderer->GetSquareColorData(), m_Renderer->GetSquareColorGridData16x6());
+	m_UIManager->InitRankingsScreen(m_Renderer->GetSquarePositionData(), m_Renderer->GetSquareColorData(), m_Renderer->GetSquareColorGridData16x6());
     SetTaskFinished("init_game_screen_task");
 }
 
@@ -983,10 +1039,12 @@ void CGameManager::StopThreads()
 
 void CGameManager::AddNextPlayerTasksNormal()
 {
-	std::shared_ptr<CTask> ShowNextPlayerPopupTask = AddTask(this, &CGameManager::ShowNextPlayerPopup, "show_next_player_popup_task", CTask::RenderThread);
+	bool PlayerFinishedGame = PlayerFinished();
+
+	std::shared_ptr<CTask> ShowNextPlayerPopupTask = AddTask(this, PlayerFinishedGame ? &CGameManager::EndGame : &CGameManager::ShowNextPlayerPopup, "show_next_player_popup_task", CTask::RenderThread);
 	std::shared_ptr<CTask> FinishWordAnimationTask = AddTask(this, nullptr, "finish_word_animation_task", CTask::RenderThread);
-	std::shared_ptr<CTask> NextPlayerTurnTask = AddTask(this, &CGameManager::NextPlayerTask, "next_player_turn_task", CTask::RenderThread);
-	std::shared_ptr<CTask> ClosePlayerPopupTask = AddTask(this, nullptr, "msg_box_button_close_task", CTask::RenderThread);
+	std::shared_ptr<CTask> NextPlayerTurnTask = PlayerFinishedGame ? nullptr : AddTask(this, &CGameManager::NextPlayerTask, "next_player_turn_task", CTask::RenderThread);
+	std::shared_ptr<CTask> ClosePlayerPopupTask = PlayerFinishedGame ? nullptr : AddTask(this, nullptr, "msg_box_button_close_task", CTask::RenderThread);
 
 	if (m_LetterPool.GetRemainingLetterCount() > 0)
 	{
@@ -996,19 +1054,23 @@ void CGameManager::AddNextPlayerTasksNormal()
 	}
 
 	ShowNextPlayerPopupTask->AddDependencie(FinishWordAnimationTask);
-	NextPlayerTurnTask->AddDependencie(ClosePlayerPopupTask);
+
+	if (NextPlayerTurnTask)
+	{
+		NextPlayerTurnTask->AddDependencie(ClosePlayerPopupTask);
+		NextPlayerTurnTask->m_TaskStopped = false;
+		ClosePlayerPopupTask->m_TaskStopped = false;
+	}
 
 	ShowNextPlayerPopupTask->m_TaskStopped = false;
 	FinishWordAnimationTask->m_TaskStopped = false;
-	NextPlayerTurnTask->m_TaskStopped = false;
-	ClosePlayerPopupTask->m_TaskStopped = false;
 }
 
 void CGameManager::AddNextPlayerTasksPass()
 {
 	bool AllPassed = AllPlayersPassed();
 
-	std::shared_ptr<CTask> ShowNextPlayerPopupTask = AddTask(this, AllPassed ? &CGameManager::EndGameAfterLastPass : &CGameManager::ShowNextPlayerPopup, "show_next_player_popup_task", CTask::RenderThread);
+	std::shared_ptr<CTask> ShowNextPlayerPopupTask = AddTask(this, AllPassed ? &CGameManager::EndGame : &CGameManager::ShowNextPlayerPopup, "show_next_player_popup_task", CTask::RenderThread);
 	std::shared_ptr<CTask> WaitForPassedMsgTask = AddTask(this, nullptr, "wait_for_passed_msg_task", CTask::RenderThread);
 	std::shared_ptr<CTask> ClosePlayerPopupTask = nullptr;
 	std::shared_ptr<CTask> NextPlayerTurnTask = nullptr;
@@ -1078,6 +1140,7 @@ void CGameManager::SetGamePaused(bool paused)
 void CGameManager::EndGame()
 {
 	m_UIManager->UpdateRankingsPanel();
+	m_TaskManager->Reset();
 	SetGameState(EGameState::GameEnded);
 }
 
@@ -1396,9 +1459,7 @@ void CGameManager::InitUIManager()
 
 void CGameManager::GenerateGameScreenTextures()
 {
-    if (GameScreenActive(m_SavedGameState))
-        m_Renderer->GenerateGameScreenTextures();
-
+    m_Renderer->GenerateGameScreenTextures();
     SetTaskFinished("generate_game_screen_textures_task");
 }
 
@@ -1613,6 +1674,14 @@ bool CGameManager::PositionOnBoardView(int x, int y)
 	CConfig::GetConfig("window_height", WindowHeigth);
 
 	return x < WindowHeigth;
+}
+
+bool CGameManager::HandleDoubleClickEvent(int x, int y)
+{
+	if (CUIMessageBox::ActiveMessageBox())
+		return false;
+
+	return m_UIManager->HandleDoubleClickEvent(x, y);
 }
 
 void CGameManager::HandleToucheEvent(int x, int y)

@@ -16,21 +16,26 @@ class CUIElement
 friend CUIElement;
 
 public:
+	
+	enum EEventType { TouchEvent, ReleaseEvent, PositionChangeEvent, DoubleClickEvent };
+	enum EAlignmentType { Center, Left, Right, Top, Bottom, None };
 
 	CUIElement(CUIElement*  parent, const wchar_t* id, CModel *model, int x, int y, int w, int h, int vx, int vy, float tx, float ty);
 	virtual ~CUIElement();
 		
 	template <typename ClassType, typename... ArgTypes>
-	void SetEvent(bool touch, ClassType* funcClass, typename CEvent<ClassType, ArgTypes...>::TFuncPtrType funcPtr, ArgTypes&&... args)
+	void SetEvent(EEventType event, ClassType* funcClass, typename CEvent<ClassType, ArgTypes...>::TFuncPtrType funcPtr, ArgTypes&&... args)
 	{
-		if (touch)
+		//touch event
+		if (event == EEventType::TouchEvent)
 			m_EventTouch = new CEvent<ClassType, ArgTypes...>(funcClass, funcPtr, std::forward<ArgTypes>(args)...);
-		else
+		//release event
+		else if (event == EEventType::ReleaseEvent)
 			m_EventRelease = new CEvent<ClassType, ArgTypes...>(funcClass, funcPtr, std::forward<ArgTypes>(args)...);
+		//double click event
+		else if (event == EEventType::DoubleClickEvent)
+			m_EventDoubleClick = new CEvent<ClassType, ArgTypes...>(funcClass, funcPtr, std::forward<ArgTypes>(args)...);
 	}
-
-	enum EEventType { TouchEvent, ReleaseEvent, PositionChangeEvent };
-	enum EAlignmentType { Center, Left, Right, Top, Bottom, None};
 
 	bool HandleEvent(EEventType event);
 	bool PositionInElement(int x, int y);
@@ -80,7 +85,6 @@ public:
 	virtual void AlignChildren(); 
 
 protected:
-
 	virtual void ResizeElement(float widthPercent, float heightPercent) {}
 
 public:
@@ -98,6 +102,7 @@ protected:
 	CModel* m_Model = nullptr;
 	CEventBase* m_EventTouch = nullptr;
 	CEventBase* m_EventRelease = nullptr;
+	CEventBase* m_EventDoubleClick = nullptr;
 
 	int m_ViewXPosition;
 	int m_ViewYPosition;

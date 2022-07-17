@@ -36,7 +36,7 @@ public: //TODO
         m_DependencyList.insert(m_DependencyList.begin(), dep);
     }
 
-    template <typename ClassType, typename... ArgTypes>
+     template <typename ClassType, typename... ArgTypes>
     void SetTask(ClassType* funcClass, typename CEvent<ClassType, ArgTypes...>::TFuncPtrType funcPtr, ArgTypes&&... args)
     {
     	if (funcPtr)
@@ -59,21 +59,21 @@ public:
 	template <typename ClassType, typename... ArgTypes>
 	std::shared_ptr<CTask> AddTask(ClassType* funcClass, typename CEvent<ClassType, ArgTypes...>::TFuncPtrType funcPtr, const char* id, CTask::ERunSource runThread, ArgTypes&&... args)
 	{
-		const std::lock_guard<std::mutex> lock(m_Lock);
+		const std::lock_guard<std::recursive_mutex> lock(m_Lock);
 
 		std::shared_ptr<CTask> FoundTask = GetTask(id);
 		if (FoundTask)
 		{
 			FoundTask->m_TaskFinished = false;
 			FoundTask->m_TaskStarted = false;
-			return FoundTask;
+            return FoundTask;
 		}
 
 		std::shared_ptr<CTask> Task = std::make_shared<CTask>(id, runThread);
 		Task->SetTask(funcClass, funcPtr, std::forward<ArgTypes>(args)...);
 		m_TaskList.insert(m_TaskList.begin(), Task);
 
-		return Task;
+        return Task;
 	}
 	
 	void AddDependencie(const char* taskId, const char* depId);
@@ -84,19 +84,17 @@ public:
 	void Reset();
 
 	void StopThread() { m_StopTaskThread = true; }
-	void PauseThread() { m_PauseTaskThread = true; }
-	void ResumeThread() { m_PauseTaskThread = false; }
 
 private:
 	
 	const int m_Frequency = 10;
+
 	std::list<std::shared_ptr<CTask>> m_TaskList;
 	double m_LastLoopTime = 0;
-	std::mutex m_Lock;
+	std::recursive_mutex m_Lock;
 	std::thread* m_Thread;
 	CGameManager* m_GameManager;
 	bool m_StopTaskThread = false;
-	bool m_PauseTaskThread = false;
 
 	std::unique_ptr<CThreadDump> m_ThreadDump;
 

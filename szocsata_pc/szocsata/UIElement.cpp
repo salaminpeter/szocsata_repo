@@ -25,6 +25,8 @@ CUIElement::~CUIElement()
 	delete m_Model;
 	delete m_EventTouch;
 	delete m_EventRelease;
+	delete m_EventDoubleClick;
+
 	DeleteRecursive();
 }
 
@@ -39,6 +41,14 @@ bool CUIElement::HandleEvent(EEventType event)
 	{
 		m_EventRelease->HandleEvent();
 		return true;
+	}
+	else if (event == EEventType::DoubleClickEvent)
+	{		
+		if (m_EventDoubleClick)
+		{
+			m_EventDoubleClick->HandleEvent();
+			return true;
+		}
 	}
 
 	return false;

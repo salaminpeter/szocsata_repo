@@ -28,6 +28,7 @@ class CUIScorePanel;
 class CUIPlayerLetterPanel;
 class CPlayer;
 class CUIVerticalLayout;
+class CUIGameScreenPanel;
 
 
 class CUIManager
@@ -60,6 +61,8 @@ public:
 	void HandleTouchEvent(int x, int y);
 	void HandleReleaseEvent(int x, int y);
 	void HandleDragEvent(int x, int y);
+	bool HandleDoubleClickEvent(int x, int y);
+
 
 	void SetText(const wchar_t* id, const wchar_t* text);
 	void ShowMessageBox(int type, const wchar_t* text);
@@ -149,6 +152,7 @@ public: //TODO
 	CUIRankingsPanel* m_RankingsPanel;
 	CUIPlayerLetterPanel* m_PlayerLetterPanel;
 	CUIPanel* m_UIScreenPanel;
+	CUIPanel* m_GameScreenPanel;
 	CUIPanel* m_DimmPanel;
 
 	CUIVerticalLayout* m_MainScreenBtnLayout;

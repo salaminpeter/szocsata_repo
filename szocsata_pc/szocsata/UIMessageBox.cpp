@@ -27,13 +27,13 @@ CUIMessageBox::CUIMessageBox(std::shared_ptr<CSquarePositionData> positionData, 
 		float IconSize = (m_Type == Ok ? .55f : .7f);
 		float BtnSize = (m_Type == Ok ? m_TextSize * 1.5f : h / 2);
 		CUIIconTextButton* NewButton = new CUIIconTextButton(this, L"", positionData, colorData, nullptr, 0, -h / 2 + BtnSize / 2 + BtnSize / 4, BtnSize, BtnSize, 0, 0, "round_button_texture_generated", IconName, L"msg_box_ok_button", IconWidthRatio, "textured", IconSize);
-		NewButton->SetEvent(false, this, &CUIMessageBox::ButtonPressed, 1);
+		NewButton->SetEvent(CUIElement::ReleaseEvent, this, &CUIMessageBox::ButtonPressed, 1);
 		NewButton->CenterIcon();
 	}
 	else if (m_Type == OkCancel)
 	{
 		AddButton(80, -80, 50, 50, "cancelbutton.bmp", L"ui_message_box_cancel_btn");
-		m_Children.back()->SetEvent(false, this, &CUIMessageBox::ButtonPressed, 0);
+		m_Children.back()->SetEvent(CUIElement::ReleaseEvent, this, &CUIMessageBox::ButtonPressed, 0);
 	}
 }
 

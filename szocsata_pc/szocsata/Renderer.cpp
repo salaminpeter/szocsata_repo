@@ -538,6 +538,8 @@ void CRenderer::CalculateScreenSpaceGrid()
 	CConfig::GetConfig("tile_count", TileCount);
 	CConfig::GetConfig("letter_height", LetterHeight);
 
+	const std::lock_guard<std::mutex> lock(m_ScreenSpaceTilesLock);
+
 	m_ScreenSpaceTiles.clear();
 
 	glm::mat4 MVP = m_Views["board_perspecive"]->GetProjectionView() * m_BoardModel->GetModelMatrix();
@@ -603,6 +605,8 @@ TPosition CRenderer::GetTilePos(int x, int y)
 
 	int TileCount;
 	CConfig::GetConfig("tile_count", TileCount);
+
+	const std::lock_guard<std::mutex> lock(m_ScreenSpaceTilesLock);
 
 	for (size_t i = 0; i < m_ScreenSpaceTiles.size(); ++i)
 	{
@@ -752,8 +756,6 @@ void CRenderer::InitRenderer()
 	m_TextureManager->AddTexture("shadow.bmp", 4);
 
 	m_TextureManager->GenerateTextures(m_GameManager->m_SurfaceWidth, m_GameManager->m_SurfaceHeigh);
-
-	m_GameManager->SetTaskFinished("init_renderer_task");
 
 	m_EnginelsInited = true;
 }

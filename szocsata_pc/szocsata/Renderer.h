@@ -185,4 +185,5 @@ private:
 	bool m_BoardAnimated = false;
 
 	std::recursive_mutex m_RenderLock;
+	std::mutex m_ScreenSpaceTilesLock;
 };

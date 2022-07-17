@@ -7,7 +7,7 @@
 
 void CInputManager::HandleTouchEvent(int x, int y)
 {
-	const std::lock_guard<std::mutex> lock(m_InputLock);
+	const std::lock_guard<std::recursive_mutex> lock(m_InputLock);
 
 	int WindowHeigth;
 	CConfig::GetConfig("window_height", WindowHeigth);
@@ -18,6 +18,7 @@ void CInputManager::HandleTouchEvent(int x, int y)
 		m_FirstTouch = true;
 		m_Dragged = true;
 		m_DoubleClickTimePassed = false;
+		m_DoubleClickHandled = false;
 	}
 
 	//second touch event
@@ -25,7 +26,6 @@ void CInputManager::HandleTouchEvent(int x, int y)
 	{ 
 		m_SecondTouch = true;
 		m_FirstTouch = false;
-		m_ReleaseTouchHappened = false;
 	}
 	
 	bool OnBoardView = m_GameManager->GameScreenActive() && x <= WindowHeigth;
@@ -45,13 +45,13 @@ void CInputManager::HandleTouchEvent(int x, int y)
 
 void CInputManager::HandleZoomEvent(float dist, float origoX, float origoY)
 {
-	const std::lock_guard<std::mutex> lock(m_InputLock);
+	const std::lock_guard<std::recursive_mutex> lock(m_InputLock);
 	m_GameManager->HandleZoomEvent(dist, origoX, origoY);
 }
 
 void CInputManager::HandleMultyTouchStart(float x0, float y0, float x1, float y1)
 {
-	const std::lock_guard<std::mutex> lock(m_InputLock);
+	const std::lock_guard<std::recursive_mutex> lock(m_InputLock);
 	m_Touch0X = x0;
 	m_Touch0Y = y0;
 	m_Touch1X = x1;
@@ -63,13 +63,13 @@ void CInputManager::HandleMultyTouchStart(float x0, float y0, float x1, float y1
 
 void CInputManager::HandleMultyTouchEnd()
 {
-	const std::lock_guard<std::mutex> lock(m_InputLock);
+	const std::lock_guard<std::recursive_mutex> lock(m_InputLock);
 	m_GameManager->HandleZoomEndEvent();
 }
 
 void CInputManager::HandleMultyTouch(float x0, float y0, float x1, float y1)
 {
-	const std::lock_guard<std::mutex> lock(m_InputLock);
+	const std::lock_guard<std::recursive_mutex> lock(m_InputLock);
 	glm::vec2 v0(x0 - m_Touch0X, y0 - m_Touch0Y);
 	glm::vec2 v1(x1 - m_Touch1X, y1 - m_Touch1Y);
 
@@ -109,7 +109,7 @@ void CInputManager::HandleMultyTouch(float x0, float y0, float x1, float y1)
 
 void CInputManager::HandleReleaseEvent(int x, int y)
 {
-	const std::lock_guard<std::mutex> lock(m_InputLock);
+	const std::lock_guard<std::recursive_mutex> lock(m_InputLock);
 
 	//dragging stop, CheckDoubleClickEvent already finished, have to handle release event here
 	if (m_DoubleClickTimePassed && m_Dragged)
@@ -120,6 +120,23 @@ void CInputManager::HandleReleaseEvent(int x, int y)
 		m_ReleaseTouchHappened = false;
 		m_GameManager->HandleReleaseEvent(x, y);
 		return;
+	}
+
+	//masodik klikk felengedese
+	if (!m_FirstTouch && !m_SecondTouch)
+	{
+		if (m_DoubleClickTimePassed)
+		{
+			if (!m_DoubleClickHandled)
+			{ 
+				m_GameManager->HandleToucheEvent(m_Touch1X, m_Touch1Y);
+				m_GameManager->HandleReleaseEvent(m_Touch1X, m_Touch1Y);
+				m_SecondReleaseTouchHappened = false;
+			}
+		}
+		else
+			m_SecondReleaseTouchHappened = true;
+
 	}
 		
 	//waiting for duobleclick
@@ -134,36 +151,62 @@ void CInputManager::HandleReleaseEvent(int x, int y)
 
 void CInputManager::HandleDragEvent(int x, int y)
 {
-	const std::lock_guard<std::mutex> lock(m_InputLock);
+	const std::lock_guard<std::recursive_mutex> lock(m_InputLock);
 	
 	if (m_Dragged)
 		m_GameManager->HandleDragEvent(x, y);
 }
 
+void CInputManager::HandleDoubleClickEvent(int x, int y)
+{
+	const std::lock_guard<std::recursive_mutex> lock(m_InputLock);
+
+	m_GameManager->HandleDoubleClickEvent(x, y);
+}
+
 
 void CInputManager::CheckDoubleClickEvent(double& timeFromStart, double& timeFromPrev)
 {
-	const std::lock_guard<std::mutex> lock(m_InputLock);
+	const std::lock_guard<std::recursive_mutex> lock(m_InputLock);
 
 	if (timeFromStart >= 250)  //TODO config
 	{
 		m_GameManager->GetTimerEventManager()->StopTimer("timer_event_double_click");
 
-		if (m_SecondTouch)
-		{ 
-			m_GameManager->TopViewEvent();
-			m_ReleaseTouchHappened = false; //ne legyen kijeloles a masodik klikknel
-		}
-		else
-			m_GameManager->HandleToucheEvent(m_Touch0X, m_Touch0Y);
+		//2x is le lett nyomva adott idon belul a gomb
+		bool IsDoubleClick = m_SecondTouch;
+		bool CantHandleDoubleClick = false;
 
-		if (m_ReleaseTouchHappened)
-			m_GameManager->HandleReleaseEvent(m_Touch1X, m_Touch1Y);
+		if (IsDoubleClick)
+			m_DoubleClickHandled = m_GameManager->HandleDoubleClickEvent(m_Touch0X, m_Touch0Y);
+
+		CantHandleDoubleClick = !m_DoubleClickHandled;
+
+		if (!IsDoubleClick)
+			CantHandleDoubleClick = true;
+
+		if (CantHandleDoubleClick)
+		{
+			if (m_ReleaseTouchHappened || m_SecondReleaseTouchHappened)
+			{
+				m_GameManager->HandleToucheEvent(m_Touch0X, m_Touch0Y);
+				m_GameManager->HandleReleaseEvent(m_Touch0X, m_Touch0Y);
+			}
+			if (m_SecondReleaseTouchHappened)
+			{
+				m_GameManager->HandleToucheEvent(m_Touch1X, m_Touch1Y);
+				m_GameManager->HandleReleaseEvent(m_Touch1X, m_Touch1Y);
+			}
+		}
+
+		//letelt a double click ido, es kozben a gombot vegig lenyomva tartottuk
+		if (m_FirstTouch && !m_SecondTouch && !m_ReleaseTouchHappened)
+			m_GameManager->HandleToucheEvent(m_Touch0X, m_Touch0Y);
 
 		if (!(m_FirstTouch && m_Dragged))
 			m_FirstTouch = false;
 
-		m_SecondTouch = m_ReleaseTouchHappened = false;
+		m_SecondTouch = m_ReleaseTouchHappened = m_SecondReleaseTouchHappened = false;
 		m_DoubleClickTimePassed = true;
 	}
 }

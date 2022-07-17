@@ -4,10 +4,13 @@
 
 #include <algorithm>
 #include <mutex>
-#include <sstream>
 
 namespace Logger {
-    void Log(const char *msg);
+#ifdef WIN32
+    void Log(const char *msg) {}
+#else
+	void Log(const char *msg);
+#endif
 }
 
 CTimerEventManager::~CTimerEventManager()
@@ -17,30 +20,22 @@ CTimerEventManager::~CTimerEventManager()
 
 void CTimerEventManager::Reset()
 {
-	const std::lock_guard<std::mutex> lock(m_Lock);
-
 	auto it = m_TimerEvents.begin();
 
 	while (it != m_TimerEvents.end())
-	{
-		delete (*it++);
-	}
+		(*it++)->SetTimerState(true);
 
-	m_TimerEvents.clear();
 	m_LastLoopTime = 0;
 }
 
 
 void CTimerEventManager::Loop()
 {
-//	const std::lock_guard<std::mutex> lock(m_Lock);
-
 	if (CTimer::GetCurrentTime() - m_LastLoopTime < m_Frequency)
-	{
-//        Logger::Log("CTimerEventManager::Loop end lock");
         return;
-    }
-	
+
+	const std::lock_guard<std::mutex> lock(m_Lock);
+
 	auto it = m_TimerEvents.begin();
 	
 	while (it != m_TimerEvents.end())
@@ -62,8 +57,6 @@ void CTimerEventManager::Loop()
 	}
 
 	m_LastLoopTime = CTimer::GetCurrentTime();
-
-  //  Logger::Log("CTimerEventManager::Loop end lock");
 }
 
 void CTimerEventManager::ChangeTimerState(bool start, bool pause, const char* id)

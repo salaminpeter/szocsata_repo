@@ -2,6 +2,7 @@
 
 #include "BinaryBoolList.h"
 
+#include <algorithm>
 #include <vector>
 #include <string>
 #include <glm/glm.hpp>
@@ -27,7 +28,7 @@ public:
 	std::vector<size_t> GetLetterIndicesForWord(const std::wstring& word);
 
 	void SetColor(float r, float g, float b) {m_Color = glm::vec3(r, g, b); }
-	int GetLetterCount() {return m_Letters.size();}
+	int GetLetterCount() {return std::count_if(m_Letters.begin(), m_Letters.end(), [](wchar_t c) {return c != L' ';});}
 	void AddScore(int score) {m_Score += score;}
 	void ResetUsedLetters() {m_UsedLetters.Reset();}
 	void SetUsedLetters(CBinaryBoolList usedLetters) {m_UsedLetters = usedLetters;}
