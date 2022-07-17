@@ -70,10 +70,8 @@ void CTaskManager::FinishTask(const char *taskId, std::atomic<bool>* flag)
 
 	std::shared_ptr<CTask> Task = GetTask(taskId);
 
-	if (!Task) {
-		Logger::Log((std::string("CTaskManager::FinishTask end lock") + ss.str()).c_str());
+	if (!Task) 
 		return;
-    }
 
 	Task->m_TaskFinished = true;
 	FreeTask(taskId);

@@ -13,7 +13,6 @@
 #include "UIScorePanel.h"
 #include "UIPlayerLetterPanel.h"
 #include "UISelectControl.h"
-#include "UIGameScreenPanel.h"
 #include "GridLayout.h"
 #include "GameManager.h"
 #include "TimerEventManager.h"
