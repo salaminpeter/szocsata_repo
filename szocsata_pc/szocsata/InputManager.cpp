@@ -153,7 +153,7 @@ void CInputManager::HandleDragEvent(int x, int y)
 {
 	const std::lock_guard<std::recursive_mutex> lock(m_InputLock);
 	
-	if (m_Dragged)
+	if (m_Dragged && m_DoubleClickTimePassed)
 		m_GameManager->HandleDragEvent(x, y);
 }
 
