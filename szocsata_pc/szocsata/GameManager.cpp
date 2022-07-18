@@ -281,6 +281,7 @@ void CGameManager::InitBasedOnTileCount(bool addLetters)
 void CGameManager::StartGameLoopTask()
 {
     m_PauseGameLoop = false;
+	SetTaskFinished("start_game_loop_task");
 }
 
 void CGameManager::NextPlayerTask()
@@ -810,11 +811,13 @@ bool CGameManager::EndComputerTurn()
 	TWordPos ComputerWord;
 	std::vector<TWordPos>* CrossingWords = nullptr;
 	bool ComputerPass = (m_Computer->BestWordCount() <= m_ComputerWordIdx);
+//	int UsedLetterCount = 0;
 
 	if (!ComputerPass)
 	{
 		AddNextPlayerTasksNormal();
 		ComputerStep = m_Computer->BestWord(m_ComputerWordIdx);
+//		UsedLetterCount = ComputerStep.m_UsedLetters.GetTrueCount(m_Computer->GetLetterCount());
 		ComputerWord = ComputerStep.m_Word;
 		CrossingWords = &ComputerStep.m_CrossingWords;
 		m_Computer->ResetUsedLetters();
@@ -844,6 +847,17 @@ bool CGameManager::EndComputerTurn()
 		UpdatePlayerScores();
 		SetGameState(EGameState::WaintingOnAnimation);
 		m_Renderer->DisableSelection();
+
+		/*
+		//computer letette az osszes betujet
+		if (m_Computer->GetLetterCount() - UsedLetterCount == 0)
+		{
+			std::shared_ptr<CTask> WordAnimFinishedTask = AddTask(this, nullptr, "word_animation_finished_task", CTask::GameThread);
+			std::shared_ptr<CTask> EndGameTask = AddTask(this, &CGameManager::EndGame, "end_game_task", CTask::GameThread);
+
+			EndGameTask->AddDependencie(WordAnimFinishedTask);
+		}
+		*/
 	}
 
 	return false;
@@ -879,7 +893,7 @@ void CGameManager::StartComputerturn()
 		TComputerStep ComputerStep = m_Computer->BestWord(m_ComputerWordIdx);
 
 		m_Computer->AddScore(ComputerStep.m_Score);
-		m_Computer->SetUsedLetters(ComputerStep.m_UsedLetters);
+			m_Computer->SetUsedLetters(ComputerStep.m_UsedLetters);
 	}
 	else
 	{
@@ -888,9 +902,6 @@ void CGameManager::StartComputerturn()
 		AddNextPlayerTasksPass();
 		return;
 	}
-
-	if (EndGameIfPlayerFinished())
-		return;
 
 	EndComputerTurn();
 }
@@ -1075,10 +1086,11 @@ void CGameManager::AddNextPlayerTasksPass()
 	std::shared_ptr<CTask> ClosePlayerPopupTask = nullptr;
 	std::shared_ptr<CTask> NextPlayerTurnTask = nullptr;
 
+	ShowNextPlayerPopupTask->AddDependencie(WaitForPassedMsgTask);
+
 	if (!AllPassed) {
 		ClosePlayerPopupTask = AddTask(this, nullptr, "msg_box_button_close_task", CTask::RenderThread);
 		NextPlayerTurnTask = AddTask(this, &CGameManager::NextPlayerTask, "next_player_turn_task", CTask::RenderThread);
-		ShowNextPlayerPopupTask->AddDependencie(WaitForPassedMsgTask);
 		NextPlayerTurnTask->AddDependencie(ClosePlayerPopupTask);
 	}
 
