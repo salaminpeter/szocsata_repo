@@ -111,6 +111,7 @@ void CWordAnimationManager::AnimateLettersEvent(double& timeFromStart, double& t
 	{
 		m_TimerEventManager->StopTimer("add_word_animation");
 		m_LetterAnimations.clear();
+		m_GameManager->SetTaskFinished("finish_word_letters_animation_task");
 	}
 }
 

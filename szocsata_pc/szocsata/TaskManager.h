@@ -4,6 +4,7 @@
 #include <memory>
 #include <mutex>
 #include <thread>
+#include <condition_variable>
 
 #include "Event.h"
 #include "ThreadDump.h"
@@ -62,8 +63,10 @@ public:
 		const std::lock_guard<std::recursive_mutex> lock(m_Lock);
 
 		std::shared_ptr<CTask> FoundTask = GetTask(id);
+
 		if (FoundTask)
 		{
+			//TODO!!! ilyesminek nem szabadna tortennie, ki kell talalni hogy legyen lekezelve
 			FoundTask->m_TaskFinished = false;
 			FoundTask->m_TaskStarted = false;
             return FoundTask;
@@ -80,10 +83,20 @@ public:
 	void SetTaskFinished(const char* taskId);
 	void FinishTask(const char* taskId, std::atomic<bool>* flag);
 	void TaskLoop();
-	void StartTask(const char* id, bool onCurrentThread = false);
+	void StartTask(const char* id);
 	void Reset();
+	void WaitForTaskToFinish();
 
 	void StopThread() { m_StopTaskThread = true; }
+
+	std::mutex Mtx;
+	std::condition_variable m_TasksCleared;
+
+private:
+
+	void FreeTask(const char* taskId);
+	void StartPendingTasks();
+	std::shared_ptr<CTask> GetTask(const char* id);
 
 private:
 	
@@ -98,10 +111,6 @@ private:
 
 	std::unique_ptr<CThreadDump> m_ThreadDump;
 
-
-private:
-
-	std::shared_ptr<CTask> GetTask(const char* id);
-	void FreeTask(const char* taskId);
+	std::atomic<bool> m_ThreadsDone = false;
 };
 

@@ -19,6 +19,19 @@ public:
 		return m_BoolList;
 	}
 
+	int GetTrueCount(int to) 
+	{
+		int Count = 0;
+
+		for (int i = 0; i < to; ++i)
+		{
+			if (GetFlag(i))
+				Count++;
+		}
+
+		return Count;
+	}
+
 	void Reset()
 	{
 		m_BoolList = 0;

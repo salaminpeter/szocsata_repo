@@ -134,7 +134,7 @@ public:
 	void ExecuteTaskOnThread(const char* id, int threadId);
 	void StopThreads();
 	void AddNextPlayerTasksPass();
-	void AddNextPlayerTasksNormal();
+	bool AddNextPlayerTasksNormal(bool hasWordAnimation);
 
 	glm::ivec2 GetUIElementSize(const wchar_t* id);
 	float GetLetterSize();
@@ -171,6 +171,7 @@ public:
     void InitPlayersTask();
     void StartGameLoopTask();
     void NextPlayerTask();
+	void NextPlayerTaskOnThread();
 
     //TODO valamiert nem mukodik a perfect forwarding az osszes ilyen fuggvenynel, csak jobberteket lehet parameternek adni
 	template <typename ClassType, typename... ArgTypes>

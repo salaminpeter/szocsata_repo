@@ -382,7 +382,7 @@ void CUIManager::InitGameScreen(std::shared_ptr<CSquarePositionData> positionDat
 	float GamePanelHeight = m_GameManager->m_SurfaceHeigh;
 	
 	m_UIScreenPanel = new CUIPanel(m_RootGameScreen, L"ui_screen_panel", positionData, colorData, nullptr, 0, 0, 0, 0, ViewPos.x, ViewPos.y, "background.bmp", 0, 0);
-	m_UIScreenPanel->SetPosAndSize(UIPanelWidth, 0, UIPanelWidth, UIPanelHeight, false);
+	m_UIScreenPanel->SetPosAndSize(GamePanelWidth, 0, UIPanelWidth, UIPanelHeight, false);
 
 	m_GameScreenPanel = new CUIPanel(m_RootGameScreen, L"ui_game_screen_panel", nullptr, nullptr, nullptr, 0, 0, 0, 0, ViewPos.x, ViewPos.y, "", 0, 0);
 	m_GameScreenPanel->SetPosAndSize(0.f, 0.f, GamePanelWidth, GamePanelHeight, false);

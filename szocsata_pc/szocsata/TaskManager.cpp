@@ -26,14 +26,18 @@ void CTaskManager::FreeTask(const char* taskId)
 		if ((*it)->m_ID == taskId)
 		{
 			for (auto it1 = (*it)->m_DependencyList.begin(); it1 != (*it)->m_DependencyList.end(); ++it1)
-			{ 
 				(*it1).reset();
-			}
 
+			(*it)->m_DependencyList.clear();
 			(*it).reset();
+
+			size_t PrevSize = m_TaskList.size();
 
 			if (*it == nullptr)
 				m_TaskList.remove(nullptr);
+
+			if (m_TaskList.size() == 0 && PrevSize != 0)
+				m_ThreadsDone = true;
 
 			return;
 		}
@@ -42,6 +46,8 @@ void CTaskManager::FreeTask(const char* taskId)
 
 std::shared_ptr<CTask> CTaskManager::GetTask(const char* id)
 {
+	const std::lock_guard<std::recursive_mutex> lock(m_Lock);
+
     for (auto it = m_TaskList.begin(); it != m_TaskList.end(); ++it)
 	{
 		if ((*it)->m_ID == id)
@@ -64,16 +70,28 @@ void CTaskManager::AddDependencie(const char* taskId, const char* depId)
 	Task->AddDependencie(Dep);
 }
 
+#include <chrono>
+#include <thread>
+
+void CTaskManager::WaitForTaskToFinish()
+{
+	while (!m_ThreadsDone)
+	{
+		std::this_thread::sleep_for(std::chrono::milliseconds(30));
+	}
+
+	m_ThreadsDone = false;
+}
+
 void CTaskManager::FinishTask(const char *taskId, std::atomic<bool>* flag)
 {
 	const std::lock_guard<std::recursive_mutex> lock(m_Lock);
 
 	std::shared_ptr<CTask> Task = GetTask(taskId);
 
-	if (!Task) 
-		return;
+	if (Task) 
+		Task->m_TaskFinished = true;
 
-	Task->m_TaskFinished = true;
 	FreeTask(taskId);
 	*flag = true;
 }
@@ -91,7 +109,7 @@ void CTaskManager::Reset()
     m_TaskList.clear();
 }
 
-void CTaskManager::StartTask(const char* id, bool onCurrentThread)
+void CTaskManager::StartTask(const char* id)
 {
 	const std::lock_guard<std::recursive_mutex> lock(m_Lock);
 

@@ -24,6 +24,8 @@ std::mutex m_GMLock;
 
 
 JavaVM* g_VM;
+JNIEnv* g_Env;
+
 jclass g_OpenGLRendererClass;
 jclass g_MainActivityClass;
 
@@ -33,14 +35,14 @@ JNI_OnLoad(JavaVM *jvm, void *reserved)
 {
     g_VM = jvm;
 
-    JNIEnv *env;
-    g_VM->GetEnv((void **)&env, JNI_VERSION_1_6);
+//    JNIEnv *env;
+    g_VM->GetEnv((void **)&g_Env, JNI_VERSION_1_6);
 
-    jclass cls = (*env).FindClass("com/example/szocsata_android/OpenGLRenderer");
-    g_OpenGLRendererClass = (jclass)(*env).NewGlobalRef(cls);
+    jclass cls = (*g_Env).FindClass("com/example/szocsata_android/OpenGLRenderer");
+    g_OpenGLRendererClass = (jclass)(*g_Env).NewGlobalRef(cls);
 
-    jclass cls1 = (*env).FindClass("com/example/szocsata_android/MainActivity");
-    g_MainActivityClass = (jclass)(*env).NewGlobalRef(cls1);
+    jclass cls1 = (*g_Env).FindClass("com/example/szocsata_android/MainActivity");
+    g_MainActivityClass = (jclass)(*g_Env).NewGlobalRef(cls1);
 
     return JNI_VERSION_1_6;
 }
@@ -69,6 +71,9 @@ void InitGameManager(int surfWidth, int surfHeight)
 
     bool ResumeGame = gm->GameStateFileFound();
 
+    std::shared_ptr<CTask> BeginGameTask = gm->AddTask(gm, &CGameManager::BeginGameTask, "begin_game_task", CTask::RenderThread);
+    std::shared_ptr<CTask> GameStartedTask = gm->AddTask(gm, nullptr, "game_started_task", CTask::RenderThread);
+
     if (!ResumeGame)
     {
         std::shared_ptr<CTask> CreateRendererTask = gm->AddTask(gm, &CGameManager::CreateRenderer, "create_renderer_task", CTask::RenderThread, surfWidth, surfHeight);
@@ -79,8 +84,6 @@ void InitGameManager(int surfWidth, int surfHeight)
         std::shared_ptr<CTask> ShowStartScreenTask = gm->AddTask(gm, &CGameManager::ShowStartScreenTask, "show_startscreen_task", CTask::RenderThread);
         std::shared_ptr<CTask> BoardSizeSetTask = gm->AddTask(gm, nullptr, "board_size_set_task", CTask::RenderThread);
         std::shared_ptr<CTask> GenerateModelsTask = gm->AddTask(gm, &CGameManager::GenerateModelsTask, "generate_models_task", CTask::RenderThread);
-        std::shared_ptr<CTask> BeginGameTask = gm->AddTask(gm, &CGameManager::BeginGameTask, "begin_game_task", CTask::RenderThread);
-        std::shared_ptr<CTask> GameStartedTask = gm->AddTask(gm, nullptr, "game_started_task", CTask::RenderThread);
 
         InitRendererTask->AddDependencie(CreateRendererTask);
         InitUIManagerTask->AddDependencie(InitRendererTask);
@@ -102,34 +105,22 @@ void InitGameManager(int surfWidth, int surfHeight)
     }
     else
     {
-        bool ResumedOnGameScreen = gm->ResumedOnGameScreen();
         std::shared_ptr<CTask> CreateRendererTask = gm->AddTask(gm, &CGameManager::CreateRenderer, "create_renderer_task", CTask::RenderThread, surfWidth, surfHeight);
         std::shared_ptr<CTask> InitRendererTask = gm->AddTask(gm, &CGameManager::InitRendererTask, "init_renderer_task", CTask::RenderThread);
         std::shared_ptr<CTask> InitUIManagerTask = gm->AddTask(gm, &CGameManager::InitUIManager, "init_uimanager_task", CTask::RenderThread);
         std::shared_ptr<CTask> InitUIStartScreensTask = gm->AddTask(gm, &CGameManager::InitStartUIScreens, "init_uimanager_startscreens_task", CTask::RenderThread);
         std::shared_ptr<CTask> GenerateStartScrTextTask = gm->AddTask(gm, &CGameManager::GenerateStartScreenTextures, "generate_startscreen_textures_task", CTask::RenderThread);
         std::shared_ptr<CTask> LoadGameStateTask = gm->AddTask(gm, &CGameManager::LoadState, "load_game_state_task", CTask::CurrentThread);
-        std::shared_ptr<CTask> InitGameScreenTask = gm->AddTask(gm, &CGameManager::InitGameScreenTask, "init_game_screen_task", CTask::RenderThread);
-        std::shared_ptr<CTask> InitLetterPoolTask = gm->AddTask(gm, &CGameManager::InitLetterPool, "init_letter_pool_task", CTask::RenderThread, !ResumedOnGameScreen);
-        std::shared_ptr<CTask> InitPlayersTask = gm->AddTask(gm, &CGameManager::InitPlayersTask, "init_players_task", CTask::RenderThread);
-        std::shared_ptr<CTask> GenerateGameScrTextTask = gm->AddTask(gm, &CGameManager::GenerateGameScreenTextures, "generate_game_screen_textures_task", CTask::RenderThread);
-        std::shared_ptr<CTask> GenerateModelsTask = gm->AddTask(gm, &CGameManager::GenerateModelsTask, "generate_models_task", CTask::RenderThread);
-        std::shared_ptr<CTask> LoadPlayerBoardStateTask = gm->AddTask(gm, &CGameManager::LoadPlayerAndBoardState, "load_palyer_and_board_state_task", CTask::RenderThread);
-        std::shared_ptr<CTask> ResumeOnSavedScreenTask = gm->AddTask(gm, &CGameManager::ShowSavedScreenTask, "resume_on_saved_screen_task", CTask::RenderThread);
+        std::shared_ptr<CTask> ReturnToSavedStateTask = gm->AddTask(gm, &CGameManager::ReturnToSavedStateTask, "return_to_saved_state_task", CTask::CurrentThread);
 
         InitRendererTask->AddDependencie(CreateRendererTask);
         InitUIManagerTask->AddDependencie(InitRendererTask);
         InitUIStartScreensTask->AddDependencie(InitUIManagerTask);
         GenerateStartScrTextTask->AddDependencie(InitUIStartScreensTask);
         LoadGameStateTask->AddDependencie(GenerateStartScrTextTask);
-        InitGameScreenTask->AddDependencie(LoadGameStateTask);
-        InitLetterPoolTask->AddDependencie(InitGameScreenTask);
-        InitPlayersTask->AddDependencie(InitLetterPoolTask);
-        GenerateGameScrTextTask->AddDependencie(InitPlayersTask);
-        GenerateModelsTask->AddDependencie(LoadGameStateTask);
-        LoadPlayerBoardStateTask->AddDependencie(GenerateModelsTask);
-        LoadPlayerBoardStateTask->AddDependencie(InitPlayersTask);
-        ResumeOnSavedScreenTask->AddDependencie(LoadPlayerBoardStateTask);
+        ReturnToSavedStateTask->AddDependencie(LoadGameStateTask);
+        BeginGameTask->AddDependencie(ReturnToSavedStateTask);
+        BeginGameTask->AddDependencie(GameStartedTask);
 
         CreateRendererTask->m_TaskStopped = false;
         InitRendererTask->m_TaskStopped = false;
@@ -137,14 +128,9 @@ void InitGameManager(int surfWidth, int surfHeight)
         InitUIStartScreensTask->m_TaskStopped = false;
         GenerateStartScrTextTask->m_TaskStopped = false;
         LoadGameStateTask->m_TaskStopped = false;
-        InitGameScreenTask->m_TaskStopped = false;
-        InitLetterPoolTask->m_TaskStopped = false;
-        InitPlayersTask->m_TaskStopped = false;
-        GenerateGameScrTextTask->m_TaskStopped = false;
-        GenerateModelsTask->m_TaskStopped = false;
-        LoadPlayerBoardStateTask->m_TaskStopped = false;
-        ResumeOnSavedScreenTask->m_TaskStopped = false;
-    }
+        ReturnToSavedStateTask->m_TaskStopped = false;
+        BeginGameTask->m_TaskStopped = false;
+     }
 
     gm->StartGameThread();
 }

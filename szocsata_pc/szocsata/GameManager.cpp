@@ -284,9 +284,22 @@ void CGameManager::StartGameLoopTask()
 	SetTaskFinished("start_game_loop_task");
 }
 
+void CGameManager::NextPlayerTaskOnThread()
+{
+	std::unique_lock<std::mutex> Lock(m_TaskManager->Mtx);
+	m_TaskManager->WaitForTaskToFinish();
+	NextPlayerTurn();
+}
+
 void CGameManager::NextPlayerTask()
 {
-	SetGameState(CGameManager::NextTurn);
+	if (IsGamePaused())
+		return;
+
+	m_DimmBGAnimationManager->StartAnimation(false);
+	SetTaskFinished("next_player_turn_task");
+
+	std::thread* NextPlayerThread = new std::thread(&CGameManager::NextPlayerTaskOnThread, this);
 }
 
 void CGameManager::InitPlayersTask()
@@ -571,6 +584,8 @@ std::wstring CGameManager::GetNextPlayerName()
 
 void CGameManager::NextPlayerTurn()
 {
+	SetGameState(EGameState::TurnInProgress);
+
 	int NextPlayerIdx;
 
 	if (!m_CurrentPlayer)
@@ -587,7 +602,6 @@ void CGameManager::NextPlayerTurn()
 	}
 
 	m_Players[NextPlayerIdx]->m_Passed = false;
-	SetGameState(EGameState::TurnInProgress);
 
 	if (m_UIManager->GetTimeLimit() != -1)
 	{ 
@@ -742,22 +756,21 @@ bool CGameManager::EndPlayerTurn(bool stillHaveTime)
 		return false;
 	}
 
-	//letette e az osszes betujet a jatekos es nem lehet tobbet huzni
-	if (EndGameIfPlayerFinished())
-		return true;
-
-	AddNextPlayerTasksNormal();
-	DealCurrPlayerLetters();
-	AddWordSelectionAnimation(CrossingWords, true);
-	m_PlacedLetterSelections.clear();
-	m_PlayerSteps.clear();
+	bool PlayerFinished = AddNextPlayerTasksNormal(false);
 
 	m_TimerEventManager->StopTimer("time_limit_event");
-
 	m_CurrentPlayer->AddScore(Score);
 	UpdatePlayerScores();
 	SetGameState(EGameState::WaintingOnAnimation);
+	AddWordSelectionAnimation(CrossingWords, true);
 	m_Renderer->DisableSelection();
+	m_PlacedLetterSelections.clear();
+	m_PlayerSteps.clear();
+
+	if (PlayerFinished)
+		return true;
+
+	DealCurrPlayerLetters();
 
 	return true;
 }
@@ -815,7 +828,6 @@ bool CGameManager::EndComputerTurn()
 
 	if (!ComputerPass)
 	{
-		AddNextPlayerTasksNormal();
 		ComputerStep = m_Computer->BestWord(m_ComputerWordIdx);
 //		UsedLetterCount = ComputerStep.m_UsedLetters.GetTrueCount(m_Computer->GetLetterCount());
 		ComputerWord = ComputerStep.m_Word;
@@ -840,12 +852,13 @@ bool CGameManager::EndComputerTurn()
 
 	if (WordLength)
 	{
+		AddNextPlayerTasksNormal(true);
 		std::vector<size_t> LetterIndices = m_CurrentPlayer->GetLetterIndicesForWord(*ComputerWord.m_Word);
 		bool PlayerFinishedGame = PlayerFinished();
+		SetGameState(EGameState::WaintingOnAnimation);
 		m_WordAnimation->AddWordAnimation(*ComputerWord.m_Word, LetterIndices, m_UIManager->GetPlayerLetters(m_Computer->GetName()), ComputerWord.m_X, TileCount - ComputerWord.m_Y - 1, ComputerWord.m_Horizontal, !PlayerFinishedGame);
 		m_GameBoard.AddWord(ComputerWord);
 		UpdatePlayerScores();
-		SetGameState(EGameState::WaintingOnAnimation);
 		m_Renderer->DisableSelection();
 
 		/*
@@ -893,7 +906,7 @@ void CGameManager::StartComputerturn()
 		TComputerStep ComputerStep = m_Computer->BestWord(m_ComputerWordIdx);
 
 		m_Computer->AddScore(ComputerStep.m_Score);
-			m_Computer->SetUsedLetters(ComputerStep.m_UsedLetters);
+		m_Computer->SetUsedLetters(ComputerStep.m_UsedLetters);
 	}
 	else
 	{
@@ -1048,14 +1061,22 @@ void CGameManager::StopThreads()
 	StopTaskThread();
 }
 
-void CGameManager::AddNextPlayerTasksNormal()
+bool CGameManager::AddNextPlayerTasksNormal(bool hasWordAnimation)
 {
 	bool PlayerFinishedGame = PlayerFinished();
 
 	std::shared_ptr<CTask> ShowNextPlayerPopupTask = AddTask(this, PlayerFinishedGame ? &CGameManager::EndGame : &CGameManager::ShowNextPlayerPopup, "show_next_player_popup_task", CTask::RenderThread);
-	std::shared_ptr<CTask> FinishWordAnimationTask = AddTask(this, nullptr, "finish_word_animation_task", CTask::RenderThread);
+	std::shared_ptr<CTask> FinishWordSelectionAnimationTask = AddTask(this, nullptr, "finish_word_selection_animation_task", CTask::RenderThread);
 	std::shared_ptr<CTask> NextPlayerTurnTask = PlayerFinishedGame ? nullptr : AddTask(this, &CGameManager::NextPlayerTask, "next_player_turn_task", CTask::RenderThread);
 	std::shared_ptr<CTask> ClosePlayerPopupTask = PlayerFinishedGame ? nullptr : AddTask(this, nullptr, "msg_box_button_close_task", CTask::RenderThread);
+
+	if (hasWordAnimation)
+	{
+		std::shared_ptr<CTask> FinishWordLetterAnimationTask = AddTask(this, nullptr, "finish_word_letters_animation_task", CTask::GameThread);
+		ShowNextPlayerPopupTask->AddDependencie(FinishWordLetterAnimationTask);
+	}
+
+	ShowNextPlayerPopupTask->AddDependencie(FinishWordSelectionAnimationTask);
 
 	if (m_LetterPool.GetRemainingLetterCount() > 0)
 	{
@@ -1063,8 +1084,6 @@ void CGameManager::AddNextPlayerTasksNormal()
 		ShowNextPlayerPopupTask->AddDependencie(FinishDealLettersTask);
 		FinishDealLettersTask->m_TaskStopped = false;
 	}
-
-	ShowNextPlayerPopupTask->AddDependencie(FinishWordAnimationTask);
 
 	if (NextPlayerTurnTask)
 	{
@@ -1074,7 +1093,8 @@ void CGameManager::AddNextPlayerTasksNormal()
 	}
 
 	ShowNextPlayerPopupTask->m_TaskStopped = false;
-	FinishWordAnimationTask->m_TaskStopped = false;
+
+	return PlayerFinishedGame;
 }
 
 void CGameManager::AddNextPlayerTasksPass()
@@ -1091,18 +1111,19 @@ void CGameManager::AddNextPlayerTasksPass()
 	if (!AllPassed) {
 		ClosePlayerPopupTask = AddTask(this, nullptr, "msg_box_button_close_task", CTask::RenderThread);
 		NextPlayerTurnTask = AddTask(this, &CGameManager::NextPlayerTask, "next_player_turn_task", CTask::RenderThread);
-		NextPlayerTurnTask->AddDependencie(ClosePlayerPopupTask);
 	}
 
-	WaitForPassedMsgTask->m_TaskStopped = false;
-	m_UIManager->ShowToast(L"passz");
 	ShowNextPlayerPopupTask->m_TaskStopped = false;
+	WaitForPassedMsgTask->m_TaskStopped = false;
 
 	if (NextPlayerTurnTask && ClosePlayerPopupTask)
 	{
+		NextPlayerTurnTask->AddDependencie(ClosePlayerPopupTask);
 		NextPlayerTurnTask->m_TaskStopped = false;
 		ClosePlayerPopupTask->m_TaskStopped = false;
 	}
+
+	m_UIManager->ShowToast(L"passz");
 }
 
 void CGameManager::ExecuteTaskOnThread(const char* id, int threadId)
@@ -1153,6 +1174,7 @@ void CGameManager::EndGame()
 {
 	m_UIManager->UpdateRankingsPanel();
 	m_TaskManager->Reset();
+	SetTaskFinished("show_next_player_popup_task");
 	SetGameState(EGameState::GameEnded);
 }
 
@@ -1181,12 +1203,6 @@ void CGameManager::GameLoop()
 		if (GetGameState() != EGameState::GameEnded)
 		{
 			m_TimerEventManager->Loop();
-
-			if (!IsGamePaused() && GetGameState() == EGameState::NextTurn)
-			{ 
-				m_DimmBGAnimationManager->StartAnimation(false);
-				NextPlayerTurn();
-			}
 		}
 		else
 		{ 
