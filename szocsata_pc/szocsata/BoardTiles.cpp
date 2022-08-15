@@ -70,6 +70,14 @@ CBoardTiles::CBoardTiles(int tileCount, CRenderer* renderer, CGameManager* gameM
 	}
 }
 
+bool CBoardTiles::IsTileVisible(int x, int y)
+{
+	int TileCount;
+	CConfig::GetConfig("tile_count", TileCount);
+
+	return m_BoardTiles[y * TileCount + x].IsVisible();
+}
+
 void CBoardTiles::SetTileVisible(int x, int y, bool visible)
 {
 	int TileCount;
@@ -103,7 +111,7 @@ void CBoardTiles::RenderTiles()
 		int x = i % TileCount;
 		int y = i / TileCount;
 
-		if (m_GameManager->Board(x, TileCount - y - 1).m_Height == 0)
+		if (m_GameManager->GetRenderer()->IsTileVisible(x, y))
 			LastVisibleTileIdx = i;
 	}
 

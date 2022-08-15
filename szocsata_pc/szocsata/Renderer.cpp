@@ -815,6 +815,10 @@ glm::vec2 CRenderer::GetTextureSize(const char* textureID)
 	return glm::vec2(Texture->m_Width, Texture->m_Height);
 }
 
+bool CRenderer::IsTileVisible(int x, int y)
+{
+	return m_BoardTiles->IsTileVisible(x, y);
+}
 
 void CRenderer::SetTileVisible(int x, int y, bool visible)
 {

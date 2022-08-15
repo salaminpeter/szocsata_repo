@@ -42,6 +42,7 @@ public:
 	glm::vec2 GetTilePosition(int x, int y);
 	void RenderTiles();
 	void SetTileVisible(int x, int y, bool visible);
+	bool IsTileVisible(int x, int y);
 
 private:
 

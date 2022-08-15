@@ -83,6 +83,7 @@ public:
 	void ClearGameScreenResources();
 	float SetBoardSize();
 	void SetTileVisible(int x, int y, bool visible);
+	bool IsTileVisible(int x, int y);
 	bool IsCurrentTexture(const char* texId);
 	glm::vec2 GetTextureSize(const char* textureID);
 	void EnableBlending(bool enable);
