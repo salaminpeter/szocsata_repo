@@ -33,6 +33,8 @@ void CLetterPool::DealLetters(std::wstring& letters)
 	int InitialLetterCount = std::count_if(letters.begin(), letters.end(), [](wchar_t c) {return c != L' ';});
 	int RemainingLetters = GetRemainingLetterCount();
 
+	if (RemainingLetters == 0)
+		return;
 
 	int Count = LetterCount - (InitialLetterCount < RemainingLetters ? InitialLetterCount : RemainingLetters);
 
@@ -53,6 +55,10 @@ void CLetterPool::DealLetters(std::wstring& letters)
 			AddedLetterCount++;
 			letters[Idx] = m_LetterIdx[RandVal];
 			m_Letters[m_LetterIdx[RandVal]]--;
+			RemainingLetters--;
+
+			if (RemainingLetters == 0)
+				return;
 
 			if (m_Letters[m_LetterIdx[RandVal]] == 0)
 			{

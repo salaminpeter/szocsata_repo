@@ -1135,7 +1135,7 @@ void CGameManager::ExecuteTaskOnThread(const char* id, int threadId)
 		RunTaskOnRenderThread(id);
 	else if (threadId == CTask::CurrentThread)
 	{
-		m_TaskManager->StartTask(id, true);
+		m_TaskManager->StartTask(id);
 	}
 
 
