@@ -74,10 +74,11 @@ void CWordAnimationManager::AnimateLettersEvent(double& timeFromStart, double& t
 	}
 
 	bool Finished = true;
-	bool LetterAnimFinished = false;
 
 	for (size_t i = 0; i < m_LetterAnimations.size(); ++i)
 	{
+		Finished &= (m_LetterAnimations[i].m_State == ELetterAnimState::Finished);
+
 		if (m_LetterAnimations[i].m_State != ELetterAnimState::InProgress)
 			continue;
 
@@ -99,16 +100,17 @@ void CWordAnimationManager::AnimateLettersEvent(double& timeFromStart, double& t
 			m_LetterAnimations[i].m_AminationTime = m_LetterAnimTime;
 			Position.z = m_LetterAnimations[i].m_DestHeight;
 			m_GameManager->GetRenderer()->SetTileVisible(m_LetterAnimations[i].m_BoardX, m_LetterAnimations[i].m_BoardY, false);
-			Finished &= (m_LetterAnimations[i].m_State == ELetterAnimState::Finished);
-			LetterAnimFinished = true;
 		}
 		else
+		{
 			Position.z = 4. - m_LetterAnimations[i].m_Distance * std::sinf((3.14 / 2.f) * m_LetterAnimations[i].m_AminationTime / m_LetterAnimTime);
+			Finished = false;
+		}
 
 		m_LetterAnimations[i].m_LetterModel->SetPosition(Position);
 	}
 
-	if (Finished && LetterAnimFinished)
+	if (Finished)
 	{
 		m_TimerEventManager->StopTimer("add_word_animation");
 		m_LetterAnimations.clear();
