@@ -52,7 +52,7 @@ float CRenderer::GetFittedViewProps(float fovY, bool topView, glm::vec2& camPos)
 		d = std::sqrtf(2 * BoardSize * BoardSize) / std::sinf(glm::radians(fovY / 2.f));
 
 	float Height = topView ? d : std::sqrtf((d * d) / 2.f);
-	float XYOffset = topView ? 0.01f : Height * 0.707f; //topview nal 0.01 mert pontosan merolegesen nem nezhetunk a tablara gimbal lock miatt
+	float XYOffset = topView ? 0.f : Height * 0.707f; //topview nal 0.01 mert pontosan merolegesen nem nezhetunk a tablara gimbal lock miatt
 
 	camPos = glm::vec2(XYOffset, Height);
 
@@ -252,25 +252,28 @@ void CRenderer::RotateCamera(float rotateAngle, float tiltAngle, bool intersectW
 
 	float ang = glm::degrees(std::acosf(glm::dot(BoardToCamVec, RotAxis) / (glm::length(BoardToCamVec))));
 
-	if (ang > 2 || ang < 178)
+	if (ang > 1 && ang < 179)
 	{
 		BoardToCamVec = glm::rotate(BoardToCamVec, glm::radians(-tiltAngle), RotAxis);
 		CameraPos = LookAtBoardIntPos + BoardToCamVec;
+		BoardToCamVec = CameraPos - LookAtBoardIntPos;
 		NeedLookAt = true;
 	}
 
 	//rotate camera
-	ang = glm::degrees(std::acosf(CameraLookAt.z));
-	if (ang > 2 || ang < 178)
+	ang = glm::degrees(std::acosf(glm::dot(BoardToCamVec, glm::vec3(0, 0, 1)) / (glm::length(BoardToCamVec))));
+
+	if (ang > 1 && ang < 179)
 	{
-		glm::vec3 BoardToCamVec = CameraPos - LookAtBoardIntPos;
 		glm::vec3 CameraPosRotated = glm::rotate(BoardToCamVec, glm::radians(rotateAngle), glm::vec3(0, 0, 1));
 		CameraPos = CameraPosRotated + LookAtBoardIntPos;
 		NeedLookAt = true;
-		m_CameraRotAngle += rotateAngle;
-		m_CameraRotAngle = m_CameraRotAngle > 360.f ? m_CameraRotAngle - 360. : m_CameraRotAngle;
 	}
-
+	else
+	{
+		m_Views["board_perspecive"]->RotateCamera(glm::radians(rotateAngle));
+		NeedLookAt = false;
+	}
 
 	if (NeedLookAt)
 	{

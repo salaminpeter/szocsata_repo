@@ -24,6 +24,7 @@ public:
 	glm::vec2 GetViewSize();
 	void PositionCamera(glm::vec3 translate);
 	void LookAt();
+	void RotateCamera(float a);
 
 private:
 	

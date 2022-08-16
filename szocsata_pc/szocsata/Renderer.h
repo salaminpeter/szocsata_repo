@@ -94,7 +94,7 @@ public:
 	bool ModelsInited() { return m_3DModelsInited; }
 	bool EngineInited() { return m_EnginelsInited; }
 	float GetCameraTiltAngle() { return m_CameraTiltAngle; }
-	float GetCameraRotAngle() { return m_CameraRotAngle; }
+	void ResetCameraDir() {m_CameraTiltAngle =0.f;}
 	void SetModelsInited(bool inited) {m_3DModelsInited = inited;}
 
 	std::recursive_mutex& GetRenderLock() {return m_RenderLock;}
@@ -174,7 +174,6 @@ private:
 	std::shared_ptr<CSquareColorData> m_LetterTextureData8x4;
 
 	float m_CameraTiltAngle = 0.f;
-	float m_CameraRotAngle = 0.f;
 
 	bool m_SelectionVisible = false;
 

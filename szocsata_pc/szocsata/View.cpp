@@ -12,6 +12,11 @@ CView::CView(int w, int h, int x, int y) : m_Width(w), m_Height(h), m_XPosition(
 	m_Camera = new CCamera;
 }
 
+void CView::RotateCamera(float a)
+{
+	m_Camera->RotateView(a);
+}
+
 void CView::InitCamera(glm::vec3 camPos, glm::vec3 lookatPos, glm::vec3 upVector)
 {
 	//TODO!!!!!!!!! a renderer tilt anglet mindenkepp ujra kell szamolni!!!!!
