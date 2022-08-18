@@ -23,8 +23,11 @@ public:
 	glm::vec2 GetViewPosition();
 	glm::vec2 GetViewSize();
 	void PositionCamera(glm::vec3 translate);
-	void LookAt();
-	void RotateCamera(float a);
+	void RotateCamera(float angle, const glm::vec3& axis);
+	void TranslateCamera(const glm::vec3& t);
+
+
+	glm::mat4 GetViewMatrix() { return m_Camera->ViewMatrix(); }
 
 private:
 	

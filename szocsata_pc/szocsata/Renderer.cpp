@@ -214,7 +214,7 @@ void CRenderer::FittBoardToView(bool topView)
 	CConfig::GetConfig("board_rotation_min", BoardRotMin);
 	m_CameraTiltAngle = topView ? 90 : BoardRotMin;
 
-	m_Views["board_perspecive"]->InitCamera(glm::vec3(-CameraPos.x, -CameraPos.x, CameraPos.y), glm::vec3(0, 0, 0.2), UPVector);
+	m_Views["board_perspecive"]->InitCamera(glm::vec3(-CameraPos.x, -CameraPos.x, CameraPos.y), glm::vec3(0, 0, 0.2), UPVector); //0.2 ??
 	m_Views["board_perspecive"]->InitPerspective(40.f, 1.f, 25.f);
 }
 
@@ -228,6 +228,36 @@ void CRenderer::RotateCamera(float rotateAngle, float tiltAngle, bool intersectW
 	CConfig::GetConfig("board_rotation_min", BoardRotMin);
 	CConfig::GetConfig("board_rotation_max", BoardRotMax); //TODO ez 90 nem kell config
 
+	glm::vec3 LookAtBoardIntPos = GetCameraLookAtPoint(intersectWithBoard);
+
+	//tilt camera
+	if (std::fabs(tiltAngle) > 0.1f)
+	{
+		if (m_CameraTiltAngle + tiltAngle > BoardRotMax)
+			tiltAngle = BoardRotMax - m_CameraTiltAngle;
+		else if (m_CameraTiltAngle + tiltAngle < BoardRotMin)
+			tiltAngle = BoardRotMin - m_CameraTiltAngle;
+		
+		m_CameraTiltAngle += tiltAngle;
+
+		glm::vec3 RotAxis = glm::vec4(1.f, 0.f, 0.f, 1.f) * m_Views["board_perspecive"]->GetView();
+		
+		m_Views["board_perspecive"]->TranslateCamera(-LookAtBoardIntPos);
+		m_Views["board_perspecive"]->RotateCamera(tiltAngle, RotAxis);
+		m_Views["board_perspecive"]->TranslateCamera(LookAtBoardIntPos);
+	}
+	
+	//rotate camera
+	if (std::fabs(rotateAngle) > 0.1f)
+	{ 
+		m_Views["board_perspecive"]->TranslateCamera(-LookAtBoardIntPos);
+		m_Views["board_perspecive"]->RotateCamera(-rotateAngle, glm::vec3(0, 0, 1));
+		m_Views["board_perspecive"]->TranslateCamera(LookAtBoardIntPos);
+	}
+}
+
+glm::vec3 CRenderer::GetCameraLookAtPoint(bool intersectWithBoard)
+{
 	glm::vec3 CameraPos = m_Views["board_perspecive"]->GetCameraPosition();
 	glm::vec3 CameraLookAt = m_Views["board_perspecive"]->GetCameraLookAt();
 	glm::vec3 LookAtBoardIntPos;
@@ -237,50 +267,9 @@ void CRenderer::RotateCamera(float rotateAngle, float tiltAngle, bool intersectW
 	else
 		LookAtBoardIntPos = CameraPos + CameraLookAt * std::fabs(CameraPos.z / CameraLookAt.z);
 
-	bool NeedLookAt = false;
-
-	//tilt camera
-	if (m_CameraTiltAngle + tiltAngle > BoardRotMax)
-		tiltAngle = BoardRotMax - m_CameraTiltAngle;
-	else if (m_CameraTiltAngle + tiltAngle < BoardRotMin)
-		tiltAngle = BoardRotMin - m_CameraTiltAngle;
-
-	m_CameraTiltAngle += tiltAngle;
-
-	glm::vec3 BoardToCamVec = CameraPos - LookAtBoardIntPos;
-	glm::vec3 RotAxis = glm::vec4(1.f, 0.f, 0.f, 1.f) * m_Views["board_perspecive"]->GetView();
-
-	float ang = glm::degrees(std::acosf(glm::dot(BoardToCamVec, RotAxis) / (glm::length(BoardToCamVec))));
-
-	if (ang > 1 && ang < 179)
-	{
-		BoardToCamVec = glm::rotate(BoardToCamVec, glm::radians(-tiltAngle), RotAxis);
-		CameraPos = LookAtBoardIntPos + BoardToCamVec;
-		BoardToCamVec = CameraPos - LookAtBoardIntPos;
-		NeedLookAt = true;
-	}
-
-	//rotate camera
-	ang = glm::degrees(std::acosf(glm::dot(BoardToCamVec, glm::vec3(0, 0, 1)) / (glm::length(BoardToCamVec))));
-
-	if (ang > 1 && ang < 179)
-	{
-		glm::vec3 CameraPosRotated = glm::rotate(BoardToCamVec, glm::radians(rotateAngle), glm::vec3(0, 0, 1));
-		CameraPos = CameraPosRotated + LookAtBoardIntPos;
-		NeedLookAt = true;
-	}
-	else
-	{
-		m_Views["board_perspecive"]->RotateCamera(glm::radians(rotateAngle));
-		NeedLookAt = false;
-	}
-
-	if (NeedLookAt)
-	{
-		m_Views["board_perspecive"]->InitCamera(CameraPos, LookAtBoardIntPos, glm::vec3(0, 0, 1));
-		ResetZoom();
-	}
+	return LookAtBoardIntPos;
 }
+
 
 void CRenderer::ResetZoom()
 {
@@ -483,12 +472,31 @@ void CRenderer::GetFitToScreemProps(float& tilt, float& rotation, float& zoom, f
 	//tilt
 	tilt = 90.f - m_CameraTiltAngle;
 
-	//rotation
+	bool IsTopView = tilt < 0.1f;
+
 	glm::vec3 CameraLookAt = m_Views["board_perspecive"]->GetCameraLookAt();
 	glm::vec3 CameraPosition = m_Views["board_perspecive"]->GetCameraPosition();
-	glm::vec2 ProjectedLookatXY = glm::vec2(CameraLookAt.x, CameraLookAt.y);
-	glm::vec3 Normal = glm::cross(glm::vec3(ProjectedLookatXY, 0.f), glm::vec3(0.f, 1.f, 0.f));
-	rotation = glm::degrees(std::acos(CameraLookAt.y / glm::length(ProjectedLookatXY))) * (Normal.z < 0 ? -1 : 1);
+
+	//rotation
+	if (!IsTopView)
+	{
+		glm::vec2 ProjectedLookatXY = glm::vec2(CameraLookAt.x, CameraLookAt.y);
+		glm::vec3 Normal = glm::cross(glm::vec3(ProjectedLookatXY, 0.f), glm::vec3(0.f, 1.f, 0.f));
+		rotation = glm::degrees(std::acosf(CameraLookAt.y / glm::length(ProjectedLookatXY))) * (Normal.z < 0 ? -1 : 1);
+	}
+	else
+	{
+		glm::vec2 CameraXAxis = glm::vec2(m_Views["board_perspecive"]->GetCameraAxisInWorldSpace(0));
+		float DotP = glm::dot(CameraXAxis, glm::vec2(1, 0));
+
+		if (std::fabs(DotP) > 0.01f)
+		{
+			glm::vec3 Normal = glm::cross(glm::vec3(CameraXAxis, 0.f), glm::vec3(1.f, 0.f, 0.f));
+			rotation = glm::degrees(std::acosf(DotP))  * (Normal.z < 0 ? -1 : 1);
+		}
+		else
+			rotation = 0.f;
+	}
 
 	//zoom
 	glm::vec3 LookAtPos = CameraPosition + CameraLookAt * std::fabs(CameraPosition.z / CameraLookAt.z);
@@ -499,7 +507,7 @@ void CRenderer::GetFitToScreemProps(float& tilt, float& rotation, float& zoom, f
 	move = glm::length(glm::vec2(LookAtPos.x, LookAtPos.y));
 
 	//move direction
-	dir = glm::normalize(glm::vec2(LookAtPos.x, LookAtPos.y));
+	dir = move > 0.f ? glm::normalize(glm::vec2(LookAtPos.x, LookAtPos.y)) : glm::vec2(0, 0);
 }
 
 void CRenderer::CameraFitToViewAnim(float tilt, float rotation, float zoom, float move, const glm::vec2& dir)

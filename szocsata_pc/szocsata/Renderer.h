@@ -110,6 +110,7 @@ private:
 
 	glm::vec3 ScreenPosToBoardPos(float screenX, float screenY, bool boardOnly = false);
 	glm::vec3 VectorBoardIntersect(glm::vec3 pos, glm::vec3 vec, bool boardOnly = false);
+	glm::vec3 GetCameraLookAtPoint(bool intersectWithBoard);
 
 private:
 

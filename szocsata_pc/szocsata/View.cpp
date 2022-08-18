@@ -12,9 +12,14 @@ CView::CView(int w, int h, int x, int y) : m_Width(w), m_Height(h), m_XPosition(
 	m_Camera = new CCamera;
 }
 
-void CView::RotateCamera(float a)
+void CView::TranslateCamera(const glm::vec3& t)
 {
-	m_Camera->RotateView(a);
+	m_Camera->TranslateCamera(t);
+}
+
+void CView::RotateCamera(float angle, const glm::vec3& axis)
+{
+	m_Camera->RotateCamera(angle, axis);
 }
 
 void CView::InitCamera(glm::vec3 camPos, glm::vec3 lookatPos, glm::vec3 upVector)
@@ -36,7 +41,6 @@ void CView::InitOrtho()
 void CView::Activate()
 {
 	glViewport(m_XPosition, m_YPosition, m_Width, m_Height);
-//	m_Camera->LookAt();
 }
 
 glm::vec3 CView::GetCameraAxisInWorldSpace(int axis)
@@ -47,26 +51,17 @@ glm::vec3 CView::GetCameraAxisInWorldSpace(int axis)
 
 glm::vec3 CView::GetCameraPosition()
 {
-	glm::mat4 InverseView = glm::inverse(m_Camera->m_ViewMatrix); //TODO inversematrix is tarolva legyen memberkent + itt eleg lenne a sima m_LookVectort visszaadni
-
-	return glm::vec3(InverseView[3].x, InverseView[3].y, InverseView[3].z);
+	return m_Camera->GetPosition();
 }
 
 glm::vec3 CView::GetCameraLookAt()
 {
-	glm::mat4 InverseView = glm::inverse(m_Camera->m_ViewMatrix); //TODO inversematrix is tarolva legyen memberkent + itt eleg lenne a sima m_LookVectort visszaadni
-
-	return -glm::vec3(InverseView[2].x, InverseView[2].y, InverseView[2].z);
+	return m_Camera->GetLookAt();
 }
 
 void CView::PositionCamera(glm::vec3 pos)
 {
 	m_Camera->SetPosition(pos);
-}
-
-void CView::LookAt()
-{
-	m_Camera->LookAt();
 }
 
 glm::mat4 CView::GetProjectionView()
