@@ -33,7 +33,6 @@ glm::vec3 CCamera::GetLookAt()
 
 void CCamera::SetPosition(glm::vec3 translate)
 {
-	m_InverseViewMatrix = glm::inverse(m_ViewMatrix);
 	m_InverseViewMatrix[3].x = translate.x;
 	m_InverseViewMatrix[3].y = translate.y;
 	m_InverseViewMatrix[3].z = translate.z;
@@ -58,7 +57,6 @@ void CCamera::RotateCamera(float angle, const glm::vec3& axis)
 
 void CCamera::TranslateCamera(const glm::vec3& t)
 {
-//	m_InverseViewMatrix = glm::inverse(m_ViewMatrix);
 	m_InverseViewMatrix[3].x += t.x;
 	m_InverseViewMatrix[3].y += t.y;
 	m_InverseViewMatrix[3].z += t.z;
