@@ -226,7 +226,9 @@ public:
 	void GoToStartGameScrEvent();
 
 	int frames = 0;
-	std::chrono::high_resolution_clock::time_point LastRenderTime;
+	long m_LastRenderTime;
+	bool m_RenderTimeSet = false;
+	long m_FrameTime = 0;
 
 	//==============================================================================
 	CGameBoard CompGameBoard;

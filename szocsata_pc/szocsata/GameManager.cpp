@@ -60,6 +60,7 @@ void CGameManager::ResetToStartScreen()
 	PauseGameLoop(true);  //TODO meg kene varni hogy a  m_StopGameLoop ervenyesuljon csak utana tovabbmenni!!
 	SetGameState(CGameManager::OnStartScreen);
 	m_Renderer->SetModelsInited(false);
+	m_Renderer->ResetCameraDir();
 	m_TileAnimations->Reset();
 	m_WordAnimation->Reset();
 	m_TimerEventManager->Reset();
@@ -1747,7 +1748,7 @@ void CGameManager::HandleDragEvent(int x, int y)
 	int WindowHeigth;
 	CConfig::GetConfig("window_height", WindowHeigth);
 	y = WindowHeigth - y;
-
+	
 	if (m_TouchX == -1)
 	{
 		m_TouchX = x;
@@ -1930,17 +1931,25 @@ void CGameManager::RenderFrame()
 	bool ConfigFound = CConfig::GetConfig("show_fps", ShowFps);
 	ShowFps &= ConfigFound;
 
-	typedef std::chrono::high_resolution_clock Clock;
+	int FpsCap;
+	CConfig::GetConfig("fps_cap", FpsCap);
 	
+
 	if (m_Renderer && m_Renderer->EngineInited())
 	{
-		if (ShowFps && frames == 0)
-			LastRenderTime = Clock::now();
-		
-		{
+		long RenderTime = m_RenderTimeSet ? CTimer::GetCurrentTime() - m_LastRenderTime : 0;
+		long MinRenderTime = 1000. / FpsCap;
+
+		m_FrameTime += RenderTime;
+		m_LastRenderTime = CTimer::GetCurrentTime();
+		m_RenderTimeSet = true;
+
+		if (m_FrameTime >= MinRenderTime)
+		{ 
+			m_FrameTime = 0;
+
 			const std::lock_guard<std::recursive_mutex> lock(m_Renderer->GetRenderLock());
 
-			bool ga = GameScreenActive();
 			if (m_Renderer->ModelsInited() && GameScreenActive())
 			{
 				m_Renderer->Render();
@@ -1953,19 +1962,20 @@ void CGameManager::RenderFrame()
 			if (m_UIManager)
 				RenderUI();
 		}
+		else 
+		{
+			int i= 0;
+		}
 
 		if (ShowFps)
 		{
-			std::chrono::high_resolution_clock::time_point RenderTime = Clock::now();
-			std::chrono::duration<double, std::milli> TimeSpan = RenderTime - LastRenderTime;
-
-			if (TimeSpan.count() != 0)
+			if (RenderTime != 0)
 			{
 				frames++;
 
 				if (frames > 500)
 				{
-					float fps = (1000. / double(TimeSpan.count())) * double(frames);
+					float fps = (1000. / RenderTime) * double(frames);
 
 					std::wstringstream ss;
 					ss << L"fps : " << int(fps);
