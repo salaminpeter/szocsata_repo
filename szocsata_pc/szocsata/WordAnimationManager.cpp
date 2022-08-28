@@ -8,15 +8,13 @@
 #include "Config.h"
 #include "UIPlayerLetters.h"
 
-CWordAnimationManager::~CWordAnimationManager()
-{
-	m_TimerEventManager->StopTimer("add_word_animation");
-}
+int TWordAnimation::m_CurrWordAnimID = 0;
 
-
-void CWordAnimationManager::AddWordAnimation(std::wstring word, const std::vector<size_t>& uiLetterIndices, CUIPlayerLetters* playerLetters, int x, int y, bool horizontal, bool nextPlayerIfFinished)
+TWordAnimation::TWordAnimation(CGameManager* gameManager, std::wstring word, const std::vector<size_t>& uiLetterIndices, CUIPlayerLetters* playerLetters, int x, int y, bool horizontal, bool nextPlayerIfFinished)
 {
-	const std::lock_guard<std::mutex> lock(m_AnimListLock);
+	std::stringstream StrStream;
+	StrStream << "word_animation_" << m_CurrWordAnimID++;
+	m_ID = StrStream.str().c_str();
 
 	m_UIPlayerLetters = playerLetters;
 
@@ -35,16 +33,16 @@ void CWordAnimationManager::AddWordAnimation(std::wstring word, const std::vecto
 
 	for (size_t i = 0; i < word.length(); ++i)
 	{
-		if (m_GameManager->GetChOnBoard(x, TileCount - y - 1) != word.at(i))
+		if (gameManager->GetChOnBoard(x, TileCount - y - 1) != word.at(i))
 		{
-			if (UILetterIdx >= uiLetterIndices.size())
-				int i = 0;
-			int LetterCount = m_GameManager->Board(x, TileCount - y - 1).m_Height;
+			int LetterCount = gameManager->Board(x, TileCount - y - 1).m_Height;
 			float DestHeight = (BoardHeight + LetterCount * LetterHeight + LetterHeight / 2);
 			float DistanceToBoard = 4.f - DestHeight; //TODO config 3
-			CLetterModel* LetterModel = m_GameManager->AddLetterToBoard(x, y, word.at(i), 4.f);  //TODO config 3
+			CLetterModel* LetterModel = gameManager->AddLetterToBoard(x, y, word.at(i), 4.f);  //TODO config 3
 			LetterModel->SetVisibility(false);
+
 			m_LetterAnimations.emplace_back(LetterModel, DistanceToBoard, DestHeight, uiLetterIndices[UILetterIdx], x, y); //TODO!!!!! UILetterIdx - el valamilyen esetben tulcimzunk es kress van!!
+
 			UILetterIdx++;
 		}
 
@@ -54,82 +52,131 @@ void CWordAnimationManager::AddWordAnimation(std::wstring word, const std::vecto
 
 	m_LastAddedLetterTime = 0.;
 	m_CurrentLetterIdx = 0;
-	m_TimerEventManager->AddTimerEvent(this, &CWordAnimationManager::AnimateLettersEvent, nextPlayerIfFinished ? &CWordAnimationManager::AnimationFinished : nullptr, "add_word_animation");
-	m_TimerEventManager->StartTimer("add_word_animation");
 }
 
 
-void CWordAnimationManager::AnimateLettersEvent(double& timeFromStart, double& timeFromPrev)
+CWordAnimationManager::~CWordAnimationManager()
 {
-	double CurrentTime = CTimer::GetCurrentTime();
+	m_TimerEventManager->StopTimer("add_word_animation");
+}
 
-	if (CurrentTime - m_LastAddedLetterTime > m_LetterAddInterval && m_CurrentLetterIdx < m_LetterAnimations.size())
+bool CWordAnimationManager::AddWordAnimation(std::wstring word, const std::vector<size_t>& uiLetterIndices, CUIPlayerLetters* playerLetters, int x, int y, bool horizontal, bool nextPlayerIfFinished)
+{
+	const std::lock_guard<std::mutex> lock(m_AnimListLock);
+
+	//ha ugyanarra a beture klikkelunk gyorsan ketszer
+	if (uiLetterIndices.size() == 1 && !m_GameManager->GetCurrentPlayer()->IsComputer())
 	{
-		m_GameManager->GetCurrentPlayer()->SetLetterUsed(m_LetterAnimations[m_CurrentLetterIdx].m_UILetterIdx, true);
-		m_UIPlayerLetters->SetVisible(false, m_LetterAnimations[m_CurrentLetterIdx].m_UILetterIdx);
-		m_LastAddedLetterTime = CurrentTime;
-		m_LetterAnimations[m_CurrentLetterIdx].m_LetterModel->SetVisibility(true);
-		m_LetterAnimations[m_CurrentLetterIdx].m_State = ELetterAnimState::InProgress;
-		m_CurrentLetterIdx++;
-	}
+		if (std::find(m_UILetterIndices.begin(), m_UILetterIndices.end(), uiLetterIndices[0]) != m_UILetterIndices.end())
+			return false;
 
+		m_UILetterIndices.push_back(uiLetterIndices[0]);
+	}
+	
+	m_WordAnimations.emplace_back(m_GameManager, word, uiLetterIndices, playerLetters, x, y, horizontal, nextPlayerIfFinished);
+	m_TimerEventManager->AddTimerEvent(this, &CWordAnimationManager::AnimateLettersEvent, &CWordAnimationManager::AnimationFinished, "word_animations");
+	m_TimerEventManager->StartTimer("word_animations");
+	return true;
+}
+
+bool CWordAnimationManager::HandleLetterAnimation(std::vector<TLetterAnimation>& letters, double timeFromPrevUpdate)
+{
 	bool Finished = true;
 
-	for (size_t i = 0; i < m_LetterAnimations.size(); ++i)
+	for (size_t i = 0; i < letters.size(); ++i)
 	{
-		Finished &= (m_LetterAnimations[i].m_State == ELetterAnimState::Finished);
-
-		if (m_LetterAnimations[i].m_State != ELetterAnimState::InProgress)
-			continue;
-
-		m_LetterAnimations[i].m_AminationTime += timeFromPrev;
-		glm::vec3 Position = m_LetterAnimations[i].m_LetterModel->GetPosition();
-
-		if (m_LetterAnimations[i].m_AminationTime > m_LetterAnimTime)
+		if (letters[i].m_State != TLetterAnimation::InProgress)
 		{
-			bool ComputerTurn = m_GameManager->GetCurrentPlayer()->GetName() == L"computer"; //TODO legyen fugveny arrol hogy a current player computer e
+			Finished = letters[i].m_State == TLetterAnimation::Finished;
+			continue;
+		}
+
+		letters[i].m_AminationTime += timeFromPrevUpdate;
+		glm::vec3 Position = letters[i].m_LetterModel->GetPosition();
+
+		if (letters[i].m_AminationTime > m_LetterAnimTime)
+		{
+			bool ComputerTurn = m_GameManager->GetCurrentPlayer()->IsComputer();
 
 			if (!ComputerTurn)
 			{
-				int BoardX = m_LetterAnimations[i].m_LetterModel->BoardX();
-				int BoardY = m_LetterAnimations[i].m_LetterModel->BoardY();
+				int BoardX = letters[i].m_LetterModel->BoardX();
+				int BoardY = letters[i].m_LetterModel->BoardY();
 				m_GameManager->AddPlacedLetterSelection(BoardX, BoardY);
 			}
 
-			m_LetterAnimations[i].m_State = ELetterAnimState::Finished;
-			m_LetterAnimations[i].m_AminationTime = m_LetterAnimTime;
-			Position.z = m_LetterAnimations[i].m_DestHeight;
-			m_GameManager->GetRenderer()->SetTileVisible(m_LetterAnimations[i].m_BoardX, m_LetterAnimations[i].m_BoardY, false);
+			letters[i].m_State = TLetterAnimation::Finished;
+			letters[i].m_AminationTime = m_LetterAnimTime;
+			Position.z = letters[i].m_DestHeight;
+			m_GameManager->GetRenderer()->SetTileVisible(letters[i].m_BoardX, letters[i].m_BoardY, false);
 		}
 		else
 		{
-			Position.z = 4. - m_LetterAnimations[i].m_Distance * std::sinf((3.14 / 2.f) * m_LetterAnimations[i].m_AminationTime / m_LetterAnimTime);
+			Position.z = 4. - letters[i].m_Distance * std::sinf((3.14 / 2.f) * letters[i].m_AminationTime / m_LetterAnimTime);
 			Finished = false;
 		}
 
-		m_LetterAnimations[i].m_LetterModel->SetPosition(Position);
+		letters[i].m_LetterModel->SetPosition(Position);
 	}
 
-	if (Finished)
+	return Finished;
+}
+
+void CWordAnimationManager::SetLetterInProgress(TWordAnimation& word, TLetterAnimation& letter)
+{
+	m_GameManager->GetCurrentPlayer()->SetLetterUsed(letter.m_UILetterIdx, true);
+	word.m_UIPlayerLetters->SetVisible(false, letter.m_UILetterIdx);
+	letter.m_LetterModel->SetVisibility(true);
+	letter.m_State = TLetterAnimation::InProgress;
+}
+
+void CWordAnimationManager::AnimateLettersEvent(double& timeFromStart, double& timeFromPrev)
+{
+	const std::lock_guard<std::mutex> lock(m_AnimListLock);
+
+	double CurrentTime = CTimer::GetCurrentTime();
+
+	bool ComputerTurn = m_GameManager->GetCurrentPlayer()->IsComputer();
+
+	for (auto WordAnimationIt = m_WordAnimations.begin(); WordAnimationIt != m_WordAnimations.end(); ++WordAnimationIt)
 	{
-		m_TimerEventManager->StopTimer("add_word_animation");
-		m_LetterAnimations.clear();
-		m_GameManager->SetTaskFinished("finish_word_letters_animation_task");
+		if (CurrentTime - WordAnimationIt->m_LastAddedLetterTime > m_LetterAddInterval && WordAnimationIt->m_CurrentLetterIdx < WordAnimationIt->m_LetterAnimations.size())
+		{
+			SetLetterInProgress(*WordAnimationIt, WordAnimationIt->m_LetterAnimations[WordAnimationIt->m_CurrentLetterIdx]);
+			WordAnimationIt->m_LastAddedLetterTime = CurrentTime;
+			WordAnimationIt->m_CurrentLetterIdx++;
+		}
+
+		//handle word animation - mikor a computer tesz le egy egesz szot
+		bool AnimFinished = HandleLetterAnimation(WordAnimationIt->m_LetterAnimations, timeFromPrev);
+
+		if (AnimFinished)
+			WordAnimationIt = m_WordAnimations.erase(WordAnimationIt);
+
+		if (ComputerTurn && AnimFinished)
+			m_GameManager->SetTaskFinished("finish_word_letters_animation_task");
+
+		if (m_WordAnimations.size() == 0)
+		{
+			m_TimerEventManager->StopTimer("word_animations");
+			return;
+		}
 	}
 }
 
 void CWordAnimationManager::AnimationFinished()
 {
-	m_GameManager->AddWordSelectionAnimationForComputer();
-	m_GameManager->DealComputerLettersEvent();
+	bool ComputerTurn = m_GameManager->GetCurrentPlayer()->IsComputer();
+	
+	if (ComputerTurn)
+	{
+		m_GameManager->AddWordSelectionAnimationForComputer();
+		m_GameManager->DealComputerLettersEvent();
+	}
 }
 
 void CWordAnimationManager::Reset()
 {
 	m_TimerEventManager->StopTimer("add_word_animation");
-
-	for (size_t i = 0; i < m_LetterAnimations.size(); ++i)
-		delete m_LetterAnimations[i].m_LetterModel;
-
-	m_LetterAnimations.clear();
+	m_WordAnimations.clear();
 }

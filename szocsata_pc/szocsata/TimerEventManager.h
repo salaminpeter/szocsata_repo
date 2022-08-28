@@ -28,7 +28,7 @@ public:
 	}
 
 	void Call(bool finished);
-	void SetTimerState(bool stopped, bool paused = false);
+	void SetTimerState(bool started, bool stopped, bool paused = false);
 
 	bool IsStopped() { return m_Stopped; }
 	bool IsPaused() { return m_Paused; }
@@ -41,6 +41,7 @@ private:
 	CEventBase* m_FinishedEvent = nullptr;
 	bool m_Stopped = false;
 	bool m_Paused = false;
+	bool m_Started = false;
 	double m_StartTime;
 	double m_CurrentTime;
 	double m_TimeFromStart;
@@ -57,6 +58,9 @@ public:
 	template <typename ClassType, typename... ArgTypes>
 	void AddTimerEvent(ClassType* funcClass, typename CEvent<ClassType, double&, double&>::TFuncPtrType eventPtr, typename CEvent<ClassType, ArgTypes...>::TFuncPtrType finishedEventPtr, const char* id)
 	{
+		if (GetTimerEvent(id))
+			return;
+
 		CTimerEvent* Event = new CTimerEvent(id);
 		Event->SetEvent(funcClass, eventPtr);
 		Event->SetFinishedEvent(funcClass, finishedEventPtr);
@@ -67,15 +71,15 @@ public:
 	void Loop();
 	void Reset();
 
-	void StartTimer(const char* id) { ChangeTimerState(true, false ,id); }
-	void StopTimer(const char* id) { ChangeTimerState(false, false, id); }
-	void PauseTimer(const char* id) { ChangeTimerState(false, true, id); }
-	void ResumeTimer(const char* id) { ChangeTimerState(true, false, id); }
+	void StartTimer(const char* id) { ChangeTimerState(true, false, false ,id); }
+	void StopTimer(const char* id) { ChangeTimerState(false, true, false, id); }
+	void PauseTimer(const char* id) { ChangeTimerState(false, false, true, id); }
+	void ResumeTimer(const char* id) { ChangeTimerState(true, false, false, id); }
 
 private:
 
 	CTimerEvent* GetTimerEvent(const char* id);
-	void ChangeTimerState(bool start, bool , const char*id);
+	void ChangeTimerState(bool start, bool stop, bool pause, const char* id);
 
 private:
 	

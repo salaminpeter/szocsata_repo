@@ -1425,7 +1425,10 @@ void CGameManager::PlayerLetterReleased(size_t letterIdx)
 	}
 
 	wchar_t PlacedLetter = m_CurrentPlayer->GetLetters()[letterIdx];
-	m_WordAnimation->AddWordAnimation(std::wstring(1, PlacedLetter), std::vector<size_t>{letterIdx}, m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName()), SelX, SelY, true, false);
+	
+	if (!m_WordAnimation->AddWordAnimation(std::wstring(1, PlacedLetter), std::vector<size_t>{letterIdx}, m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName()), SelX, SelY, true, false))
+		return;
+
 	CUIPlayerLetters* PlayerLetters = m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName().c_str());
 
 	m_PlayerSteps.emplace_back(PlacedLetter, SelX, SelY, letterIdx);
@@ -1604,6 +1607,8 @@ void CGameManager::UndoStep(size_t idx)
 {
 	if (m_PlayerSteps.size() <= idx)
 		return;
+
+	m_WordAnimation->ResetUsedLetterIndex(m_PlayerSteps[idx].m_LetterIdx);
 
 	int TileCount;
 	CConfig::GetConfig("tile_count", TileCount);
@@ -1915,6 +1920,7 @@ void CGameManager::EndPlayerTurnEvent()
 {
 	if (EndPlayerTurn())
 	{
+		m_WordAnimation->ResetUsedLetterIndices();
 		m_PlacedLetterSelections.clear();
 		m_UIManager->EnableGameButtons(false);
 	}

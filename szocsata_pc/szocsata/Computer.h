@@ -22,6 +22,8 @@ public:
 	bool FindWord(const std::wstring& word, int score, bool horizontal = false, bool checkAlingnment = false, size_t** idx = nullptr);
 	void AddResult(const TWordPos& word, CBinaryBoolList usedLetters);
 
+	virtual bool IsComputer() override { return true; }
+
 private:
 
 	std::vector<TComputerStep> m_BestWords;

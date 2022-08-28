@@ -43,6 +43,8 @@ public:
 	void SetAllLetters() {m_AllLetters = m_Letters;}
 	void SetAllLetters(const wchar_t* letters) {m_AllLetters = letters;}
 
+	virtual bool IsComputer() {return false;}
+
 public:
 
 	static int m_PlayerCount;
