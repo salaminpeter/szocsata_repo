@@ -43,6 +43,10 @@ void CComputer::AddResult(const TWordPos& wordPos, CBinaryBoolList usedLetters)
 
 	int Score = m_GameManager->CalculateScore(wordPos, &CrossingWords);
 
+	//az egyik crossingword ertelmetlen volt
+	if (Score == 0)
+		return;
+
 	size_t* WordIdx = new size_t;
 
 	//ha mar van ilyen szavunk, de ez a szo kozelebb van a tabla kozepehez akkor valasszuk ezt helyette	
@@ -140,7 +144,7 @@ void CComputer::GetWordsInFieldList(const std::wstring& letters, CWordTree::TNod
 			ChildNode = node->FindChild(CurrentLetter);
 
 			if (ChildNode) {
-				if (ChildNode->m_WordEnd && (fieldList.size() == wordStartIdx + charCount + 1 || fieldList[wordStartIdx + charCount + 1]->m_Char == L'*'))
+				if (ChildNode->m_WordEnd && (fieldList.size() == wordStartIdx + charCount || (wordStartIdx + charCount + 1 < fieldList.size() && fieldList[wordStartIdx + charCount + 1]->m_Char == L'*')))
 				{
 					int WordX = horizontal ? wordStartIdx : pos;
 					int WordY = horizontal ? pos : wordStartIdx;
@@ -170,7 +174,7 @@ void CComputer::GetWordsInFieldList(const std::wstring& letters, CWordTree::TNod
 
 		else if (ChildNode = node->FindChild(letters[i]))
 		{
-			if (ChildNode->m_WordEnd && (fieldList.size() == wordStartIdx + charCount + 1 || fieldList[wordStartIdx + charCount + 1]->m_Char == L'*'))
+			if (ChildNode->m_WordEnd && (fieldList.size() == wordStartIdx + charCount || (wordStartIdx + charCount + 1 < fieldList.size() && fieldList[wordStartIdx + charCount + 1]->m_Char == L'*')))
 			{
 				int WordX = horizontal ? wordStartIdx : pos;
 				int WordY = horizontal ? pos : wordStartIdx;
