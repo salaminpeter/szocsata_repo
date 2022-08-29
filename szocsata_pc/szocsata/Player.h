@@ -41,7 +41,7 @@ public:
 	CBinaryBoolList GetUsedLetters() {return m_UsedLetters;}
 	glm::vec3 GetColor() {return m_Color;}
 	void SetAllLetters() {m_AllLetters = m_Letters;}
-	void SetAllLetters(const wchar_t* letters) {m_AllLetters = letters;}
+	void SetAllLetters(const wchar_t* letters) {m_PrevAllLetters = m_AllLetters; m_AllLetters = letters;}
 
 	virtual bool IsComputer() {return false;}
 
@@ -55,6 +55,8 @@ public:
 	CGameManager* m_GameManager;
 	std::wstring m_Letters;  //betuk, ahol a mar elhelyezettek helyett spaceek vannak
 	std::wstring m_AllLetters; //a komplett betusor
+	std::wstring m_PrevAllLetters; //debughoz
+	std::wstring m_PrevLetters; //debughoz
 	std::wstring m_Name;
 	CBinaryBoolList m_UsedLetters;
 	int m_Score = 0;

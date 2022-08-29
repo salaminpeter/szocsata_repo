@@ -232,15 +232,7 @@ public:
 	long m_FrameTime = 0;
 
 	//==============================================================================
-	CGameBoard CompGameBoard;
-	std::wstring CompLetters;
-	void UndoComp()
-	{
-		m_GameBoard = CompGameBoard;
-		m_Computer->m_Letters = CompLetters;
-		m_Computer->ResetUsedLetters();
-		StartComputerturn();
-	}
+	void UndoComp();
 	//==============================================================================
 
 private:
@@ -284,7 +276,6 @@ private:
 	bool m_PauseGameLoop = false;
 
 	bool m_StartOnGameScreen = false;
-	bool m_InitDone = false;
 
 #ifdef PLATFORM_ANDROID
 	JavaVM* m_JavaVM;

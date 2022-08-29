@@ -198,12 +198,11 @@ void CGameManager::FinishRenderInit()
         m_JavaVM->DetachCurrentThread();
     }
 #else
-	GetUIManager()->m_UIInitialized = false;
+//	GetUIManager()->m_UIInitialized = false;
 	SetTileCount();
 	InitBasedOnTileCount(true);
 	GenerateGameScreenTextures();
-	GetUIManager()->m_UIInitialized = true;
-	m_InitDone = true;
+//	GetUIManager()->m_UIInitialized = true;
 
 	SetTaskFinished("game_started_task");
 #endif
@@ -264,7 +263,6 @@ void CGameManager::SetBoardSize()
 
 	m_GameBoard.SetSize(TileCount);
 	m_TmpGameBoard.SetSize(TileCount);
-	CompGameBoard.SetSize(TileCount);
 }
 
 void CGameManager::InitBasedOnTileCount(bool addLetters)
@@ -885,6 +883,8 @@ bool CGameManager::EndComputerTurn()
 void CGameManager::StartComputerturn()
 {
 	m_TmpGameBoard = m_GameBoard;
+	m_Computer->m_PrevLetters = m_Computer->m_Letters;
+	m_Computer->m_PrevAllLetters = m_Computer->m_AllLetters;
 	m_Computer->CalculateStep();
 
 	int GameDifficulty;
@@ -1525,6 +1525,20 @@ glm::vec2 CGameManager::GetViewPosition(const char* viewId)
 { 
 	return m_Renderer->GetViewPosition(viewId); 
 }
+
+
+void CGameManager::UndoComp()
+{
+	CUIMessageBox::m_ActiveMessageBox = nullptr;
+	m_TaskManager->Reset();
+	m_GameBoard = m_TmpGameBoard;
+	m_Computer->m_Letters = m_Computer->m_PrevLetters;
+	m_Computer->m_AllLetters = m_Computer->m_PrevAllLetters;
+	m_Computer->ResetUsedLetters();
+	m_CurrentPlayer = m_Computer;
+	StartComputerturn();
+}
+
 
 void CGameManager::HandleReleaseEvent(int x, int y)
 {
