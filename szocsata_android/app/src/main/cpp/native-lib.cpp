@@ -73,64 +73,52 @@ void InitGameManager(int surfWidth, int surfHeight)
 
     std::shared_ptr<CTask> BeginGameTask = gm->AddTask(gm, &CGameManager::BeginGameTask, "begin_game_task", CTask::RenderThread);
     std::shared_ptr<CTask> GameStartedTask = gm->AddTask(gm, nullptr, "game_started_task", CTask::RenderThread);
+    std::shared_ptr<CTask> CreateRendererTask = gm->AddTask(gm, &CGameManager::CreateRenderer, "create_renderer_task", CTask::RenderThread, surfWidth, surfHeight);
+    std::shared_ptr<CTask> InitRendererTask = gm->AddTask(gm, &CGameManager::InitRendererTask, "init_renderer_task", CTask::RenderThread);
+    std::shared_ptr<CTask> InitUIManagerTask = gm->AddTask(gm, &CGameManager::InitUIManager, "init_uimanager_task", CTask::RenderThread);
+    std::shared_ptr<CTask> InitUIStartScreensTask = gm->AddTask(gm, &CGameManager::InitStartUIScreens, "init_uimanager_startscreens_task", CTask::RenderThread);
+    std::shared_ptr<CTask> GenerateStartScrTextTask = gm->AddTask(gm, &CGameManager::GenerateStartScreenTextures, "generate_startscreen_textures_task", CTask::RenderThread);
+
+    InitRendererTask->AddDependencie(CreateRendererTask);
+    InitUIManagerTask->AddDependencie(InitRendererTask);
+    InitUIStartScreensTask->AddDependencie(InitUIManagerTask);
+    GenerateStartScrTextTask->AddDependencie(InitUIStartScreensTask);
 
     if (!ResumeGame)
     {
-        std::shared_ptr<CTask> CreateRendererTask = gm->AddTask(gm, &CGameManager::CreateRenderer, "create_renderer_task", CTask::RenderThread, surfWidth, surfHeight);
-        std::shared_ptr<CTask> InitRendererTask = gm->AddTask(gm, &CGameManager::InitRendererTask, "init_renderer_task", CTask::RenderThread);
-        std::shared_ptr<CTask> InitUIManagerTask = gm->AddTask(gm, &CGameManager::InitUIManager, "init_uimanager_task", CTask::RenderThread);
-        std::shared_ptr<CTask> InitUIStartScreensTask = gm->AddTask(gm, &CGameManager::InitStartUIScreens, "init_uimanager_startscreens_task", CTask::RenderThread);
-        std::shared_ptr<CTask> GenerateStartScrTextTask = gm->AddTask(gm, &CGameManager::GenerateStartScreenTextures, "generate_startscreen_textures_task", CTask::RenderThread);
         std::shared_ptr<CTask> ShowStartScreenTask = gm->AddTask(gm, &CGameManager::ShowStartScreenTask, "show_startscreen_task", CTask::RenderThread);
         std::shared_ptr<CTask> BoardSizeSetTask = gm->AddTask(gm, nullptr, "board_size_set_task", CTask::RenderThread);
         std::shared_ptr<CTask> GenerateModelsTask = gm->AddTask(gm, &CGameManager::GenerateModelsTask, "generate_models_task", CTask::RenderThread);
 
-        InitRendererTask->AddDependencie(CreateRendererTask);
-        InitUIManagerTask->AddDependencie(InitRendererTask);
-        InitUIStartScreensTask->AddDependencie(InitUIManagerTask);
-        GenerateStartScrTextTask->AddDependencie(InitUIStartScreensTask);
         ShowStartScreenTask->AddDependencie(GenerateStartScrTextTask);
         GenerateModelsTask->AddDependencie(BoardSizeSetTask);
         BeginGameTask->AddDependencie(GenerateModelsTask);
         BeginGameTask->AddDependencie(GameStartedTask);
 
-        CreateRendererTask->m_TaskStopped = false;
-        InitRendererTask->m_TaskStopped = false;
-        InitUIManagerTask->m_TaskStopped = false;
-        InitUIStartScreensTask->m_TaskStopped = false;
-        GenerateStartScrTextTask->m_TaskStopped = false;
         ShowStartScreenTask->m_TaskStopped = false;
         GenerateModelsTask->m_TaskStopped = false;
-        BeginGameTask->m_TaskStopped = false;
+        BoardSizeSetTask->m_TaskStopped = false;
     }
     else
     {
-        std::shared_ptr<CTask> CreateRendererTask = gm->AddTask(gm, &CGameManager::CreateRenderer, "create_renderer_task", CTask::RenderThread, surfWidth, surfHeight);
-        std::shared_ptr<CTask> InitRendererTask = gm->AddTask(gm, &CGameManager::InitRendererTask, "init_renderer_task", CTask::RenderThread);
-        std::shared_ptr<CTask> InitUIManagerTask = gm->AddTask(gm, &CGameManager::InitUIManager, "init_uimanager_task", CTask::RenderThread);
-        std::shared_ptr<CTask> InitUIStartScreensTask = gm->AddTask(gm, &CGameManager::InitStartUIScreens, "init_uimanager_startscreens_task", CTask::RenderThread);
-        std::shared_ptr<CTask> GenerateStartScrTextTask = gm->AddTask(gm, &CGameManager::GenerateStartScreenTextures, "generate_startscreen_textures_task", CTask::RenderThread);
         std::shared_ptr<CTask> LoadGameStateTask = gm->AddTask(gm, &CGameManager::LoadState, "load_game_state_task", CTask::CurrentThread);
         std::shared_ptr<CTask> ReturnToSavedStateTask = gm->AddTask(gm, &CGameManager::ReturnToSavedStateTask, "return_to_saved_state_task", CTask::CurrentThread);
 
-        InitRendererTask->AddDependencie(CreateRendererTask);
-        InitUIManagerTask->AddDependencie(InitRendererTask);
-        InitUIStartScreensTask->AddDependencie(InitUIManagerTask);
-        GenerateStartScrTextTask->AddDependencie(InitUIStartScreensTask);
         LoadGameStateTask->AddDependencie(GenerateStartScrTextTask);
         ReturnToSavedStateTask->AddDependencie(LoadGameStateTask);
         BeginGameTask->AddDependencie(ReturnToSavedStateTask);
         BeginGameTask->AddDependencie(GameStartedTask);
 
-        CreateRendererTask->m_TaskStopped = false;
-        InitRendererTask->m_TaskStopped = false;
-        InitUIManagerTask->m_TaskStopped = false;
-        InitUIStartScreensTask->m_TaskStopped = false;
-        GenerateStartScrTextTask->m_TaskStopped = false;
         LoadGameStateTask->m_TaskStopped = false;
         ReturnToSavedStateTask->m_TaskStopped = false;
-        BeginGameTask->m_TaskStopped = false;
      }
+
+    BeginGameTask->m_TaskStopped = false;
+    CreateRendererTask->m_TaskStopped = false;
+    InitRendererTask->m_TaskStopped = false;
+    InitUIManagerTask->m_TaskStopped = false;
+    InitUIStartScreensTask->m_TaskStopped = false;
+    GenerateStartScrTextTask->m_TaskStopped = false;
 
     gm->StartGameThread();
 }
@@ -198,17 +186,7 @@ Java_com_example_szocsata_1android_OpenGLRenderer_EndInitAndStart(JNIEnv *env, j
     gm->InitBasedOnTileCount(true);
     gm->GenerateGameScreenTextures();
     gm->SetTaskFinished("game_started_task");
-
-    /*
-    gm->LoadPlayerAndBoardState();
-
-    if (gm->m_StartOnGameScreen)
-        gm->SetGameState(CGameManager::TurnInProgress);
-    else
-        gm->SetGameState(CGameManager::BeginGame);
-*/
     gm->GetUIManager()->m_UIInitialized = true;
-    gm->m_InitDone = true;
 }
 
 extern "C"

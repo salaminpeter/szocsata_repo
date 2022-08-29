@@ -155,34 +155,57 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	
    OpenGLFunctions::InitOpenGL(GetDC(hWnd), hWnd);
    
+   bool ResumeTest = true;
+
+   std::shared_ptr<CTask> BeginGameTask = GameManager->AddTask(GameManager, &CGameManager::BeginGameTask, "begin_game_task", CTask::RenderThread);
+   std::shared_ptr<CTask> GameStartedTask = GameManager->AddTask(GameManager, nullptr, "game_started_task", CTask::RenderThread);
    std::shared_ptr<CTask> CreateRendererTask = GameManager->AddTask(GameManager, &CGameManager::CreateRenderer, "create_renderer_task", CTask::RenderThread, WindowWidth, WindowHeigth);
    std::shared_ptr<CTask> InitRendererTask = GameManager->AddTask(GameManager, &CGameManager::InitRendererTask, "init_renderer_task", CTask::RenderThread);
    std::shared_ptr<CTask> InitUIManagerTask = GameManager->AddTask(GameManager, &CGameManager::InitUIManager, "init_uimanager_task", CTask::RenderThread);
    std::shared_ptr<CTask> InitUIStartScreensTask = GameManager->AddTask(GameManager, &CGameManager::InitStartUIScreens, "init_uimanager_startscreens_task", CTask::RenderThread);
    std::shared_ptr<CTask> GenerateStartScrTextTask = GameManager->AddTask(GameManager, &CGameManager::GenerateStartScreenTextures, "generate_startscreen_textures_task", CTask::RenderThread);
-   std::shared_ptr<CTask> ShowStartScreenTask = GameManager->AddTask(GameManager, &CGameManager::ShowStartScreenTask, "show_startscreen_task", CTask::RenderThread);
-   std::shared_ptr<CTask> BoardSizeSetTask = GameManager->AddTask(GameManager, nullptr, "board_size_set_task", CTask::RenderThread);
-   std::shared_ptr<CTask> GenerateModelsTask = GameManager->AddTask(GameManager, &CGameManager::GenerateModelsTask, "generate_models_task", CTask::RenderThread);
-   std::shared_ptr<CTask> BeginGameTask = GameManager->AddTask(GameManager, &CGameManager::BeginGameTask, "begin_game_task", CTask::RenderThread);
-   std::shared_ptr<CTask> GameStartedTask = GameManager->AddTask(GameManager, nullptr, "game_started_task", CTask::RenderThread);
 
    InitRendererTask->AddDependencie(CreateRendererTask);
    InitUIManagerTask->AddDependencie(InitRendererTask);
    InitUIStartScreensTask->AddDependencie(InitUIManagerTask);
    GenerateStartScrTextTask->AddDependencie(InitUIStartScreensTask);
-   ShowStartScreenTask->AddDependencie(GenerateStartScrTextTask);
-   GenerateModelsTask->AddDependencie(BoardSizeSetTask);
-   BeginGameTask->AddDependencie(GenerateModelsTask);
-   BeginGameTask->AddDependencie(GameStartedTask);
+
+	if (!ResumeTest)
+	{
+		std::shared_ptr<CTask> ShowStartScreenTask = GameManager->AddTask(GameManager, &CGameManager::ShowStartScreenTask, "show_startscreen_task", CTask::RenderThread);
+		std::shared_ptr<CTask> BoardSizeSetTask = GameManager->AddTask(GameManager, nullptr, "board_size_set_task", CTask::RenderThread);
+		std::shared_ptr<CTask> GenerateModelsTask = GameManager->AddTask(GameManager, &CGameManager::GenerateModelsTask, "generate_models_task", CTask::RenderThread);
+
+		ShowStartScreenTask->AddDependencie(GenerateStartScrTextTask);
+		GenerateModelsTask->AddDependencie(BoardSizeSetTask);
+		BeginGameTask->AddDependencie(GenerateModelsTask);
+		BeginGameTask->AddDependencie(GameStartedTask);
+		
+		ShowStartScreenTask->m_TaskStopped = false;
+		GenerateModelsTask->m_TaskStopped = false;
+		BoardSizeSetTask->m_TaskStopped = false;
+	}
+	else
+	{
+		std::shared_ptr<CTask> LoadGameStateTask = GameManager->AddTask(GameManager, &CGameManager::LoadState, "load_game_state_task", CTask::GameThread);
+		std::shared_ptr<CTask> ReturnToSavedStateTask = GameManager->AddTask(GameManager, &CGameManager::ReturnToSavedStateTask, "return_to_saved_state_task", CTask::GameThread);
+
+		LoadGameStateTask->AddDependencie(GenerateStartScrTextTask);
+		ReturnToSavedStateTask->AddDependencie(LoadGameStateTask);
+		BeginGameTask->AddDependencie(ReturnToSavedStateTask);
+		BeginGameTask->AddDependencie(GameStartedTask);
+
+		LoadGameStateTask->m_TaskStopped = false;
+		ReturnToSavedStateTask->m_TaskStopped = false;
+	}
 
 	CreateRendererTask->m_TaskStopped = false;
 	InitRendererTask->m_TaskStopped = false;
 	InitUIManagerTask->m_TaskStopped = false;
 	InitUIStartScreensTask->m_TaskStopped = false;
 	GenerateStartScrTextTask->m_TaskStopped = false;
-	ShowStartScreenTask->m_TaskStopped = false;
-	GenerateModelsTask->m_TaskStopped = false;
 	BeginGameTask->m_TaskStopped = false;
+	GameStartedTask->m_TaskStopped = false;
 
    GameManager->StartGameThread();
 	
@@ -203,10 +226,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		{
 			const std::lock_guard<std::mutex> lock(GameManager->m_TaskMutex);
 
-			if (GameManager->m_TaskToStartID != "")
+			if (GameManager->m_TaskToStartID.size())
 			{
-				GameManager->StartTask(GameManager->m_TaskToStartID.c_str());
-				GameManager->m_TaskToStartID = "";
+				GameManager->StartTask(GameManager->m_TaskToStartID.front().c_str());
+				GameManager->m_TaskToStartID.pop();
 			}
 		}
 
