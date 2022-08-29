@@ -20,7 +20,13 @@ void CGameState::SaveGameState()
 		return;
 	}
 
-	std::string FilePath = m_GameManager->GetWorkingDir() + "/state.dat";
+	std::string FilePath = m_GameManager->GetWorkingDir() + 
+#ifdef PLATFORM_ANDROID
+		"/state.dat";
+#else
+		"state.dat";
+#endif
+	
 	std::ofstream StateFile(FilePath, std::ofstream::binary);
 
 	if (StateFile.fail())
@@ -111,7 +117,13 @@ void CGameState::SaveGameState()
 
 void CGameState::LoadPlayerAndBoardState()
 {
-	std::string FilePath = m_GameManager->GetWorkingDir() + "/state.dat";
+	std::string FilePath = m_GameManager->GetWorkingDir() + 
+#ifdef PLATFORM_ANDROID
+		"/state.dat";
+#else
+		"state.dat";
+#endif
+
 	std::ifstream StateFile(FilePath, std::ifstream::binary);
 	StateFile.seekg(m_FilePos);
 
@@ -129,6 +141,15 @@ void CGameState::LoadPlayerAndBoardState()
 
 	int TileCount;
 	CConfig::GetConfig("tile_count", TileCount);
+
+#ifdef PLATFORM_ANDROID
+	size_t IntSize = sizeof(int);
+	size_t WCharSize = sizeof(wchar_t);
+	size_t SizeTSize = sizeof(size_t);
+#else
+	#define size_t int64_t
+	#define wchar_t char32_t
+#endif
 
 	for (int x = 0; x < TileCount; ++x) {
 		for (int y = 0; y < TileCount; ++y) {
@@ -200,12 +221,12 @@ void CGameState::LoadPlayerAndBoardState()
     }
 
 	size_t CharCount;
-	StateFile.read((char *)&CharCount, sizeof(size_t));
+	StateFile.read((char *)&CharCount, sizeof(int));
 
 	for (size_t i = 0; i < CharCount ; ++i)
 	{
 		size_t LetterCount;
-		StateFile.read((char *)&LetterCount, sizeof(size_t));
+		StateFile.read((char *)&LetterCount, sizeof(int));
 		m_GameManager->SetLetterCount(i, LetterCount);
 	}
 
@@ -227,13 +248,22 @@ void CGameState::LoadPlayerAndBoardState()
 		m_GameManager->GetUIManager()->GetPlayerLetters(0)->SetVisible(true);
 	}
 
+#ifndef PLATFORM_ANDROID
+	#undef size_t
+	#undef wchar_t
+#endif
 
-
+	StateFile.close();
 }
 
 void CGameState::LoadGameState()
 {
-	std::string FilePath = m_GameManager->GetWorkingDir() + "/state.dat";
+	std::string FilePath = m_GameManager->GetWorkingDir() + 
+#ifdef PLATFORM_ANDROID
+		"/state.dat";
+#else
+		"state.dat";
+#endif
 	std::ifstream StateFile(FilePath, std::ifstream::binary);
 
 	if (StateFile.fail())
@@ -310,7 +340,12 @@ void CGameState::SaveCameraState(float tiltAngle, float rotAngle)
 
 void CGameState::RemoveSaveFile()
 {
-	std::string FilePath = m_GameManager->GetWorkingDir() + "/state.dat";
+	std::string FilePath = m_GameManager->GetWorkingDir() + 
+#ifdef PLATFORM_ANDROID
+		"/state.dat";
+#else
+		"state.dat";
+#endif
 	std::remove(FilePath.c_str());
 }
 

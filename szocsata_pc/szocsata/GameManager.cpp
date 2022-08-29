@@ -198,8 +198,13 @@ void CGameManager::FinishRenderInit()
         m_JavaVM->DetachCurrentThread();
     }
 #else
+	GetUIManager()->m_UIInitialized = false;
 	SetTileCount();
 	InitBasedOnTileCount(true);
+	GenerateGameScreenTextures();
+	GetUIManager()->m_UIInitialized = true;
+	m_InitDone = true;
+
 	SetTaskFinished("game_started_task");
 #endif
 
@@ -1014,7 +1019,7 @@ void CGameManager::ReturnToSavedStateTask()
 
 		m_TaskManager->AddDependencie("generate_models_task", "load_game_state_task");
 		m_TaskManager->AddDependencie("init_game_screen_task", "load_game_state_task");
-		m_TaskManager->AddDependencie("init_game_screen_task", "return_to_saved_state_task");
+		//m_TaskManager->AddDependencie("init_game_screen_task", "return_to_saved_state_task");
 		InitLetterPoolTask->AddDependencie(InitGameScreenTask);
         InitPlayersTask->AddDependencie(InitLetterPoolTask);
 		GenerateGameScrTextTask->AddDependencie(InitPlayersTask);
@@ -1147,7 +1152,7 @@ void CGameManager::ExecuteTaskOnThread(const char* id, int threadId)
 	else if (threadId == CTask::RenderThread)
 	{ 
 		const std::lock_guard<std::mutex> lock(m_TaskMutex);
-		m_TaskToStartID = id;
+		m_TaskToStartID.push(id);
 	}
 #endif
 }

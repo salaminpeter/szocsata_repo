@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <algorithm>
+#include <queue>
 
 #include "Computer.h"
 #include "LetterPool.h"
@@ -187,7 +188,7 @@ public:
 	    m_RendererObject = obj;
 	}
 #else
-	std::string m_TaskToStartID;
+	std::queue<std::string> m_TaskToStartID;
 	std::mutex m_TaskMutex;
 #endif
 
