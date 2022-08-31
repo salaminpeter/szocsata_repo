@@ -128,8 +128,8 @@ void CComputer::GetWordsInFieldList(const std::wstring& letters, CWordTree::TNod
 		return;
 
 	CWordTree::TNode* ChildNode = nullptr;
-	wchar_t CurrentLetter = fieldList[wordStartIdx + charCount]->m_Char;
-	int CurrentFieldHeight = fieldList[wordStartIdx + charCount]->m_Height;
+	wchar_t CurrentLetter = fieldList[wordStartIdx + charCount - 1]->m_Char;
+	int CurrentFieldHeight = fieldList[wordStartIdx + charCount - 1]->m_Height;
 
 	//vizsgalando szo elott van egy betu a tablan akkor ezt a fazist ugorhatjuk mert mar az osszes lehetseges szo ellenorizve lett
 	if (wordStartIdx != 0 && charCount == 0 && fieldList[wordStartIdx - 1]->m_Char != L'*')
@@ -144,7 +144,7 @@ void CComputer::GetWordsInFieldList(const std::wstring& letters, CWordTree::TNod
 			ChildNode = node->FindChild(CurrentLetter);
 
 			if (ChildNode) {
-				if (ChildNode->m_WordEnd && (fieldList.size() == wordStartIdx + charCount || (wordStartIdx + charCount + 1 < fieldList.size() && fieldList[wordStartIdx + charCount + 1]->m_Char == L'*')))
+				if (ChildNode->m_WordEnd && (fieldList.size() == wordStartIdx + charCount || fieldList[wordStartIdx + charCount]->m_Char == L'*'))
 				{
 					int WordX = horizontal ? wordStartIdx : pos;
 					int WordY = horizontal ? pos : wordStartIdx;
@@ -174,7 +174,7 @@ void CComputer::GetWordsInFieldList(const std::wstring& letters, CWordTree::TNod
 
 		else if (ChildNode = node->FindChild(letters[i]))
 		{
-			if (ChildNode->m_WordEnd && (fieldList.size() == wordStartIdx + charCount || (wordStartIdx + charCount + 1 < fieldList.size() && fieldList[wordStartIdx + charCount + 1]->m_Char == L'*')))
+			if (ChildNode->m_WordEnd && (fieldList.size() == wordStartIdx + charCount || fieldList[wordStartIdx + charCount]->m_Char == L'*'))
 			{
 				int WordX = horizontal ? wordStartIdx : pos;
 				int WordY = horizontal ? pos : wordStartIdx;
@@ -209,7 +209,7 @@ void CComputer::ComputeRowCol(int idx, bool rows)
 			if (i != 0 && Row[i - 1]->m_Char == L'*')
 				CurrentNode = nullptr;
 
-			if (i != 0 && Row[i - 1]->m_Char != L'*' && !CurrentNode)
+			else if (i != 0 && Row[i - 1]->m_Char != L'*' && !CurrentNode)
 				CurrentNode = m_GameManager->WordTreeRoot(Row[i - 1]->m_Char);
 
 

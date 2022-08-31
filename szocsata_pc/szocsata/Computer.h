@@ -16,7 +16,7 @@ public:
 	int BestWordCount() { return m_BestWords.size(); }
 
 	void BackTrackWord(CWordTree::TNode* node, std::wstring& word, int x, int y, bool horizontal, CBinaryBoolList usedLetters);
-	void GetWordsInFieldList(const std::wstring& letters, CWordTree::TNode* node, CBinaryBoolList usedLetters, std::vector<TField*>& fieldList, int wordStartIdx, int pos, bool horizontal, int charCount = 0);
+	void GetWordsInFieldList(const std::wstring& letters, CWordTree::TNode* node, CBinaryBoolList usedLetters, std::vector<TField*>& fieldList, int wordStartIdx, int pos, bool horizontal, int charCount = 1);
 	void ComputeRowCol(int idx, bool rows);
 	void CalculateStep();
 	bool FindWord(const std::wstring& word, int score, bool horizontal = false, bool checkAlingnment = false, size_t** idx = nullptr);

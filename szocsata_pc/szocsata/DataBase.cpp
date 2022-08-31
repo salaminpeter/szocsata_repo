@@ -40,6 +40,8 @@ void CDataBase::LoadDataBase(const char* dbFilePath)
 		WordTree->AddWord(Str, WordTree->Root());
 		linecount++;
 	}
+
+	m_WordTrees[L'y'] = new CWordTree(L'y');
 }
 
 
