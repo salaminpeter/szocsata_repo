@@ -22,8 +22,6 @@ void CDataBase::LoadDataBase(const char* dbFilePath)
 	if (!CIOManager::GetStreamStrForFile(dbFilePath, StrStream))
 		return;
 
-	m_WordTrees[L'y'] = new CWordTree(L'y');
-
 	while (std::getline(StrStream, Str))
 	{
         CWordTree* WordTree;
@@ -38,15 +36,6 @@ void CDataBase::LoadDataBase(const char* dbFilePath)
 			m_WordTrees[Str[0]] = new CWordTree(Str[0]);
 			WordTree = m_WordTrees[Str[0]];
 		}
-
-		//===================================
-		int YPos;
-		if ((YPos = Str.find_first_of('y')) != std::string::npos)
-		{
-			std::wstring s = Str.substr(YPos, Str.length() - YPos);
-			WordTree->AddWord(s, m_WordTrees[L'y']->Root());
-		}
-		//===================================
 
 		WordTree->AddWord(Str, WordTree->Root());
 		linecount++;
