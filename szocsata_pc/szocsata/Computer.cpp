@@ -132,7 +132,7 @@ void CComputer::GetWordsInFieldList(const std::wstring& letters, CWordTree::TNod
 	int CurrentFieldHeight = fieldList[wordStartIdx + charCount - 1]->m_Height;
 
 	//vizsgalando szo elott van egy betu a tablan akkor ezt a fazist ugorhatjuk mert mar az osszes lehetseges szo ellenorizve lett
-	if (wordStartIdx != 0 && charCount == 0 && fieldList[wordStartIdx - 1]->m_Char != L'*')
+	if (wordStartIdx != 0 && !node && fieldList[wordStartIdx - 1]->m_Char != L'*')
 		return;
 
 	if (CurrentLetter != L'*')
@@ -169,7 +169,11 @@ void CComputer::GetWordsInFieldList(const std::wstring& letters, CWordTree::TNod
 			CBinaryBoolList UsedLetters = usedLetters;
 			UsedLetters.SetFlag(i, true);
 			CWordTree::TNode* RootNode = m_GameManager->WordTreeRoot(letters[i]);
-			GetWordsInFieldList(letters, RootNode, UsedLetters, fieldList, wordStartIdx, pos, horizontal, charCount + (RootNode || CurrentLetter != L'*' ? 1 : 0));
+
+			if (!RootNode)
+				return;
+
+			GetWordsInFieldList(letters, RootNode, UsedLetters, fieldList, wordStartIdx, pos, horizontal, charCount + 1);
 		}
 
 		else if (ChildNode = node->FindChild(letters[i]))
@@ -212,7 +216,6 @@ void CComputer::ComputeRowCol(int idx, bool rows)
 			else if (i != 0 && Row[i - 1]->m_Char != L'*' && !CurrentNode)
 				CurrentNode = m_GameManager->WordTreeRoot(Row[i - 1]->m_Char);
 
-
 			if (Row[i]->m_Char != L'*')
 			{
 				if (!CurrentNode)
@@ -221,7 +224,7 @@ void CComputer::ComputeRowCol(int idx, bool rows)
 				}
 				else
 				{
-					GetWordsInFieldList(m_Letters, CurrentNode, CBinaryBoolList(), Row, i - CurrentNode->m_Level - 1, idx, true, CurrentNode->m_Level + 1);
+					GetWordsInFieldList(m_Letters, CurrentNode, CBinaryBoolList(), Row, i - CurrentNode->m_Level - 1, idx, true, CurrentNode->m_Level + 2);
 					CurrentNode = CurrentNode->FindChild(Row[i]->m_Char);
 				}
 			}
@@ -229,7 +232,7 @@ void CComputer::ComputeRowCol(int idx, bool rows)
 				if (!CurrentNode)
 					GetWordsInFieldList(m_Letters, nullptr, CBinaryBoolList(), Row, i, idx, true);
 				else
-					GetWordsInFieldList(m_Letters, CurrentNode, CBinaryBoolList(), Row, i - CurrentNode->m_Level - 1, idx, true, CurrentNode->m_Level + 1);
+					GetWordsInFieldList(m_Letters, CurrentNode, CBinaryBoolList(), Row, i - CurrentNode->m_Level - 1, idx, true, CurrentNode->m_Level + 2);
 			}
 		}
 	}
@@ -247,7 +250,7 @@ void CComputer::ComputeRowCol(int idx, bool rows)
 			if (i != 0 && Column[i - 1]->m_Char == L'*')
 				CurrentNode = nullptr;
 
-			if (i != 0 && Column[i - 1]->m_Char != L'*' && !CurrentNode)
+			else if (i != 0 && Column[i - 1]->m_Char != L'*' && !CurrentNode)
 				CurrentNode = m_GameManager->WordTreeRoot(Column[i - 1]->m_Char);
 
 			if (Column[i]->m_Char != L'*')
@@ -258,7 +261,7 @@ void CComputer::ComputeRowCol(int idx, bool rows)
 				}
 				else
 				{
-					GetWordsInFieldList(m_Letters, CurrentNode, CBinaryBoolList(), Column, i - CurrentNode->m_Level - 1, idx, false, CurrentNode->m_Level + 1);
+					GetWordsInFieldList(m_Letters, CurrentNode, CBinaryBoolList(), Column, i - CurrentNode->m_Level - 1, idx, false, CurrentNode->m_Level + 2);
 					CurrentNode = CurrentNode->FindChild(Column[i]->m_Char);
 				}
 			}
@@ -266,7 +269,7 @@ void CComputer::ComputeRowCol(int idx, bool rows)
 				if (!CurrentNode)
 					GetWordsInFieldList(m_Letters, nullptr, CBinaryBoolList(), Column, i, idx, false);
 				else
-					GetWordsInFieldList(m_Letters, CurrentNode, CBinaryBoolList(), Column, i - CurrentNode->m_Level - 1, idx, false, CurrentNode->m_Level + 1);
+					GetWordsInFieldList(m_Letters, CurrentNode, CBinaryBoolList(), Column, i - CurrentNode->m_Level - 1, idx, false, CurrentNode->m_Level + 2);
 			}
 		}
 	}
