@@ -705,8 +705,11 @@ void CUIManager::SetRemainingTimeStr(const wchar_t* timeStr)
 	if (GetTimeLimit() == -1)
 		return;
 
-	CUIButton* Button = static_cast<CUIButton*>(m_RootGameScreen->GetChild(L"ui_countdown_btn"));
-	Button->SetText(timeStr);
+	if (m_RootGameScreen)
+	{
+		CUIButton* Button = static_cast<CUIButton*>(m_RootGameScreen->GetChild(L"ui_countdown_btn"));
+		Button->SetText(timeStr);
+	}
 }
 
 void CUIManager::ShowPlayerLetters(bool show, const wchar_t* playerId)

@@ -55,6 +55,8 @@ void CUIText::SetColor(float r, float g, float b)
 {
 	m_TextureModColor = glm::vec4(r, g, b, 1);
 
+	const std::lock_guard<std::mutex> lock(m_TextMutex);
+
 	for (size_t i = 0; i < m_Children.size(); ++i)
 		m_Children[i]->SetModifyColor(glm::vec4(r, g, b, 1));
 }
@@ -118,59 +120,63 @@ float CUIText::GetTextWidthInPixels(const std::wstring& text, int size)
 
 void CUIText::SetText(const wchar_t* text)
 {
-	m_Text = text;
-	size_t TextCharCount = Length();
-
-	if (m_Children.size() < TextCharCount)
 	{
-		size_t from = m_Children.size();
+		const std::lock_guard<std::mutex> lock(m_TextMutex);
 
-		for (size_t i = from; i < m_Text.length(); ++i)
+		m_Text = text;
+		size_t TextCharCount = Length();
+
+		if (m_Children.size() < TextCharCount)
 		{
-			if (m_Text[i] != L' ')
-				new CUIElement(this, L"", new CModel(false, 2, m_Model->GetPositionData(), m_Model->GetColorData(), "font.bmp", "textured"), 0, 0, m_Height, m_Height, m_ViewXPosition, m_ViewYPosition, 0, 0);
+			size_t from = m_Children.size();
+
+			for (size_t i = from; i < m_Text.length(); ++i)
+			{
+				if (m_Text[i] != L' ')
+					new CUIElement(this, L"", new CModel(false, 2, m_Model->GetPositionData(), m_Model->GetColorData(), "font.bmp", "textured"), 0, 0, m_Height, m_Height, m_ViewXPosition, m_ViewYPosition, 0, 0);
+			}
 		}
-	}
-	else
-	{
-		int to = m_Children.size() - TextCharCount;
-
-		for (size_t i = 0; i < to; ++i)
-		{
-			delete m_Children.back();
-			m_Children.pop_back();
-		}
-	}
-
-	float FontWidth = (m_FontTextureCharWidth / m_FontTextureCharHeight) * m_Height;
-	float FontCharGap = FontWidth / 10.f;
-	float FontSpace = FontWidth / 2.f;
-	float Offset = 0.f;
-	size_t idx = 0;
-
-	m_Width = GetTextWidthInPixels(text, m_Height);
-
-	for (size_t i = 0; i < m_Text.length(); ++i)
-	{
-		if (m_Text.at(i) == L' ')
-			Offset += FontSpace;
 		else
 		{
-			float FontDesc = 0.f;
-			if (m_FontDesc.find(m_Text.at(i)) != m_FontDesc.end())
-				FontDesc = m_Height * m_FontDesc[m_Text.at(i)];
+			int to = m_Children.size() - TextCharCount;
 
-			m_Children[idx]->SetPosAndSize(Offset, -FontDesc, FontWidth, m_Height, false);
-			Offset += m_FontCharWidth[m_Text.at(i)] * (FontWidth / m_FontTextureCharWidth) + FontCharGap;
-			idx++;
+			for (size_t i = 0; i < to; ++i)
+			{
+				delete m_Children.back();
+				m_Children.pop_back();
+			}
 		}
+
+		float FontWidth = (m_FontTextureCharWidth / m_FontTextureCharHeight) * m_Height;
+		float FontCharGap = FontWidth / 10.f;
+		float FontSpace = FontWidth / 2.f;
+		float Offset = 0.f;
+		size_t idx = 0;
+
+		m_Width = GetTextWidthInPixels(text, m_Height);
+
+		for (size_t i = 0; i < m_Text.length(); ++i)
+		{
+			if (m_Text.at(i) == L' ')
+				Offset += FontSpace;
+			else
+			{
+				float FontDesc = 0.f;
+				if (m_FontDesc.find(m_Text.at(i)) != m_FontDesc.end())
+					FontDesc = m_Height * m_FontDesc[m_Text.at(i)];
+
+				m_Children[idx]->SetPosAndSize(Offset, -FontDesc, FontWidth, m_Height, false);
+				Offset += m_FontCharWidth[m_Text.at(i)] * (FontWidth / m_FontTextureCharWidth) + FontCharGap;
+				idx++;
+			}
+		}
+
+		idx = 0;
+
+		for (size_t i = 0; i < m_Text.length(); ++i)
+			if (m_Text.at(i) != L' ')
+				m_Children[idx++]->SetTexturePosition(glm::vec2((1.f / 16.f) * m_FontTexPos[m_Text.at(i)].x, (1.f / 6.f) * m_FontTexPos[m_Text.at(i)].y));
 	}
-
-	idx = 0;
-
-	for (size_t i = 0; i < m_Text.length(); ++i)
-		if (m_Text.at(i) != L' ')
-			m_Children[idx++]->SetTexturePosition(glm::vec2((1.f / 16.f) * m_FontTexPos[m_Text.at(i)].x, (1.f / 6.f) * m_FontTexPos[m_Text.at(i)].y));
 
 	SetColor(m_TextureModColor.r, m_TextureModColor.g, m_TextureModColor.b);
 }

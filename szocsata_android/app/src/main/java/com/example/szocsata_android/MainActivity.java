@@ -3,6 +3,7 @@ package com.example.szocsata_android;
 import androidx.annotation.MainThread;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.view.MotionEventCompat;
 
 import android.accessibilityservice.FingerprintGestureController;
@@ -207,10 +208,24 @@ public class MainActivity extends AppCompatActivity {
         return ((Context) obj).getFilesDir().toString();
     }
 
-    /**
-     * A native method that is implemented by the 'native-lib' native library,
-     * which is packaged with this application.
-     */
+    public static void showLoadingScreen(boolean show) {
+
+        obj.runOnUiThread(new Runnable() {
+            public void run() {
+                View openGlView  = (View) obj.findViewById(R.id.openGLView);
+                View textView  = (View) obj.findViewById(R.id.textView);
+
+                openGlView.setScaleX(show ? 0 : 1);
+                openGlView.setScaleY(show ? 0 : 1);
+                textView.setVisibility(show ? View.VISIBLE : View.INVISIBLE);
+            }
+        });
+    }
+
+        /**
+         * A native method that is implemented by the 'native-lib' native library,
+         * which is packaged with this application.
+         */
     public native void SetAssetManager(Object assetManager);
     public native void HandleTouchEvent(int x, int y);
     public native void HandleReleaseEvent(int x, int y);

@@ -69,6 +69,8 @@ void InitGameManager(int surfWidth, int surfHeight)
     gm->m_JavaVM = g_VM;
     InputManager = new CInputManager(gm);
 
+    gm->ShowLoadingScreen(true);
+
     bool ResumeGame = gm->GameStateFileFound();
 
     std::shared_ptr<CTask> BeginGameTask = gm->AddTask(gm, &CGameManager::BeginGameTask, "begin_game_task", CTask::RenderThread);
@@ -78,6 +80,7 @@ void InitGameManager(int surfWidth, int surfHeight)
     std::shared_ptr<CTask> InitUIManagerTask = gm->AddTask(gm, &CGameManager::InitUIManager, "init_uimanager_task", CTask::RenderThread);
     std::shared_ptr<CTask> InitUIStartScreensTask = gm->AddTask(gm, &CGameManager::InitStartUIScreens, "init_uimanager_startscreens_task", CTask::RenderThread);
     std::shared_ptr<CTask> GenerateStartScrTextTask = gm->AddTask(gm, &CGameManager::GenerateStartScreenTextures, "generate_startscreen_textures_task", CTask::RenderThread);
+    std::shared_ptr<CTask> HideLoadScreenTask = gm->AddTask(gm, &CGameManager::HideLoadScreen, "hide_load_screen_task", CTask::RenderThread);
 
     InitRendererTask->AddDependencie(CreateRendererTask);
     InitUIManagerTask->AddDependencie(InitRendererTask);
@@ -94,6 +97,7 @@ void InitGameManager(int surfWidth, int surfHeight)
         GenerateModelsTask->AddDependencie(BoardSizeSetTask);
         BeginGameTask->AddDependencie(GenerateModelsTask);
         BeginGameTask->AddDependencie(GameStartedTask);
+        HideLoadScreenTask->AddDependencie(ShowStartScreenTask);
 
         ShowStartScreenTask->m_TaskStopped = false;
         GenerateModelsTask->m_TaskStopped = false;
@@ -119,6 +123,7 @@ void InitGameManager(int surfWidth, int surfHeight)
     InitUIManagerTask->m_TaskStopped = false;
     InitUIStartScreensTask->m_TaskStopped = false;
     GenerateStartScrTextTask->m_TaskStopped = false;
+    HideLoadScreenTask->m_TaskStopped = false;
 
     gm->StartGameThread();
 }
@@ -181,12 +186,14 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_szocsata_1android_OpenGLRenderer_EndInitAndStart(JNIEnv *env, jobject thiz) {
 
+    gm->ShowLoadingScreen(true);
     gm->GetUIManager()->m_UIInitialized = false;
     gm->SetTileCount();
     gm->InitBasedOnTileCount(true);
     gm->GenerateGameScreenTextures();
     gm->SetTaskFinished("game_started_task");
     gm->GetUIManager()->m_UIInitialized = true;
+    gm->ShowLoadingScreen(false);
 }
 
 extern "C"

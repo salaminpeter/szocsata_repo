@@ -25,6 +25,7 @@
 #include <GLES3\gl3.h>
 #include <fstream>
 
+#include <algorithm>
 
 CGameManager::CGameManager()
 {
@@ -154,6 +155,7 @@ void CGameManager::AddPlayers(int playerCount, bool addComputer, bool addLetters
 		m_UIManager->GetPlayerLetters(m_Players.back()->GetName().c_str())->ShowLetters(false);
 	}
 
+	m_CurrentPlayer = m_Players[0];
 	m_UIManager->SetTileCounterValue(m_LetterPool.GetRemainingLetterCount());
 }
 
@@ -323,8 +325,8 @@ void CGameManager::InitPlayers(bool addLetters)
 
 void CGameManager::StartGame()
 {
-	ShowNextPlayerPopup();
-	NextPlayerTurn();
+	ShowCurrPlayerPopup();
+	CurrentPlayerTurn();
 }
 
 void CGameManager::AddWordSelectionAnimation(const std::vector<TWordPos>& wordPos, bool positive)
@@ -354,6 +356,9 @@ void CGameManager::StartPlayerTurn(CPlayer* player, bool saveBoard)
 	m_CurrentPlayer = player;
 	SetGameState(EGameState::TurnInProgress);
 
+	if (player->IsComputer())
+		StartComputerturn();
+
 	if (saveBoard)
 		m_TmpGameBoard = m_GameBoard;
 }
@@ -371,6 +376,38 @@ float CGameManager::GetLetterSize()
 glm::ivec2 CGameManager::GetUIElementSize(const wchar_t* id)
 {
 	return glm::ivec2(m_UIManager->GetUIElement(id)->GetWidth(), m_UIManager->GetUIElement(id)->GetHeight());
+}
+
+void CGameManager::ShowLoadingScreen(bool show)
+{
+#ifdef PLATFORM_ANDROID
+
+	extern jclass g_MainActivityClass;
+
+	JNIEnv* env;
+
+	m_JavaVM->GetEnv((void **)&env, JNI_VERSION_1_6);
+
+	if (env)
+	{
+		jclass Class = env->FindClass("com/example/szocsata_android/MainActivity");
+		jmethodID Method = env->GetStaticMethodID(Class, "showLoadingScreen", "(Z)V");
+		env->CallStaticVoidMethod(Class, Method, show);
+	}
+	else {
+		m_JavaVM->AttachCurrentThread(&env, NULL);
+        jmethodID Method = env->GetStaticMethodID(g_MainActivityClass, "showLoadingScreen", "(Z)V");
+        env->CallStaticObjectMethod(g_MainActivityClass, Method, show);
+
+		if (env->ExceptionCheck()) {
+			env->ExceptionDescribe();
+			env->ExceptionClear();
+		}
+
+		m_JavaVM->DetachCurrentThread();
+	}
+#endif
+
 }
 
 std::string CGameManager::GetWorkingDir()
@@ -501,6 +538,15 @@ bool CGameManager::PlayerLetterAnimationFinished()
 	return m_PlayerLetterAnimationManager->Finished();
 }
 
+void CGameManager::ShowCurrPlayerPopup()
+{
+	m_UIManager->EnableGameButtons(true);
+	m_UIManager->SetRemainingTimeStr(GetTimeStr(m_UIManager->GetTimeLimit()).c_str());
+	m_UIManager->ShowMessageBox(CUIMessageBox::Ok, m_CurrentPlayer->GetName().c_str());
+
+	SetTaskFinished("show_next_player_popup_task");
+}
+
 void CGameManager::ShowNextPlayerPopup()
 {
 	m_UIManager->EnableGameButtons(true);
@@ -586,24 +632,28 @@ std::wstring CGameManager::GetNextPlayerName()
 }
 
 
+void CGameManager::CurrentPlayerTurn()
+{
+	SetGameState(EGameState::TurnInProgress);
+
+	m_UIManager->SetCurrentPlayerName(m_CurrentPlayer->GetName().c_str(), m_CurrentPlayer->GetColor().r, m_CurrentPlayer->GetColor().g, m_CurrentPlayer->GetColor().b);
+	m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName().c_str())->SetLetterVisibility(CBinaryBoolList());
+	m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName().c_str())->ShowLetters(true);
+	m_UIManager->EnableGameButtons(!m_CurrentPlayer->IsComputer());
+	StartPlayerTurn(m_CurrentPlayer);
+}
+
+
 void CGameManager::NextPlayerTurn()
 {
 	SetGameState(EGameState::TurnInProgress);
 
 	int NextPlayerIdx;
 
-	if (!m_CurrentPlayer)
-	{
-		NextPlayerIdx = 0;
-		m_CurrentPlayer = m_Players[0];
-	}
-	else
-	{ 
-		m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName().c_str())->ShowLetters(false);
-		int CurrPlayerIdx = -1;
-		while (m_Players[++CurrPlayerIdx] != m_CurrentPlayer);
-		NextPlayerIdx = CurrPlayerIdx == m_Players.size() - 1 ? 0 : CurrPlayerIdx + 1;
-	}
+	m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName().c_str())->ShowLetters(false);
+	int CurrPlayerIdx = -1;
+	while (m_Players[++CurrPlayerIdx] != m_CurrentPlayer);
+	NextPlayerIdx = CurrPlayerIdx == m_Players.size() - 1 ? 0 : CurrPlayerIdx + 1;
 
 	m_Players[NextPlayerIdx]->m_Passed = false;
 
@@ -621,15 +671,11 @@ void CGameManager::NextPlayerTurn()
 	m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName().c_str())->ShowLetters(true);
 
 	if (m_Players[NextPlayerIdx]->GetName() == L"computer")
-	{
 		m_UIManager->EnableGameButtons(false);
-		StartComputerturn();
-	}
 	else
-	{
 		m_UIManager->EnableGameButtons(true);
-		StartPlayerTurn(m_Players[NextPlayerIdx]);
-	}
+
+	StartPlayerTurn(m_Players[NextPlayerIdx]);
 }
 
 void CGameManager::HandlePlayerPass()
@@ -961,7 +1007,20 @@ void CGameManager::LoadPlayerAndBoardState()
     if (GameScreenActive(m_SavedGameState))
     	m_State->LoadPlayerAndBoardState();
 
+	m_CurrentPlayer->SetAllLetters();
+
 	SetTaskFinished("load_palyer_and_board_state_task");
+}
+
+size_t CGameManager::GetCurrentPlayerIdx()
+{
+	for (size_t i = 0; i < m_Players.size(); ++i)
+	{
+		if (m_Players[i] == m_CurrentPlayer)
+			return i;
+	}
+
+	return 0;
 }
 
 void CGameManager::LoadState()
@@ -981,8 +1040,9 @@ void CGameManager::ShowSavedScreenTask()
 	}
 
 	SetTaskFinished("resume_on_saved_screen_task");
-	m_UIManager->m_UIInitialized = true;
+	SetTaskFinished("game_started_task");
 
+	m_UIManager->m_UIInitialized = true;
 }
 
 void CGameManager::ShowStartScreenTask()
@@ -1026,6 +1086,7 @@ void CGameManager::ReturnToSavedStateTask()
 		LoadPlayerBoardStateTask->AddDependencie(GenerateModelsTask);
 		LoadPlayerBoardStateTask->AddDependencie(InitPlayersTask);
 		ResumeOnSavedScreenTask->AddDependencie(LoadPlayerBoardStateTask);
+		m_TaskManager->AddDependencie("hide_load_screen_task", "resume_on_saved_screen_task");
 
 		InitGameScreenTask->m_TaskStopped = false;
 		InitLetterPoolTask->m_TaskStopped = false;
@@ -1040,17 +1101,18 @@ void CGameManager::ReturnToSavedStateTask()
 		m_TaskManager->AddDependencie("generate_models_task", "board_size_set_task");
 		m_TaskManager->AddDependencie("resume_on_saved_screen_task", "init_uimanager_startscreens_task");
 		GenerateModelsTask->AddDependencie(BoardSizeSetTask);
+		m_TaskManager->AddDependencie("hide", "generate_models_task");
 	}
 
 	GenerateModelsTask->m_TaskStopped = false;
-	ResumeOnSavedScreenTask->m_TaskStopped = false;
+    ResumeOnSavedScreenTask->m_TaskStopped = false;
 
 	SetTaskFinished("return_to_saved_state_task");
 }
 
 void CGameManager::InitGameScreenTask()
 {
-	m_UIManager->InitGameScreen(m_Renderer->GetSquarePositionData(), m_Renderer->GetSquareColorData(), m_Renderer->GetSquareColorGridData16x6());
+ 	m_UIManager->InitGameScreen(m_Renderer->GetSquarePositionData(), m_Renderer->GetSquareColorData(), m_Renderer->GetSquareColorGridData16x6());
 	m_UIManager->InitRankingsScreen(m_Renderer->GetSquarePositionData(), m_Renderer->GetSquareColorData(), m_Renderer->GetSquareColorGridData16x6());
     SetTaskFinished("init_game_screen_task");
 }
@@ -1896,6 +1958,7 @@ void CGameManager::RenderTileAnimations()
 void CGameManager::RenderUI()
 {
 	glDisable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
 
 	m_UIManager->RenderUI();
 
@@ -1905,6 +1968,7 @@ void CGameManager::RenderUI()
 		m_UIManager->RenderMessageBox();
 	}
 
+	glDisable(GL_BLEND);
 	glEnable(GL_DEPTH_TEST);
 }
 

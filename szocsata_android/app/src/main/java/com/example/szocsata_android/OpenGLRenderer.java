@@ -60,7 +60,7 @@ public class OpenGLRenderer implements GLSurfaceView.Renderer {
             Render();
         }
         else {
-            gl.glClearColor(0, 1, 0, 1);
+            gl.glClearColor(0, 0, 0, 1);
             gl.glClear(GLES20.GL_COLOR_BUFFER_BIT);
         }
     }

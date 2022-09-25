@@ -142,9 +142,6 @@ void CUIElement::RenderInner(CRenderer* renderer, int& elemIdx, int& colorBuffer
 		colorBufferID = m_Model->GetColorBufferID();
 		textureOffset = m_Model->GetTextureOffset();
 
-		if (elemIdx == 0)
-			renderer->EnableBlending(true);
-
 		renderer->SetModifyColor(m_TextureModColor.r, m_TextureModColor.g, m_TextureModColor.b, m_TextureModColor.a);
 		renderer->SetTexturePos(m_TexturePosition);
 		renderer->DrawModel(m_Model, "view_ortho", "textured", false, elemIdx == 0, BindTexture, elemIdx == elemCount - 1, SetTextureVertexAttrib);
@@ -155,9 +152,6 @@ void CUIElement::RenderInner(CRenderer* renderer, int& elemIdx, int& colorBuffer
 	{
 		m_Children[i]->RenderInner(renderer, elemIdx, colorBufferID, textureOffset, elemCount);
 	}
-
-	if (elemIdx == elemCount)
-		renderer->EnableBlending(false);
 }
 
 void CUIElement::Render(CRenderer* renderer) 

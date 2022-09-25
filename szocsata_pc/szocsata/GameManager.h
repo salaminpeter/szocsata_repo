@@ -96,6 +96,7 @@ public:
 	bool EndComputerTurn();
 	bool EndPlayerTurn(bool stillHaveTime = true);
 	void NextPlayerTurn();
+	void CurrentPlayerTurn();
 	void HandlePlayerPass();
 	void UndoLastStep();
 	void UndoAllSteps();
@@ -124,6 +125,7 @@ public:
 	bool GameScreenActive();
 	bool GameScreenActive(EGameState state);
 	void ShowNextPlayerPopup();
+	void ShowCurrPlayerPopup();
 	bool TileAnimationFinished();
 	bool PlayerLetterAnimationFinished();
 	void StartDimmingAnimation(bool fadeIn);
@@ -141,6 +143,7 @@ public:
 	float GetLetterSize();
 	std::wstring GetTimeStr(int msec);
 	std::string GetWorkingDir();
+	void ShowLoadingScreen(bool show);
 	std::wstring GetWordAtPos(bool horizontal, int& x, int& y);
 	void SetBoardSize();
 	void SetTileCounterCount();
@@ -156,11 +159,17 @@ public:
 	CPlayer* GetCurrentPlayer() {return m_CurrentPlayer;}
 	CPlayer* GetPlayer(size_t idx) {return m_Players[idx];}
  	void SaveState() { m_State->SaveGameState(); }
+	size_t GetCurrentPlayerIdx();
 	void LoadState();
 	void LoadPlayerAndBoardState();
 	void SetTaskFinished(const char* id) { m_TaskManager->SetTaskFinished(id); }
 	void StopTaskThread() {m_TaskManager->StopThread();}
     void RevertGameBoard() {m_GameBoard = m_TmpGameBoard;}
+    void HideLoadScreen()
+    {
+	    ShowLoadingScreen(false);
+	    m_TaskManager->SetTaskFinished("hide_load_screen_task");
+    }
 
     void ShowStartScreenTask();
     void ShowSavedScreenTask();

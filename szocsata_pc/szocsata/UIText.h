@@ -5,6 +5,8 @@
 #include <glm/glm.hpp>
 #include <map>
 #include <algorithm>
+#include <mutex>
+
 
 class CSquarePositionData;
 class CSquareColorData;
@@ -43,4 +45,6 @@ private:
 	static std::map<wchar_t, int> m_FontCharWidth;
 	static std::map<wchar_t, int> m_FontCharHeight;
 	static std::map<wchar_t, float> m_FontDesc;
+
+	std::mutex m_TextMutex;
 };

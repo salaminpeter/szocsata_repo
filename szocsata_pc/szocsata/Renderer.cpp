@@ -744,7 +744,6 @@ void CRenderer::InitRenderer()
 	m_TextureManager->AddTexture("letters.bmp");
 	m_TextureManager->AddTexture("boardtex.bmp");
 	m_TextureManager->AddTexture("gridtex.bmp");
-	m_TextureManager->AddTexture("panel.bmp");
 	m_TextureManager->AddTexture("background.bmp");
 
 	m_TextureManager->AddTexture("player_icon.bmp", 4);

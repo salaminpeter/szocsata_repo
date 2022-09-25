@@ -49,8 +49,10 @@ void CGameState::SaveGameState()
 
 	if (OnGameScreen)
 	{
-		m_GameManager->SetTileCount();
+		size_t CurrentPlayerIdx = m_GameManager->GetCurrentPlayerIdx();
+		StateFile.write((char *)&CurrentPlayerIdx, sizeof(size_t));
 
+		m_GameManager->SetTileCount();
 		int TileCount;
 		CConfig::GetConfig("tile_count", TileCount);
 
@@ -142,14 +144,13 @@ void CGameState::LoadPlayerAndBoardState()
 	int TileCount;
 	CConfig::GetConfig("tile_count", TileCount);
 
-#ifdef PLATFORM_ANDROID
-	size_t IntSize = sizeof(int);
-	size_t WCharSize = sizeof(wchar_t);
-	size_t SizeTSize = sizeof(size_t);
-#else
+#ifndef PLATFORM_ANDROID
 	#define size_t int64_t
 	#define wchar_t char32_t
 #endif
+	
+	size_t CurrentPlayerIdx;
+	StateFile.read((char *)&CurrentPlayerIdx, sizeof(size_t));
 
 	for (int x = 0; x < TileCount; ++x) {
 		for (int y = 0; y < TileCount; ++y) {
@@ -221,12 +222,12 @@ void CGameState::LoadPlayerAndBoardState()
     }
 
 	size_t CharCount;
-	StateFile.read((char *)&CharCount, sizeof(int));
+	StateFile.read((char *)&CharCount, sizeof(size_t));
 
 	for (size_t i = 0; i < CharCount ; ++i)
 	{
 		size_t LetterCount;
-		StateFile.read((char *)&LetterCount, sizeof(int));
+		StateFile.read((char *)&LetterCount, sizeof(size_t));
 		m_GameManager->SetLetterCount(i, LetterCount);
 	}
 
@@ -238,14 +239,14 @@ void CGameState::LoadPlayerAndBoardState()
 		int Score;
 		glm::vec3 Color;
 
-		CPlayer* CurrentPlayer = m_GameManager->GetPlayer(0);
+		CPlayer* CurrentPlayer = m_GameManager->GetPlayer(CurrentPlayerIdx);
 
-		m_GameManager->GetPlayerProperties(0, Name, Score, Color);
+		m_GameManager->GetPlayerProperties(CurrentPlayerIdx, Name, Score, Color);
 		m_GameManager->StartPlayerTurn(CurrentPlayer, false);
-		m_GameManager->GetUIManager()->SetCurrentPlayerName(CurrentPlayer->GetName().c_str(), CurrentPlayer->GetColor().r, CurrentPlayer->GetColor().g, CurrentPlayer->GetColor().b);
-		m_GameManager->GetUIManager()->GetPlayerLetters(0)->DiasbleLayoutPositioning(true);
-		m_GameManager->GetUIManager()->GetPlayerLetters(0)->SetLetterVisibility(CurrentPlayer->GetUsedLetters());
-		m_GameManager->GetUIManager()->GetPlayerLetters(0)->SetVisible(true);
+		m_GameManager->GetUIManager()->SetCurrentPlayerName(Name.c_str(), Color.r, Color.g, Color.b);
+		m_GameManager->GetUIManager()->GetPlayerLetters(CurrentPlayerIdx)->DiasbleLayoutPositioning(true);
+		m_GameManager->GetUIManager()->GetPlayerLetters(CurrentPlayerIdx)->SetLetterVisibility(CurrentPlayer->GetUsedLetters());
+		m_GameManager->GetUIManager()->GetPlayerLetters(CurrentPlayerIdx)->SetVisible(true);
 	}
 
 #ifndef PLATFORM_ANDROID
