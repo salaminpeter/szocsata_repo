@@ -1086,7 +1086,6 @@ void CGameManager::ReturnToSavedStateTask()
 		LoadPlayerBoardStateTask->AddDependencie(GenerateModelsTask);
 		LoadPlayerBoardStateTask->AddDependencie(InitPlayersTask);
 		ResumeOnSavedScreenTask->AddDependencie(LoadPlayerBoardStateTask);
-		m_TaskManager->AddDependencie("hide_load_screen_task", "resume_on_saved_screen_task");
 
 		InitGameScreenTask->m_TaskStopped = false;
 		InitLetterPoolTask->m_TaskStopped = false;
@@ -1959,6 +1958,7 @@ void CGameManager::RenderUI()
 {
 	glDisable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	m_UIManager->RenderUI();
 

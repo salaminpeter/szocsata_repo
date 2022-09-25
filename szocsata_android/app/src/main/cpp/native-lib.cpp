@@ -112,6 +112,7 @@ void InitGameManager(int surfWidth, int surfHeight)
         ReturnToSavedStateTask->AddDependencie(LoadGameStateTask);
         BeginGameTask->AddDependencie(ReturnToSavedStateTask);
         BeginGameTask->AddDependencie(GameStartedTask);
+        HideLoadScreenTask->AddDependencie(BeginGameTask);
 
         LoadGameStateTask->m_TaskStopped = false;
         ReturnToSavedStateTask->m_TaskStopped = false;

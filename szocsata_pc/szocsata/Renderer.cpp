@@ -770,17 +770,6 @@ void CRenderer::InitRenderer()
 	m_EnginelsInited = true;
 }
 
-void CRenderer::EnableBlending(bool enable)
-{
-	if (enable)
-	{
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	}
-	else
-		glDisable(GL_BLEND);
-}
-
 void CRenderer::GenerateBoardModel()
 {
 	const std::lock_guard<std::recursive_mutex> lock(m_RenderLock);

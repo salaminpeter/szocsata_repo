@@ -86,7 +86,6 @@ public:
 	bool IsTileVisible(int x, int y);
 	bool IsCurrentTexture(const char* texId);
 	glm::vec2 GetTextureSize(const char* textureID);
-	void EnableBlending(bool enable);
 	void DeleteBuffers();
 	void GenerateBoardModel();
 
