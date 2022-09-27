@@ -79,15 +79,15 @@ void CGameManager::ResetToStartScreen()
     std::shared_ptr<CTask> GenerateModelsTask = AddTask(this, &CGameManager::GenerateModelsTask, "generate_models_task", CTask::RenderThread);
 
     //tasks for starting game
-	std::shared_ptr<CTask> BeginGameTask = AddTask(this, &CGameManager::BeginGameTask, "begin_game_task", CTask::RenderThread);
+	std::shared_ptr<CTask> ContinueGameTask = AddTask(this, &CGameManager::ContinueGameTask, "continue_game_task", CTask::RenderThread);
 	std::shared_ptr<CTask> GameStartedTask = AddTask(this, nullptr, "game_started_task", CTask::RenderThread);
 
 	std::shared_ptr<CTask> StartGmLoopTask = AddTask(this, &CGameManager::StartGameLoopTask, "start_game_loop_task", CTask::CurrentThread);
 
-	BeginGameTask->AddDependencie(GameStartedTask);
-	BeginGameTask->AddDependencie(GenerateModelsTask);
+	ContinueGameTask->AddDependencie(GameStartedTask);
+	ContinueGameTask->AddDependencie(GenerateModelsTask);
 	GenerateModelsTask->AddDependencie(BoardSizeSetTask);
-	StartGmLoopTask->AddDependencie(BeginGameTask);
+	StartGmLoopTask->AddDependencie(ContinueGameTask);
     
 	RemovePlayers();
 	m_GameBoard.Reset();
@@ -97,7 +97,7 @@ void CGameManager::ResetToStartScreen()
 	BoardSizeSetTask->m_TaskStopped = false;
 	GenerateModelsTask->m_TaskStopped = false;
 	GameStartedTask->m_TaskStopped = false;
-	BeginGameTask->m_TaskStopped = false;
+	ContinueGameTask->m_TaskStopped = false;
 }
 
 void CGameManager::RemovePlayers()
@@ -323,10 +323,10 @@ void CGameManager::InitPlayers(bool addLetters)
 	UpdatePlayerScores();
 }
 
-void CGameManager::StartGame()
+void CGameManager::StartGame(bool resumeGame)
 {
 	ShowCurrPlayerPopup();
-	CurrentPlayerTurn();
+	CurrentPlayerTurn(!resumeGame);
 }
 
 void CGameManager::AddWordSelectionAnimation(const std::vector<TWordPos>& wordPos, bool positive)
@@ -356,11 +356,11 @@ void CGameManager::StartPlayerTurn(CPlayer* player, bool saveBoard)
 	m_CurrentPlayer = player;
 	SetGameState(EGameState::TurnInProgress);
 
-	if (player->IsComputer())
-		StartComputerturn();
-
 	if (saveBoard)
 		m_TmpGameBoard = m_GameBoard;
+
+	if (player->IsComputer())
+		StartComputerturn();
 }
 
 bool CGameManager::TileAnimationFinished() 
@@ -566,18 +566,13 @@ bool CGameManager::GameScreenActive()
 	return (GetGameState() != EGameState::OnRankingsScreen && GetGameState() != EGameState::OnStartGameScreen && GetGameState() != EGameState::OnStartScreen);
 }
 
-void CGameManager::SetPlayerLetters(size_t idx, const std::wstring& letters, bool addEmptyLetters)
+void CGameManager::SetPlayerLetters(size_t idx, const std::wstring& letters)
 {
 	if (m_Players.size() <= idx)
 		return;
 
 	for (size_t i = 0; i < letters.length(); ++i)
-	{
-		bool LetterEmpty = letters.at(i) == L' ';
-
-		if (LetterEmpty || addEmptyLetters)
-			m_Players[idx]->SetLetter(i, LetterEmpty ? L'V' : letters.at(i));
-	}
+		m_Players[idx]->SetLetter(i, letters.at(i));
 }
 
 std::wstring CGameManager::GetPlayerLetters(size_t idx, bool allLetters)
@@ -632,14 +627,19 @@ std::wstring CGameManager::GetNextPlayerName()
 }
 
 
-void CGameManager::CurrentPlayerTurn()
+void CGameManager::CurrentPlayerTurn(bool showLetters)
 {
 	SetGameState(EGameState::TurnInProgress);
 
 	m_UIManager->SetCurrentPlayerName(m_CurrentPlayer->GetName().c_str(), m_CurrentPlayer->GetColor().r, m_CurrentPlayer->GetColor().g, m_CurrentPlayer->GetColor().b);
-	m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName().c_str())->SetLetterVisibility(CBinaryBoolList());
-	m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName().c_str())->ShowLetters(true);
 	m_UIManager->EnableGameButtons(!m_CurrentPlayer->IsComputer());
+
+	if (showLetters)
+	{
+		m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName().c_str())->SetLetterVisibility(CBinaryBoolList());
+		m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName().c_str())->ShowLetters(true);
+	}
+
 	StartPlayerTurn(m_CurrentPlayer);
 }
 
@@ -832,7 +832,7 @@ void CGameManager::DealCurrPlayerLetters()
 	m_LetterPool.DealLetters(m_CurrentPlayer->GetLetters());
 	m_CurrentPlayer->GetLetters().erase(remove(m_CurrentPlayer->GetLetters().begin(), m_CurrentPlayer->GetLetters().end(), ' '), m_CurrentPlayer->GetLetters().end());
 	m_CurrentPlayer->SetAllLetters();
-	PlayerLetters->SetLetters();
+	PlayerLetters->SetUILetters();
 
 	PlayerLetters->OrderLetterElements();
 
@@ -1007,8 +1007,6 @@ void CGameManager::LoadPlayerAndBoardState()
     if (GameScreenActive(m_SavedGameState))
     	m_State->LoadPlayerAndBoardState();
 
-	m_CurrentPlayer->SetAllLetters();
-
 	SetTaskFinished("load_palyer_and_board_state_task");
 }
 
@@ -1056,6 +1054,12 @@ void CGameManager::BeginGameTask()
 {
 	SetGameState(CGameManager::BeginGame);
 	SetTaskFinished("begin_game_task");
+}
+
+void CGameManager::ContinueGameTask()
+{
+	SetGameState(CGameManager::ContinueGame);
+	SetTaskFinished("countinue_game_task");
 }
 
 void CGameManager::InitRendererTask()
@@ -1264,8 +1268,8 @@ void CGameManager::GameLoop()
 			continue;
 		}
 
-		if (GetGameState() == EGameState::BeginGame)
-			StartGame();
+		if (GetGameState() == EGameState::BeginGame || GetGameState() == EGameState::ContinueGame)
+			StartGame(GetGameState() == EGameState::ContinueGame);
 
 		if (GetGameState() != EGameState::GameEnded)
 		{

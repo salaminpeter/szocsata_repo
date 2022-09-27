@@ -39,7 +39,7 @@ class CGameManager
 {
 public:
 	
-	enum EGameState { NextTurn, WaintingOnAnimation, WaitingForMessageBox, TurnInProgress, GameEnded, BeginGame, Paused, OnStartGameScreen, OnStartScreen, OnRankingsScreen, None};
+	enum EGameState { NextTurn, WaintingOnAnimation, WaitingForMessageBox, TurnInProgress, GameEnded, BeginGame, ContinueGame, Paused, OnStartGameScreen, OnStartScreen, OnRankingsScreen, None};
 
 	CGameManager();
 
@@ -60,7 +60,7 @@ public:
 	void ResetToStartScreen();
 	void AddPlayers(int playerCount, bool addComputer, bool addLetters = true);
 	void RemovePlayers();
-	void StartGame();
+	void StartGame(bool resumeGame);
 	void InitBasedOnTileCount(bool addLetters);
 	void InitPlayers(bool addLetters);
 	void SetTileCount();
@@ -96,7 +96,7 @@ public:
 	bool EndComputerTurn();
 	bool EndPlayerTurn(bool stillHaveTime = true);
 	void NextPlayerTurn();
-	void CurrentPlayerTurn();
+	void CurrentPlayerTurn(bool showLetters);
 	void HandlePlayerPass();
 	void UndoLastStep();
 	void UndoAllSteps();
@@ -119,7 +119,7 @@ public:
 	std::wstring GetNextPlayerName();
 	int GetDifficulty();
 	bool AllPlayersPassed();
-	void SetPlayerLetters(size_t idx, const std::wstring& letters, bool addEmptyLetters = false);
+	void SetPlayerLetters(size_t idx, const std::wstring& letters);
 	std::wstring GetPlayerLetters(size_t idx, bool allLetters = false);
 	bool GetPlayerProperties(size_t idx, std::wstring& name, int& score, glm::vec3& color);
 	bool GameScreenActive();
@@ -158,6 +158,7 @@ public:
 	void SetLastTouchPos(int x, int y) { m_LastTouchX = x; m_LastTouchY = y; }
 	CPlayer* GetCurrentPlayer() {return m_CurrentPlayer;}
 	CPlayer* GetPlayer(size_t idx) {return m_Players[idx];}
+	void SetCurentPlayer(size_t idx) {m_CurrentPlayer = m_Players[idx];}
  	void SaveState() { m_State->SaveGameState(); }
 	size_t GetCurrentPlayerIdx();
 	void LoadState();
@@ -174,6 +175,7 @@ public:
     void ShowStartScreenTask();
     void ShowSavedScreenTask();
 	void BeginGameTask();
+	void ContinueGameTask();
 	void InitRendererTask();
 	void GenerateModelsTask();
 	void InitGameScreenTask();

@@ -194,10 +194,9 @@ void CGameState::LoadPlayerAndBoardState()
 
         m_GameManager->GetPlayer(i)->SetAllLetters(AllLetters.c_str());
 		m_GameManager->GetPlayer(i)->AddScore(Score);
-        m_GameManager->SetPlayerLetters(i, AllLetters, true);
-		m_GameManager->GetUIManager()->GetPlayerLetters(i)->AddUILetters(LetterCount, true);
+        m_GameManager->SetPlayerLetters(i, Letters);
+		m_GameManager->GetUIManager()->GetPlayerLetters(i)->AddUILetters(LetterCount);
 		m_GameManager->GetUIManager()->GetPlayerLetters(i)->ShowLetters(false);
-		m_GameManager->GetUIManager()->GetPlayerLetters(i)->SetVisible(false);
 	}
 
 	const std::vector<TPlayerStep>& PlayerSteps = m_GameManager->GetPlayerSteps();
@@ -218,7 +217,10 @@ void CGameState::LoadPlayerAndBoardState()
 
 		m_GameManager->AddPlayerStep(Chr, Idx, XPos, YPos);
         m_GameManager->AddLetterToBoard(XPos, YPos, Chr, BoardHeight / 2.f + m_GameManager->Board(XPos, TileCount - YPos - 1).m_Height * LetterHeight + LetterHeight / 2.f);
+		m_GameManager->Board(XPos, TileCount - YPos - 1).m_Char = Chr;
 		m_GameManager->Board(XPos, TileCount - YPos - 1).m_Height++;
+		m_GameManager->AddPlacedLetterSelection(XPos, YPos);
+
     }
 
 	size_t CharCount;
@@ -240,13 +242,15 @@ void CGameState::LoadPlayerAndBoardState()
 		glm::vec3 Color;
 
 		CPlayer* CurrentPlayer = m_GameManager->GetPlayer(CurrentPlayerIdx);
+		m_GameManager->SetCurentPlayer(CurrentPlayerIdx);
 
 		m_GameManager->GetPlayerProperties(CurrentPlayerIdx, Name, Score, Color);
-		m_GameManager->StartPlayerTurn(CurrentPlayer, false);
 		m_GameManager->GetUIManager()->SetCurrentPlayerName(Name.c_str(), Color.r, Color.g, Color.b);
 		m_GameManager->GetUIManager()->GetPlayerLetters(CurrentPlayerIdx)->DiasbleLayoutPositioning(true);
 		m_GameManager->GetUIManager()->GetPlayerLetters(CurrentPlayerIdx)->SetLetterVisibility(CurrentPlayer->GetUsedLetters());
 		m_GameManager->GetUIManager()->GetPlayerLetters(CurrentPlayerIdx)->SetVisible(true);
+		m_GameManager->GetUIManager()->GetPlayerLetters(CurrentPlayerIdx)->DiasbleLayoutPositioning(false);
+		m_GameManager->StartPlayerTurn(CurrentPlayer, false);
 	}
 
 #ifndef PLATFORM_ANDROID
