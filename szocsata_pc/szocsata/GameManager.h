@@ -96,7 +96,7 @@ public:
 	bool EndComputerTurn();
 	bool EndPlayerTurn(bool stillHaveTime = true);
 	void NextPlayerTurn();
-	void CurrentPlayerTurn(bool showLetters);
+	void CurrentPlayerTurn(bool resumeGame);
 	void HandlePlayerPass();
 	void UndoLastStep();
 	void UndoAllSteps();

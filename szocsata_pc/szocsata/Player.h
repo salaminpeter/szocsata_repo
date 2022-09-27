@@ -42,6 +42,7 @@ public:
 	glm::vec3 GetColor() {return m_Color;}
 	void SetAllLetters() {m_AllLetters = m_Letters;}
 	void SetAllLetters(const wchar_t* letters) {m_PrevAllLetters = m_AllLetters; m_AllLetters = letters;}
+	void SetLetters(const wchar_t* letters) {m_Letters = letters;}
 
 	virtual bool IsComputer() {return false;}
 

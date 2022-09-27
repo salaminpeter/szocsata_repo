@@ -326,7 +326,7 @@ void CGameManager::InitPlayers(bool addLetters)
 void CGameManager::StartGame(bool resumeGame)
 {
 	ShowCurrPlayerPopup();
-	CurrentPlayerTurn(!resumeGame);
+	CurrentPlayerTurn(resumeGame);
 }
 
 void CGameManager::AddWordSelectionAnimation(const std::vector<TWordPos>& wordPos, bool positive)
@@ -627,20 +627,20 @@ std::wstring CGameManager::GetNextPlayerName()
 }
 
 
-void CGameManager::CurrentPlayerTurn(bool showLetters)
+void CGameManager::CurrentPlayerTurn(bool resumeGame)
 {
 	SetGameState(EGameState::TurnInProgress);
 
 	m_UIManager->SetCurrentPlayerName(m_CurrentPlayer->GetName().c_str(), m_CurrentPlayer->GetColor().r, m_CurrentPlayer->GetColor().g, m_CurrentPlayer->GetColor().b);
 	m_UIManager->EnableGameButtons(!m_CurrentPlayer->IsComputer());
 
-	if (showLetters)
+	if (!resumeGame)
 	{
 		m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName().c_str())->SetLetterVisibility(CBinaryBoolList());
 		m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName().c_str())->ShowLetters(true);
 	}
 
-	StartPlayerTurn(m_CurrentPlayer);
+	StartPlayerTurn(m_CurrentPlayer, !resumeGame);
 }
 
 
@@ -928,7 +928,6 @@ bool CGameManager::EndComputerTurn()
 
 void CGameManager::StartComputerturn()
 {
-	m_TmpGameBoard = m_GameBoard;
 	m_Computer->m_PrevLetters = m_Computer->m_Letters;
 	m_Computer->m_PrevAllLetters = m_Computer->m_AllLetters;
 	m_Computer->CalculateStep();
