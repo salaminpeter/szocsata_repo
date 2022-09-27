@@ -98,9 +98,9 @@ void CUIPlayerLetters::InitLetterElements()
 	AddUILetters(LetterCount);
 }
 
-void CUIPlayerLetters::AddUILetters(unsigned count, bool allLetters)
+void CUIPlayerLetters::AddUILetters(unsigned count)
 {
-	std::wstring& letters = allLetters ? m_Player->GetAllLetters() : m_Player->GetLetters();
+	std::wstring& letters = m_Player->GetAllLetters();
 	size_t Idx = 0;
 
 	for (unsigned i = 0; i < count; ++i)
@@ -128,7 +128,7 @@ void CUIPlayerLetters::SetLetterVisibility(CBinaryBoolList usedLetters)
 		m_Children[i]->SetVisible(!usedLetters.GetFlag(i));
 }
 
-void CUIPlayerLetters::SetLetters()
+void CUIPlayerLetters::SetUILetters()
 {
 	const std::lock_guard<std::recursive_mutex> lock(m_GameManager->GetRenderer()->GetRenderLock());
 

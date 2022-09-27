@@ -23,11 +23,11 @@ public:
 
 
 	void InitLetterElements();
-	void AddUILetters(unsigned count, bool allLetters = false);
+	void AddUILetters(unsigned count);
 	void OrderLetterElements();
 	void PositionPlayerLetter(size_t lettedIdx, float x, float y, float size);
 	void ShowLetters(bool show);
-	void SetLetters();
+	void SetUILetters();
 	void SetLetterVisibility(CBinaryBoolList usedLetters);
 	void SetLetterDragged(size_t letterIdx, int x, int y);
 

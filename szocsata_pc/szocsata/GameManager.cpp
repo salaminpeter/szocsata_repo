@@ -1058,8 +1058,8 @@ void CGameManager::BeginGameTask()
 
 void CGameManager::ContinueGameTask()
 {
+    SetTaskFinished("continue_game_task");
 	SetGameState(CGameManager::ContinueGame);
-	SetTaskFinished("countinue_game_task");
 }
 
 void CGameManager::InitRendererTask()

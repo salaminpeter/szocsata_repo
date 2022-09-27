@@ -98,6 +98,8 @@ void CTaskManager::FinishTask(const char *taskId, std::atomic<bool>* flag)
 
 void CTaskManager::SetTaskFinished(const char* taskId)
 {
+	const std::lock_guard<std::mutex> lock(m_FinishLock);
+
 	std::atomic<bool>* IsFinished = new std::atomic<bool>(false);
 	std::thread* FinishTaskThread = new std::thread(&CTaskManager::FinishTask, this, taskId, IsFinished); //TODO nagyon ocsmany leak!!!!!
 	m_ThreadDump->AddThread(FinishTaskThread, IsFinished);

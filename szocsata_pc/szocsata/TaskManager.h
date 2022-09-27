@@ -105,6 +105,7 @@ private:
 	std::list<std::shared_ptr<CTask>> m_TaskList;
 	double m_LastLoopTime = 0;
 	std::recursive_mutex m_Lock;
+	std::mutex m_FinishLock;
 	std::thread* m_Thread;
 	CGameManager* m_GameManager;
 	bool m_StopTaskThread = false;
