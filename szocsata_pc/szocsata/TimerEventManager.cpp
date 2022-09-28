@@ -23,9 +23,7 @@ void CTimerEventManager::Reset()
 	auto it = m_TimerEvents.begin();
 
 	while (it != m_TimerEvents.end())
-		(*it++)->SetTimerState(true, false);
-
-	m_LastLoopTime = 0;
+		(*it++)->SetTimerState(false, true);
 }
 
 

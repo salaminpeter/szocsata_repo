@@ -640,6 +640,13 @@ void CGameManager::CurrentPlayerTurn(bool resumeGame)
 		m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName().c_str())->ShowLetters(true);
 	}
 
+	if (m_UIManager->GetTimeLimit() != -1)
+	{
+		m_TimerEventManager->AddTimerEvent(this, &CGameManager::CheckAndUpdateTime, nullptr, "time_limit_event");
+		m_TimerEventManager->StartTimer("time_limit_event");
+		m_LastTurnTimeChanged = 0;
+	}
+
 	StartPlayerTurn(m_CurrentPlayer, !resumeGame);
 }
 
