@@ -307,7 +307,6 @@ glm::vec3 CRenderer::VectorBoardIntersect(glm::vec3 pos, glm::vec3 vec, bool boa
 	CConfig::GetConfig("tile_count", TileCount);
 	CConfig::GetConfig("tile_height", TileHeight);
 
-
 	glm::vec3 IntersectionPos;
 	int To = boardOnly ? 1 : 6;
 
@@ -361,10 +360,6 @@ void CRenderer::DragCamera(int x0, int y0, int x1, int y1)
 
 	glm::vec3 StartPos = ScreenPosToBoardPos(x0, y0, true);
 	glm::vec3 EndPos = ScreenPosToBoardPos(x1, y1, true);
-
-	if (glm::length(StartPos - EndPos) < 0.001)
-		int i = 0;
-
 	glm::vec3 DragDir = StartPos - EndPos;
 	glm::vec3 CameraPos = m_Views["board_perspecive"]->GetCameraPosition();
 	glm::vec3 NewCameraPos(CameraPos.x + DragDir.x, CameraPos.y + DragDir.y, CameraPos.z);

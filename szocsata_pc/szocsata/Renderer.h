@@ -138,7 +138,7 @@ private:
 	glm::vec4 m_LightPosition;
 
 	glm::vec2 m_ZoomCenter;
-	glm::vec3 m_CameraZoomVector;
+	glm::vec3 m_CameraZoomVector = glm::vec3(0.f);
 	float m_CameraZoomDistance;
 	float m_CameraCurrZoomDistance;
 	float m_LastZoomDist;
