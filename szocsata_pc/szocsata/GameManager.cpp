@@ -79,15 +79,15 @@ void CGameManager::ResetToStartScreen()
     std::shared_ptr<CTask> GenerateModelsTask = AddTask(this, &CGameManager::GenerateModelsTask, "generate_models_task", CTask::RenderThread);
 
     //tasks for starting game
-	std::shared_ptr<CTask> ContinueGameTask = AddTask(this, &CGameManager::ContinueGameTask, "continue_game_task", CTask::RenderThread);
+	std::shared_ptr<CTask> BeginGameTask = AddTask(this, &CGameManager::BeginGameTask, "begin_game_task", CTask::RenderThread);
 	std::shared_ptr<CTask> GameStartedTask = AddTask(this, nullptr, "game_started_task", CTask::RenderThread);
 
 	std::shared_ptr<CTask> StartGmLoopTask = AddTask(this, &CGameManager::StartGameLoopTask, "start_game_loop_task", CTask::CurrentThread);
 
-	ContinueGameTask->AddDependencie(GameStartedTask);
-	ContinueGameTask->AddDependencie(GenerateModelsTask);
+    BeginGameTask->AddDependencie(GameStartedTask);
+    BeginGameTask->AddDependencie(GenerateModelsTask);
 	GenerateModelsTask->AddDependencie(BoardSizeSetTask);
-	StartGmLoopTask->AddDependencie(ContinueGameTask);
+	StartGmLoopTask->AddDependencie(BeginGameTask);
     
 	RemovePlayers();
 	m_GameBoard.Reset();
@@ -97,7 +97,7 @@ void CGameManager::ResetToStartScreen()
 	BoardSizeSetTask->m_TaskStopped = false;
 	GenerateModelsTask->m_TaskStopped = false;
 	GameStartedTask->m_TaskStopped = false;
-	ContinueGameTask->m_TaskStopped = false;
+    BeginGameTask->m_TaskStopped = false;
 }
 
 void CGameManager::RemovePlayers()
