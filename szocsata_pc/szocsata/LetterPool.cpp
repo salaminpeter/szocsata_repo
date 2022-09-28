@@ -21,7 +21,7 @@ CLetterPool::CLetterPool()
 }
 
 
-void CLetterPool::DealLetters(std::wstring& letters)
+int CLetterPool::DealLetters(std::wstring& letters)
 {
 	int TileCount;
 	CConfig::GetConfig("tile_count", TileCount);
@@ -34,16 +34,16 @@ void CLetterPool::DealLetters(std::wstring& letters)
 	int RemainingLetters = GetRemainingLetterCount();
 
 	if (RemainingLetters == 0)
-		return;
+		return 0;
 
-	int Count = LetterCount - (InitialLetterCount < RemainingLetters ? InitialLetterCount : RemainingLetters);
+	int Count = (LetterCount - InitialLetterCount < RemainingLetters ? LetterCount - InitialLetterCount : RemainingLetters);
 
-	while (AddedLetterCount < Count && m_LetterIdx.size() != 0)
+	while (m_LetterIdx.size() != 0)
 	{
 		size_t Idx = letters.find_first_of(L' ');
 
 		if (Idx == std::wstring::npos)
-			return;
+			return AddedLetterCount;
 
 		int RandVal = std::rand() / ((RAND_MAX + 1u) / (m_LetterIdx.size()));
 
@@ -57,9 +57,6 @@ void CLetterPool::DealLetters(std::wstring& letters)
 			m_Letters[m_LetterIdx[RandVal]]--;
 			RemainingLetters--;
 
-			if (RemainingLetters == 0)
-				return;
-
 			if (m_Letters[m_LetterIdx[RandVal]] == 0)
 			{
 				m_LetterIdx[RandVal] = m_LetterIdx.back();
@@ -68,8 +65,13 @@ void CLetterPool::DealLetters(std::wstring& letters)
 				if (m_LetterIdx.size() == 0)
 					break;
 			}
+
+			if (RemainingLetters == 0 || AddedLetterCount == Count)
+				return AddedLetterCount;
 		}
 	}
+
+	return AddedLetterCount;
 }
 
 int CLetterPool::GetRemainingLetterCount()

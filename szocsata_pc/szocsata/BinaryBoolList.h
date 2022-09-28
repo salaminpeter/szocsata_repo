@@ -19,15 +19,12 @@ public:
 		return m_BoolList;
 	}
 
-	int GetTrueCount(int to) 
+	int GetFlagCount()
 	{
 		int Count = 0;
 
-		for (int i = 0; i < to; ++i)
-		{
-			if (GetFlag(i))
-				Count++;
-		}
+		for (int i = 0; i < sizeof(unsigned); ++i)
+			Count += GetFlag(i) ? 1 : 0;
 
 		return Count;
 	}

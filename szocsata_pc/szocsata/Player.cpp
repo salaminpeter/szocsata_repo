@@ -94,13 +94,15 @@ std::vector<size_t> CPlayer::GetLetterIndicesForWord(const std::wstring& word)
 {
 	std::vector<size_t> Res;
 	Res.reserve(word.length());
+	std::wstring Letters = m_Letters;
 
 	for (size_t j = 0; j < word.size(); ++j)
 	{
-		for (size_t i = 0; i < m_Letters.size(); ++i)
+		for (size_t i = 0; i < Letters.size(); ++i)
 		{
-			if (m_Letters.at(i) == word.at(j))
+			if (Letters.at(i) == word.at(j))
 			{
+				Letters[i] = L' ';
 				Res.push_back(i);
 				break;
 			}

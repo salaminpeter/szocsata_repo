@@ -9,7 +9,7 @@ public:
 	
 	CLetterPool();
 
-	void DealLetters(std::wstring& letters);
+	int DealLetters(std::wstring& letters);
 	void Init(bool initLettersCount = true);
 	int GetRemainingLetterCount();
 

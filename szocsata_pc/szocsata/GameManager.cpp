@@ -829,7 +829,7 @@ void CGameManager::DealCurrPlayerLetters()
 {
 	bool LetterPoolEmpty = m_LetterPool.GetRemainingLetterCount() != 0;
 	CUIPlayerLetters* PlayerLetters = m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName().c_str());
-	m_LetterPool.DealLetters(m_CurrentPlayer->GetLetters());
+	int LettersDealt = m_LetterPool.DealLetters(m_CurrentPlayer->GetLetters());
 	m_CurrentPlayer->GetLetters().erase(remove(m_CurrentPlayer->GetLetters().begin(), m_CurrentPlayer->GetLetters().end(), ' '), m_CurrentPlayer->GetLetters().end());
 	m_CurrentPlayer->SetAllLetters();
 	PlayerLetters->SetUILetters();
@@ -840,6 +840,7 @@ void CGameManager::DealCurrPlayerLetters()
 	{
 		glm::vec2 TileCounterPos = m_UIManager->GetTileCounterPos();
 		glm::vec2 LetterPos = m_UIManager->GetUIElement(L"ui_player_letter_panel")->GetRelativePosition(TileCounterPos);
+		int AnimCount = 0;
 
 		for (size_t i = 0; i < m_CurrentPlayer->GetLetters().length(); ++i)
 		{
@@ -847,6 +848,9 @@ void CGameManager::DealCurrPlayerLetters()
 			{
 				PlayerLetters->GetChild(i)->Scale(0.f);
 				m_PlayerLetterAnimationManager->AddAnimation(PlayerLetters->GetChild(i), PlayerLetters->GetChild(i)->GetWidth(), LetterPos.x, LetterPos.y, PlayerLetters->GetChild(i)->GetPosition().x, PlayerLetters->GetChild(i)->GetPosition().y);
+				
+				if (++AnimCount == LettersDealt)
+					break;
 			}
 		}
 		m_PlayerLetterAnimationManager->StartAnimations();
@@ -874,12 +878,14 @@ bool CGameManager::EndComputerTurn()
 	TWordPos ComputerWord;
 	std::vector<TWordPos>* CrossingWords = nullptr;
 	bool ComputerPass = (m_Computer->BestWordCount() <= m_ComputerWordIdx);
-//	int UsedLetterCount = 0;
+	bool GameFinished = false;
 
 	if (!ComputerPass)
 	{
 		ComputerStep = m_Computer->BestWord(m_ComputerWordIdx);
-//		UsedLetterCount = ComputerStep.m_UsedLetters.GetTrueCount(m_Computer->GetLetterCount());
+		int UsedLetterCount = ComputerStep.m_UsedLetters.GetFlagCount();
+		int LetterCnt = m_Computer->GetLetterCount();
+		GameFinished = (UsedLetterCount == LetterCnt);
 		ComputerWord = ComputerStep.m_Word;
 		CrossingWords = &ComputerStep.m_CrossingWords;
 		m_Computer->ResetUsedLetters();
@@ -911,16 +917,17 @@ bool CGameManager::EndComputerTurn()
 		UpdatePlayerScores();
 		m_Renderer->DisableSelection();
 
-		/*
+
 		//computer letette az osszes betujet
-		if (m_Computer->GetLetterCount() - UsedLetterCount == 0)
+		if (GameFinished)
 		{
-			std::shared_ptr<CTask> WordAnimFinishedTask = AddTask(this, nullptr, "word_animation_finished_task", CTask::GameThread);
-			std::shared_ptr<CTask> EndGameTask = AddTask(this, &CGameManager::EndGame, "end_game_task", CTask::GameThread);
+			std::shared_ptr<CTask> WordAnimFinishedTask = AddTask(this, nullptr, "finish_word_letters_animation_task", CTask::GameThread);
+			std::shared_ptr<CTask> EndGameTask = AddTask(this, &CGameManager::EndGame, "end_game_task", CTask::RenderThread);
 
 			EndGameTask->AddDependencie(WordAnimFinishedTask);
+			EndGameTask->m_TaskStopped = false;
+			WordAnimFinishedTask->m_TaskStopped = false;
 		}
-		*/
 	}
 
 	return false;
