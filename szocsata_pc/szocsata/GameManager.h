@@ -179,6 +179,7 @@ public:
 	void InitRendererTask();
 	void GenerateModelsTask();
 	void InitGameScreenTask();
+	void InitRankingsPanelTask();
 	void ReturnToSavedStateTask();
     void InitPlayersTask();
     void StartGameLoopTask();

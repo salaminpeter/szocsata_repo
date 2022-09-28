@@ -1075,6 +1075,7 @@ void CGameManager::ReturnToSavedStateTask()
 	if (ResumedOnGameScreen())
 	{
 		std::shared_ptr<CTask> InitGameScreenTask = AddTask(this, &CGameManager::InitGameScreenTask, "init_game_screen_task", CTask::RenderThread);
+		std::shared_ptr<CTask> InitRankingsPanelTask = AddTask(this, &CGameManager::InitRankingsPanelTask, "init_rankings_panel_task", CTask::RenderThread);
 		std::shared_ptr<CTask> InitLetterPoolTask = AddTask(this, &CGameManager::InitLetterPool, "init_letter_pool_task", CTask::RenderThread, !ResumedOnGameScreen());
 		std::shared_ptr<CTask> InitPlayersTask = AddTask(this, &CGameManager::InitPlayersTask, "init_players_task", CTask::RenderThread);
 		std::shared_ptr<CTask> GenerateGameScrTextTask = AddTask(this, &CGameManager::GenerateGameScreenTextures, "generate_game_screen_textures_task", CTask::RenderThread);
@@ -1082,9 +1083,9 @@ void CGameManager::ReturnToSavedStateTask()
 
 		m_TaskManager->AddDependencie("generate_models_task", "load_game_state_task");
 		m_TaskManager->AddDependencie("init_game_screen_task", "load_game_state_task");
-		//m_TaskManager->AddDependencie("init_game_screen_task", "return_to_saved_state_task");
 		InitLetterPoolTask->AddDependencie(InitGameScreenTask);
         InitPlayersTask->AddDependencie(InitLetterPoolTask);
+        InitRankingsPanelTask->AddDependencie(InitPlayersTask);
 		GenerateGameScrTextTask->AddDependencie(InitPlayersTask);
 		LoadPlayerBoardStateTask->AddDependencie(GenerateModelsTask);
 		LoadPlayerBoardStateTask->AddDependencie(InitPlayersTask);
@@ -1095,6 +1096,7 @@ void CGameManager::ReturnToSavedStateTask()
 		InitPlayersTask->m_TaskStopped = false;
 		GenerateGameScrTextTask->m_TaskStopped = false;
 		LoadPlayerBoardStateTask->m_TaskStopped = false;
+		InitRankingsPanelTask->m_TaskStopped = false;
 	}
 	else
 	{
@@ -1112,10 +1114,15 @@ void CGameManager::ReturnToSavedStateTask()
 	SetTaskFinished("return_to_saved_state_task");
 }
 
+void CGameManager::InitRankingsPanelTask()
+{
+	m_UIManager->InitRankingsScreen(m_Renderer->GetSquarePositionData(), m_Renderer->GetSquareColorData(), m_Renderer->GetSquareColorGridData16x6());
+	SetTaskFinished("init_rankings_panel_task");
+}
+
 void CGameManager::InitGameScreenTask()
 {
  	m_UIManager->InitGameScreen(m_Renderer->GetSquarePositionData(), m_Renderer->GetSquareColorData(), m_Renderer->GetSquareColorGridData16x6());
-	m_UIManager->InitRankingsScreen(m_Renderer->GetSquarePositionData(), m_Renderer->GetSquareColorData(), m_Renderer->GetSquareColorGridData16x6());
     SetTaskFinished("init_game_screen_task");
 }
 
