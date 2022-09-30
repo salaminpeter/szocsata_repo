@@ -41,12 +41,7 @@ void CCamera::SetPosition(glm::vec3 translate)
 
 glm::vec3 CCamera::GetCameraAxisInWorldSpace(int axis)
 {
-
-	//get x axis in world space
-	if (axis == 0)
-		return glm::vec3(m_InverseViewMatrix[0].x, m_InverseViewMatrix[0].y, m_InverseViewMatrix[0].z);
-
-	//TODO
+	return glm::vec3(m_InverseViewMatrix[axis].x, m_InverseViewMatrix[axis].y, m_InverseViewMatrix[axis].z);
 }
 
 void CCamera::RotateCamera(float angle, const glm::vec3& axis)

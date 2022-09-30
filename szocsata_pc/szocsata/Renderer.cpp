@@ -276,6 +276,7 @@ void CRenderer::SaveCameraState(std::ofstream& fileStream)
 {
 	glm::vec3 CameraPos = m_Views["board_perspecive"]->GetCameraPosition();
 	glm::vec3 CameraLookAt = GetCameraLookAtPoint(true);
+	glm::vec3 CameraUp = m_Views["board_perspecive"]->GetCameraAxisInWorldSpace(1);
 
 	fileStream.write((char *)&m_CameraTiltAngle, sizeof(float));
 	fileStream.write((char *)&CameraPos.x, sizeof(float));
@@ -284,12 +285,16 @@ void CRenderer::SaveCameraState(std::ofstream& fileStream)
 	fileStream.write((char *)&CameraLookAt.x, sizeof(float));
 	fileStream.write((char *)&CameraLookAt.y, sizeof(float));
 	fileStream.write((char *)&CameraLookAt.z, sizeof(float));
+	fileStream.write((char *)&CameraUp.x, sizeof(float));
+	fileStream.write((char *)&CameraUp.y, sizeof(float));
+	fileStream.write((char *)&CameraUp.z, sizeof(float));
 }
 
 void CRenderer::LoadCameraState(std::ifstream& fileStream)
 {
-	glm::vec3 CameraPos = m_Views["board_perspecive"]->GetCameraPosition();
-	glm::vec3 CameraLookAt = GetCameraLookAtPoint(true);
+	glm::vec3 CameraPos;
+	glm::vec3 CameraLookAt;
+	glm::vec3 CameraUp;
 
 	fileStream.read((char *)&m_CameraTiltAngle, sizeof(float));
 	fileStream.read((char *)&CameraPos.x, sizeof(float));
@@ -298,8 +303,11 @@ void CRenderer::LoadCameraState(std::ifstream& fileStream)
 	fileStream.read((char *)&CameraLookAt.x, sizeof(float));
 	fileStream.read((char *)&CameraLookAt.y, sizeof(float));
 	fileStream.read((char *)&CameraLookAt.z, sizeof(float));
+	fileStream.read((char *)&CameraUp.x, sizeof(float));
+	fileStream.read((char *)&CameraUp.y, sizeof(float));
+	fileStream.read((char *)&CameraUp.z, sizeof(float));
 
-	m_Views["board_perspecive"]->InitCamera(glm::vec3(CameraPos.x, CameraPos.y, CameraPos.z), glm::vec3(CameraLookAt.x, CameraLookAt.y, CameraLookAt.z), glm::vec3(0, 0, 1));
+	m_Views["board_perspecive"]->InitCamera(glm::vec3(CameraPos.x, CameraPos.y, CameraPos.z), glm::vec3(CameraLookAt.x, CameraLookAt.y, CameraLookAt.z), CameraUp);
 }
 
 void CRenderer::ResetZoom()
