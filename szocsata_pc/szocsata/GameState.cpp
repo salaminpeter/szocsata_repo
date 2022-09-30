@@ -104,6 +104,7 @@ void CGameState::SaveGameState()
 		}
 
 		m_GameManager->SaveTileAnims(StateFile);
+		m_GameManager->SaveWordAnims(StateFile);
 		m_GameManager->SaveCamera(StateFile);
 	}
 
@@ -226,6 +227,7 @@ void CGameState::LoadPlayerAndBoardState()
     }
 	
 	m_GameManager->LoadTileAnims(StateFile);
+	m_GameManager->LoadWordAnims(StateFile);
 	m_GameManager->LoadCamera(StateFile);
 
 	size_t CharCount;

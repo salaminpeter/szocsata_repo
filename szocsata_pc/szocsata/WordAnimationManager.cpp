@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "WordAnimationManager.h"
 #include "GameManager.h"
+#include "UIManager.h"
 #include "Renderer.h"
 #include "TimerEventManager.h"
 #include "LetterModel.h"
@@ -8,9 +9,12 @@
 #include "Config.h"
 #include "UIPlayerLetters.h"
 
+#include <iostream>
+#include <fstream>
+
 int TWordAnimation::m_CurrWordAnimID = 0;
 
-TWordAnimation::TWordAnimation(CGameManager* gameManager, std::wstring word, const std::vector<size_t>& uiLetterIndices, CUIPlayerLetters* playerLetters, int x, int y, bool horizontal, bool nextPlayerIfFinished)
+TWordAnimation::TWordAnimation(CGameManager* gameManager, std::wstring word, const std::vector<size_t>& uiLetterIndices, CUIPlayerLetters* playerLetters, int x, int y, bool horizontal)
 {
 	std::stringstream StrStream;
 	StrStream << "word_animation_" << m_CurrWordAnimID++;
@@ -60,7 +64,7 @@ CWordAnimationManager::~CWordAnimationManager()
 	m_TimerEventManager->StopTimer("add_word_animation");
 }
 
-bool CWordAnimationManager::AddWordAnimation(std::wstring word, const std::vector<size_t>& uiLetterIndices, CUIPlayerLetters* playerLetters, int x, int y, bool horizontal, bool nextPlayerIfFinished)
+bool CWordAnimationManager::AddWordAnimation(std::wstring word, const std::vector<size_t>& uiLetterIndices, CUIPlayerLetters* playerLetters, int x, int y, bool horizontal)
 {
 	const std::lock_guard<std::mutex> lock(m_AnimListLock);
 
@@ -73,7 +77,7 @@ bool CWordAnimationManager::AddWordAnimation(std::wstring word, const std::vecto
 		m_UILetterIndices.push_back(uiLetterIndices[0]);
 	}
 	
-	m_WordAnimations.emplace_back(m_GameManager, word, uiLetterIndices, playerLetters, x, y, horizontal, nextPlayerIfFinished);
+	m_WordAnimations.emplace_back(m_GameManager, word, uiLetterIndices, playerLetters, x, y, horizontal);
 	m_TimerEventManager->AddTimerEvent(this, &CWordAnimationManager::AnimateLettersEvent, &CWordAnimationManager::AnimationFinished, "word_animations");
 	m_TimerEventManager->StartTimer("word_animations");
 	return true;
@@ -179,4 +183,79 @@ void CWordAnimationManager::Reset()
 {
 	m_TimerEventManager->StopTimer("add_word_animation");
 	m_WordAnimations.clear();
+}
+
+void CWordAnimationManager::SaveState(std::ofstream& fileStream)
+{
+	const std::lock_guard<std::mutex> lock(m_AnimListLock);
+
+	size_t WordAnimCount = m_WordAnimations.size();
+	m_TimerEventManager->PauseTimer("add_word_animation");
+	fileStream.write((char *)&WordAnimCount, sizeof(size_t));
+
+	for (auto WordAnim : m_WordAnimations)
+	{
+		size_t LetterAnimCount = WordAnim.m_LetterAnimations.size();
+
+		fileStream.write((char *)&WordAnim.m_CurrentLetterIdx, sizeof(size_t));
+		fileStream.write((char *)&WordAnim.m_LastAddedLetterTime, sizeof(double));
+		fileStream.write((char *)&LetterAnimCount, sizeof(size_t));
+
+		for (auto LetterAnim : WordAnim.m_LetterAnimations)
+		{
+			fileStream.write((char *)&LetterAnim.m_AminationTime, sizeof(float));
+			fileStream.write((char *)&LetterAnim.m_Distance, sizeof(float));
+			fileStream.write((char *)&LetterAnim.m_DestHeight, sizeof(float));
+			fileStream.write((char *)&LetterAnim.m_BoardX, sizeof(int));
+			fileStream.write((char *)&LetterAnim.m_BoardY, sizeof(int));
+			fileStream.write((char *)&LetterAnim.m_UILetterIdx, sizeof(size_t));
+			fileStream.write((char *)&LetterAnim.m_State, sizeof(TLetterAnimation::ELetterAnimState));
+		}
+	}
+}
+
+void CWordAnimationManager::LoadState(std::ifstream& fileStream)
+{
+	size_t WordAnimCount;
+	fileStream.read((char *)&WordAnimCount, sizeof(size_t));
+
+	for (int i = 0; i < WordAnimCount; ++i)
+	{
+		CUIPlayerLetters* CurrPlayerLetters = m_GameManager->GetUIManager()->GetPlayerLetters(m_GameManager->GetCurrentPlayer()->GetName());
+		m_WordAnimations.emplace_back(m_GameManager, L"", std::vector<size_t>(), CurrPlayerLetters, 0, 0, false);
+
+		size_t LetterAnimCount;
+
+		fileStream.read((char *)&m_WordAnimations.back().m_CurrentLetterIdx, sizeof(size_t));
+		fileStream.read((char *)&m_WordAnimations.back().m_LastAddedLetterTime, sizeof(double));
+		fileStream.read((char *)&LetterAnimCount, sizeof(size_t));
+
+		for (int j = 0; j < LetterAnimCount; ++j)
+		{
+			float AnimTime;
+			float Dist;
+			float DestHeight;
+			int x, y;
+			size_t LetterIdx;
+			TLetterAnimation::ELetterAnimState AnimState;
+
+			fileStream.read((char *)&AnimTime, sizeof(float));
+			fileStream.read((char *)&Dist, sizeof(float));
+			fileStream.read((char *)&DestHeight, sizeof(float));
+			fileStream.read((char *)&x, sizeof(int));
+			fileStream.read((char *)&y, sizeof(int));
+			fileStream.read((char *)&LetterIdx, sizeof(size_t));
+			fileStream.read((char *)&AnimState, sizeof(TLetterAnimation::ELetterAnimState));
+
+			CLetterModel* LetterModel = m_GameManager->GetRenderer()->GetLetterAtPos(x, y);
+			LetterModel->SetVisibility(AnimState != TLetterAnimation::Waiting);
+
+			m_WordAnimations.back().m_LetterAnimations.emplace_back(LetterModel, Dist, DestHeight, LetterIdx, x, y);
+			m_WordAnimations.back().m_LetterAnimations.back().m_AminationTime = AnimTime;
+			m_WordAnimations.back().m_LetterAnimations.back().m_State = AnimState;
+		}
+	}
+
+	m_TimerEventManager->AddTimerEvent(this, &CWordAnimationManager::AnimateLettersEvent, &CWordAnimationManager::AnimationFinished, "word_animations");
+	m_TimerEventManager->StartTimer("word_animations");
 }

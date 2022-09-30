@@ -921,7 +921,7 @@ bool CGameManager::EndComputerTurn()
 		std::vector<size_t> LetterIndices = m_CurrentPlayer->GetLetterIndicesForWord(*ComputerWord.m_Word);
 		bool PlayerFinishedGame = PlayerFinished();
 		SetGameState(EGameState::WaintingOnAnimation);
-		m_WordAnimation->AddWordAnimation(*ComputerWord.m_Word, LetterIndices, m_UIManager->GetPlayerLetters(m_Computer->GetName()), ComputerWord.m_X, TileCount - ComputerWord.m_Y - 1, ComputerWord.m_Horizontal, !PlayerFinishedGame);
+		m_WordAnimation->AddWordAnimation(*ComputerWord.m_Word, LetterIndices, m_UIManager->GetPlayerLetters(m_Computer->GetName()), ComputerWord.m_X, TileCount - ComputerWord.m_Y - 1, ComputerWord.m_Horizontal);
 		m_GameBoard.AddWord(ComputerWord);
 		UpdatePlayerScores();
 		m_Renderer->DisableSelection();
@@ -1034,6 +1034,16 @@ size_t CGameManager::GetCurrentPlayerIdx()
 	}
 
 	return 0;
+}
+
+void CGameManager::SaveWordAnims(std::ofstream& fileStream)
+{
+	m_WordAnimation->SaveState(fileStream);
+}
+
+void CGameManager::LoadWordAnims(std::ifstream& fileStream)
+{
+	m_WordAnimation->LoadState(fileStream);
 }
 
 void CGameManager::SaveCamera(std::ofstream& fileStream)
@@ -1546,7 +1556,7 @@ void CGameManager::PlayerLetterReleased(size_t letterIdx)
 
 	wchar_t PlacedLetter = m_CurrentPlayer->GetLetters()[letterIdx];
 	
-	if (!m_WordAnimation->AddWordAnimation(std::wstring(1, PlacedLetter), std::vector<size_t>{letterIdx}, m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName()), SelX, SelY, true, false))
+	if (!m_WordAnimation->AddWordAnimation(std::wstring(1, PlacedLetter), std::vector<size_t>{letterIdx}, m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName()), SelX, SelY, true))
 		return;
 
 	CUIPlayerLetters* PlayerLetters = m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName().c_str());

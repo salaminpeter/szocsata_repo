@@ -1075,6 +1075,26 @@ void CRenderer::InitLetterTexPositions()
 	m_LetterTexPos[L'z'] = TPosition(7, 0);
 }
 
+CLetterModel* CRenderer::GetLetterAtPos(int x, int y)
+{
+	int Idx = -1;
+	float MaxHeight = 0.f;
+
+	for (size_t i = 0; i < m_LettersOnBoard.size(); ++i)
+	{
+		if (m_LettersOnBoard[i]->BoardX() == x && m_LettersOnBoard[i]->BoardY() == y && m_LettersOnBoard[i]->ZPos() > MaxHeight)
+		{
+			Idx = i;
+			MaxHeight = m_LettersOnBoard[i]->ZPos();
+		}
+	}
+
+	if (Idx != -1)
+		return m_LettersOnBoard[Idx];
+	else
+		return nullptr;
+}
+
 void CRenderer::RemoveTopLetter(int x, int y)
 {
 	int Idx = -1;

@@ -164,6 +164,8 @@ public:
 	void LoadTileAnims(std::ifstream& fileStream);
 	void SaveCamera(std::ofstream& fileStream);
 	void LoadCamera(std::ifstream& fileStream);
+	void SaveWordAnims(std::ofstream& fileStream);
+	void LoadWordAnims(std::ifstream& fileStream);
 	size_t GetCurrentPlayerIdx();
 	void LoadState();
 	void LoadPlayerAndBoardState();

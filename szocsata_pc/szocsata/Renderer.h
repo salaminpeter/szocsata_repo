@@ -64,6 +64,7 @@ public:
 	void DisableSelection();
 	void RemoveLastLetter();
 	void RemoveTopLetter(int x, int y);
+	CLetterModel* GetLetterAtPos(int x, int y);
 	void SetTexturePos(glm::vec2 texturePos);
 	void SetTextColor(float r, float g, float b);
 	void SetModifyColor(float r, float g, float b, float a);
