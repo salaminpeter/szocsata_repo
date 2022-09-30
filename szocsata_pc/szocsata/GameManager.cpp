@@ -325,7 +325,9 @@ void CGameManager::InitPlayers(bool addLetters)
 
 void CGameManager::StartGame(bool resumeGame)
 {
-	ShowCurrPlayerPopup();
+	if (!resumeGame)
+		ShowCurrPlayerPopup();
+
 	CurrentPlayerTurn(resumeGame);
 }
 
@@ -1097,6 +1099,7 @@ void CGameManager::ReturnToSavedStateTask()
 
 		m_TaskManager->AddDependencie("generate_models_task", "load_game_state_task");
 		m_TaskManager->AddDependencie("init_game_screen_task", "load_game_state_task");
+		m_TaskManager->AddDependencie("continue_game_task", "load_palyer_and_board_state_task");
 		InitLetterPoolTask->AddDependencie(InitGameScreenTask);
         InitPlayersTask->AddDependencie(InitLetterPoolTask);
         InitRankingsPanelTask->AddDependencie(InitPlayersTask);
@@ -1111,6 +1114,7 @@ void CGameManager::ReturnToSavedStateTask()
 		GenerateGameScrTextTask->m_TaskStopped = false;
 		LoadPlayerBoardStateTask->m_TaskStopped = false;
 		InitRankingsPanelTask->m_TaskStopped = false;
+		m_TaskManager->ActivateTask("continue_game_task");
 	}
 	else
 	{
@@ -1120,6 +1124,8 @@ void CGameManager::ReturnToSavedStateTask()
 		m_TaskManager->AddDependencie("resume_on_saved_screen_task", "init_uimanager_startscreens_task");
 		GenerateModelsTask->AddDependencie(BoardSizeSetTask);
 		m_TaskManager->AddDependencie("hide", "generate_models_task");
+
+		BoardSizeSetTask->m_TaskStopped = false;
 	}
 
 	GenerateModelsTask->m_TaskStopped = false;

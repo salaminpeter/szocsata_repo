@@ -84,6 +84,7 @@ public:
 	void FinishTask(const char* taskId, std::atomic<bool>* flag);
 	void TaskLoop();
 	void StartTask(const char* id);
+	void ActivateTask(const char* id);
 	void Reset();
 	void WaitForTaskToFinish();
 

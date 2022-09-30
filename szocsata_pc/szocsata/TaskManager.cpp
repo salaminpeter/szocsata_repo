@@ -111,6 +111,18 @@ void CTaskManager::Reset()
     m_TaskList.clear();
 }
 
+void CTaskManager::ActivateTask(const char* id)
+{
+	const std::lock_guard<std::recursive_mutex> lock(m_Lock);
+
+	std::shared_ptr<CTask> Task = GetTask(id);
+
+	if (!Task)
+		return;
+
+	Task->m_TaskStopped = false;
+}
+
 void CTaskManager::StartTask(const char* id)
 {
 	const std::lock_guard<std::recursive_mutex> lock(m_Lock);

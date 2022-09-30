@@ -450,7 +450,7 @@ void CUIManager::InitGameScreen(std::shared_ptr<CSquarePositionData> positionDat
 
 	m_UITileCounter = new CUITileCounter(SubLayout2, positionData, colorData, gridcolorData8x8, 0, 0, LetterCounterSize.x, LetterCounterSize.y, ViewPos.x, ViewPos.y);
 
-	glm::ivec2 ScoreTextSize = m_GameManager->GetUIManager()->GetSizeByArea(2000.f, 0.76f, m_GameManager->m_SurfaceWidth * m_GameManager->m_SurfaceHeigh, m_GameManager->m_SurfaceWidth / 2);
+	glm::ivec2 ScoreTextSize = m_GameManager->GetUIManager()->GetSizeByArea(1500.f, 0.76f, m_GameManager->m_SurfaceWidth * m_GameManager->m_SurfaceHeigh, m_GameManager->m_SurfaceWidth / 2);
 	m_ScorePanel = new CUIScorePanel(SubLayout3, m_GameManager, ScoreTextSize.y, LayoutBox2Height, L"ui_score_panel", positionData, colorData, gridcolorData8x8, 0, 0, m_UIScreenPanel->GetHeight() / 6, m_UIScreenPanel->GetHeight() / 6, ViewPos.x, ViewPos.y, "player_score_panel_texture_generated", 0.f, 0.f);
 
 	GameScreenLayout->SetBoxSizeProps(3, UIPanelWidth, SubPanel->GetPosition(false).y, true);
