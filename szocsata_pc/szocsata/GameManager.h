@@ -160,6 +160,10 @@ public:
 	CPlayer* GetPlayer(size_t idx) {return m_Players[idx];}
 	void SetCurentPlayer(size_t idx) {m_CurrentPlayer = m_Players[idx];}
  	void SaveState() { m_State->SaveGameState(); }
+	void SaveTileAnims(std::ofstream& fileStream);
+	void LoadTileAnims(std::ifstream& fileStream);
+	void SaveCamera(std::ofstream& fileStream);
+	void LoadCamera(std::ifstream& fileStream);
 	size_t GetCurrentPlayerIdx();
 	void LoadState();
 	void LoadPlayerAndBoardState();

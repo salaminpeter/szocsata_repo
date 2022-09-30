@@ -22,6 +22,8 @@
 
 #include <algorithm>
 #include <iterator>
+#include <iostream>
+#include <fstream>
 
 #define GL_GLEXT_PROTOTYPES 1
 #define GL3_PROTOTYPES 1
@@ -270,6 +272,35 @@ glm::vec3 CRenderer::GetCameraLookAtPoint(bool intersectWithBoard)
 	return LookAtBoardIntPos;
 }
 
+void CRenderer::SaveCameraState(std::ofstream& fileStream)
+{
+	glm::vec3 CameraPos = m_Views["board_perspecive"]->GetCameraPosition();
+	glm::vec3 CameraLookAt = GetCameraLookAtPoint(true);
+
+	fileStream.write((char *)&m_CameraTiltAngle, sizeof(float));
+	fileStream.write((char *)&CameraPos.x, sizeof(float));
+	fileStream.write((char *)&CameraPos.y, sizeof(float));
+	fileStream.write((char *)&CameraPos.z, sizeof(float));
+	fileStream.write((char *)&CameraLookAt.x, sizeof(float));
+	fileStream.write((char *)&CameraLookAt.y, sizeof(float));
+	fileStream.write((char *)&CameraLookAt.z, sizeof(float));
+}
+
+void CRenderer::LoadCameraState(std::ifstream& fileStream)
+{
+	glm::vec3 CameraPos = m_Views["board_perspecive"]->GetCameraPosition();
+	glm::vec3 CameraLookAt = GetCameraLookAtPoint(true);
+
+	fileStream.read((char *)&m_CameraTiltAngle, sizeof(float));
+	fileStream.read((char *)&CameraPos.x, sizeof(float));
+	fileStream.read((char *)&CameraPos.y, sizeof(float));
+	fileStream.read((char *)&CameraPos.z, sizeof(float));
+	fileStream.read((char *)&CameraLookAt.x, sizeof(float));
+	fileStream.read((char *)&CameraLookAt.y, sizeof(float));
+	fileStream.read((char *)&CameraLookAt.z, sizeof(float));
+
+	m_Views["board_perspecive"]->InitCamera(glm::vec3(CameraPos.x, CameraPos.y, CameraPos.z), glm::vec3(CameraLookAt.x, CameraLookAt.y, CameraLookAt.z), glm::vec3(0, 0, 1));
+}
 
 void CRenderer::ResetZoom()
 {

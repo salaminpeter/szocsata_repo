@@ -16,6 +16,9 @@
 #include "GameManager.h"
 #include "UIMessageBox.h"
 
+#include <iostream>
+#include <fstream>
+
 
 CTileAnimationManager::CTileAnimationManager(CTimerEventManager* timerEventMgr, CGameManager* gameManager) :
 	m_TimerEventManager(timerEventMgr),
@@ -36,22 +39,78 @@ void CTileAnimationManager::AddTile(int x, int y)
 		m_TilePositions.push_back(glm::ivec2(x, y));
 }
 
+void CTileAnimationManager::StartAnimation()
+{
+	m_TimerEventManager->AddTimerEvent(this, &CTileAnimationManager::UpdateColorEvent, m_HandleFinishEvent ? &CTileAnimationManager::AnimFinishedEvent : nullptr, "tile_animation");
+	m_TimerEventManager->StartTimer("tile_animation");
+}
+
 void CTileAnimationManager::StartAnimation(bool positive)
 {
 	if (positive)
 		m_Color = glm::vec4(0.4f, 1.f, 0.4f, 0.f);
 	else
 		m_Color = glm::vec4(1.f, 0.f, 0.f, 0.f);
-
+	
+	m_HandleFinishEvent = positive;
 	m_TimerEventManager->AddTimerEvent(this, &CTileAnimationManager::UpdateColorEvent, positive ? &CTileAnimationManager::AnimFinishedEvent : nullptr, "tile_animation");
 	m_TimerEventManager->StartTimer("tile_animation");
 }
 
 void CTileAnimationManager::Reset() 
 { 
+	const std::lock_guard<std::mutex> lock(m_TileAnimLock);
 	m_TimerEventManager->StopTimer("tile_animation");
 	m_TilePositions.clear();
 }
+
+void CTileAnimationManager::SaveState(std::ofstream& fileStream)
+{
+	const std::lock_guard<std::mutex> lock(m_TileAnimLock);
+
+	size_t TileAnimCount = m_TilePositions.size();
+	m_TimerEventManager->PauseTimer("tile_animation");
+	fileStream.write((char *)&TileAnimCount, sizeof(size_t));
+
+	if (TileAnimCount != 0)
+	{
+		fileStream.write((char *)&m_PassedTime, sizeof(int));
+		fileStream.write((char *)&m_Color.r, sizeof(float));
+		fileStream.write((char *)&m_Color.g, sizeof(float));
+		fileStream.write((char *)&m_Color.b, sizeof(float));
+		fileStream.write((char *)&m_HandleFinishEvent, sizeof(bool));
+	}
+
+	for (auto TilePos : m_TilePositions)
+	{
+		fileStream.write((char *)&TilePos.x, sizeof(int));
+		fileStream.write((char *)&TilePos.y, sizeof(int));
+	}
+}
+
+void CTileAnimationManager::LoadState(std::ifstream& fileStream)
+{
+	size_t TileAnimCount;
+	fileStream.read((char *)&TileAnimCount, sizeof(size_t));
+
+	if (TileAnimCount != 0)
+	{
+		fileStream.read((char *)&m_PassedTime, sizeof(int));
+		fileStream.read((char *)&m_Color.r, sizeof(float));
+		fileStream.read((char *)&m_Color.g, sizeof(float));
+		fileStream.read((char *)&m_Color.b, sizeof(float));
+		fileStream.read((char *)&m_HandleFinishEvent, sizeof(bool));
+	}
+
+	for (int i = 0; i < TileAnimCount; ++i)
+	{
+		int x, y;
+		fileStream.read((char *)&x, sizeof(int));
+		fileStream.read((char *)&y, sizeof(int));
+		AddTile(x, y);
+	}
+}
+
 
 void CTileAnimationManager::AnimFinishedEvent()
 {
@@ -60,16 +119,23 @@ void CTileAnimationManager::AnimFinishedEvent()
 
 void CTileAnimationManager::UpdateColorEvent(double& timeFromStart, double& timeFromPrev)
 {
-	bool EndAnimation = timeFromStart > m_AnimLength;
+	if (m_PassedTime == 0)
+		m_PassedTime = timeFromStart;
+	else
+		m_PassedTime += timeFromPrev;
 
-	timeFromStart = timeFromStart > m_AnimLength ? m_AnimLength : timeFromStart;
-	m_Color.a = std::sin(glm::radians((timeFromStart / m_AnimLength)  * 180.0)) * 0.5;
+	bool EndAnimation = m_PassedTime > m_AnimLength;
+
+	m_PassedTime = m_PassedTime > m_AnimLength ? m_AnimLength : m_PassedTime;
+	m_Color.a = std::sin(glm::radians((static_cast<double>(m_PassedTime) / m_AnimLength)  * 180.0)) * 0.5;
 
 	if (EndAnimation)
 	{
 		m_TimerEventManager->StopTimer("tile_animation");
+		const std::lock_guard<std::mutex> lock1(m_TileAnimLock);
 		const std::lock_guard<std::recursive_mutex> lock(m_GameManager->GetRenderer()->GetRenderLock());
 		m_TilePositions.clear();
+		m_PassedTime = 0;
 	}
 }
 

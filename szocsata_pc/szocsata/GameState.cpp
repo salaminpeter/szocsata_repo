@@ -102,6 +102,9 @@ void CGameState::SaveGameState()
 			StateFile.write((char *)&PlayerSteps[i].m_XPosition, sizeof(int));
 			StateFile.write((char *)&PlayerSteps[i].m_YPosition, sizeof(int));
 		}
+
+		m_GameManager->SaveTileAnims(StateFile);
+		m_GameManager->SaveCamera(StateFile);
 	}
 
 	size_t CharCount = m_GameManager->GetCharacterCount();
@@ -220,8 +223,10 @@ void CGameState::LoadPlayerAndBoardState()
 		m_GameManager->Board(XPos, TileCount - YPos - 1).m_Char = Chr;
 		m_GameManager->Board(XPos, TileCount - YPos - 1).m_Height++;
 		m_GameManager->AddPlacedLetterSelection(XPos, YPos);
-
     }
+	
+	m_GameManager->LoadTileAnims(StateFile);
+	m_GameManager->LoadCamera(StateFile);
 
 	size_t CharCount;
 	StateFile.read((char *)&CharCount, sizeof(size_t));

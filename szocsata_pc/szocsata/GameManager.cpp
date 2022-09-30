@@ -1036,6 +1036,26 @@ size_t CGameManager::GetCurrentPlayerIdx()
 	return 0;
 }
 
+void CGameManager::SaveCamera(std::ofstream& fileStream)
+{
+	m_Renderer->SaveCameraState(fileStream);
+}
+
+void CGameManager::LoadCamera(std::ifstream& fileStream)
+{
+	m_Renderer->LoadCameraState(fileStream);
+}
+
+void CGameManager::LoadTileAnims(std::ifstream& fileStream)
+{
+	m_TileAnimations->LoadState(fileStream);
+}
+
+void CGameManager::SaveTileAnims(std::ofstream& fileStream)
+{
+	m_TileAnimations->SaveState(fileStream);
+}
+
 void CGameManager::LoadState()
 {
 	m_State->LoadGameState();
@@ -1075,6 +1095,10 @@ void CGameManager::ContinueGameTask()
 {
     SetTaskFinished("continue_game_task");
 	SetGameState(CGameManager::ContinueGame);
+
+
+	if (!m_TileAnimations->Finished())
+		m_TileAnimations->StartAnimation();
 }
 
 void CGameManager::InitRendererTask()

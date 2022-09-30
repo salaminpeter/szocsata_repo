@@ -75,6 +75,8 @@ public:
 	void ZoomCameraCentered(float dist, float origoX, float origoY);
 	void ZoomCameraSimple(float dist);
 	void ResetZoom();
+	void SaveCameraState(std::ofstream& fileStream);
+	void LoadCameraState(std::ifstream& fileStream);
 	void DragCamera(int x0, int y0, int x1, int y1);
 	void GetFitToScreemProps(float& tilt, float& rotation, float& zoom, float& move, glm::vec2& dir);
 	float GetFittedViewProps(float fovY, bool topView, glm::vec2& camPos);
