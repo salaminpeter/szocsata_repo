@@ -76,6 +76,7 @@ public:
 	void RenderTileAnimations();
 	void RenderPlacedLetterSelections();
 	void AddWordSelectionAnimation(const std::vector<TWordPos>& wordPos, bool positive);
+	void AddWordSelectionAnimationLocked(const std::vector<TWordPos>& wordPos, bool positive);
 	void FinishRenderInit();
 
 	void HandleReleaseEventFromBoardView(int x, int y);
@@ -105,6 +106,7 @@ public:
 	void RemovePlacedLetterSelAtPos(int x, int y);
 	int GetPlayerStepIdxAtPos(int x, int y);
 	void DealCurrPlayerLetters();
+	void DealCurrPlayerLettersLocked();
 	void PlayerLetterReleased(size_t letterIdx);
 	void GameLoop();
 	void SetGameState(int state);
@@ -228,6 +230,7 @@ public:
 	size_t GetCharacterCount() {return m_LetterPool.GetCharacterCount();}
 	void PauseGameLoop(bool pause) {m_PauseGameLoop = pause;}
 	bool ResumedOnGameScreen() {return GameScreenActive(m_SavedGameState);}
+	std::mutex& GetStateLock() {return m_StateLock;}
 
 
 	void StartGameThread();
@@ -313,6 +316,7 @@ private:
 	std::mutex m_GameStateLock;
 	std::mutex m_GamePausedLock;
 	std::mutex m_PlayerPopupLock;
+	std::mutex m_StateLock;
 
 	CPlayer* m_CurrentPlayer = nullptr;
 

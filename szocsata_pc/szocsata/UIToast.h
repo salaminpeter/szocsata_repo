@@ -12,16 +12,16 @@ public:
 
 	CUIToast(unsigned timeout, CTimerEventManager* timerEventManager, CUIManager* uiManager, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridColorData, int x, int y, int w, int h, int vx, int vy, EType type, CGameManager* gameManager) :
 		CUIMessageBox(positionData, colorData, gridColorData, x, y, w, h, vx, vy, NoButton, gameManager),
-		m_TimeOut(timeout),
 		m_TimerEventManager(timerEventManager),
 		m_UIManager(uiManager)
 	{}
 
 	void StartTimer();
 
-private:
+	static int m_TimeSinceShow;
 
-	unsigned m_TimeOut;
+private:
+	
 	CTimerEventManager* m_TimerEventManager;
 	CUIManager* m_UIManager;
 };

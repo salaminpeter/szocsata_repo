@@ -33,13 +33,14 @@ struct TWordAnimation
 {
 	std::vector<TLetterAnimation> m_LetterAnimations;
 	size_t m_CurrentLetterIdx;
-	double m_LastAddedLetterTime;
+	double m_LastAddedLetterTime = 0;
 	std::string m_ID;
 	CUIPlayerLetters* m_UIPlayerLetters;
+	bool m_WaitForPrevLetter;
 
 	static int m_CurrWordAnimID;
 
-	TWordAnimation(CGameManager* gameManager, std::wstring word, const std::vector<size_t>& uiLetterIndices, CUIPlayerLetters* playerLetters, int x, int y, bool horizontal);
+	TWordAnimation(CGameManager* gameManager, std::wstring word, const std::vector<size_t>& uiLetterIndices, CUIPlayerLetters* playerLetters, int x, int y, bool horizontal, bool waitForPrevLetter = true);
 	int GetActiveLetterAnimCount();
 };
 
@@ -57,6 +58,7 @@ private:
 
 	CTimerEventManager* m_TimerEventManager;
 	CGameManager* m_GameManager;
+	double m_TimeSinceLastAddedLetter = 0;
 
 	std::list<TWordAnimation> m_WordAnimations;
 	std::list<size_t> m_UILetterIndices;
@@ -69,7 +71,7 @@ public:
 
 	void SetLetterInProgress(TWordAnimation& word, TLetterAnimation& letter);
 	bool HandleLetterAnimation(std::vector<TLetterAnimation>& letters, double timeFromPrevUpdate);
-	bool AddWordAnimation(std::wstring word, const std::vector<size_t>& uiLetterIndices, CUIPlayerLetters* playerLetters, int x, int y, bool horizontal);
+	bool AddWordAnimation(std::wstring word, const std::vector<size_t>& uiLetterIndices, CUIPlayerLetters* playerLetters, int x, int y, bool horizontal, bool waitForPrevLetter = true);
 	void AnimateLettersEvent(double& timeFromStart, double& timeFromPrev);
 	void AnimationFinished();
 	void Reset();

@@ -29,6 +29,8 @@ void CPlayerLetterAnimationManager::AnimFinishedEvent()
 
 void CPlayerLetterAnimationManager::AnimatePlayerLetter(double& timeFromStart, double& timeFromPrev)
 {
+	const std::lock_guard<std::mutex> lock(m_GameManager->GetStateLock());
+
 	const double AnimTime = 800.f; //TODO config
 
 	if (m_TimeSinceAnimStart == 0)
@@ -80,7 +82,6 @@ void CPlayerLetterAnimationManager::AnimatePlayerLetter(double& timeFromStart, d
 void CPlayerLetterAnimationManager::AddAnimation(CUIElement* playerLEtter, float destScale, float startX, float startY, float destX, float destY)
 {
 	m_PlayerLetterAnimations.emplace_back(playerLEtter, destScale, startX, startY, destX, destY);
-//	m_PlayerLetterAnimations.back().m_PlayerLetter->Scale(0.f);
 	m_PlayerLetterAnimations.back().m_PlayerLetter->SetPosAndSize(m_PlayerLetterAnimations.back().m_StartX, m_PlayerLetterAnimations.back().m_StartY, 0.f, 0.f);
 }
 

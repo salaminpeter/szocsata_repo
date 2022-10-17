@@ -19,6 +19,7 @@
 #include "UIRowColLayout.h"
 #include "Player.h"
 #include "GameThread.h"
+#include "UIToast.h"
 
 #define GL_GLEXT_PROTOTYPES 1
 #define GL3_PROTOTYPES 1
@@ -74,30 +75,37 @@ void CGameManager::ResetToStartScreen()
 	}
 
 	//TODO torolni az osszes cuccot amit a GenerateModelsTask al ujra letrehozok!!!!!!!!!!!!!!!!!
-	//tasks for generating board / tile model
-    std::shared_ptr<CTask> BoardSizeSetTask = AddTask(this, nullptr, "board_size_set_task", CTask::RenderThread);
-    std::shared_ptr<CTask> GenerateModelsTask = AddTask(this, &CGameManager::GenerateModelsTask, "generate_models_task", CTask::RenderThread);
 
-    //tasks for starting game
+	m_ContinueGame = false;
+
 	std::shared_ptr<CTask> BeginGameTask = AddTask(this, &CGameManager::BeginGameTask, "begin_game_task", CTask::RenderThread);
+	std::shared_ptr<CTask> ShowStartScreenTask = AddTask(this, &CGameManager::ShowStartScreenTask, "show_startscreen_task", CTask::RenderThread);
+	std::shared_ptr<CTask> ShowGameScreenTask = AddTask(this, &CGameManager::ShowGameScreenTask, "show_gamescreen_task", CTask::RenderThread);
+	std::shared_ptr<CTask> BoardSizeSetTask = AddTask(this, nullptr, "board_size_set_task", CTask::RenderThread);
+	std::shared_ptr<CTask> GenerateModelsTask = AddTask(this, &CGameManager::GenerateModelsTask, "generate_models_task", CTask::RenderThread);
+	std::shared_ptr<CTask> ShowCurrPopupTask = AddTask(this, &CGameManager::ShowCurrPlayerPopup, "show_next_player_popup_task", CTask::RenderThread);
+	std::shared_ptr<CTask> ClosePlayerPopupTask = AddTask(this, nullptr, "msg_box_button_close_task", CTask::RenderThread);
 	std::shared_ptr<CTask> GameStartedTask = AddTask(this, nullptr, "game_started_task", CTask::RenderThread);
 
-	std::shared_ptr<CTask> StartGmLoopTask = AddTask(this, &CGameManager::StartGameLoopTask, "start_game_loop_task", CTask::CurrentThread);
-
-    BeginGameTask->AddDependencie(GameStartedTask);
-    BeginGameTask->AddDependencie(GenerateModelsTask);
 	GenerateModelsTask->AddDependencie(BoardSizeSetTask);
-	StartGmLoopTask->AddDependencie(BeginGameTask);
-    
+	ShowGameScreenTask->AddDependencie(GenerateModelsTask);
+	ShowGameScreenTask->AddDependencie(GameStartedTask);
+	ShowCurrPopupTask->AddDependencie(ShowGameScreenTask);
+	BeginGameTask->AddDependencie(ClosePlayerPopupTask);
+
 	RemovePlayers();
 	m_GameBoard.Reset();
 	m_TmpGameBoard.Reset();
 	StartGameLoopTask();
 
-	BoardSizeSetTask->m_TaskStopped = false;
+
+	ShowStartScreenTask->m_TaskStopped = false;
 	GenerateModelsTask->m_TaskStopped = false;
-	GameStartedTask->m_TaskStopped = false;
-    BeginGameTask->m_TaskStopped = false;
+	BoardSizeSetTask->m_TaskStopped = false;
+	BeginGameTask->m_TaskStopped = false;
+	ClosePlayerPopupTask->m_TaskStopped = false;
+	ShowCurrPopupTask->m_TaskStopped = false;
+	ShowGameScreenTask->m_TaskStopped = false;
 }
 
 void CGameManager::RemovePlayers()
@@ -314,7 +322,6 @@ void CGameManager::InitPlayersTask()
 	SetTaskFinished("init_players_task");
 }
 
-
 void CGameManager::InitPlayers(bool addLetters)
 {
 	int PlayerCount = m_UIManager->GetPlayerCount() + 1;
@@ -326,6 +333,12 @@ void CGameManager::InitPlayers(bool addLetters)
 void CGameManager::StartGame(bool resumeGame)
 {
 	CurrentPlayerTurn(resumeGame);
+}
+
+void CGameManager::AddWordSelectionAnimationLocked(const std::vector<TWordPos>& wordPos, bool positive)
+{
+	const std::lock_guard<std::mutex> lock(m_StateLock);
+	AddWordSelectionAnimation(wordPos, positive);
 }
 
 void CGameManager::AddWordSelectionAnimation(const std::vector<TWordPos>& wordPos, bool positive)
@@ -756,7 +769,7 @@ bool CGameManager::EndPlayerTurn(bool stillHaveTime)
 		if (stillHaveTime)
 		{
 			CrossingWords.push_back(WordPos);
-			AddWordSelectionAnimation(CrossingWords, false);
+			AddWordSelectionAnimationLocked(CrossingWords, false);
 		}
 		//ha letelt az ido jatekos passz
 		else
@@ -775,7 +788,7 @@ bool CGameManager::EndPlayerTurn(bool stillHaveTime)
 		if (stillHaveTime)
 		{
 			CrossingWords.push_back(WordPos);
-			AddWordSelectionAnimation(CrossingWords, false);
+			AddWordSelectionAnimationLocked(CrossingWords, false);
 		}
 		//ha letelt az ido jatekos passz
 		else
@@ -795,7 +808,7 @@ bool CGameManager::EndPlayerTurn(bool stillHaveTime)
 	{
 		//ha meg nem telt le az ido jeloljuk ki pirossal a hibas szot
 		if (stillHaveTime)
-			AddWordSelectionAnimation(CrossingWords, false);
+			AddWordSelectionAnimationLocked(CrossingWords, false);
 		//ha letelt az ido jatekos passz
 		else
 		{
@@ -812,7 +825,7 @@ bool CGameManager::EndPlayerTurn(bool stillHaveTime)
 	m_CurrentPlayer->AddScore(Score);
 	UpdatePlayerScores();
 	SetGameState(EGameState::WaintingOnAnimation);
-	AddWordSelectionAnimation(CrossingWords, true);
+	AddWordSelectionAnimationLocked(CrossingWords, true);
 	m_Renderer->DisableSelection();
 	m_PlacedLetterSelections.clear();
 	m_PlayerSteps.clear();
@@ -820,9 +833,15 @@ bool CGameManager::EndPlayerTurn(bool stillHaveTime)
 	if (PlayerFinished)
 		return true;
 
-	DealCurrPlayerLetters();
+	DealCurrPlayerLettersLocked();
 
 	return true;
+}
+
+void CGameManager::DealCurrPlayerLettersLocked()
+{
+	const std::lock_guard<std::mutex> lock(m_StateLock);
+	DealCurrPlayerLetters();
 }
 
 void CGameManager::DealCurrPlayerLetters()
@@ -841,7 +860,7 @@ void CGameManager::DealCurrPlayerLetters()
 		glm::vec2 TileCounterPos = m_UIManager->GetTileCounterPos();
 		glm::vec2 LetterPos = m_UIManager->GetUIElement(L"ui_player_letter_panel")->GetRelativePosition(TileCounterPos);
 		int AnimCount = 0;
-
+		
 		for (size_t i = 0; i < m_CurrentPlayer->GetLetters().length(); ++i)
 		{
 			if (m_CurrentPlayer->LetterUsed(i))
@@ -853,6 +872,7 @@ void CGameManager::DealCurrPlayerLetters()
 					break;
 			}
 		}
+
 		m_PlayerLetterAnimationManager->StartAnimations();
 	}
 
@@ -1044,13 +1064,26 @@ void CGameManager::SavePopupState(std::ofstream& fileStream)
 	{
 		int Type = CUIMessageBox::ActiveMessageBox()->GetType();
 		fileStream.write((char *)&Type, sizeof(int));
+
+		//passed popup
+		if (Type == CUIMessageBox::NoButton)
+		{
+			fileStream.write((char *)&Type, sizeof(int));
+			CUIToast* Toast = static_cast<CUIToast*>(CUIMessageBox::ActiveMessageBox());
+			fileStream.write((char *)&CUIToast::m_TimeSinceShow, sizeof(int));
+		}
 	}
 }
 
 void CGameManager::LoadPopupState(std::ifstream& fileStream)
 {
 	if (m_SavedGameState == WaitingForMessageBox)
+	{
 		fileStream.read((char *)&m_SavedPopupType, sizeof(int));
+
+		if (m_SavedPopupType == CUIMessageBox::NoButton)
+			fileStream.read((char *)&CUIToast::m_TimeSinceShow, sizeof(int));
+	}
 }
 
 
@@ -1150,11 +1183,16 @@ void CGameManager::ContinueGameTask()
 	}
 	if (m_SavedGameState == EGameState::WaitingForMessageBox)
 	{
+		//resume from player popup
 		if (m_SavedPopupType == CUIMessageBox::Ok)
 		{
 			ShowNextPlayerPopup();
 			AddNextPlayerTasksNormal(false, false, false, false);
 		}
+
+		//resume from passed toast
+		else if (m_SavedPopupType == CUIMessageBox::NoButton)
+			AddNextPlayerTasksPass();
 	}
 
 	if (!m_TileAnimations->Empty())
@@ -1633,7 +1671,7 @@ void CGameManager::PlayerLetterReleased(size_t letterIdx)
 
 	wchar_t PlacedLetter = m_CurrentPlayer->GetLetters()[letterIdx];
 	
-	if (!m_WordAnimation->AddWordAnimation(std::wstring(1, PlacedLetter), std::vector<size_t>{letterIdx}, m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName()), SelX, SelY, true))
+	if (!m_WordAnimation->AddWordAnimation(std::wstring(1, PlacedLetter), std::vector<size_t>{letterIdx}, m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName()), SelX, SelY, true, false))
 		return;
 
 	CUIPlayerLetters* PlayerLetters = m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName().c_str());

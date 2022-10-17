@@ -14,8 +14,9 @@
 
 int TWordAnimation::m_CurrWordAnimID = 0;
 
-TWordAnimation::TWordAnimation(CGameManager* gameManager, std::wstring word, const std::vector<size_t>& uiLetterIndices, CUIPlayerLetters* playerLetters, int x, int y, bool horizontal)
+TWordAnimation::TWordAnimation(CGameManager* gameManager, std::wstring word, const std::vector<size_t>& uiLetterIndices, CUIPlayerLetters* playerLetters, int x, int y, bool horizontal, bool waitForPrevLetter)
 {
+	m_WaitForPrevLetter = waitForPrevLetter;
 	std::stringstream StrStream;
 	StrStream << "word_animation_" << m_CurrWordAnimID++;
 	m_ID = StrStream.str().c_str();
@@ -64,23 +65,27 @@ CWordAnimationManager::~CWordAnimationManager()
 	m_TimerEventManager->StopTimer("add_word_animation");
 }
 
-bool CWordAnimationManager::AddWordAnimation(std::wstring word, const std::vector<size_t>& uiLetterIndices, CUIPlayerLetters* playerLetters, int x, int y, bool horizontal)
+bool CWordAnimationManager::AddWordAnimation(std::wstring word, const std::vector<size_t>& uiLetterIndices, CUIPlayerLetters* playerLetters, int x, int y, bool horizontal, bool waitForPrevLetter)
 {
-	const std::lock_guard<std::mutex> lock(m_AnimListLock);
-
-	//ha ugyanarra a beture klikkelunk gyorsan ketszer
-	if (uiLetterIndices.size() == 1 && !m_GameManager->GetCurrentPlayer()->IsComputer())
+	const std::lock_guard<std::mutex> lock(m_GameManager->GetStateLock());
 	{
-		if (std::find(m_UILetterIndices.begin(), m_UILetterIndices.end(), uiLetterIndices[0]) != m_UILetterIndices.end())
-			return false;
+		const std::lock_guard<std::mutex> lock(m_AnimListLock);
+		{
+			//ha ugyanarra a beture klikkelunk gyorsan ketszer
+			if (uiLetterIndices.size() == 1 && !m_GameManager->GetCurrentPlayer()->IsComputer())
+			{
+				if (std::find(m_UILetterIndices.begin(), m_UILetterIndices.end(), uiLetterIndices[0]) != m_UILetterIndices.end())
+					return false;
 
-		m_UILetterIndices.push_back(uiLetterIndices[0]);
-	}
+				m_UILetterIndices.push_back(uiLetterIndices[0]);
+			}
 	
-	m_WordAnimations.emplace_back(m_GameManager, word, uiLetterIndices, playerLetters, x, y, horizontal);
-	m_TimerEventManager->AddTimerEvent(this, &CWordAnimationManager::AnimateLettersEvent, &CWordAnimationManager::AnimationFinished, "word_animations");
-	m_TimerEventManager->StartTimer("word_animations");
-	return true;
+			m_WordAnimations.emplace_back(m_GameManager, word, uiLetterIndices, playerLetters, x, y, horizontal, waitForPrevLetter);
+			m_TimerEventManager->AddTimerEvent(this, &CWordAnimationManager::AnimateLettersEvent, &CWordAnimationManager::AnimationFinished, "word_animations");
+			m_TimerEventManager->StartTimer("word_animations");
+			return true;
+		}
+	}
 }
 
 int TWordAnimation::GetActiveLetterAnimCount()
@@ -146,40 +151,49 @@ void CWordAnimationManager::SetLetterInProgress(TWordAnimation& word, TLetterAni
 
 void CWordAnimationManager::AnimateLettersEvent(double& timeFromStart, double& timeFromPrev)
 {
-	const std::lock_guard<std::mutex> lock(m_AnimListLock);
-
-	double CurrentTime = CTimer::GetCurrentTime();
-
-	bool ComputerTurn = m_GameManager->GetCurrentPlayer()->IsComputer();
-
-	for (auto WordAnimationIt = m_WordAnimations.begin(); WordAnimationIt != m_WordAnimations.end(); ++WordAnimationIt)
+	const std::lock_guard<std::mutex> lock(m_GameManager->GetStateLock());
 	{
-		if (CurrentTime - WordAnimationIt->m_LastAddedLetterTime > m_LetterAddInterval && WordAnimationIt->m_CurrentLetterIdx < WordAnimationIt->m_LetterAnimations.size())
+		const std::lock_guard<std::mutex> lock(m_AnimListLock);
 		{
-			SetLetterInProgress(*WordAnimationIt, WordAnimationIt->m_LetterAnimations[WordAnimationIt->m_CurrentLetterIdx]);
-			WordAnimationIt->m_LastAddedLetterTime = CurrentTime;
-			WordAnimationIt->m_CurrentLetterIdx++;
-		}
+			bool ComputerTurn = m_GameManager->GetCurrentPlayer()->IsComputer();
 
-		//handle word animation - mikor a computer tesz le egy egesz szot
-		bool AnimFinished = HandleLetterAnimation(WordAnimationIt->m_LetterAnimations, timeFromPrev);
+			for (auto WordAnimationIt = m_WordAnimations.begin(); WordAnimationIt != m_WordAnimations.end(); ++WordAnimationIt)
+			{
+				if (static_cast<int>(WordAnimationIt->m_LastAddedLetterTime) == 0)
+					WordAnimationIt->m_LastAddedLetterTime = timeFromPrev;
+				else
+					WordAnimationIt->m_LastAddedLetterTime += timeFromPrev;
 
-		if (AnimFinished)
-			WordAnimationIt = m_WordAnimations.erase(WordAnimationIt);
+				if ((WordAnimationIt->m_LastAddedLetterTime > m_LetterAddInterval || !WordAnimationIt->m_WaitForPrevLetter) && WordAnimationIt->m_CurrentLetterIdx < WordAnimationIt->m_LetterAnimations.size())
+				{
+					SetLetterInProgress(*WordAnimationIt, WordAnimationIt->m_LetterAnimations[WordAnimationIt->m_CurrentLetterIdx]);
+					WordAnimationIt->m_LastAddedLetterTime = 0;
+					WordAnimationIt->m_CurrentLetterIdx++;
+				}
 
-		if (ComputerTurn && AnimFinished)
-			m_GameManager->SetTaskFinished("finish_word_letters_animation_task");
+				//handle word animation - mikor a computer tesz le egy egesz szot
+				bool AnimFinished = HandleLetterAnimation(WordAnimationIt->m_LetterAnimations, timeFromPrev);
 
-		if (m_WordAnimations.size() == 0)
-		{
-			m_TimerEventManager->StopTimer("word_animations");
-			return;
+				if (AnimFinished)
+					WordAnimationIt = m_WordAnimations.erase(WordAnimationIt);
+
+				if (ComputerTurn && AnimFinished)
+					m_GameManager->SetTaskFinished("finish_word_letters_animation_task");
+
+				if (m_WordAnimations.size() == 0)
+				{
+					m_TimerEventManager->StopTimer("word_animations");
+					return;
+				}
+			}
 		}
 	}
 }
 
 void CWordAnimationManager::AnimationFinished()
 {
+	const std::lock_guard<std::mutex> lock(m_GameManager->GetStateLock());
+
 	bool ComputerTurn = m_GameManager->GetCurrentPlayer()->IsComputer();
 	
 	if (ComputerTurn)
@@ -197,8 +211,6 @@ void CWordAnimationManager::Reset()
 
 void CWordAnimationManager::SaveState(std::ofstream& fileStream)
 {
-	const std::lock_guard<std::mutex> lock(m_AnimListLock);
-
 	size_t WordAnimCount = m_WordAnimations.size();
 	m_TimerEventManager->PauseTimer("add_word_animation");
 	fileStream.write((char *)&WordAnimCount, sizeof(size_t));
@@ -206,8 +218,10 @@ void CWordAnimationManager::SaveState(std::ofstream& fileStream)
 	for (auto WordAnim : m_WordAnimations)
 	{
 		size_t LetterAnimCount = WordAnim.GetActiveLetterAnimCount();
+		size_t FinishedLetters = WordAnim.m_LetterAnimations.size() - LetterAnimCount;
+		size_t CurrentLetterIdx = WordAnim.m_CurrentLetterIdx - FinishedLetters;
 
-		fileStream.write((char *)&WordAnim.m_CurrentLetterIdx, sizeof(size_t));
+		fileStream.write((char *)&CurrentLetterIdx, sizeof(size_t));
 		fileStream.write((char *)&WordAnim.m_LastAddedLetterTime, sizeof(double));
 		fileStream.write((char *)&LetterAnimCount, sizeof(size_t));
 

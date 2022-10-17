@@ -14,6 +14,8 @@
 
 void CGameState::SaveGameState()
 {	
+	const std::lock_guard<std::mutex> lock(m_GameManager->GetStateLock());
+
 	if (m_GameManager->GetGameState() == CGameManager::OnStartScreen)
 	{
 		RemoveSaveFile();
@@ -162,6 +164,8 @@ void CGameState::LoadComputerStep(std::ifstream& fileStream)
 
 void CGameState::LoadPlayerAndBoardState()
 {
+	const std::lock_guard<std::mutex> lock(m_GameManager->GetStateLock());
+
 	std::string FilePath = m_GameManager->GetWorkingDir() + 
 #ifdef PLATFORM_ANDROID
 		"/state.dat";
@@ -324,6 +328,8 @@ void CGameState::LoadPlayerAndBoardState()
 
 void CGameState::LoadGameState()
 {
+	const std::lock_guard<std::mutex> lock(m_GameManager->GetStateLock());
+
 	std::string FilePath = m_GameManager->GetWorkingDir() + 
 #ifdef PLATFORM_ANDROID
 		"/state.dat";
@@ -364,44 +370,6 @@ void CGameState::LoadGameState()
 	m_GameManager->m_SavedGameState = static_cast<CGameManager::EGameState>(GameState);
 
 	StateFile.close();
-}
-
-void CGameState::SaveBoardState(const CGameBoard& currBoard, const CGameBoard& prevBoard)
-{
-	m_CurrBoardState = new CGameBoard;
-	m_PrevBoardState = new CGameBoard;
-	*m_CurrBoardState = currBoard;
-	*m_PrevBoardState = prevBoard;
-}
-
-void CGameState::SavePlayerCount(int playerCount, bool computerOn)
-{
-	m_PlayerLetters.reserve(playerCount + static_cast<int>(computerOn));
-	m_ComputerOn = computerOn;
-}
-
-void CGameState::SavePlayerLetters(size_t idx, const std::vector<std::wstring>& letters)
-{
-	if (idx >= m_PlayerLetters.size())
-		return;
-
-	m_PlayerLetters[idx] = letters;
-}
-
-void CGameState::SavePlayerSteps(const std::vector<TPlayerStep>& playerSteps)
-{
-	m_PlayerSteps = playerSteps;
-}
-
-void CGameState::SaveLetterPoolState(const std::map<wchar_t, int>& letterPool)
-{
-	m_LettersInPool = letterPool;
-}
-
-void CGameState::SaveCameraState(float tiltAngle, float rotAngle)
-{
-	m_CameraTiltAngle = tiltAngle;
-	m_CameraRotAngle = rotAngle;
 }
 
 void CGameState::RemoveSaveFile()

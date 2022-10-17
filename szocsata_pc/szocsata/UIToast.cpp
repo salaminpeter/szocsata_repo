@@ -3,6 +3,7 @@
 #include "TimerEventManager.h"
 #include "UIManager.h"
 
+int CUIToast::m_TimeSinceShow = 0;
 
 void CUIToast::StartTimer()
 {

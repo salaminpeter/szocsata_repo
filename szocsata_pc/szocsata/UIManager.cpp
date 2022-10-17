@@ -777,9 +777,12 @@ void CUIManager::EnableGameButtons(bool enable)
 //TODO a toast most csak a passed - re van hasznalva, ha egyszer masra is kell akkor ez szar lesz!!!
 void CUIManager::CloseToast(double& timeFromStart, double& timeFromPrev)
 {
-	if (1000 < timeFromStart) //TODO config
+	CUIToast::m_TimeSinceShow += timeFromPrev;
+
+	if (1000 < CUIToast::m_TimeSinceShow) //TODO config
 	{
 		m_TimerEventManager->StopTimer("ui_toast_id");
+		CUIToast::m_TimeSinceShow = 0;
 
 		{
 			const std::lock_guard<std::mutex> lock(CUIMessageBox::m_Lock);

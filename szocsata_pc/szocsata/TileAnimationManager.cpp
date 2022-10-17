@@ -66,8 +66,6 @@ void CTileAnimationManager::Reset()
 
 void CTileAnimationManager::SaveState(std::ofstream& fileStream)
 {
-	const std::lock_guard<std::mutex> lock(m_TileAnimLock);
-
 	size_t TileAnimCount = m_TilePositions.size();
 	m_TimerEventManager->PauseTimer("tile_animation");
 	fileStream.write((char *)&TileAnimCount, sizeof(size_t));
@@ -133,11 +131,18 @@ void CTileAnimationManager::UpdateColorEvent(double& timeFromStart, double& time
 
 	if (EndAnimation)
 	{
-		m_TimerEventManager->StopTimer("tile_animation");
-		const std::lock_guard<std::mutex> lock1(m_TileAnimLock);
-		const std::lock_guard<std::recursive_mutex> lock(m_GameManager->GetRenderer()->GetRenderLock());
-		m_TilePositions.clear();
-		m_PassedTime = 0;
+		const std::lock_guard<std::mutex> lock(m_GameManager->GetStateLock());
+		{
+			m_TimerEventManager->StopTimer("tile_animation");
+			const std::lock_guard<std::mutex> lock(m_TileAnimLock);
+			{
+				const std::lock_guard<std::recursive_mutex> lock(m_GameManager->GetRenderer()->GetRenderLock());
+				{
+					m_TilePositions.clear();
+					m_PassedTime = 0;
+				}
+			}
+		}
 	}
 }
 
