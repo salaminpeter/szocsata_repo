@@ -90,19 +90,28 @@ void InitGameManager(int surfWidth, int surfHeight)
     {
         std::shared_ptr<CTask> BeginGameTask = gm->AddTask(gm, &CGameManager::BeginGameTask, "begin_game_task", CTask::RenderThread);
         std::shared_ptr<CTask> ShowStartScreenTask = gm->AddTask(gm, &CGameManager::ShowStartScreenTask, "show_startscreen_task", CTask::RenderThread);
+        std::shared_ptr<CTask> ShowGameScreenTask = gm->AddTask(gm, &CGameManager::ShowGameScreenTask, "show_gamescreen_task", CTask::RenderThread);
         std::shared_ptr<CTask> BoardSizeSetTask = gm->AddTask(gm, nullptr, "board_size_set_task", CTask::RenderThread);
         std::shared_ptr<CTask> GenerateModelsTask = gm->AddTask(gm, &CGameManager::GenerateModelsTask, "generate_models_task", CTask::RenderThread);
+        std::shared_ptr<CTask> ShowCurrPopupTask = gm->AddTask(gm, &CGameManager::ShowCurrPlayerPopup, "show_next_player_popup_task", CTask::RenderThread);
+        std::shared_ptr<CTask> ClosePlayerPopupTask = gm->AddTask(gm, nullptr, "msg_box_button_close_task", CTask::RenderThread);
+
 
         ShowStartScreenTask->AddDependencie(GenerateStartScrTextTask);
         GenerateModelsTask->AddDependencie(BoardSizeSetTask);
-        BeginGameTask->AddDependencie(GenerateModelsTask);
-        BeginGameTask->AddDependencie(GameStartedTask);
+        ShowGameScreenTask->AddDependencie(GenerateModelsTask);
+        ShowGameScreenTask->AddDependencie(GameStartedTask);
+        ShowCurrPopupTask->AddDependencie(ShowGameScreenTask);
+        BeginGameTask->AddDependencie(ClosePlayerPopupTask);
         HideLoadScreenTask->AddDependencie(ShowStartScreenTask);
 
         ShowStartScreenTask->m_TaskStopped = false;
         GenerateModelsTask->m_TaskStopped = false;
         BoardSizeSetTask->m_TaskStopped = false;
         BeginGameTask->m_TaskStopped = false;
+        ClosePlayerPopupTask->m_TaskStopped = false;
+        ShowCurrPopupTask->m_TaskStopped = false;
+        ShowGameScreenTask->m_TaskStopped = false;
     }
     else
     {
@@ -207,6 +216,7 @@ Java_com_example_szocsata_1android_MainActivity_ClearResources(JNIEnv *env, jobj
     const std::lock_guard<std::mutex> lock(m_GMLock);
     gm->StopThreads();
     gm->SaveState();
+    gm->HidePopup();
     delete gm;
     gm = nullptr;
 }

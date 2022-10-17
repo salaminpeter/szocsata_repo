@@ -15,6 +15,8 @@ public:
 	void SaveGameState();
 	void LoadGameState();
 	void LoadPlayerAndBoardState();
+	void SaveComputerStep(std::ofstream& fileStream);
+	void LoadComputerStep(std::ifstream& fileStream);
 
 	void SaveBoardState(const CGameBoard& currBoard, const CGameBoard& prevBoard);
 	void SavePlayerCount(int playerCount, bool computerOn);

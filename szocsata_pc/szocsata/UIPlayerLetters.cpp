@@ -106,7 +106,9 @@ void CUIPlayerLetters::AddUILetters(unsigned count)
 	for (unsigned i = 0; i < count; ++i)
 	{
 		if (letters[i] != L' ') {
-			CUIElement *NewLetter = new CUIButton(this, m_PositionData, m_ColorData, 0, 0, 100, 100, m_ViewXPosition, m_ViewYPosition, "playerletters.bmp", L"");
+			std::wstringstream ss;
+			ss << m_Player->GetName() << L"_letter_" << i;
+			CUIElement *NewLetter = new CUIButton(this, m_PositionData, m_ColorData, 0, 0, 100, 100, m_ViewXPosition, m_ViewYPosition, "playerletters.bmp", ss.str().c_str());
 			NewLetter->SetEvent(CUIElement::ReleaseEvent, m_GameManager, &CGameManager::PlayerLetterReleased, std::move(Idx)); //TODO szar az egesz event miert kell move???
 			NewLetter->SetTexturePosition(m_LetterTexPos[letters[i]] / glm::vec2(8, 4));
 			Idx++;

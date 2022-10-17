@@ -17,6 +17,38 @@ CComputer::CComputer(CGameManager* gameManager) : CPlayer(gameManager)
 	m_Name = L"computer";
 }
 
+void CComputer::SaveComputerStep(std::ofstream& fileStream)
+{
+	m_ComputerStep.m_Word.SaveToFile(fileStream);
+	fileStream.write((char *)&m_ComputerStep.m_Score, sizeof(int));
+	unsigned UsedLetters = m_ComputerStep.m_UsedLetters.GetList();
+	fileStream.write((char *)&UsedLetters, sizeof(unsigned));
+	size_t CrossingWordCount = m_ComputerStep.m_CrossingWords.size();
+	fileStream.write((char *)&CrossingWordCount, sizeof(size_t));
+
+	for (auto CrossingWord : m_ComputerStep.m_CrossingWords)
+		CrossingWord.SaveToFile(fileStream);
+}
+
+void CComputer::LoadComputerStep(std::ifstream& fileStream)
+{
+	m_ComputerStep.m_Word.LoadFromFile(fileStream);
+	fileStream.read((char *)&m_ComputerStep.m_Score, sizeof(int));
+	unsigned UsedLetters;
+	fileStream.read((char *)&UsedLetters, sizeof(unsigned));
+	m_ComputerStep.m_UsedLetters.SetList(UsedLetters);
+	size_t CrossingWordCount;
+	fileStream.read((char *)&CrossingWordCount, sizeof(size_t));
+	m_ComputerStep.m_CrossingWords.reserve(CrossingWordCount);
+
+	for (size_t i = 0; i < CrossingWordCount; ++i)
+	{
+		m_ComputerStep.m_CrossingWords.push_back(TWordPos());
+		m_ComputerStep.m_CrossingWords.back().LoadFromFile(fileStream);
+	}
+}
+
+
 bool CComputer::FindWord(const std::wstring& word, int score, bool horizontal, bool checkAlingnment, size_t** idx)
 {
 	for (size_t i = 0; i < m_BestWords.size(); ++i)

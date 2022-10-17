@@ -90,6 +90,8 @@ void CTileAnimationManager::SaveState(std::ofstream& fileStream)
 
 void CTileAnimationManager::LoadState(std::ifstream& fileStream)
 {
+	m_TimerEventManager->PauseTimer("tile_animation");
+
 	size_t TileAnimCount;
 	fileStream.read((char *)&TileAnimCount, sizeof(size_t));
 

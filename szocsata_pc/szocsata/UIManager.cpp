@@ -724,6 +724,12 @@ void CUIManager::ShowToast(const wchar_t* text)
 	m_Toast->StartTimer();
 }
 
+void CUIManager::CloseMessageBox()
+{
+	const std::lock_guard<std::mutex> lock(CUIMessageBox::m_Lock);
+	CUIMessageBox::m_ActiveMessageBox = nullptr;
+}
+
 void CUIManager::ShowMessageBox(int type, const wchar_t* text)
 {
 	const std::lock_guard<std::mutex> lock(CUIMessageBox::m_Lock);

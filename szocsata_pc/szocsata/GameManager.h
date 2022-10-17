@@ -39,7 +39,7 @@ class CGameManager
 {
 public:
 	
-	enum EGameState { NextTurn, WaintingOnAnimation, WaitingForMessageBox, TurnInProgress, GameEnded, BeginGame, ContinueGame, Paused, OnStartGameScreen, OnStartScreen, OnRankingsScreen, None};
+	enum EGameState { NextTurn, WaintingOnAnimation, WaitingForMessageBox, TurnInProgress, GameEnded, BeginGame, Paused, OnStartGameScreen, OnStartScreen, OnRankingsScreen, None};
 
 	CGameManager();
 
@@ -126,7 +126,6 @@ public:
 	bool GameScreenActive(EGameState state);
 	void ShowNextPlayerPopup();
 	void ShowCurrPlayerPopup();
-	bool TileAnimationFinished();
 	bool PlayerLetterAnimationFinished();
 	void StartDimmingAnimation(bool fadeIn);
 	bool SelectionPosIllegal(int x, int y);
@@ -137,7 +136,7 @@ public:
 	void ExecuteTaskOnThread(const char* id, int threadId);
 	void StopThreads();
 	void AddNextPlayerTasksPass();
-	bool AddNextPlayerTasksNormal(bool hasWordAnimation);
+	bool AddNextPlayerTasksNormal(bool hasWordAnimation, bool hasTileAnimation, bool hasLetterAnimation, bool addMessageBoxTask = true);
 
 	glm::ivec2 GetUIElementSize(const wchar_t* id);
 	float GetLetterSize();
@@ -152,6 +151,7 @@ public:
 	CWordTree::TNode* WordTreeRoot(wchar_t c) {return m_DataBase.GetWordTreeRoot(c);}
     TField& Board(int x, int y) {return m_GameBoard(x, y);}
     TField& TmpBoard(int x, int y) {return m_TmpGameBoard(x, y);}
+	CGameBoard& GetBoard(bool tmp) {return tmp ? m_TmpGameBoard : m_GameBoard;} const
 	std::wstring CurrentPlayerName() {return m_CurrentPlayer ? m_CurrentPlayer->GetName() : L"";}
 	int GetPlayerCount() {return m_Players.size();}
 	void SetLastTouchOnBoardView(bool onBoardView) { m_LastTouchOnBoardView = onBoardView; }
@@ -166,20 +166,25 @@ public:
 	void LoadCamera(std::ifstream& fileStream);
 	void SaveWordAnims(std::ofstream& fileStream);
 	void LoadWordAnims(std::ifstream& fileStream);
+	void SaveLetterAnims(std::ofstream& fileStream);
+	void LoadLetterAnims(std::ifstream& fileStream);
+	void SavePopupState(std::ofstream& fileStream);
+	void LoadPopupState(std::ifstream& fileStream);
 	size_t GetCurrentPlayerIdx();
 	void LoadState();
 	void LoadPlayerAndBoardState();
 	void SetTaskFinished(const char* id) { m_TaskManager->SetTaskFinished(id); }
 	void StopTaskThread() {m_TaskManager->StopThread();}
-    void RevertGameBoard() {m_GameBoard = m_TmpGameBoard;}
     void HideLoadScreen()
     {
 	    ShowLoadingScreen(false);
 	    m_TaskManager->SetTaskFinished("hide_load_screen_task");
     }
 
+    void HidePopup();
     void ShowStartScreenTask();
-    void ShowSavedScreenTask();
+	void ShowGameScreenTask();
+	void ShowSavedScreenTask();
 	void BeginGameTask();
 	void ContinueGameTask();
 	void InitRendererTask();
@@ -291,6 +296,7 @@ private:
 	int m_SurfaceWidth;
 	int m_SurfaceHeigh;
 	bool m_StopGameLoop = false;
+	std::atomic_bool m_ContinueGame = false;
 	bool m_PauseGameLoop = false;
 
 	bool m_StartOnGameScreen = false;
@@ -311,7 +317,7 @@ private:
 	CPlayer* m_CurrentPlayer = nullptr;
 
 	int m_ComputerWordIdx = -1;
-
+	int m_SavedPopupType;
 	int m_LastTurnTimeChanged = 0;
 	int m_TurnTimeStart = 0;
 

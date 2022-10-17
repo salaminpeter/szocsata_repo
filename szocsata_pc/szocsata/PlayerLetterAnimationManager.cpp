@@ -5,6 +5,9 @@
 #include "UIManager.h"
 #include "UIElement.h"
 
+#include <iostream>
+#include <fstream>
+
 
 void CPlayerLetterAnimationManager::StartAnimations()
 {
@@ -28,12 +31,20 @@ void CPlayerLetterAnimationManager::AnimatePlayerLetter(double& timeFromStart, d
 {
 	const double AnimTime = 800.f; //TODO config
 
-	float Mul = std::sinf((timeFromStart / AnimTime) * (90.f * 3.14f / 180.f));
+	if (m_TimeSinceAnimStart == 0)
+		m_TimeSinceAnimStart = timeFromStart;
+	else
+		m_TimeSinceAnimStart += timeFromPrev;
+
+	float Mul = std::sinf((m_TimeSinceAnimStart / AnimTime) * (90.f * 3.14f / 180.f));
 	float Scale = Mul * m_PlayerLetterAnimations[m_CurrentLetterIdx].m_DestScale;
 	float XPos = Mul * (m_PlayerLetterAnimations[m_CurrentLetterIdx].m_DestX - m_PlayerLetterAnimations[m_CurrentLetterIdx].m_StartX) + m_PlayerLetterAnimations[m_CurrentLetterIdx].m_StartX;
 	float YPos = Mul * (m_PlayerLetterAnimations[m_CurrentLetterIdx].m_DestY - m_PlayerLetterAnimations[m_CurrentLetterIdx].m_StartY) + m_PlayerLetterAnimations[m_CurrentLetterIdx].m_StartY;
-	m_PlayerLetterAnimations[m_CurrentLetterIdx].m_PlayerLetter->Scale(timeFromStart < AnimTime ? Scale : m_PlayerLetterAnimations[m_CurrentLetterIdx].m_DestScale);
+	m_PlayerLetterAnimations[m_CurrentLetterIdx].m_PlayerLetter->Scale(m_TimeSinceAnimStart < AnimTime ? Scale : m_PlayerLetterAnimations[m_CurrentLetterIdx].m_DestScale);
 	m_PlayerLetterAnimations[m_CurrentLetterIdx].m_PlayerLetter->SetPosAndSize(XPos, YPos, Scale, Scale);
+
+	if (m_TimeSinceAnimStart >= AnimTime)
+		m_PlayerLetterAnimations[m_CurrentLetterIdx].m_Finished = true;
 
 	if (m_CurrentLetterIdx != m_PrevLetterIdx)
 	{
@@ -43,13 +54,14 @@ void CPlayerLetterAnimationManager::AnimatePlayerLetter(double& timeFromStart, d
 			m_GameManager->GetUIManager()->SetTileCounterValue(m_GameManager->GetUIManager()->GetTileCounterValue() - 1);
 	}
 
-	if (timeFromStart > AnimTime)
+	if (m_TimeSinceAnimStart > AnimTime)
 	{
 		//set final position
 		m_PlayerLetterAnimations[m_CurrentLetterIdx].m_PlayerLetter->Scale(m_PlayerLetterAnimations[m_CurrentLetterIdx].m_DestScale);
 		m_PlayerLetterAnimations[m_CurrentLetterIdx].m_PlayerLetter->SetPosAndSize(m_PlayerLetterAnimations[m_CurrentLetterIdx].m_DestX, m_PlayerLetterAnimations[m_CurrentLetterIdx].m_DestY, Scale, Scale);
 
 		m_TimerEventManager->StopTimer("player_letter_animation");
+		m_TimeSinceAnimStart = 0;
 
 		if (m_CurrentLetterIdx + 1 == m_PlayerLetterAnimations.size())
 		{
@@ -68,9 +80,99 @@ void CPlayerLetterAnimationManager::AnimatePlayerLetter(double& timeFromStart, d
 void CPlayerLetterAnimationManager::AddAnimation(CUIElement* playerLEtter, float destScale, float startX, float startY, float destX, float destY)
 {
 	m_PlayerLetterAnimations.emplace_back(playerLEtter, destScale, startX, startY, destX, destY);
+//	m_PlayerLetterAnimations.back().m_PlayerLetter->Scale(0.f);
+	m_PlayerLetterAnimations.back().m_PlayerLetter->SetPosAndSize(m_PlayerLetterAnimations.back().m_StartX, m_PlayerLetterAnimations.back().m_StartY, 0.f, 0.f);
 }
 
-bool CPlayerLetterAnimationManager::Finished()
+bool CPlayerLetterAnimationManager::Empty()
 {
 	return (m_PlayerLetterAnimations.size() == 0);
+}
+
+void CPlayerLetterAnimationManager::SaveState(std::ofstream& fileStream)
+{
+	size_t LeterAnimCount = 0;
+
+	for (auto LetterAnim : m_PlayerLetterAnimations)
+		LeterAnimCount += LetterAnim.m_Finished ? 0 : 1;
+
+	m_TimerEventManager->PauseTimer("player_letter_animation");
+	fileStream.write((char *)&LeterAnimCount, sizeof(size_t));
+
+	if (LeterAnimCount == 0)
+		return;
+
+	fileStream.write((char *)&m_TimeSinceAnimStart, sizeof(int));
+
+	for (auto LetterAnim : m_PlayerLetterAnimations)
+	{
+		if (LetterAnim.m_Finished)
+			continue;
+
+		std::wstring LetterId = LetterAnim.m_PlayerLetter->GetID();
+		int IdLength = LetterId.length();
+
+		fileStream.write((char *)&LetterAnim.m_DestScale, sizeof(float));
+		fileStream.write((char *)&LetterAnim.m_StartX, sizeof(float));
+		fileStream.write((char *)&LetterAnim.m_StartY, sizeof(float));
+		fileStream.write((char *)&LetterAnim.m_DestX, sizeof(float));
+		fileStream.write((char *)&LetterAnim.m_DestY, sizeof(float));
+		fileStream.write((char *)&IdLength, sizeof(int));
+
+		for (int i = 0; i < IdLength; ++i)
+			fileStream.write((char *)&LetterId[i], sizeof(wchar_t));
+	}
+}
+
+void CPlayerLetterAnimationManager::LoadState(std::ifstream& fileStream)
+{
+#ifndef PLATFORM_ANDROID
+	#define size_t int64_t
+	#define wchar_t char32_t
+#endif
+	m_TimerEventManager->PauseTimer("player_letter_animation");
+
+	size_t LetterAnimCount;
+	fileStream.read((char *)&LetterAnimCount, sizeof(size_t));
+
+	if (LetterAnimCount == 0)
+		return;
+
+	fileStream.read((char *)&m_TimeSinceAnimStart, sizeof(int));
+
+	for (int i = 0; i < LetterAnimCount; ++i)
+	{
+		float DestScale;
+		float StartX;
+		float StartY;
+		float DestX;
+		float DestY;
+		int IdLength;
+
+		fileStream.read((char *)&DestScale, sizeof(float));
+		fileStream.read((char *)&StartX, sizeof(float));
+		fileStream.read((char *)&StartY, sizeof(float));
+		fileStream.read((char *)&DestX, sizeof(float));
+		fileStream.read((char *)&DestY, sizeof(float));
+		fileStream.read((char *)&IdLength, sizeof(int));
+
+		std::wstring LetterId;
+		wchar_t IdChar;
+
+		for (int i = 0; i < IdLength; ++i)
+		{
+			fileStream.read((char *)&IdChar, sizeof(wchar_t));
+			LetterId += IdChar;
+		}
+
+		CUIElement* LetterElement = m_GameManager->GetUIManager()->GetUIElement(LetterId.c_str());
+		AddAnimation(LetterElement, DestScale, StartX, StartY, DestX, DestY);
+		m_CurrentLetterIdx = 0;
+		m_PrevLetterIdx = 1;
+	}
+
+#ifndef PLATFORM_ANDROID
+	#undef size_t
+	#undef wchar_t
+#endif
 }

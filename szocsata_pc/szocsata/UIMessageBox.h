@@ -18,6 +18,8 @@ public:
 	void ButtonPressed(int ret);
 	void SetText(const wchar_t* text);
 
+	 EType GetType() {return m_Type;}
+
 public:
 
 	static CUIMessageBox* ActiveMessageBox();
@@ -25,10 +27,11 @@ public:
 	static CUIMessageBox* m_ActiveMessageBox;
 	static int m_RetValue;
 	static std::mutex m_Lock;
+	static std::wstring m_Text;
 
 private:
 
 	CGameManager* m_GameManager;
-	EType m_Type;
 	float m_TextSize;
+	EType m_Type;
 };

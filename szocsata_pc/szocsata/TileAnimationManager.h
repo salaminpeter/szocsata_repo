@@ -35,7 +35,7 @@ public:
 	void SetUIManager(CUIManager* uiManager) {m_UIManager = uiManager;}
 	void StarDataQuery() { m_QueryIndex = 0; }
 	glm::vec4 GetColor() { return m_Color; }
-	bool Finished() {return (m_TilePositions.size() == 0);}
+	bool Empty() {return (m_TilePositions.size() == 0);}
 
 private:
 

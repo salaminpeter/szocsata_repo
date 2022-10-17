@@ -83,6 +83,16 @@ bool CWordAnimationManager::AddWordAnimation(std::wstring word, const std::vecto
 	return true;
 }
 
+int TWordAnimation::GetActiveLetterAnimCount()
+{
+	int Count = 0;
+
+	for (auto LetterAnims : m_LetterAnimations)
+		Count += LetterAnims.m_State != TLetterAnimation::Finished ? 1 : 0;
+
+	return Count;
+}
+
 bool CWordAnimationManager::HandleLetterAnimation(std::vector<TLetterAnimation>& letters, double timeFromPrevUpdate)
 {
 	bool Finished = true;
@@ -195,7 +205,7 @@ void CWordAnimationManager::SaveState(std::ofstream& fileStream)
 
 	for (auto WordAnim : m_WordAnimations)
 	{
-		size_t LetterAnimCount = WordAnim.m_LetterAnimations.size();
+		size_t LetterAnimCount = WordAnim.GetActiveLetterAnimCount();
 
 		fileStream.write((char *)&WordAnim.m_CurrentLetterIdx, sizeof(size_t));
 		fileStream.write((char *)&WordAnim.m_LastAddedLetterTime, sizeof(double));
@@ -203,6 +213,9 @@ void CWordAnimationManager::SaveState(std::ofstream& fileStream)
 
 		for (auto LetterAnim : WordAnim.m_LetterAnimations)
 		{
+			if (LetterAnim.m_State == TLetterAnimation::Finished)
+				continue;
+
 			fileStream.write((char *)&LetterAnim.m_AminationTime, sizeof(float));
 			fileStream.write((char *)&LetterAnim.m_Distance, sizeof(float));
 			fileStream.write((char *)&LetterAnim.m_DestHeight, sizeof(float));
@@ -216,6 +229,8 @@ void CWordAnimationManager::SaveState(std::ofstream& fileStream)
 
 void CWordAnimationManager::LoadState(std::ifstream& fileStream)
 {
+	m_TimerEventManager->PauseTimer("add_word_animation");
+
 	size_t WordAnimCount;
 	fileStream.read((char *)&WordAnimCount, sizeof(size_t));
 
@@ -249,13 +264,12 @@ void CWordAnimationManager::LoadState(std::ifstream& fileStream)
 
 			CLetterModel* LetterModel = m_GameManager->GetRenderer()->GetLetterAtPos(x, y);
 			LetterModel->SetVisibility(AnimState != TLetterAnimation::Waiting);
+			glm::vec3 Position = LetterModel->GetPosition();
+			Position.z = 4. - Dist * std::sinf((3.14 / 2.f) * AnimTime / m_LetterAnimTime);
 
 			m_WordAnimations.back().m_LetterAnimations.emplace_back(LetterModel, Dist, DestHeight, LetterIdx, x, y);
 			m_WordAnimations.back().m_LetterAnimations.back().m_AminationTime = AnimTime;
 			m_WordAnimations.back().m_LetterAnimations.back().m_State = AnimState;
 		}
 	}
-
-	m_TimerEventManager->AddTimerEvent(this, &CWordAnimationManager::AnimateLettersEvent, &CWordAnimationManager::AnimationFinished, "word_animations");
-	m_TimerEventManager->StartTimer("word_animations");
 }

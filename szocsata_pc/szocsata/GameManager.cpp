@@ -325,9 +325,6 @@ void CGameManager::InitPlayers(bool addLetters)
 
 void CGameManager::StartGame(bool resumeGame)
 {
-	if (!resumeGame)
-		ShowCurrPlayerPopup();
-
 	CurrentPlayerTurn(resumeGame);
 }
 
@@ -352,7 +349,6 @@ void CGameManager::AddWordSelectionAnimation(const std::vector<TWordPos>& wordPo
 	m_TileAnimations->StartAnimation(positive);
 }
 
-
 void CGameManager::StartPlayerTurn(CPlayer* player, bool saveBoard)
 {
 	m_CurrentPlayer = player;
@@ -363,11 +359,6 @@ void CGameManager::StartPlayerTurn(CPlayer* player, bool saveBoard)
 
 	if (player->IsComputer())
 		StartComputerturn();
-}
-
-bool CGameManager::TileAnimationFinished() 
-{ 
-	return m_TileAnimations->Finished(); 
 }
 
 float CGameManager::GetLetterSize()
@@ -537,7 +528,7 @@ void CGameManager::StartDimmingAnimation(bool fadeIn)
 
 bool CGameManager::PlayerLetterAnimationFinished()
 { 
-	return m_PlayerLetterAnimationManager->Finished();
+	return m_PlayerLetterAnimationManager->Empty();
 }
 
 void CGameManager::ShowCurrPlayerPopup()
@@ -815,7 +806,7 @@ bool CGameManager::EndPlayerTurn(bool stillHaveTime)
 		return false;
 	}
 
-	bool PlayerFinished = AddNextPlayerTasksNormal(false);
+	bool PlayerFinished = AddNextPlayerTasksNormal(false, true, !m_LetterPool.Empty());
 
 	m_TimerEventManager->StopTimer("time_limit_event");
 	m_CurrentPlayer->AddScore(Score);
@@ -917,9 +908,8 @@ bool CGameManager::EndComputerTurn()
 
 	if (WordLength)
 	{
-		AddNextPlayerTasksNormal(true);
+		AddNextPlayerTasksNormal(true, true, !m_LetterPool.Empty() && !GameFinished);
 		std::vector<size_t> LetterIndices = m_CurrentPlayer->GetLetterIndicesForWord(*ComputerWord.m_Word);
-		bool PlayerFinishedGame = PlayerFinished();
 		SetGameState(EGameState::WaintingOnAnimation);
 		m_WordAnimation->AddWordAnimation(*ComputerWord.m_Word, LetterIndices, m_UIManager->GetPlayerLetters(m_Computer->GetName()), ComputerWord.m_X, TileCount - ComputerWord.m_Y - 1, ComputerWord.m_Horizontal);
 		m_GameBoard.AddWord(ComputerWord);
@@ -944,6 +934,7 @@ bool CGameManager::EndComputerTurn()
 
 void CGameManager::StartComputerturn()
 {
+	m_Computer->ResetComputerStep();
 	m_Computer->m_PrevLetters = m_Computer->m_Letters;
 	m_Computer->m_PrevAllLetters = m_Computer->m_AllLetters;
 	m_Computer->CalculateStep();
@@ -970,7 +961,8 @@ void CGameManager::StartComputerturn()
 
 	if (m_Computer->BestWordCount() && m_ComputerWordIdx < m_Computer->BestWordCount())
 	{
-		TComputerStep ComputerStep = m_Computer->BestWord(m_ComputerWordIdx);
+		m_Computer->SetComputerStep(m_ComputerWordIdx);
+		TComputerStep ComputerStep = m_Computer->GetComputerStep();
 
 		m_Computer->AddScore(ComputerStep.m_Score);
 		m_Computer->SetUsedLetters(ComputerStep.m_UsedLetters);
@@ -1014,7 +1006,7 @@ CLetterModel* CGameManager::AddLetterToBoard(int x, int y, wchar_t c, float heig
 
 void CGameManager::AddWordSelectionAnimationForComputer()
 {
-	AddWordSelectionAnimation(m_Computer->BestWord(m_ComputerWordIdx).m_CrossingWords, true);
+	AddWordSelectionAnimation(m_Computer->GetComputerStep().m_CrossingWords, true);
 }
 
 void CGameManager::LoadPlayerAndBoardState()
@@ -1035,6 +1027,32 @@ size_t CGameManager::GetCurrentPlayerIdx()
 
 	return 0;
 }
+
+void CGameManager::SaveLetterAnims(std::ofstream& fileStream)
+{
+	m_PlayerLetterAnimationManager->SaveState(fileStream);
+}
+
+void CGameManager::LoadLetterAnims(std::ifstream& fileStream)
+{
+	m_PlayerLetterAnimationManager->LoadState(fileStream);
+}
+
+void CGameManager::SavePopupState(std::ofstream& fileStream)
+{
+	if (GetGameState() == WaitingForMessageBox)
+	{
+		int Type = CUIMessageBox::ActiveMessageBox()->GetType();
+		fileStream.write((char *)&Type, sizeof(int));
+	}
+}
+
+void CGameManager::LoadPopupState(std::ifstream& fileStream)
+{
+	if (m_SavedGameState == WaitingForMessageBox)
+		fileStream.read((char *)&m_SavedPopupType, sizeof(int));
+}
+
 
 void CGameManager::SaveWordAnims(std::ofstream& fileStream)
 {
@@ -1078,7 +1096,7 @@ void CGameManager::ShowSavedScreenTask()
 		SetGameState(m_SavedGameState);
 	else
 	{
-		SetGameState(TurnInProgress);
+		SetGameState(m_SavedGameState);
 		m_UIManager->SetScorePanelLayoutBox();
 	}
 
@@ -1095,6 +1113,12 @@ void CGameManager::ShowStartScreenTask()
 	m_UIManager->m_UIInitialized = true;
 }
 
+void CGameManager::ShowGameScreenTask()
+{
+	SetGameState(TurnInProgress);
+	SetTaskFinished("show_gamescreen_task");
+}
+
 void CGameManager::BeginGameTask()
 {
 	SetGameState(CGameManager::BeginGame);
@@ -1104,11 +1128,46 @@ void CGameManager::BeginGameTask()
 void CGameManager::ContinueGameTask()
 {
     SetTaskFinished("continue_game_task");
-	SetGameState(CGameManager::ContinueGame);
+	m_ContinueGame = true;
 
+	bool ComputerStep = m_CurrentPlayer->IsComputer() && m_Computer->GetComputerStep().IsStepValid();
 
-	if (!m_TileAnimations->Finished())
+	if (m_SavedGameState == EGameState::WaintingOnAnimation)
+	{
+	    bool HasWordAnimation = !m_WordAnimation->Empty();
+	    bool HasTileAnimation = !m_TileAnimations->Empty() || HasWordAnimation;
+	    bool HasLetterAnimation = !m_PlayerLetterAnimationManager->Empty() || HasWordAnimation;
+        AddNextPlayerTasksNormal(HasWordAnimation, HasTileAnimation, HasLetterAnimation);
+
+		if (HasLetterAnimation)
+			m_TimerEventManager->StartTimer("player_letter_animation");
+
+		if (HasWordAnimation)
+			m_TimerEventManager->StartTimer("add_word_animation");
+
+		if (HasTileAnimation)
+			m_TimerEventManager->StartTimer("tile_animation");
+	}
+	if (m_SavedGameState == EGameState::WaitingForMessageBox)
+	{
+		if (m_SavedPopupType == CUIMessageBox::Ok)
+		{
+			ShowNextPlayerPopup();
+			AddNextPlayerTasksNormal(false, false, false, false);
+		}
+	}
+
+	if (!m_TileAnimations->Empty())
 		m_TileAnimations->StartAnimation();
+
+	if (!m_WordAnimation->Empty())
+	{
+		m_TimerEventManager->AddTimerEvent(m_WordAnimation, &CWordAnimationManager::AnimateLettersEvent, &CWordAnimationManager::AnimationFinished, "word_animations");
+		m_TimerEventManager->StartTimer("word_animations");
+	}
+
+	if (!m_PlayerLetterAnimationManager->Empty())
+		m_PlayerLetterAnimationManager->StartAnimations();
 }
 
 void CGameManager::InitRendererTask()
@@ -1192,27 +1251,41 @@ void CGameManager::StopThreads()
 	StopTaskThread();
 }
 
-bool CGameManager::AddNextPlayerTasksNormal(bool hasWordAnimation)
+bool CGameManager::AddNextPlayerTasksNormal(bool hasWordAnimation, bool hasTileAnimation, bool hasLetterAnimation, bool addMessageBoxTask)
 {
 	bool PlayerFinishedGame = PlayerFinished();
 
-	std::shared_ptr<CTask> ShowNextPlayerPopupTask = AddTask(this, PlayerFinishedGame ? &CGameManager::EndGame : &CGameManager::ShowNextPlayerPopup, "show_next_player_popup_task", CTask::RenderThread);
-	std::shared_ptr<CTask> FinishWordSelectionAnimationTask = AddTask(this, nullptr, "finish_word_selection_animation_task", CTask::RenderThread);
+	std::shared_ptr<CTask> ShowNextPlayerPopupTask = nullptr;
+
+	if (addMessageBoxTask)
+		ShowNextPlayerPopupTask = AddTask(this, PlayerFinishedGame ? &CGameManager::EndGame : &CGameManager::ShowNextPlayerPopup, "show_next_player_popup_task", CTask::RenderThread);
+
 	std::shared_ptr<CTask> NextPlayerTurnTask = PlayerFinishedGame ? nullptr : AddTask(this, &CGameManager::NextPlayerTask, "next_player_turn_task", CTask::RenderThread);
 	std::shared_ptr<CTask> ClosePlayerPopupTask = PlayerFinishedGame ? nullptr : AddTask(this, nullptr, "msg_box_button_close_task", CTask::RenderThread);
+
+	if (hasTileAnimation)
+	{
+		std::shared_ptr<CTask> FinishWordSelectionAnimationTask = AddTask(this, nullptr, "finish_word_selection_animation_task", CTask::RenderThread);
+		
+		if (addMessageBoxTask)
+			ShowNextPlayerPopupTask->AddDependencie(FinishWordSelectionAnimationTask);
+	}
 
 	if (hasWordAnimation)
 	{
 		std::shared_ptr<CTask> FinishWordLetterAnimationTask = AddTask(this, nullptr, "finish_word_letters_animation_task", CTask::GameThread);
-		ShowNextPlayerPopupTask->AddDependencie(FinishWordLetterAnimationTask);
+
+		if (addMessageBoxTask)
+			ShowNextPlayerPopupTask->AddDependencie(FinishWordLetterAnimationTask);
 	}
 
-	ShowNextPlayerPopupTask->AddDependencie(FinishWordSelectionAnimationTask);
-
-	if (m_LetterPool.GetRemainingLetterCount() > 0)
+	if (hasLetterAnimation && !PlayerFinishedGame)
 	{
 		std::shared_ptr<CTask> FinishDealLettersTask = AddTask(this, nullptr, "finish_player_deal_letters_task", CTask::RenderThread);
-		ShowNextPlayerPopupTask->AddDependencie(FinishDealLettersTask);
+
+		if (addMessageBoxTask)
+			ShowNextPlayerPopupTask->AddDependencie(FinishDealLettersTask);
+
 		FinishDealLettersTask->m_TaskStopped = false;
 	}
 
@@ -1223,7 +1296,8 @@ bool CGameManager::AddNextPlayerTasksNormal(bool hasWordAnimation)
 		ClosePlayerPopupTask->m_TaskStopped = false;
 	}
 
-	ShowNextPlayerPopupTask->m_TaskStopped = false;
+	if (addMessageBoxTask)
+		ShowNextPlayerPopupTask->m_TaskStopped = false;
 
 	return PlayerFinishedGame;
 }
@@ -1328,8 +1402,11 @@ void CGameManager::GameLoop()
 			continue;
 		}
 
-		if (GetGameState() == EGameState::BeginGame || GetGameState() == EGameState::ContinueGame)
-			StartGame(GetGameState() == EGameState::ContinueGame);
+		if (GetGameState() == EGameState::BeginGame)
+		{
+			StartGame(m_ContinueGame);
+			m_ContinueGame = false;
+		}
 
 		if (GetGameState() != EGameState::GameEnded)
 		{
@@ -1747,6 +1824,11 @@ int CGameManager::GetPlayerStepIdxAtPos(int x, int y)
 	return -1;	
 }
 
+void CGameManager::HidePopup()
+{ 
+	m_UIManager->CloseMessageBox(); 
+}
+
 void CGameManager::UndoStep(size_t idx)
 {
 	if (m_PlayerSteps.size() <= idx)
@@ -2097,8 +2179,8 @@ void CGameManager::RenderFrame()
 		m_LastRenderTime = CTimer::GetCurrentTime();
 		m_RenderTimeSet = true;
 
-		if (m_FrameTime >= MinRenderTime)
-		{ 
+//		if (m_FrameTime >= MinRenderTime)
+//		{ 
 			m_FrameTime = 0;
 
 			const std::lock_guard<std::recursive_mutex> lock(m_Renderer->GetRenderLock());
@@ -2114,11 +2196,11 @@ void CGameManager::RenderFrame()
 			
 			if (m_UIManager)
 				RenderUI();
-		}
+/*		}
 		else 
 		{
 			int i= 0;
-		}
+		}*/
 
 		if (ShowFps)
 		{

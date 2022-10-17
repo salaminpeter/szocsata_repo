@@ -8,12 +8,11 @@ CUIMessageBox* CUIMessageBox::m_ActiveMessageBox = nullptr;
 int CUIMessageBox::m_RetValue = false;
 std::mutex CUIMessageBox::m_Lock;
 
-
 CUIMessageBox::CUIMessageBox(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridColorData, int x, int y, int w, int h, int vx, int vy, EType type, CGameManager* gameManager) :
 	CUIPanel(nullptr, L"ui_message_box", positionData, colorData, gridColorData, x, y, w, h, vx, vy, "messagebox_texture_generated", 0.f, 0.f),
-	m_Type(type),
 	m_GameManager(gameManager)
 {
+	m_Type = type;
 	float TextPanelYPos = m_Type == NoButton ? 0.f : h / 2 - h / 6;
 	CUIPanel* TextPanel = new CUIPanel(this, L"ui_msgbox_text_panel", positionData, colorData, gridColorData, 0, TextPanelYPos, w, h / 3, vx, vy, "", 0.f, 0.f);
 	

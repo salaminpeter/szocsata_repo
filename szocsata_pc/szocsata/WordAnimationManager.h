@@ -40,6 +40,7 @@ struct TWordAnimation
 	static int m_CurrWordAnimID;
 
 	TWordAnimation(CGameManager* gameManager, std::wstring word, const std::vector<size_t>& uiLetterIndices, CUIPlayerLetters* playerLetters, int x, int y, bool horizontal);
+	int GetActiveLetterAnimCount();
 };
 
 
@@ -77,4 +78,5 @@ public:
 
 	void ResetUsedLetterIndices() {m_UILetterIndices.clear();}
 	void ResetUsedLetterIndex(size_t idx) {m_UILetterIndices.remove(idx);}
+	bool Empty() {return m_WordAnimations.size() == 0;}
 };

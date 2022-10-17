@@ -47,79 +47,118 @@ void CGameState::SaveGameState()
 	StateFile.write((char *)&ComputerOpponentEnabled, sizeof(bool));
 	StateFile.write((char *)&Difficulty, sizeof(int));
 
-	if (OnGameScreen)
-	{
+	if (OnGameScreen) {
 		size_t CurrentPlayerIdx = m_GameManager->GetCurrentPlayerIdx();
-		StateFile.write((char *)&CurrentPlayerIdx, sizeof(size_t));
+		StateFile.write((char *) &CurrentPlayerIdx, sizeof(size_t));
 
 		m_GameManager->SetTileCount();
 		int TileCount;
 		CConfig::GetConfig("tile_count", TileCount);
 
-		for (int x = 0; x < TileCount; ++x)
+		for (int i = 0; i < 2; ++i)
 		{
-			for (int y = 0; y < TileCount; ++y)
-			{
-				wchar_t chr = m_GameManager->TmpBoard(x, y).m_Char;
-				int height = m_GameManager->TmpBoard(x, y).m_Height;
+			CGameBoard& Board = m_GameManager->GetBoard(i == 0);
 
-				StateFile.write((char *)&chr, sizeof(wchar_t));
-				StateFile.write((char *)&height, sizeof(int));
+			for (int x = 0; x < TileCount; ++x) {
+				for (int y = 0; y < TileCount; ++y) {
+					wchar_t chr = Board(x, y).m_Char;
+					int height = Board(x, y).m_Height;
+
+					StateFile.write((char *) &chr, sizeof(wchar_t));
+					StateFile.write((char *) &height, sizeof(int));
+				}
 			}
 		}
 
-        int PlayerCount = PlayerCountIdx + 1 + (ComputerOpponentEnabled ? 1 : 0);
+		int PlayerCount = PlayerCountIdx + 1 + (ComputerOpponentEnabled ? 1 : 0);
 
-        for (size_t i = 0; i < PlayerCount; ++i)
-		{
+		for (size_t i = 0; i < PlayerCount; ++i) {
 			int Score = m_GameManager->GetPlayer(i)->GetScore();
-			StateFile.write((char *)&Score, sizeof(int));
+			StateFile.write((char *) &Score, sizeof(int));
 
-        	unsigned int UsedLetters = m_GameManager->GetPlayer(i)->GetUsedLetters().GetList();
-			StateFile.write((char *)&UsedLetters, sizeof(unsigned int));
+			unsigned int UsedLetters = m_GameManager->GetPlayer(i)->GetUsedLetters().GetList();
+			StateFile.write((char *) &UsedLetters, sizeof(unsigned int));
 
 			std::wstring Letters = m_GameManager->GetPlayerLetters(i);
-            std::wstring AllLetters = m_GameManager->GetPlayerLetters(i, true);
+			std::wstring AllLetters = m_GameManager->GetPlayerLetters(i, true);
 			int LetterCount = Letters.length();
 
-			StateFile.write((char *)&LetterCount, sizeof(int));
+			StateFile.write((char *) &LetterCount, sizeof(int));
 
 			for (size_t j = 0; j < LetterCount; ++j)
-				StateFile.write((char *)&Letters.at(j), sizeof(wchar_t));
+				StateFile.write((char *) &Letters.at(j), sizeof(wchar_t));
 
-            for (size_t j = 0; j < LetterCount; ++j)
-                StateFile.write((char *)&AllLetters.at(j), sizeof(wchar_t));
-        }
+			for (size_t j = 0; j < LetterCount; ++j)
+				StateFile.write((char *) &AllLetters.at(j), sizeof(wchar_t));
+		}
 
-		const std::vector<TPlayerStep>& PlayerSteps = m_GameManager->GetPlayerSteps();
-        int PlayerStepCount = PlayerSteps.size();
-		StateFile.write((char *)&PlayerStepCount, sizeof(int));
+		const std::vector<TPlayerStep> &PlayerSteps = m_GameManager->GetPlayerSteps();
+		int PlayerStepCount = PlayerSteps.size();
+		StateFile.write((char *) &PlayerStepCount, sizeof(int));
 
-		for (int i = PlayerStepCount - 1; i >= 0 ; --i)
-		{
-			StateFile.write((char *)&PlayerSteps[i].m_Char, sizeof(wchar_t));
-			StateFile.write((char *)&PlayerSteps[i].m_LetterIdx, sizeof(int));
-			StateFile.write((char *)&PlayerSteps[i].m_XPosition, sizeof(int));
-			StateFile.write((char *)&PlayerSteps[i].m_YPosition, sizeof(int));
+		for (int i = PlayerStepCount - 1; i >= 0; --i) {
+			StateFile.write((char *) &PlayerSteps[i].m_Char, sizeof(wchar_t));
+			StateFile.write((char *) &PlayerSteps[i].m_LetterIdx, sizeof(int));
+			StateFile.write((char *) &PlayerSteps[i].m_XPosition, sizeof(int));
+			StateFile.write((char *) &PlayerSteps[i].m_YPosition, sizeof(int));
+		}
+
+		SaveComputerStep(StateFile);
+
+		size_t CharCount = m_GameManager->GetCharacterCount();
+		StateFile.write((char *) &CharCount, sizeof(size_t));
+
+		for (size_t i = 0; i < CharCount; ++i) {
+			size_t LetterCount = m_GameManager->GetLetterCount(i);
+			StateFile.write((char *) &LetterCount, sizeof(size_t));
 		}
 
 		m_GameManager->SaveTileAnims(StateFile);
 		m_GameManager->SaveWordAnims(StateFile);
+		m_GameManager->SaveLetterAnims(StateFile);
 		m_GameManager->SaveCamera(StateFile);
+		m_GameManager->SavePopupState(StateFile);
 	}
 
-	size_t CharCount = m_GameManager->GetCharacterCount();
-	StateFile.write((char *)&CharCount, sizeof(size_t));
-
-	for (size_t i = 0; i < CharCount ; ++i)
-	{
-		size_t LetterCount = m_GameManager->GetLetterCount(i);
-		StateFile.write((char *)&LetterCount, sizeof(size_t));
-	}
-
-	
 	StateFile.close();
 }
+
+void CGameState::SaveComputerStep(std::ofstream& fileStream)
+{
+	bool ComputersTurn = m_GameManager->GetCurrentPlayer()->IsComputer();
+	fileStream.write((char *)&ComputersTurn, sizeof(bool));
+
+	if (ComputersTurn)
+	{
+		CComputer* Computer = static_cast<CComputer*>(m_GameManager->GetCurrentPlayer());
+		TComputerStep ComputerStep = Computer->GetComputerStep();
+		bool HasComputerStep = ComputerStep.IsStepValid();
+
+		fileStream.write((char *)&HasComputerStep, sizeof(bool));
+
+		if (HasComputerStep)
+			Computer->SaveComputerStep(fileStream);
+	}
+}
+
+void CGameState::LoadComputerStep(std::ifstream& fileStream)
+{
+	bool ComputersTurn;
+	fileStream.read((char *)&ComputersTurn, sizeof(bool));
+
+	if (ComputersTurn)
+	{
+		CComputer* Computer = static_cast<CComputer*>(m_GameManager->GetCurrentPlayer());
+		TComputerStep ComputerStep = Computer->GetComputerStep();
+		bool HasComputerStep;
+
+		fileStream.read((char *)&HasComputerStep, sizeof(bool));
+
+		if (HasComputerStep)
+			Computer->LoadComputerStep(fileStream);
+	}
+}
+
 
 void CGameState::LoadPlayerAndBoardState()
 {
@@ -152,104 +191,105 @@ void CGameState::LoadPlayerAndBoardState()
 	#define size_t int64_t
 	#define wchar_t char32_t
 #endif
-	
-	size_t CurrentPlayerIdx;
-	StateFile.read((char *)&CurrentPlayerIdx, sizeof(size_t));
-
-	for (int x = 0; x < TileCount; ++x) {
-		for (int y = 0; y < TileCount; ++y) {
-			wchar_t chr;
-			int height;
-
-			StateFile.read((char *)&chr, sizeof(wchar_t));
-			StateFile.read((char *)&height, sizeof(int));
-
-			m_GameManager->TmpBoard(x, y).m_Char = chr;
-			m_GameManager->TmpBoard(x, y).m_Height = height;
-
-			for (int h = 0; h < height; ++h)
-				m_GameManager->AddLetterToBoard(x, TileCount - y - 1, chr, BoardHeight / 2.f + h * LetterHeight + LetterHeight / 2.f);
-		}
-	}
-
-	m_GameManager->RevertGameBoard();
-
-	int PlayerCount = PlayerCountIdx + 1 + (ComputerOpponentEnabled ? 1 : 0);
-
-	for (size_t i = 0; i < PlayerCount; ++i)
-	{
-		int Score;
-		StateFile.read((char *)&Score, sizeof(int));
-
-		unsigned int UsedLetters;
-		StateFile.read((char *)&UsedLetters, sizeof(unsigned int));
-		m_GameManager->GetPlayer(i)->SetUsedLetters(UsedLetters);
-
-		int LetterCount;
-		StateFile.read((char *)&LetterCount, sizeof(int));
-        std::wstring Letters(LetterCount, L' ');
-        std::wstring AllLetters(LetterCount, L' ');
-
-		for (size_t j = 0; j < LetterCount; ++j)
-			StateFile.read((char *)&Letters.at(j), sizeof(wchar_t));
-
-        for (size_t j = 0; j < LetterCount; ++j)
-            StateFile.read((char *)&AllLetters.at(j), sizeof(wchar_t));
-
-        m_GameManager->GetPlayer(i)->SetAllLetters(AllLetters.c_str());
-		m_GameManager->GetPlayer(i)->AddScore(Score);
-        m_GameManager->SetPlayerLetters(i, Letters);
-		m_GameManager->GetUIManager()->GetPlayerLetters(i)->AddUILetters(LetterCount);
-		m_GameManager->GetUIManager()->GetPlayerLetters(i)->ShowLetters(false);
-	}
-
-	const std::vector<TPlayerStep>& PlayerSteps = m_GameManager->GetPlayerSteps();
-	int PlayerStepCount;
-	StateFile.read((char *)&PlayerStepCount, sizeof(int));
-
-	for (size_t i = 0; i < PlayerStepCount; ++i)
-	{
-		wchar_t Chr;
-		int Idx;
-		int XPos;
-		int YPos;
-
-		StateFile.read((char *)&Chr, sizeof(wchar_t));
-		StateFile.read((char *)&Idx, sizeof(int));
-		StateFile.read((char *)&XPos, sizeof(int));
-		StateFile.read((char *)&YPos, sizeof(int));
-
-		m_GameManager->AddPlayerStep(Chr, Idx, XPos, YPos);
-        m_GameManager->AddLetterToBoard(XPos, YPos, Chr, BoardHeight / 2.f + m_GameManager->Board(XPos, TileCount - YPos - 1).m_Height * LetterHeight + LetterHeight / 2.f);
-		m_GameManager->Board(XPos, TileCount - YPos - 1).m_Char = Chr;
-		m_GameManager->Board(XPos, TileCount - YPos - 1).m_Height++;
-		m_GameManager->AddPlacedLetterSelection(XPos, YPos);
-    }
-	
-	m_GameManager->LoadTileAnims(StateFile);
-	m_GameManager->LoadWordAnims(StateFile);
-	m_GameManager->LoadCamera(StateFile);
-
-	size_t CharCount;
-	StateFile.read((char *)&CharCount, sizeof(size_t));
-
-	for (size_t i = 0; i < CharCount ; ++i)
-	{
-		size_t LetterCount;
-		StateFile.read((char *)&LetterCount, sizeof(size_t));
-		m_GameManager->SetLetterCount(i, LetterCount);
-	}
-
-	m_GameManager->SetTileCounterCount();
-
 	if (m_GameManager->GameScreenActive(m_GameManager->m_SavedGameState))
 	{
-		std::wstring Name;
-		int Score;
-		glm::vec3 Color;
+
+		size_t CurrentPlayerIdx;
+		StateFile.read((char *)&CurrentPlayerIdx, sizeof(size_t));
 
 		CPlayer* CurrentPlayer = m_GameManager->GetPlayer(CurrentPlayerIdx);
 		m_GameManager->SetCurentPlayer(CurrentPlayerIdx);
+
+		for (int i = 0; i < 2; ++i)
+		{
+			CGameBoard& Board = m_GameManager->GetBoard(i == 0);
+
+			for (int x = 0; x < TileCount; ++x) {
+				for (int y = 0; y < TileCount; ++y) {
+					wchar_t chr;
+					int height;
+
+					StateFile.read((char *)&chr, sizeof(wchar_t));
+					StateFile.read((char *)&height, sizeof(int));
+
+					Board(x, y).m_Char = chr;
+					Board(x, y).m_Height = height;
+
+					if (i == 1)
+					{
+						for (int h = 0; h < height; ++h)
+							m_GameManager->AddLetterToBoard(x, TileCount - y - 1, chr, BoardHeight / 2.f + h * LetterHeight + LetterHeight / 2.f);
+					}
+				}
+			}
+		}
+
+		int PlayerCount = PlayerCountIdx + 1 + (ComputerOpponentEnabled ? 1 : 0);
+
+		for (size_t i = 0; i < PlayerCount; ++i)
+		{
+			int Score;
+			StateFile.read((char *)&Score, sizeof(int));
+
+			unsigned int UsedLetters;
+			StateFile.read((char *)&UsedLetters, sizeof(unsigned int));
+			m_GameManager->GetPlayer(i)->SetUsedLetters(UsedLetters);
+
+			int LetterCount;
+			StateFile.read((char *)&LetterCount, sizeof(int));
+			std::wstring Letters(LetterCount, L' ');
+			std::wstring AllLetters(LetterCount, L' ');
+
+			for (size_t j = 0; j < LetterCount; ++j)
+				StateFile.read((char *)&Letters.at(j), sizeof(wchar_t));
+
+			for (size_t j = 0; j < LetterCount; ++j)
+				StateFile.read((char *)&AllLetters.at(j), sizeof(wchar_t));
+
+			m_GameManager->GetPlayer(i)->SetAllLetters(AllLetters.c_str());
+			m_GameManager->GetPlayer(i)->AddScore(Score);
+			m_GameManager->SetPlayerLetters(i, Letters);
+			m_GameManager->GetUIManager()->GetPlayerLetters(i)->AddUILetters(LetterCount);
+			m_GameManager->GetUIManager()->GetPlayerLetters(i)->ShowLetters(false);
+		}
+
+		const std::vector<TPlayerStep>& PlayerSteps = m_GameManager->GetPlayerSteps();
+		int PlayerStepCount;
+		StateFile.read((char *)&PlayerStepCount, sizeof(int));
+
+		for (size_t i = 0; i < PlayerStepCount; ++i)
+		{
+			wchar_t Chr;
+			int Idx;
+			int XPos;
+			int YPos;
+
+			StateFile.read((char *)&Chr, sizeof(wchar_t));
+			StateFile.read((char *)&Idx, sizeof(int));
+			StateFile.read((char *)&XPos, sizeof(int));
+			StateFile.read((char *)&YPos, sizeof(int));
+
+			m_GameManager->AddPlayerStep(Chr, Idx, XPos, YPos);
+			m_GameManager->AddPlacedLetterSelection(XPos, YPos);
+		}
+
+		LoadComputerStep(StateFile);
+
+		size_t CharCount;
+		StateFile.read((char *)&CharCount, sizeof(size_t));
+
+		for (size_t i = 0; i < CharCount ; ++i)
+		{
+			size_t LetterCount;
+			StateFile.read((char *)&LetterCount, sizeof(size_t));
+			m_GameManager->SetLetterCount(i, LetterCount);
+		}
+
+		m_GameManager->SetTileCounterCount();
+
+		std::wstring Name;
+		int Score;
+		glm::vec3 Color;
 
 		m_GameManager->GetPlayerProperties(CurrentPlayerIdx, Name, Score, Color);
 		m_GameManager->GetUIManager()->SetCurrentPlayerName(Name.c_str(), Color.r, Color.g, Color.b);
@@ -257,15 +297,29 @@ void CGameState::LoadPlayerAndBoardState()
 		m_GameManager->GetUIManager()->GetPlayerLetters(CurrentPlayerIdx)->SetLetterVisibility(CurrentPlayer->GetUsedLetters());
 		m_GameManager->GetUIManager()->GetPlayerLetters(CurrentPlayerIdx)->SetVisible(true);
 		m_GameManager->GetUIManager()->GetPlayerLetters(CurrentPlayerIdx)->DiasbleLayoutPositioning(false);
-		m_GameManager->StartPlayerTurn(CurrentPlayer, false);
+
+		m_GameManager->LoadTileAnims(StateFile);
+		m_GameManager->LoadWordAnims(StateFile);
+		m_GameManager->LoadLetterAnims(StateFile);
+		m_GameManager->LoadCamera(StateFile);
+		m_GameManager->LoadPopupState(StateFile);
+
+		if (m_GameManager->m_SavedGameState != CGameManager::WaitingForMessageBox && CurrentPlayer->IsComputer())
+		{
+			CComputer* Computer = static_cast<CComputer*>(CurrentPlayer);
+
+			//meg nem szamolta ki a computer a lepeset
+			if (!Computer->GetComputerStep().IsStepValid())
+				m_GameManager->StartPlayerTurn(CurrentPlayer, false);
+		}
 	}
+
+	StateFile.close();
 
 #ifndef PLATFORM_ANDROID
 	#undef size_t
 	#undef wchar_t
 #endif
-
-	StateFile.close();
 }
 
 void CGameState::LoadGameState()
