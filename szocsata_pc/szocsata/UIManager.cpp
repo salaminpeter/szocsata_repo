@@ -772,6 +772,9 @@ void CUIManager::SetText(const wchar_t* id, const wchar_t* text)
 void CUIManager::EnableGameButtons(bool enable)
 {
 	m_UIScreenPanel->GetChild(L"ui_ok_btn")->Enable(enable);
+	m_UIScreenPanel->GetChild(L"ui_cancel_btn")->Enable(enable);
+	m_UIScreenPanel->GetChild(L"ui_pause_btn")->Enable(enable);
+	m_UIScreenPanel->GetChild(L"ui_exit_btn")->Enable(enable);
 }
 
 //TODO a toast most csak a passed - re van hasznalva, ha egyszer masra is kell akkor ez szar lesz!!!

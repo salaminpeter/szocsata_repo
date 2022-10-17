@@ -371,7 +371,12 @@ void CGameManager::StartPlayerTurn(CPlayer* player, bool saveBoard)
 		m_TmpGameBoard = m_GameBoard;
 
 	if (player->IsComputer())
+	{
+		m_UIManager->EnableGameButtons(false);
 		StartComputerturn();
+	}
+	else
+		m_UIManager->EnableGameButtons(true);
 }
 
 float CGameManager::GetLetterSize()
@@ -546,7 +551,6 @@ bool CGameManager::PlayerLetterAnimationFinished()
 
 void CGameManager::ShowCurrPlayerPopup()
 {
-	m_UIManager->EnableGameButtons(true);
 	m_UIManager->SetRemainingTimeStr(GetTimeStr(m_UIManager->GetTimeLimit()).c_str());
 	m_UIManager->ShowMessageBox(CUIMessageBox::Ok, m_CurrentPlayer->GetName().c_str());
 
@@ -555,7 +559,6 @@ void CGameManager::ShowCurrPlayerPopup()
 
 void CGameManager::ShowNextPlayerPopup()
 {
-	m_UIManager->EnableGameButtons(true);
 	m_UIManager->SetRemainingTimeStr(GetTimeStr(m_UIManager->GetTimeLimit()).c_str());
 	m_UIManager->ShowMessageBox(CUIMessageBox::Ok, GetNextPlayerName().c_str());
 
@@ -638,7 +641,6 @@ void CGameManager::CurrentPlayerTurn(bool resumeGame)
 	SetGameState(EGameState::TurnInProgress);
 
 	m_UIManager->SetCurrentPlayerName(m_CurrentPlayer->GetName().c_str(), m_CurrentPlayer->GetColor().r, m_CurrentPlayer->GetColor().g, m_CurrentPlayer->GetColor().b);
-	m_UIManager->EnableGameButtons(!m_CurrentPlayer->IsComputer());
 
 	if (!resumeGame)
 	{
@@ -682,11 +684,6 @@ void CGameManager::NextPlayerTurn()
 	m_UIManager->SetCurrentPlayerName(m_CurrentPlayer->GetName().c_str(), m_CurrentPlayer->GetColor().r, m_CurrentPlayer->GetColor().g, m_CurrentPlayer->GetColor().b);
 	m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName().c_str())->SetLetterVisibility(CBinaryBoolList());
 	m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName().c_str())->ShowLetters(true);
-
-	if (m_Players[NextPlayerIdx]->GetName() == L"computer")
-		m_UIManager->EnableGameButtons(false);
-	else
-		m_UIManager->EnableGameButtons(true);
 
 	StartPlayerTurn(m_Players[NextPlayerIdx]);
 }
@@ -2189,7 +2186,6 @@ void CGameManager::EndPlayerTurnEvent()
 	{
 		m_WordAnimation->ResetUsedLetterIndices();
 		m_PlacedLetterSelections.clear();
-		m_UIManager->EnableGameButtons(false);
 	}
 }
 

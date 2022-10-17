@@ -32,6 +32,9 @@ CUIElement::~CUIElement()
 
 bool CUIElement::HandleEvent(EEventType event)
 {
+	if (!m_Visible || !m_Enabled)
+		return false;
+
 	if (event == EEventType::TouchEvent && m_EventTouch)
 	{ 
 		m_EventTouch->HandleEvent();
