@@ -289,6 +289,8 @@ void CGameState::LoadPlayerAndBoardState()
 			m_GameManager->SetLetterCount(i, LetterCount);
 		}
 
+		m_GameManager->CleanLetterPool();
+
 		m_GameManager->SetTileCounterCount();
 
 		std::wstring Name;

@@ -74,6 +74,21 @@ int CLetterPool::DealLetters(std::wstring& letters)
 	return AddedLetterCount;
 }
 
+void CLetterPool::ClearEmptyLetterIndices()
+{
+	size_t i = 0;
+	while (m_LetterIdx.size() > i)
+	{
+		if (m_Letters.find(m_LetterIdx[i]) == m_Letters.end() || m_Letters[m_LetterIdx[i]] == 0)
+		{
+			m_LetterIdx[i] = m_LetterIdx.back();
+			m_LetterIdx.pop_back();
+		}
+		else
+			++i;
+	}
+}
+
 int CLetterPool::GetRemainingLetterCount()
 {
 	int Count = 0;

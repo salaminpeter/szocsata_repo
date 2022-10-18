@@ -162,6 +162,9 @@ public:
 	CPlayer* GetPlayer(size_t idx) {return m_Players[idx];}
 	void SetCurentPlayer(size_t idx) {m_CurrentPlayer = m_Players[idx];}
  	void SaveState() { m_State->SaveGameState(); }
+	void CleanLetterPool() {m_LetterPool.ClearEmptyLetterIndices();}
+
+
 	void SaveTileAnims(std::ofstream& fileStream);
 	void LoadTileAnims(std::ifstream& fileStream);
 	void SaveCamera(std::ofstream& fileStream);

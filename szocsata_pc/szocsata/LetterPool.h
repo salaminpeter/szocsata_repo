@@ -16,6 +16,7 @@ public:
 	bool Empty() {return m_LetterIdx.size() == 0;}
 	int GetLetterCount(int idx);
 	bool SetLetterCount(int idx, int count);
+	void ClearEmptyLetterIndices();
 
 	size_t GetCharacterCount() {return m_LetterIdx.size();}
 
