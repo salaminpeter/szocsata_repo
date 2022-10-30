@@ -36,6 +36,16 @@ CUISelectControl::CUISelectControl(CUIElement* parent, const wchar_t* id, const 
 	GetChild(L"arrow_right")->SetEvent(CUIElement::ReleaseEvent, this, &CUISelectControl::ChangeEvent, 1);
 }
 
+CUIElement* CUISelectControl::GetLeftButton()
+{
+	return GetChild(L"arrow_left");
+}
+
+CUIElement* CUISelectControl::GetRightButton()
+{
+	return GetChild(L"arrow_right");
+}
+
 void CUISelectControl::SetTextAndPos(const wchar_t* text)
 {
 	CUIText* Text = static_cast<CUIText*>(GetChild(L"ui_select_control_text"));

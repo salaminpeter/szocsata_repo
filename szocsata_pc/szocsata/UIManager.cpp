@@ -16,6 +16,7 @@
 #include "GridLayout.h"
 #include "GameManager.h"
 #include "TimerEventManager.h"
+#include "ButtonAnimationManager.h"
 #include "Renderer.h"
 #include "Config.h"
 #include "Player.h"
@@ -35,6 +36,16 @@ CUISelectControl* CUIManager::AddSelectControl(CUIElement* parent, std::shared_p
 
 	glm::vec2 ViewPos = m_GameManager->GetViewPosition(ViewID);
 	CUISelectControl* NewSelControl = new CUISelectControl(parent, id, description, positionData, colorData, gridcolorData, x, y, w, h, ViewPos.x, ViewPos.y, "selectcontrol.bmp");
+	CUIElement* LeftArrow = NewSelControl->GetLeftButton();
+	CUIElement* RightArrow = NewSelControl->GetRightButton();
+
+	RightArrow->SetEvent(CUIElement::TouchEvent, m_GameManager, &CGameManager::AddButtonAnimation, std::move(RightArrow));
+	RightArrow->SetEvent(CUIElement::ReleaseEvent, m_GameManager, &CGameManager::EnableReverseAnimation, std::move(RightArrow));
+	m_GameManager->GetButtonAnimationManager()->SetEvent(RightArrow, NewSelControl, &CUISelectControl::ChangeEvent, 1);
+
+	LeftArrow->SetEvent(CUIElement::TouchEvent, m_GameManager, &CGameManager::AddButtonAnimation, std::move(LeftArrow));
+	LeftArrow->SetEvent(CUIElement::ReleaseEvent, m_GameManager, &CGameManager::EnableReverseAnimation, std::move(LeftArrow));
+	m_GameManager->GetButtonAnimationManager()->SetEvent(LeftArrow, NewSelControl, &CUISelectControl::ChangeEvent, -1);
 
 	return NewSelControl;
 }
@@ -198,7 +209,9 @@ void CUIManager::InitMainScreen(std::shared_ptr<CSquarePositionData> positionDat
 	IconTextButton = AddIconTextButton(m_MainScreenBtnLayout, L"új játék", positionData, colorData, gridcolorData8x8, 0, 0, BtnSize.x, BtnSize.y, "view_ortho", "start_scr_btn_texture_generated", "play_icon.bmp", L"ui_new_game_btn", "textured", .65f, .7f);
 	IconTextButton->SetTextColor(.92f, .92f, .92f);
 	IconTextButton->SetIconColor(.92f, .92f, .92f);
-	IconTextButton->SetEvent(CUIElement::ReleaseEvent, m_GameManager, &CGameManager::GoToStartGameScrEvent);
+	IconTextButton->SetEvent(CUIElement::TouchEvent, m_GameManager, &CGameManager::AddButtonAnimation, (CUIElement*)IconTextButton);
+	IconTextButton->SetEvent(CUIElement::ReleaseEvent, m_GameManager, &CGameManager::EnableReverseAnimation, (CUIElement*)IconTextButton);
+	m_GameManager->GetButtonAnimationManager()->SetEvent(IconTextButton, m_GameManager, &CGameManager::GoToStartGameScrEvent);
 
 	/*
 	IconTextButton = AddIconTextButton(m_MainScreenBtnLayout, L"beállítások", positionData, colorData, gridcolorData8x8, 0, 0, BtnSize.x, BtnSize.y, "view_ortho", "start_scr_btn_texture_generated", "settings_icon.bmp", L"ui_settings_game_btn");
@@ -361,7 +374,9 @@ void CUIManager::InitStartGameScreen(std::shared_ptr<CSquarePositionData> positi
 
 	//start button
 	IconTextButton = AddIconTextButton(VerticalLayoutMid, L"", positionData, colorData, nullptr, 0, 0, StartBtnSize.x, StartBtnSize.y, "view_ortho", "round_button_texture_generated", "play_icon.bmp", L"ui_start_game_btn", "textured", .65f, .7f);
-	IconTextButton->SetEvent(CUIElement::ReleaseEvent, m_GameManager, &CGameManager::FinishRenderInit);
+	IconTextButton->SetEvent(CUIElement::TouchEvent, m_GameManager, &CGameManager::AddButtonAnimation, (CUIElement*)IconTextButton);
+	IconTextButton->SetEvent(CUIElement::ReleaseEvent, m_GameManager, &CGameManager::EnableReverseAnimation, (CUIElement*)IconTextButton);
+	m_GameManager->GetButtonAnimationManager()->SetEvent(IconTextButton, m_GameManager, &CGameManager::FinishRenderInit);
 	IconTextButton->CenterIcon();
 	
 
@@ -420,19 +435,27 @@ void CUIManager::InitGameScreen(std::shared_ptr<CSquarePositionData> positionDat
 	CUIHorizontalLayout* SubLayout1 = new CUIHorizontalLayout(0, UIPanelHeight - SubLayout0->GetHeight() - ButtonSize.y, UIPanelWidth, LayoutBox1Height, ViewPos.x, ViewPos.y, GameScreenLayout, L"ui_game_screen_sub_layout1", 4, 0.5f, 0.5f, 1.f, ButtonSize.x / 2, (UIPanelWidth - 4 * ButtonSize.x) / 6, ButtonSize.x, ButtonSize.y);
 
 	IconTextButton = AddIconTextButton(SubLayout1, L"", positionData, colorData, nullptr, 0, 0, m_UIScreenPanel->GetHeight() / 8, m_UIScreenPanel->GetHeight() / 8, "view_ortho", "round_button_texture_generated", "ok_icon.bmp", L"ui_ok_btn", "textured", 0.55f, 1.34f);
-	IconTextButton->SetEvent(CUIElement::ReleaseEvent, m_GameManager, &CGameManager::EndPlayerTurnEvent);
+	IconTextButton->SetEvent(CUIElement::TouchEvent, m_GameManager, &CGameManager::AddButtonAnimation, (CUIElement*)IconTextButton);
+	IconTextButton->SetEvent(CUIElement::ReleaseEvent, m_GameManager, &CGameManager::EnableReverseAnimation, (CUIElement*)IconTextButton);
+	m_GameManager->GetButtonAnimationManager()->SetEvent(IconTextButton, m_GameManager, &CGameManager::EndPlayerTurnEvent);
 	IconTextButton->CenterIcon();
 
 	IconTextButton = AddIconTextButton(SubLayout1, L"", positionData, colorData, nullptr, 0, 0, m_UIScreenPanel->GetHeight() / 8, m_UIScreenPanel->GetHeight() / 8, "view_ortho", "round_button_texture_generated", "cancel_icon.bmp", L"ui_cancel_btn", "textured", 0.6f);
-	IconTextButton->SetEvent(CUIElement::ReleaseEvent, m_GameManager, &CGameManager::UndoAllSteps);
+	IconTextButton->SetEvent(CUIElement::TouchEvent, m_GameManager, &CGameManager::AddButtonAnimation, (CUIElement*)IconTextButton);
+	IconTextButton->SetEvent(CUIElement::ReleaseEvent, m_GameManager, &CGameManager::EnableReverseAnimation, (CUIElement*)IconTextButton);
+	m_GameManager->GetButtonAnimationManager()->SetEvent(IconTextButton, m_GameManager, &CGameManager::UndoAllSteps);
 	IconTextButton->CenterIcon();
 
 	IconTextButton = AddIconTextButton(SubLayout1, L"", positionData, colorData, nullptr, 0, 0, m_UIScreenPanel->GetHeight() / 8, m_UIScreenPanel->GetHeight() / 8, "view_ortho", "round_button_texture_generated", "pause_icon.bmp", L"ui_pause_btn", "textured", 0.6f, .8f);
-	IconTextButton->SetEvent(CUIElement::ReleaseEvent, m_GameManager, &CGameManager::PauseGameEvent);
+	IconTextButton->SetEvent(CUIElement::TouchEvent, m_GameManager, &CGameManager::AddButtonAnimation, (CUIElement*)IconTextButton);
+	IconTextButton->SetEvent(CUIElement::ReleaseEvent, m_GameManager, &CGameManager::EnableReverseAnimation, (CUIElement*)IconTextButton);
+	m_GameManager->GetButtonAnimationManager()->SetEvent(IconTextButton, m_GameManager, &CGameManager::PauseGameEvent);
 	IconTextButton->CenterIcon();
 
 	IconTextButton = AddIconTextButton(SubLayout1, L"", positionData, colorData, nullptr, 0, 0, m_UIScreenPanel->GetHeight() / 8, m_UIScreenPanel->GetHeight() / 8, "view_ortho", "round_button_texture_generated", "exit_icon.bmp", L"ui_exit_btn", "textured", 0.6f, .86f);
-	IconTextButton->SetEvent(CUIElement::ReleaseEvent, m_GameManager, &CGameManager::ResetToStartScreen);
+	IconTextButton->SetEvent(CUIElement::TouchEvent, m_GameManager, &CGameManager::AddButtonAnimation, (CUIElement*)IconTextButton);
+	IconTextButton->SetEvent(CUIElement::ReleaseEvent, m_GameManager, &CGameManager::EnableReverseAnimation, (CUIElement*)IconTextButton);
+	m_GameManager->GetButtonAnimationManager()->SetEvent(IconTextButton, m_GameManager, &CGameManager::ResetToStartScreen);
 	IconTextButton->CenterIcon();
 
 	//2. layout child - letter box, score box

@@ -32,8 +32,10 @@ class CLetterModel;
 class CCameraAnimationManager;
 class CPlayerLetterAnimationManager;
 class CDimmBGAnimationManager;
+class CButtonAnimationManager;
 class CGameState;
 class CGameThread;
+class CUIElement;
 
 class CGameManager
 {
@@ -77,6 +79,8 @@ public:
 	void RenderPlacedLetterSelections();
 	void AddWordSelectionAnimation(const std::vector<TWordPos>& wordPos, bool positive);
 	void AddWordSelectionAnimationLocked(const std::vector<TWordPos>& wordPos, bool positive);
+	void AddButtonAnimation(CUIElement* button);
+	void EnableReverseAnimation(CUIElement* button);
 	void FinishRenderInit();
 
 	void HandleReleaseEventFromBoardView(int x, int y);
@@ -222,7 +226,9 @@ public:
 
 	CRenderer* GetRenderer() { return m_Renderer; }
 	CUIManager* GetUIManager() { return m_UIManager; }
-	CTimerEventManager* GetTimerEventManager() {return m_TimerEventManager;}
+	CTimerEventManager* GetTimerEventManager() { return m_TimerEventManager; }
+	CButtonAnimationManager* GetButtonAnimationManager() { return m_ButtonAnimationManager; }
+
 	const std::vector<TPlayerStep>& GetPlayerSteps() {return m_PlayerSteps;}
 	int GetLetterPoolCount() {return m_LetterPool.GetRemainingLetterCount(); }
 	void AddPlacedLetterSelection(int x, int y) {m_PlacedLetterSelections.push_back(glm::ivec2(x, y));}
@@ -288,6 +294,7 @@ private:
 	CCameraAnimationManager* m_CameraAnimationManager = nullptr;
 	CPlayerLetterAnimationManager* m_PlayerLetterAnimationManager = nullptr;
 	CDimmBGAnimationManager* m_DimmBGAnimationManager = nullptr;
+	CButtonAnimationManager* m_ButtonAnimationManager = nullptr;
     CGameState* m_State;
 
 	public: //TODO

@@ -42,8 +42,10 @@ public:
 	void PositionElement();
 	void AddChild(CUIElement* child);
 	void RemoveLastChild();
-	void SetPosAndSize(float x, float y, float w, float h, bool midPointOrigo = true);
+	void SetPosAndSize(float x, float y, float w, float h, bool midPointOrigo = true, bool scaleChildren = false);
 	void SetPosition(float x, float y, bool midPointOrigo = true);
+	void SetSizeWithChildren(float width, float height, float xScale = 0.f, float yScale = 0.f, int depth = 0);
+
 	glm::vec2 GetPosition(bool midPointOrigo = true);
 	glm::vec2 GetRelativePosition(glm::vec2 pos);
 	void DeleteRecursive();
@@ -61,7 +63,6 @@ public:
 	glm::vec2 GetTexturePos() {	return m_TexturePosition;}
 	glm::vec2 GetTexturePos(size_t idx) { return m_Children[idx]->GetTexturePos();}
 
-	void Scale(float scale);
 	void SetTexturePosition(glm::vec2 texPos) {m_TexturePosition = texPos;}
 	void SetVisible(bool visible) {m_Visible = visible;}
 	void SetVisible(bool visible, size_t idx) { m_Children[idx]->SetVisible(visible); }
@@ -79,6 +80,7 @@ public:
 	void SetKeepAspect(bool keep) {m_KeepAspect = keep;}
 	int GetVisibleElemCount();
 	void Resize(float newWidth, float newHeight, int depth = 0);
+	void Scale(float scale);
 
 	virtual void Render(CRenderer* renderer);
 	virtual bool HandleEventAtPos(int x, int y, EEventType event, CUIElement* root = nullptr, bool checkChildren = true, bool selfCheck = true);
@@ -106,10 +108,10 @@ protected:
 
 	int m_ViewXPosition;
 	int m_ViewYPosition;
-	int m_XPosition;
-	int m_YPosition;
-	int m_Width;
-	int m_Height;
+	float m_XPosition;
+	float m_YPosition;
+	float m_Width;
+	float m_Height;
 	bool m_Visible = true;
 	bool m_Enabled = true;
 	bool m_KeepAspect = true;

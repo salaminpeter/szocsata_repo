@@ -17,12 +17,11 @@ public:
 	void AddOption(const wchar_t* text, bool setText = false);
 	void SetIndex(size_t idx);
 	void SetTextAndPos(const wchar_t* text);
+	void ChangeEvent(int dir);
+	CUIElement* GetLeftButton();
+	CUIElement* GetRightButton();
 
 	int GetIndex() {return m_CurrSelection;}
-
-private:
-
-	void ChangeEvent(int dir);
 
 private:
 

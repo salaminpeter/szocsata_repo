@@ -16,6 +16,7 @@
 #include "CameraAnimationManager.h"
 #include "PlayerLetterAnimationManager.h"
 #include "DimmBGAnimationManager.h"
+#include "ButtonAnimationManager.h"
 #include "UIRowColLayout.h"
 #include "Player.h"
 #include "GameThread.h"
@@ -41,6 +42,7 @@ CGameManager::CGameManager()
 	m_CameraAnimationManager = new CCameraAnimationManager(m_TimerEventManager, this); //TODO!!!!!!!!!!!
 	m_PlayerLetterAnimationManager = new CPlayerLetterAnimationManager(this, m_TimerEventManager); //TODO!!!!!!!!!!!
 	m_DimmBGAnimationManager = new CDimmBGAnimationManager(this, m_TimerEventManager);
+	m_ButtonAnimationManager = new CButtonAnimationManager(m_TimerEventManager);
 	m_GameThread = new CGameThread(this);
 	m_TaskManager = new CTaskManager(this);
 }
@@ -334,6 +336,17 @@ void CGameManager::StartGame(bool resumeGame)
 {
 	CurrentPlayerTurn(resumeGame);
 }
+
+void CGameManager::EnableReverseAnimation(CUIElement* button)
+{
+	m_ButtonAnimationManager->EnableReverseAnimation(button);
+}
+
+void CGameManager::AddButtonAnimation(CUIElement* button)
+{
+	m_ButtonAnimationManager->AddButtonAnimation(button);
+}
+
 
 void CGameManager::AddWordSelectionAnimationLocked(const std::vector<TWordPos>& wordPos, bool positive)
 {

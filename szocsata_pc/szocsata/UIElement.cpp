@@ -252,6 +252,30 @@ glm::vec2 CUIElement::GetPosition(bool midPointOrigo)
 		return glm::vec2(m_XPosition - m_Width / 2, m_YPosition - m_Height / 2);
 }
 
+void CUIElement::SetSizeWithChildren(float width, float height, float xScale, float yScale, int depth)
+{
+	float WidthScale = depth == 0 ? width / m_Width : xScale;
+	float HeigthScale = depth == 0 ? height / m_Height : yScale;
+
+	if (depth == 0)
+	{
+		m_Width = width;
+		m_Height = height;
+		PositionElement();
+	}
+	else
+	{
+		float RelativeXPos = GetPosition().x * xScale;
+		float RelativeYPos = GetPosition().y * yScale;
+		SetWidth(m_Width * xScale);
+		SetHeight(m_Height * yScale);
+		SetPosition(RelativeXPos, RelativeYPos);
+	}
+
+	for (auto ChildElement : m_Children)
+		ChildElement->SetSizeWithChildren(0.f, 0.f, WidthScale, HeigthScale, depth + 1);
+}
+
 void CUIElement::SetPosition(float x, float y, bool midPointOrigo)
 {
 	if (midPointOrigo)
@@ -280,7 +304,7 @@ void CUIElement::SetPosition(float x, float y, bool midPointOrigo)
 	PositionElement();
 }
 
-void CUIElement::SetPosAndSize(float x, float y, float w, float h, bool midPointOrigo)
+void CUIElement::SetPosAndSize(float x, float y, float w, float h, bool midPointOrigo, bool scaleChildren)
 {
 	m_Width = w;
 	m_Height = h;
