@@ -6,6 +6,7 @@
 #include "GameManager.h"
 #include "RoundedBoxModelData.h"
 #include "SquareModelData.h"
+#include "SelectionStore.h"
 
 
 CTileModel::CTileModel(unsigned textureOffset, std::shared_ptr<CRoundedBoxPositionData> positionData, std::shared_ptr<CModelColorData> colorData) :
@@ -96,7 +97,7 @@ void CBoardTiles::RenderTiles()
 	glEnable(GL_BLEND);
 
 	m_Renderer->SetTexturePos(glm::vec2(0.f, 0.f));
-	m_Renderer->SetModifyColor(1, 1, 1, 1);
+	m_Renderer->SetModifyColor(1.f, 1.f, 1.f, 1.f, "textured");
 
 	for (size_t i = 0; i < m_TileShadows.size(); ++i)
 		m_Renderer->DrawModel(&m_TileShadows[i], "board_perspecive", "textured", false);
@@ -104,6 +105,7 @@ void CBoardTiles::RenderTiles()
 	glDisable(GL_BLEND);
 	glEnable(GL_DEPTH);
 
+	CSelectionStore* SelectionStore = m_GameManager->GetRenderer()->GetSelectionStore();
 	int LastVisibleTileIdx = 0;
 
 	for (size_t i = 0; i < m_BoardTiles.size(); ++i)
@@ -111,29 +113,48 @@ void CBoardTiles::RenderTiles()
 		int x = i % TileCount;
 		int y = i / TileCount;
 
-		if (m_GameManager->GetRenderer()->IsTileVisible(x, y))
+		if (m_GameManager->GetRenderer()->IsTileVisible(x, y) && !SelectionStore->GetSelection(x, y))
 			LastVisibleTileIdx = i;
 	}
 
 	bool BufferBound = false;
 	bool TextureBound = false;
+	CTileModel* SelectedTile = nullptr;
+	CSelectionStore::TSelection* BoardSelection = nullptr;
 
 	for (size_t i = 0; i < m_BoardTiles.size(); ++i)
 	{
 		int x = i % TileCount;
 		int y = i / TileCount;
 
+		CSelectionStore::TSelection* Selection = SelectionStore->GetSelection(x, y);
+
+		if (Selection && Selection->m_Id == "board_selection")
+		{
+			BoardSelection = Selection;
+			SelectedTile = &m_BoardTiles[i];
+			continue;
+		}
+
 		if (m_BoardTiles[i].IsVisible())
 		{
-			m_Renderer->DrawModel(&m_BoardTiles[i], "board_perspecive", "per_pixel_light_textured", true, !BufferBound, !TextureBound, i == LastVisibleTileIdx, true);
+			m_Renderer->DrawModel(&m_BoardTiles[i], "board_perspecive", "per_pixel_light_textured", true, !BufferBound, !TextureBound, (i == LastVisibleTileIdx && !SelectedTile), true);
 
 			if (i == LastVisibleTileIdx)
-				return;
+				break;
 
 			BufferBound = true;
 			TextureBound = true;
 		}
 	}
+
+	if (SelectedTile)
+	{ 
+		m_Renderer->SetModifyColor(BoardSelection->m_ColorModifyer.r, BoardSelection->m_ColorModifyer.g, BoardSelection->m_ColorModifyer.b, 1, "per_pixel_light_textured");
+		m_Renderer->DrawModel(SelectedTile, "board_perspecive", "per_pixel_light_textured", true, false, false, true, true);
+	}
+
+	m_Renderer->SetModifyColor(1.f, 1.f, 1.f, 1.f, "per_pixel_light_textured");
 }
 
 glm::vec2 CBoardTiles::GetTilePosition(int x, int y)

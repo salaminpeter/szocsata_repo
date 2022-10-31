@@ -21,6 +21,7 @@
 #include "Player.h"
 #include "GameThread.h"
 #include "UIToast.h"
+#include "SelectionStore.h"
 
 #define GL_GLEXT_PROTOTYPES 1
 #define GL3_PROTOTYPES 1
@@ -118,6 +119,7 @@ void CGameManager::RemovePlayers()
 	m_Players.clear();
 	m_PlayerSteps.clear();
 	m_PlacedLetterSelections.clear();
+	m_Renderer->GetSelectionStore()->ClearSelections(CSelectionStore::LetterSelection);
 	m_CurrentPlayer = nullptr;
 }
 
@@ -366,7 +368,7 @@ void CGameManager::AddWordSelectionAnimation(const std::vector<TWordPos>& wordPo
 
 		for (size_t i = 0; i < wordPos[j].m_WordLength; ++i)
 		{
-			m_TileAnimations->AddTile(x, y);
+			m_TileAnimations->AddTile(x, y, positive);
 			x += wordPos[j].m_Horizontal ? 1 : 0;
 			y -= wordPos[j].m_Horizontal ? 0 : 1;
 		}
@@ -704,7 +706,7 @@ void CGameManager::NextPlayerTurn()
 void CGameManager::HandlePlayerPass()
 {
 	m_CurrentPlayer->m_Passed = true;
-	m_PlacedLetterSelections.clear();
+	m_Renderer->GetSelectionStore()->ClearSelections(CSelectionStore::LetterSelection);
 	UndoAllSteps();
 	m_PlayerSteps.clear();
 }
@@ -837,7 +839,7 @@ bool CGameManager::EndPlayerTurn(bool stillHaveTime)
 	SetGameState(EGameState::WaintingOnAnimation);
 	AddWordSelectionAnimationLocked(CrossingWords, true);
 	m_Renderer->DisableSelection();
-	m_PlacedLetterSelections.clear();
+	m_Renderer->GetSelectionStore()->ClearSelections(CSelectionStore::LetterSelection);
 	m_PlayerSteps.clear();
 
 	if (PlayerFinished)
@@ -1833,7 +1835,7 @@ void CGameManager::UndoAllSteps()
 
 	const std::lock_guard<std::recursive_mutex> lock(m_Renderer->GetRenderLock());
 
-	m_PlacedLetterSelections.clear();
+	m_Renderer->GetSelectionStore()->ClearSelections(CSelectionStore::LetterSelection);
 	m_Renderer->DisableSelection();
 }
 
@@ -1852,15 +1854,7 @@ void CGameManager::UndoStepAtPos(int x, int y)
 
 void CGameManager::RemovePlacedLetterSelAtPos(int x, int y)
 {
-	for (size_t i = 0; i < m_PlacedLetterSelections.size(); ++i)
-	{
-		if (m_PlacedLetterSelections[i].x == x && m_PlacedLetterSelections[i].y == y)
-		{
-			m_PlacedLetterSelections[i] = m_PlacedLetterSelections.back();
-			m_PlacedLetterSelections.pop_back();
-			return;
-		}
-	}
+	m_Renderer->GetSelectionStore()->RemoveSelection(CSelectionStore::LetterSelection, x, y);
 }
 
 int CGameManager::GetPlayerStepIdxAtPos(int x, int y)
@@ -2119,33 +2113,9 @@ void CGameManager::HandleMultyDragEvent(int x0, int y0, int x1, int y1)
     m_Renderer->DragCamera(x0, y0, x1, y1);
 }
 
-void CGameManager::RenderPlacedLetterSelections()
-{
-	bool LastTile;
-	bool FirstTile = true;
-
-	for (size_t i = 0; i < m_PlacedLetterSelections.size(); ++i)
-	{
-		LastTile = i == m_PlacedLetterSelections.size() - 1;
-		m_Renderer->DrawSelection(glm::vec4(0.98f, 0.9f, 0.39f, 0.5f), m_PlacedLetterSelections[i].x, m_PlacedLetterSelections[i].y, FirstTile, LastTile);
-		FirstTile = false;
-	}
-}
-
-
-void CGameManager::RenderTileAnimations()
-{
-	glm::ivec2 TilePos;
-	glm::vec4 Color = m_TileAnimations->GetColor();
-	bool LastTile = false;
-	bool FirstTile = true;
-	m_TileAnimations->StarDataQuery();
-
-	while (m_TileAnimations->GetData(TilePos, LastTile))
-	{
-		m_Renderer->DrawSelection(Color, TilePos.x, TilePos.y, FirstTile, LastTile);
-		FirstTile = false;
-	}
+void CGameManager::AddPlacedLetterSelection(int x, int y) 
+{ 
+	m_Renderer->GetSelectionStore()->AddSelection(CSelectionStore::LetterSelection, x, y, "placed_letter_selection");
 }
 
 void CGameManager::RenderUI()
@@ -2198,7 +2168,7 @@ void CGameManager::EndPlayerTurnEvent()
 	if (EndPlayerTurn())
 	{
 		m_WordAnimation->ResetUsedLetterIndices();
-		m_PlacedLetterSelections.clear();
+		m_Renderer->GetSelectionStore()->ClearSelections(CSelectionStore::LetterSelection);
 	}
 }
 
@@ -2233,11 +2203,7 @@ void CGameManager::RenderFrame()
 			const std::lock_guard<std::recursive_mutex> lock(m_Renderer->GetRenderLock());
 
 			if (m_Renderer->ModelsInited() && GameScreenActive())
-			{
 				m_Renderer->Render();
-				RenderTileAnimations();
-				RenderPlacedLetterSelections();
-			}
 			else
 				m_Renderer->ClearBuffers();
 			

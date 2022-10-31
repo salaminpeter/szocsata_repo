@@ -27,6 +27,7 @@ class CBoardTilesPositionData;
 class CBoardTilesTextureData;
 class CBoardTiles;
 class CShaderManager;
+class CSelectionStore;
 
 typedef glm::vec<2, int> TPosition;
 
@@ -53,9 +54,6 @@ public:
 	void AddView(const char* viewId, int x, int y, int w, int h);
 	glm::vec2 GetViewPosition(const char* viewId);
 	void SelectField(int x, int y);
-	void PositionSelection();
-	void PositionSelection(CModel* selectionModel, int x, int y);
-	void DrawSelection(glm::vec4 color, int x, int y, bool bindBuffers = true, bool unbindBuffers = true);
 	CLetterModel* AddLetterToBoard(int x, int y, wchar_t c, float height = 0.f, bool setHeight = false);
 	void AddLetterToBoard(wchar_t c);
 	void InitLetterTexPositions();
@@ -67,7 +65,7 @@ public:
 	CLetterModel* GetLetterAtPos(int x, int y);
 	void SetTexturePos(glm::vec2 texturePos);
 	void SetTextColor(float r, float g, float b);
-	void SetModifyColor(float r, float g, float b, float a);
+	void SetModifyColor(float r, float g, float b, float a, const char* shader = "textured");
 	void DrawModel(CModel* model, const char* viewID, const char* shaderID, bool setLightPos, bool bindBuffers = true, bool bindTexture = true, bool unbindBuffers = true, bool setTextureVertexAttrib = true);
 	TPosition GetTilePos(int x, int y);
 	void FittBoardToView(bool topView);
@@ -91,13 +89,14 @@ public:
 	glm::vec2 GetTextureSize(const char* textureID);
 	void DeleteBuffers();
 	void GenerateBoardModel();
+	void HideSelection(bool hide);
 
-	void HideSelection(bool hide) { m_SelectionVisible = !hide; } //TODO setvisibleblabla... atirni
 	bool ModelsInited() { return m_3DModelsInited; }
 	bool EngineInited() { return m_EnginelsInited; }
 	float GetCameraTiltAngle() { return m_CameraTiltAngle; }
 	void ResetCameraDir() {m_CameraTiltAngle =0.f;}
 	void SetModelsInited(bool inited) {m_3DModelsInited = inited;}
+	CSelectionStore* GetSelectionStore() {return m_SelectionStore;}
 
 	std::recursive_mutex& GetRenderLock() {return m_RenderLock;}
 
@@ -134,12 +133,11 @@ private:
 	std::map<wchar_t, TPosition> m_LetterTexPos;
 
 	CModel* m_BoardModel = nullptr;
-	CModel* m_SelectionModel = nullptr;
 	CBoardTiles* m_BoardTiles = nullptr;
 	std::vector<CLetterModel*> m_LettersOnBoard;
+	std::vector<CLetterModel*> m_SelectedLetters;
 
 	glm::vec4 m_LightPosition;
-
 	glm::vec2 m_ZoomCenter;
 	glm::vec3 m_CameraZoomVector = glm::vec3(0.f);
 	float m_CameraZoomDistance;
@@ -176,9 +174,9 @@ private:
 	std::shared_ptr<CSquareColorData> m_LetterTextureData16x6;
 	std::shared_ptr<CSquareColorData> m_LetterTextureData8x4;
 
-	float m_CameraTiltAngle = 0.f;
+	CSelectionStore* m_SelectionStore = nullptr;
 
-	bool m_SelectionVisible = false;
+	float m_CameraTiltAngle = 0.f;
 
 	float m_BoardAnimAngleDestZ;
 	float m_BoardAnimAngleDestX;

@@ -2,7 +2,6 @@
 #include "Renderer.h"
 #include "Model.h"
 #include "BoardModel.h"
-#include "SelectionModel.h"
 #include "LetterModel.h"
 #include "View.h"
 #include "Shaders.h"
@@ -18,6 +17,7 @@
 #include "BoardTiles.h"
 #include "ShaderManager.h"
 #include "Timer.h"
+#include "SelectionStore.h"
 
 
 #include <algorithm>
@@ -62,74 +62,27 @@ float CRenderer::GetFittedViewProps(float fovY, bool topView, glm::vec2& camPos)
 	return std::sqrtf(Height * Height + 2 * XYOffset * XYOffset);
 }
 
-
-void CRenderer::PositionSelection(CModel* selectionModel, int x, int y)
-{
-	if (x == -1)
-		return;
-
-	float LetterHeight;
-	float TileHeight;
-	float TileSize;
-	float BoardHeight;
-	float TileGap;
-	int TileCount;
-
-	CConfig::GetConfig("tile_gap", TileGap);
-	CConfig::GetConfig("board_height", BoardHeight);
-	CConfig::GetConfig("tile_size", TileSize);
-	CConfig::GetConfig("tile_height", TileHeight);
-	CConfig::GetConfig("tile_count", TileCount);
-	CConfig::GetConfig("letter_height", LetterHeight);
-
-	glm::vec2 TilePos = m_BoardTiles->GetTilePosition(x, y);
-	selectionModel->ResetMatrix();
-
-	if (int LettersOnTile = m_GameManager->Board(x, TileCount - y - 1).m_Height)
-		selectionModel->Translate(glm::vec3(TilePos.x + TileGap, TilePos.y + TileGap, BoardHeight / 2.f + LettersOnTile * LetterHeight));
-	else
-		selectionModel->Translate(glm::vec3(TilePos.x + TileGap, TilePos.y + TileGap, BoardHeight / 2.f + TileHeight + 0.005f)); //ITT a selection hiba, rossz a z ertek!!! TODO
-
-	selectionModel->Scale(glm::vec3(TileSize, TileSize, 1.f));
-}
-
-void CRenderer::DrawSelection(glm::vec4 color, int x, int y, bool bindBuffers, bool unbindBuffers)
-{
-	if (bindBuffers)
-	{
-		glEnable(GL_BLEND);
-		glEnable(GL_POLYGON_OFFSET_FILL);
-		glPolygonOffset(-4.0, -0.9);
-	}
-
-	GLuint ColorID = m_ShaderManager->GetShaderVariableID("transparent_color", "Color");
-	glUniform4fv(ColorID, 1, &color[0]);
-	PositionSelection(m_SelectionModel, x, y);
-	DrawModel(m_SelectionModel, "board_perspecive", "transparent_color", false, bindBuffers, bindBuffers, unbindBuffers);
-
-	if (unbindBuffers)
-	{
-		glDisable(GL_POLYGON_OFFSET_FILL);
-		glDisable(GL_BLEND);
-	}
-}
-
-void CRenderer::PositionSelection()
-{
-	PositionSelection(m_SelectionModel, m_SelectionX, m_SelectionY);
-}
-
 void CRenderer::SelectField(int x, int y)
 {
-	m_SelectionVisible = true;
+	m_SelectionStore->RemoveSelection(CSelectionStore::BoardSelection, "board_selection");
 	m_SelectionX = x;
 	m_SelectionY = y;
+	glm::vec3 Color = m_SelectionStore->GetColorModifyer(m_GameManager->SelectionPosIllegal(x, y) ? CSelectionStore::FailSelection : CSelectionStore::BoardSelection);
+	m_SelectionStore->AddSelection(CSelectionStore::BoardSelection, x, y, "board_selection", &Color);
 }
 
 void CRenderer::DisableSelection()
 {
+	m_SelectionStore->RemoveSelection(CSelectionStore::BoardSelection, "board_selection");
 	m_SelectionX = m_SelectionY = -1;
-	m_SelectionVisible = false;
+}
+
+void CRenderer::HideSelection(bool hide) 
+{ 
+	if (hide)
+		m_SelectionStore->RemoveSelection(CSelectionStore::BoardSelection, "board_selection");
+	else
+		SelectField(m_SelectionX, m_SelectionY);
 }
 
 void CRenderer::GetSelectionPos(int& x, int& y)
@@ -145,6 +98,7 @@ void CRenderer::AddLetterToBoard(wchar_t c)
 
 	AddLetterToBoard(m_SelectionX, m_SelectionY, c);
 	m_SelectionX = -1;
+	m_SelectionStore->RemoveSelection(CSelectionStore::BoardSelection, "board_selection");
 }
 
 CLetterModel* CRenderer::AddLetterToBoard(int x, int y, wchar_t c, float height, bool setHeight)
@@ -181,7 +135,6 @@ CLetterModel* CRenderer::AddLetterToBoard(int x, int y, wchar_t c, float height,
 	return m_LettersOnBoard.back();
 }
 
-
 void CRenderer::SetTexturePos(glm::vec2 texturePos)
 {
 	m_ShaderManager->ActivateShader("textured");
@@ -189,10 +142,10 @@ void CRenderer::SetTexturePos(glm::vec2 texturePos)
 	glUniform2fv(TexturePosId, 1, &texturePos[0]);
 }
 
-void CRenderer::SetModifyColor(float r, float g, float b, float a)
+void CRenderer::SetModifyColor(float r, float g, float b, float a, const char* shader)
 {
-	m_ShaderManager->ActivateShader("textured");
-	GLuint ModColorID = m_ShaderManager->GetShaderVariableID("textured", "ModifyColor");
+	m_ShaderManager->ActivateShader(shader);
+	GLuint ModColorID = m_ShaderManager->GetShaderVariableID(shader, (std::string(shader)) == "textured" ? "ModifyColor" : "ModColor");
 	glm::vec4 Color(r, g, b, a);
 	glUniform4fv(ModColorID, 1, &Color[0]);
 }
@@ -766,6 +719,8 @@ void CRenderer::InitRenderer()
 	m_ShaderManager->AddShader("transparent_color", VertexShaderSelection, FragmentShaderSelection);
 	m_ShaderManager->AddShader("textured", VertexShaderTextured, FragmentShaderTextured);
 
+	m_SelectionStore = new CSelectionStore();
+
 	SetTextColor(1, 1, 1);
 
 	AddView("board_perspecive", 0, 0, m_ScreenHeight, m_ScreenHeight);
@@ -801,6 +756,7 @@ void CRenderer::InitRenderer()
 
 	m_TextureManager->GenerateTextures(m_GameManager->m_SurfaceWidth, m_GameManager->m_SurfaceHeigh);
 
+	m_SelectedLetters.reserve(30);
 	m_EnginelsInited = true;
 }
 
@@ -888,7 +844,6 @@ void CRenderer::ClearGameScreenResources()
 
 	//delete board / board tiles / selection
 	delete m_BoardTiles;
-	delete m_SelectionModel;
 	delete m_BoardModel;
 
 	m_RoundedSquarePositionData.reset();
@@ -919,7 +874,6 @@ void CRenderer::ClearResources()
 
 	//delete board / board tiles / selection
 	delete m_BoardTiles;
-	//delete m_SelectionModel;
 	delete m_BoardModel;
 
 	m_RoundedSquarePositionData.reset();
@@ -1003,8 +957,6 @@ bool CRenderer::GenerateModels()
 
 	FittBoardToView(true);
 
-	m_SelectionModel = new CSelectionModel(m_RoundedSquarePositionData);
-	m_SelectionModel->SetParent(m_BoardModel);
 	CalculateScreenSpaceGrid();
 
 	glEnable(GL_CULL_FACE);
@@ -1111,6 +1063,7 @@ void CRenderer::RemoveTopLetter(int x, int y)
 
 	if (Idx != -1)
 	{
+		m_SelectionStore->RemoveSelection(CSelectionStore::LetterSelection, m_LettersOnBoard[Idx]->BoardX(), m_LettersOnBoard[Idx]->BoardY());
 		m_LettersOnBoard[Idx] = m_LettersOnBoard.back();
 		m_LettersOnBoard.pop_back();
 	}
@@ -1118,6 +1071,7 @@ void CRenderer::RemoveTopLetter(int x, int y)
 
 void CRenderer::RemoveLastLetter()
 {
+	m_SelectionStore->RemoveSelection(CSelectionStore::LetterSelection, m_LettersOnBoard.back()->BoardX(), m_LettersOnBoard.back()->BoardY());
 	m_LettersOnBoard.pop_back();
 }
 
@@ -1186,35 +1140,51 @@ void CRenderer::Render()
 	glDepthMask(GL_TRUE);
 	glUniform1f(DistanceDividerID, 12.f);
 
-	int LastVisibleLetterIdx = 0;
+	int LastVisibleLetterIdx = -1;
 
-	for (size_t i = 0; i < m_LettersOnBoard.size(); ++i)
 	{
-		if (m_LettersOnBoard[i]->Visible())
-			LastVisibleLetterIdx = i;
+		const std::lock_guard<std::mutex> lock(m_SelectionStore->GetLock());
+
+		for (size_t i = 0; i < m_LettersOnBoard.size(); ++i)
+		{
+			bool IsTopLetter = (GetLetterAtPos(m_LettersOnBoard[i]->BoardX(), m_LettersOnBoard[i]->BoardY()) == m_LettersOnBoard[i]);
+			if (m_LettersOnBoard[i]->Visible() && (!m_SelectionStore->GetSelection(m_LettersOnBoard[i]->BoardX(), m_LettersOnBoard[i]->BoardY()) || IsTopLetter))
+				LastVisibleLetterIdx = i;
+		}
+
+		m_SelectedLetters.clear();
+
+		for (unsigned i = 0; i < m_LettersOnBoard.size(); ++i)
+		{
+			CSelectionStore::TSelection* Selection = m_SelectionStore->GetSelection(m_LettersOnBoard[i]->BoardX(), m_LettersOnBoard[i]->BoardY());
+
+			if (Selection && m_LettersOnBoard[i] == GetLetterAtPos(m_LettersOnBoard[i]->BoardX(), m_LettersOnBoard[i]->BoardY()))
+				m_SelectedLetters.push_back(m_LettersOnBoard[i]);
+		}
+
+		bool BufferBound = false;
+
+		for (int i = 0; i <= LastVisibleLetterIdx; ++i)
+		{
+			if (m_LettersOnBoard[i]->Visible() && std::find(m_SelectedLetters.begin(), m_SelectedLetters.end(), m_LettersOnBoard[i]) == m_SelectedLetters.end())
+			{
+				DrawModel(m_LettersOnBoard[i], "board_perspecive", "per_pixel_light_textured", true, !BufferBound, !BufferBound, (i == LastVisibleLetterIdx && m_SelectedLetters.size() != 0), true);
+				BufferBound = true;
+			}
+		}
+
+		BufferBound = false;
+
+		for (unsigned i = 0; i < m_SelectedLetters.size(); ++i)
+		{
+			CSelectionStore::TSelection* Selection = m_SelectionStore->GetSelection(m_SelectedLetters[i]->BoardX(), m_SelectedLetters[i]->BoardY());
+			SetModifyColor(Selection->m_ColorModifyer.r, Selection->m_ColorModifyer.g, Selection->m_ColorModifyer.b, 1, "per_pixel_light_textured");
+			DrawModel(m_SelectedLetters[i], "board_perspecive", "per_pixel_light_textured", true, !BufferBound, !BufferBound, (i == m_SelectedLetters.size() - 1));
+			BufferBound = true;
+		}
+
+		SetModifyColor(1.f, 1.f, 1.f, 1.f, "per_pixel_light_textured");
+
+		m_BoardTiles->RenderTiles();
 	}
-
-	bool BufferBound = false;
-	bool TextureBound = false;
-
-	for (unsigned i = 0; i < m_LettersOnBoard.size(); ++i)
-	{
-		if (m_LettersOnBoard[i]->Visible())
-			DrawModel(m_LettersOnBoard[i], "board_perspecive", "per_pixel_light_textured", !BufferBound, !BufferBound, !TextureBound, i == LastVisibleLetterIdx, true);
-	}
-
-	m_BoardTiles->RenderTiles();
-
-	if (m_SelectionVisible)
-	{
-		PositionSelection();
-
-		glm::vec4 Color(0.4, 0.4, 1, 0.5);
-
-		if (m_GameManager->SelectionPosIllegal(m_SelectionX, m_SelectionY))
-			Color = glm::vec4(1.f, 0.f, 0.f, 0.5f);
-
-		DrawSelection(Color, m_SelectionX, m_SelectionY);
-	}
-
 }

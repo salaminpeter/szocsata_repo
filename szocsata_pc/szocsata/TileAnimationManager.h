@@ -22,8 +22,7 @@ public:
 
 	~CTileAnimationManager();
 
-	void AddTile(int x, int y);
-	bool GetData(glm::ivec2& position, bool& lastTile);
+	void AddTile(int x, int y, bool positive);
 	void StartAnimation(bool positive);
 	void StartAnimation();
 	void UpdateColorEvent(double& timeFromStart, double& timeFromPrev);
@@ -33,15 +32,17 @@ public:
 	void Reset();
 
 	void SetUIManager(CUIManager* uiManager) {m_UIManager = uiManager;}
-	void StarDataQuery() { m_QueryIndex = 0; }
-	glm::vec4 GetColor() { return m_Color; }
+	glm::vec3 GetColor() { return m_Color; }
 	bool Empty() {return (m_TilePositions.size() == 0);}
 
 private:
 
 	std::vector<glm::ivec2> m_TilePositions;
-	glm::vec4 m_Color;
-	size_t m_QueryIndex;
+	glm::vec3 m_Color;
+	glm::vec3 m_StartColor;
+	glm::vec3 m_DestColor;
+
+	int m_SelectionType;
 
 	CTimerEventManager* m_TimerEventManager;
 	CGameManager* m_GameManager;
@@ -50,5 +51,5 @@ private:
 	int m_PassedTime = 0;
 	bool m_HandleFinishEvent = false;
 
-	const int m_AnimLength = 1500; //config!!
+	const int m_AnimLength = 2550; //config!!
 };

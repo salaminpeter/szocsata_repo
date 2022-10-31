@@ -7,7 +7,6 @@
 
 #include "TileAnimationManager.h"
 #include "UIManager.h"
-#include "SelectionModel.h"
 #include "Config.h"
 #include "SquareModelData.h"
 #include "Renderer.h"
@@ -15,6 +14,7 @@
 #include "TimerEventManager.h"
 #include "GameManager.h"
 #include "UIMessageBox.h"
+#include "SelectionStore.h"
 
 #include <iostream>
 #include <fstream>
@@ -31,12 +31,17 @@ CTileAnimationManager::~CTileAnimationManager()
 	m_TimerEventManager->StopTimer("tile_animation");
 }
 
-void CTileAnimationManager::AddTile(int x, int y)
+void CTileAnimationManager::AddTile(int x, int y, bool positive)
 {
 	glm::ivec2 TilePos(x, y);
 
 	if (std::find(m_TilePositions.begin(), m_TilePositions.end(), TilePos) == m_TilePositions.end())
+	{
 		m_TilePositions.push_back(glm::ivec2(x, y));
+		CSelectionStore* SelectionStore = m_GameManager->GetRenderer()->GetSelectionStore();
+		glm::vec3 ModifyColor(1,1,1);
+		SelectionStore->AddSelection(positive ? CSelectionStore::SuccessSelection: CSelectionStore::FailSelection, x, y, "success_selection", &ModifyColor);
+	}
 }
 
 void CTileAnimationManager::StartAnimation()
@@ -47,10 +52,12 @@ void CTileAnimationManager::StartAnimation()
 
 void CTileAnimationManager::StartAnimation(bool positive)
 {
-	if (positive)
-		m_Color = glm::vec4(0.4f, 1.f, 0.4f, 0.f);
-	else
-		m_Color = glm::vec4(1.f, 0.f, 0.f, 0.f);
+	CSelectionStore* SelectionStore = m_GameManager->GetRenderer()->GetSelectionStore();
+	m_SelectionType = positive ? CSelectionStore::SuccessSelection : CSelectionStore::FailSelection;
+
+	m_StartColor = glm::vec3(100,100,100);
+	m_DestColor = SelectionStore->GetColorModifyer(static_cast<CSelectionStore::ESelectionType>(m_SelectionType));
+	m_DestColor *= 100;
 	
 	m_HandleFinishEvent = positive;
 	m_TimerEventManager->AddTimerEvent(this, &CTileAnimationManager::UpdateColorEvent, positive ? &CTileAnimationManager::AnimFinishedEvent : nullptr, "tile_animation");
@@ -76,6 +83,12 @@ void CTileAnimationManager::SaveState(std::ofstream& fileStream)
 		fileStream.write((char *)&m_Color.r, sizeof(float));
 		fileStream.write((char *)&m_Color.g, sizeof(float));
 		fileStream.write((char *)&m_Color.b, sizeof(float));
+		fileStream.write((char *)&m_StartColor.r, sizeof(float));
+		fileStream.write((char *)&m_StartColor.g, sizeof(float));
+		fileStream.write((char *)&m_StartColor.b, sizeof(float));
+		fileStream.write((char *)&m_DestColor.r, sizeof(float));
+		fileStream.write((char *)&m_DestColor.g, sizeof(float));
+		fileStream.write((char *)&m_DestColor.b, sizeof(float));
 		fileStream.write((char *)&m_HandleFinishEvent, sizeof(bool));
 	}
 
@@ -99,6 +112,12 @@ void CTileAnimationManager::LoadState(std::ifstream& fileStream)
 		fileStream.read((char *)&m_Color.r, sizeof(float));
 		fileStream.read((char *)&m_Color.g, sizeof(float));
 		fileStream.read((char *)&m_Color.b, sizeof(float));
+		fileStream.read((char *)&m_StartColor.r, sizeof(float));
+		fileStream.read((char *)&m_StartColor.g, sizeof(float));
+		fileStream.read((char *)&m_StartColor.b, sizeof(float));
+		fileStream.read((char *)&m_DestColor.r, sizeof(float));
+		fileStream.read((char *)&m_DestColor.g, sizeof(float));
+		fileStream.read((char *)&m_DestColor.b, sizeof(float));
 		fileStream.read((char *)&m_HandleFinishEvent, sizeof(bool));
 	}
 
@@ -107,10 +126,9 @@ void CTileAnimationManager::LoadState(std::ifstream& fileStream)
 		int x, y;
 		fileStream.read((char *)&x, sizeof(int));
 		fileStream.read((char *)&y, sizeof(int));
-		AddTile(x, y);
+		AddTile(x, y, true);
 	}
 }
-
 
 void CTileAnimationManager::AnimFinishedEvent()
 {
@@ -119,21 +137,28 @@ void CTileAnimationManager::AnimFinishedEvent()
 
 void CTileAnimationManager::UpdateColorEvent(double& timeFromStart, double& timeFromPrev)
 {
-	if (m_PassedTime == 0)
-		m_PassedTime = timeFromStart;
-	else
-		m_PassedTime += timeFromPrev;
+	m_PassedTime += timeFromPrev;
 
 	bool EndAnimation = m_PassedTime > m_AnimLength;
 
-	m_PassedTime = m_PassedTime > m_AnimLength ? m_AnimLength : m_PassedTime;
-	m_Color.a = std::sin(glm::radians((static_cast<double>(m_PassedTime) / m_AnimLength)  * 180.0)) * 0.5;
+	m_PassedTime = EndAnimation ? m_AnimLength : m_PassedTime;
+
+	glm::vec3 ColorDiff = (m_DestColor - m_StartColor) * static_cast<float>(std::sin(glm::radians((static_cast<double>(m_PassedTime) / m_AnimLength) * 180.0)));
+	m_Color.r = (m_StartColor.r + ColorDiff.r) / 100.f;
+	m_Color.g = (m_StartColor.g + ColorDiff.g) / 100.f;
+	m_Color.b = (m_StartColor.b + ColorDiff.b) / 100.f;
+
+	CSelectionStore* SelectionStore = m_GameManager->GetRenderer()->GetSelectionStore();
 
 	if (EndAnimation)
 	{
 		const std::lock_guard<std::mutex> lock(m_GameManager->GetStateLock());
 		{
+			CSelectionStore* SelectionStore = m_GameManager->GetRenderer()->GetSelectionStore();
+			SelectionStore->ClearSelections(static_cast<CSelectionStore::ESelectionType>(m_SelectionType));
+			m_PassedTime = 0;
 			m_TimerEventManager->StopTimer("tile_animation");
+
 			const std::lock_guard<std::mutex> lock(m_TileAnimLock);
 			{
 				const std::lock_guard<std::recursive_mutex> lock(m_GameManager->GetRenderer()->GetRenderLock());
@@ -144,17 +169,6 @@ void CTileAnimationManager::UpdateColorEvent(double& timeFromStart, double& time
 			}
 		}
 	}
+
+	SelectionStore->SetModifyColor(static_cast<CSelectionStore::ESelectionType>(m_SelectionType), m_Color);
 }
-
-bool CTileAnimationManager::GetData(glm::ivec2& position, bool& lastTile)
-{
-	if (m_QueryIndex >= m_TilePositions.size()) //TODO hogy lehet nagyobb ?????? kress!!!
-		return false;
-
-	position = m_TilePositions[m_QueryIndex];
-	m_QueryIndex++;
-	lastTile = m_QueryIndex == m_TilePositions.size();
-
-	return true;
-}
-

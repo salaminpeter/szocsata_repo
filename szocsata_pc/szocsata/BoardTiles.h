@@ -50,4 +50,5 @@ private:
 	std::vector<CTileShadowModel> m_TileShadows;
 	CRenderer* m_Renderer;
 	CGameManager* m_GameManager;
+	CTileModel* m_SelectedTile = nullptr;
 };
