@@ -145,7 +145,7 @@ void CRenderer::SetTexturePos(glm::vec2 texturePos)
 void CRenderer::SetModifyColor(float r, float g, float b, float a, const char* shader)
 {
 	m_ShaderManager->ActivateShader(shader);
-	GLuint ModColorID = m_ShaderManager->GetShaderVariableID(shader, (std::string(shader)) == "textured" ? "ModifyColor" : "ModColor");
+	GLuint ModColorID = m_ShaderManager->GetShaderVariableID(shader, "ModifyColor");
 	glm::vec4 Color(r, g, b, a);
 	glUniform4fv(ModColorID, 1, &Color[0]);
 }
