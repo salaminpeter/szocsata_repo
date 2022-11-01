@@ -543,13 +543,13 @@ void CRenderer::CalculateScreenSpaceGrid()
 	glm::mat4 MVP = m_Views["board_perspecive"]->GetProjectionView() * m_BoardModel->GetModelMatrix();
 
 	float XPos;
-	float YPos = -BoardSize;
+	float YPos = -BoardSize/* + TileGap*/;
 	float ZPos = BoardHeight / 2 + TileHeight;
 	float GridSize = TileSize + TileGap;
 
 	for (int y = 0; y < TileCount; ++y)
 	{
-		XPos = -BoardSize;
+		XPos = -BoardSize/* + TileGap*/;
 
 		for (int x = 0; x < TileCount; ++x)
 		{
@@ -585,10 +585,10 @@ void CRenderer::CalculateScreenSpaceGrid()
 			m_ScreenSpaceTiles.back().m_X = x;
 			m_ScreenSpaceTiles.back().m_Y = y;
 
-			XPos += GridSize;
+			XPos += GridSize /*+ TileGap*/;
 		}
 
-		YPos += GridSize;
+		YPos += GridSize /*+ TileGap*/;
 	}
 }
 
