@@ -20,7 +20,6 @@ void CPlayerLetterAnimationManager::StartAnimations()
 	}
 }
 
-
 void CPlayerLetterAnimationManager::AnimFinishedEvent()
 {
 	m_GameManager->SetTaskFinished("finish_player_deal_letters_task");
@@ -31,7 +30,7 @@ void CPlayerLetterAnimationManager::AnimatePlayerLetter(double& timeFromStart, d
 {
 	const std::lock_guard<std::mutex> lock(m_GameManager->GetStateLock());
 
-	const double AnimTime = 800.f; //TODO config
+	const double AnimTime = 1100.f; //TODO config
 
 	if (m_TimeSinceAnimStart == 0)
 		m_TimeSinceAnimStart = timeFromStart;
@@ -40,8 +39,9 @@ void CPlayerLetterAnimationManager::AnimatePlayerLetter(double& timeFromStart, d
 
 	float Mul = std::sinf((m_TimeSinceAnimStart / AnimTime) * (90.f * 3.14f / 180.f));
 	float Scale = Mul * m_PlayerLetterAnimations[m_CurrentLetterIdx].m_DestScale;
-	float XPos = Mul * (m_PlayerLetterAnimations[m_CurrentLetterIdx].m_DestX - m_PlayerLetterAnimations[m_CurrentLetterIdx].m_StartX) + m_PlayerLetterAnimations[m_CurrentLetterIdx].m_StartX;
-	float YPos = Mul * (m_PlayerLetterAnimations[m_CurrentLetterIdx].m_DestY - m_PlayerLetterAnimations[m_CurrentLetterIdx].m_StartY) + m_PlayerLetterAnimations[m_CurrentLetterIdx].m_StartY;
+	glm::vec2 CurrPos = m_PlayerLetterAnimations[m_CurrentLetterIdx].m_AnimationPath.GetPathPoint(Mul);
+	float XPos = CurrPos.x;
+	float YPos = CurrPos.y;
 	m_PlayerLetterAnimations[m_CurrentLetterIdx].m_PlayerLetter->Scale(m_TimeSinceAnimStart < AnimTime ? Scale : m_PlayerLetterAnimations[m_CurrentLetterIdx].m_DestScale);
 	m_PlayerLetterAnimations[m_CurrentLetterIdx].m_PlayerLetter->SetPosAndSize(XPos, YPos, Scale, Scale);
 
@@ -81,7 +81,7 @@ void CPlayerLetterAnimationManager::AnimatePlayerLetter(double& timeFromStart, d
 
 void CPlayerLetterAnimationManager::AddAnimation(CUIElement* playerLEtter, float destScale, float startX, float startY, float destX, float destY)
 {
-	m_PlayerLetterAnimations.emplace_back(playerLEtter, destScale, startX, startY, destX, destY);
+	m_PlayerLetterAnimations.emplace_back(playerLEtter, m_GameManager, destScale, startX, startY, destX, destY);
 	m_PlayerLetterAnimations.back().m_PlayerLetter->SetPosAndSize(m_PlayerLetterAnimations.back().m_StartX, m_PlayerLetterAnimations.back().m_StartY, 0.f, 0.f);
 }
 
@@ -176,4 +176,47 @@ void CPlayerLetterAnimationManager::LoadState(std::ifstream& fileStream)
 	#undef size_t
 	#undef wchar_t
 #endif
+}
+
+CPlayerLetterAnimationManager::TPlayerLetterAnimation::TPlayerLetterAnimation(CUIElement *playerLetter, CGameManager *gameManager, float destScale, float startX,  float startY, float destX, float destY) :
+		m_PlayerLetter(playerLetter),
+		m_DestScale(destScale),
+		m_StartX(startX),
+		m_StartY(startY),
+		m_DestX(destX),
+		m_DestY(destY),
+		m_Finished(false)
+{
+	bool DestinationLeft = destX < startX;
+	std::vector<glm::vec2> AnimPathPoints;
+	AnimPathPoints.reserve(7);
+	glm::vec2 TileCounterSize = gameManager->GetUIManager()->GetTileCounterSize() / 2.f;
+
+	//p0
+	AnimPathPoints.emplace_back(startX, startY - TileCounterSize.y);
+
+	//p1
+	AnimPathPoints.emplace_back(startX, startY);
+
+	//p2
+	AnimPathPoints.emplace_back(startX + (DestinationLeft ? -1.f : 1.f) * TileCounterSize.x, startY + TileCounterSize.y);
+
+	//p3 , p4
+	float Dist = glm::distance(glm::vec2(startX, startY), glm::vec2(destX, destY));
+	glm::vec2 MidPoint = glm::vec2(AnimPathPoints.back().x + destX, AnimPathPoints.back().y + destY) / 2.f;
+	glm::vec2 v = glm::normalize(glm::vec2(destX, destY) - MidPoint);
+	glm::vec2 Int0 = glm::vec2(AnimPathPoints.back().x, AnimPathPoints.back().y) + v * (Dist / 5.f);
+	glm::vec2 Int1 = glm::vec2(Int0.x, Int0.y) + v * (Dist / 5.f);
+	float Mul = Dist / 3.f;
+	
+	AnimPathPoints.emplace_back(Int0.x + ((DestinationLeft ? 1.f : -1.f) * (v.y * Mul)), Int0.y + ((DestinationLeft ? -1.f : 1.f) * (v.x * Mul)));
+	AnimPathPoints.emplace_back(Int1.x + ((DestinationLeft ? 1.f : -1.f) * (v.y * Mul)), Int1.y + ((DestinationLeft ? -1.f : 1.f) * (v.x * Mul)));
+
+	//p5
+	AnimPathPoints.emplace_back(destX, destY);
+
+	//p6
+	AnimPathPoints.emplace_back(destX - TileCounterSize.x, destY);
+
+	m_AnimationPath.CreatePath(AnimPathPoints, 2);
 }

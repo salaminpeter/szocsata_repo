@@ -1,6 +1,9 @@
 #pragma once
 
 #include <vector>
+#include "AnimationPath.h"
+#include <glm/gtx/rotate_vector.hpp>
+#include <glm/glm.hpp>
 
 class CUIElement;
 class CTimerEventManager;
@@ -13,17 +16,10 @@ private:
 
 	struct TPlayerLetterAnimation
 	{
-		TPlayerLetterAnimation(CUIElement* playerLetter, float destScale, float startX, float startY, float destX, float destY) : 
-			m_PlayerLetter(playerLetter), 
-			m_DestScale(destScale),
-			m_StartX(startX),
-			m_StartY(startY),
-			m_DestX(destX),
-			m_DestY(destY),
-			m_Finished(false)
-		{};
+		TPlayerLetterAnimation(CUIElement* playerLetter, CGameManager* gameManager, float destScale, float startX, float startY, float destX, float destY);;
 
 		CUIElement* m_PlayerLetter;
+		CAnimationPath m_AnimationPath;
 		float m_DestScale;
 		float m_StartX;
 		float m_StartY;

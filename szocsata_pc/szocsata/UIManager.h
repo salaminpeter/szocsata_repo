@@ -45,6 +45,7 @@ public:
 	glm::vec2 GetElemSize(const wchar_t* id);
 
 	glm::vec2 GetTileCounterPos();
+	glm::vec2 GetTileCounterSize();
 
 	CUIButton* AddButton(CUIElement* parent, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, float x, float y, float w, float h, const char* ViewID, const char* textureID, const wchar_t* id, const char* shaderID = "textured"); 
 	CUIIconTextButton* AddIconTextButton(CUIElement* parent, const wchar_t* text, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData, float x, float y, float w, float h, const char* ViewID, const char* textureID, const char* iconIextureID, const wchar_t* id, const char* shaderID = "textured", float iconSize = 0.65f, float iconWHRatio = 1.f, float charSize = 0.35f, float padding = 0.f, CUIText::ETextAlign align = CUIText::Left);

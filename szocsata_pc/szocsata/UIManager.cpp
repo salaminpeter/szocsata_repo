@@ -142,6 +142,12 @@ glm::vec2 CUIManager::GetTileCounterPos()
 	return m_RootGameScreen->GetChild(L"ui_tile_counter")->GetAbsolutePosition();
 }
 
+glm::vec2 CUIManager::GetTileCounterSize()
+{
+	CUIElement* TileCounter = m_RootGameScreen->GetChild(L"ui_tile_counter");
+	return glm::vec2(TileCounter->GetWidth(), TileCounter->GetHeight());
+}
+
 void CUIManager::InitFont()
 {
 	//set font char box sizes
