@@ -875,7 +875,6 @@ bool CGameManager::EndPlayerTurn(bool stillHaveTime)
 	glm::vec2 PosOnScreen = m_Renderer->GetBoardPosOnScreen(WordsCenterPos.x, TileCount - WordsCenterPos.y);
 	m_ScoreAnimationManager->StartAnimation(PosOnScreen.x, PosOnScreen.y, 0, Score);
 	m_CurrentPlayer->AddScore(Score);
-	UpdatePlayerScores();
 	SetGameState(EGameState::WaintingOnAnimation);
 	AddWordSelectionAnimationLocked(CrossingWords, true);
 	m_Renderer->DisableSelection();
@@ -987,7 +986,6 @@ bool CGameManager::EndComputerTurn()
 		SetGameState(EGameState::WaintingOnAnimation);
 		m_WordAnimation->AddWordAnimation(*ComputerWord.m_Word, LetterIndices, m_UIManager->GetPlayerLetters(m_Computer->GetName()), ComputerWord.m_X, TileCount - ComputerWord.m_Y - 1, ComputerWord.m_Horizontal);
 		m_GameBoard.AddWord(ComputerWord);
-		UpdatePlayerScores();
 		m_Renderer->DisableSelection();
 
 		glm::ivec2 WordsCenterPos = GetWordsMidPoint(*CrossingWords);

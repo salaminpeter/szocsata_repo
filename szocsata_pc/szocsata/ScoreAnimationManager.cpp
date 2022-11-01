@@ -30,8 +30,8 @@ void CScoreAnimationManager::StartAnimation(float startX, float startY, int play
 	if (startX < m_TextSize / 2.f)
 		startX = m_TextSize * 2;
 
-	if (startY > m_GameManager->m_SurfaceHeigh - m_FirstAnimLength - 100.f)
-		startY = m_GameManager->m_SurfaceHeigh - m_FirstAnimLength - 100.f;
+	if (startY > m_GameManager->m_SurfaceHeigh - m_FirstAnimLength - 150.f)
+		startY = m_GameManager->m_SurfaceHeigh - m_FirstAnimLength - 150.f;
 
 	if (startY < m_TextSize / 2.f)
 		startY = m_TextSize * 2;
@@ -95,7 +95,7 @@ void CScoreAnimationManager::AnimateScore(double& timeFromStart, double& timeFro
 	{
 		float Mul = sinf((m_PassedTime / m_FirstAnimTime) * glm::radians(90.f));
 		glm::vec2 AnimPos = m_StartPosition + glm::vec2(0.f, m_FirstAnimLength * Mul);
-		ScoreButton->SetPosAndSize(AnimPos.x, AnimPos.y, m_TextSize + m_TextSize * (Mul * .4f), m_TextSize + m_TextSize * (Mul * .4f));
+		ScoreButton->SetPosAndSize(AnimPos.x, AnimPos.y, m_TextSize + m_TextSize * (Mul * .5f), m_TextSize + m_TextSize * (Mul * .5f));
 		AnimEnded = m_PassedTime >= m_FirstAnimTime;
 	}
 	else
@@ -117,6 +117,7 @@ void CScoreAnimationManager::AnimateScore(double& timeFromStart, double& timeFro
 		else
 		{
 			ScoreButton->SetVisible(false);
+			m_GameManager->UpdatePlayerScores();
 			m_TimerEventManager->StopTimer("score_animation_timer");
 			m_GameManager->SetTaskFinished("score_animation_task");
 		}
