@@ -517,6 +517,37 @@ void CRenderer::CameraFitToViewAnim(float tilt, float rotation, float zoom, floa
 	m_Views["board_perspecive"]->PositionCamera(NewCamPos);
 }
 
+glm::vec2 CRenderer::GetBoardPosOnScreen(int x, int y)
+{
+	float BoardSize;
+	float BoardHeight;
+	float LetterHeight;
+	float TileGap;
+	float TileHeight;
+	float TileSize;
+	int TileCount;
+
+	CConfig::GetConfig("tile_size", TileSize);
+	CConfig::GetConfig("board_size", BoardSize);
+	CConfig::GetConfig("board_height", BoardHeight);
+	CConfig::GetConfig("tile_gap", TileGap);
+	CConfig::GetConfig("tile_height", TileHeight);
+	CConfig::GetConfig("tile_count", TileCount);
+	CConfig::GetConfig("letter_height", LetterHeight);
+
+	glm::mat4 MVP = m_Views["board_perspecive"]->GetProjectionView() * m_BoardModel->GetModelMatrix();
+
+	float GridSize = TileSize + TileGap;
+	float XPos = -BoardSize + x * GridSize + TileSize;
+	float YPos = -BoardSize + y * GridSize - (TileSize / 2);
+	float ZPos = BoardHeight / 2 + TileHeight;
+
+	glm::vec4 p0(XPos, YPos, ZPos, 1);
+	glm::vec4 pp0 = MVP * p0;
+	glm::vec4 ndc0 = pp0 / pp0.w;
+
+	return glm::vec2(((ndc0.x + 1.f) / 2.f) * m_ScreenHeight, ((ndc0.y + 1.f) / 2.f) * m_ScreenHeight);
+}
 
 void CRenderer::CalculateScreenSpaceGrid()
 {
@@ -716,7 +747,6 @@ void CRenderer::InitRenderer()
 
 	m_ShaderManager = new CShaderManager();
 	m_ShaderManager->AddShader("per_pixel_light_textured", VertexShaderPerPixel, FragmentShaderPerPixel);
-	m_ShaderManager->AddShader("transparent_color", VertexShaderSelection, FragmentShaderSelection);
 	m_ShaderManager->AddShader("textured", VertexShaderTextured, FragmentShaderTextured);
 
 	m_SelectionStore = new CSelectionStore();

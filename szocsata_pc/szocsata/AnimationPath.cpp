@@ -4,6 +4,7 @@
 void CAnimationPath::CreatePath(const std::vector<glm::vec2>& controlPoints, int resolution)
 {
 	m_Path.reserve(1000); //TODO ertelmes ertek splinhossz fuggvenyeben
+	m_Path.clear();
 
 	int SectionCount = controlPoints.size() - 3;
 

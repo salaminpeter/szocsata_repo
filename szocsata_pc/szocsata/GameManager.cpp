@@ -17,6 +17,7 @@
 #include "PlayerLetterAnimationManager.h"
 #include "DimmBGAnimationManager.h"
 #include "ButtonAnimationManager.h"
+#include "ScoreAnimationManager.h"
 #include "UIRowColLayout.h"
 #include "Player.h"
 #include "GameThread.h"
@@ -171,6 +172,36 @@ void CGameManager::AddPlayers(int playerCount, bool addComputer, bool addLetters
 	m_UIManager->SetTileCounterValue(m_LetterPool.GetRemainingLetterCount());
 }
 
+glm::ivec2 CGameManager::GetWordsMidPoint(const std::vector<TWordPos>& words)
+{
+	int MinX, MinY, MaxX, MaxY;
+
+	for (size_t i = 0; i < words.size(); ++i)
+	{
+		if (i == 0)
+		{
+			MinX = words[i].m_X;
+			MinY = words[i].m_Y;
+			MaxX = words[i].m_Horizontal ? MinX + words[i].m_WordLength : MinX;
+			MaxY = words[i].m_Horizontal ? MinY : MinY + words[i].m_WordLength;
+		}
+
+		if (words[i].m_X + (words[i].m_Horizontal ? words[i].m_WordLength : 0) > MaxX)
+			MaxX = words[i].m_X + (words[i].m_Horizontal ? words[i].m_WordLength : 0);
+
+		if (words[i].m_X < MinX)
+			MinX = words[i].m_X;
+
+		if (words[i].m_Y + (words[i].m_Horizontal ? 0 : words[i].m_WordLength) > MaxY)
+			MaxY = words[i].m_Y + (words[i].m_Horizontal ? 0 : words[i].m_WordLength);
+
+		if (words[i].m_Y < MinY)
+			MinY = words[i].m_Y;
+	}
+
+	return glm::ivec2(MinX + (MaxX - MinX) / 2, MinY + (MaxY - MinY) / 2);
+}
+
 void CGameManager::SetTileCounterCount()
 {
 	m_UIManager->SetTileCounterValue(m_LetterPool.GetRemainingLetterCount());
@@ -300,6 +331,12 @@ void CGameManager::StartGameLoopTask()
 {
     m_PauseGameLoop = false;
 	SetTaskFinished("start_game_loop_task");
+}
+
+void CGameManager::AddScoreAnimationTask(int startX, int startY, int score)
+{
+	SetTaskFinished("start_score_animation_task");
+	m_ScoreAnimationManager->StartAnimation(startX, startY, GetCurrentPlayerIdx(), score);
 }
 
 void CGameManager::NextPlayerTaskOnThread()
@@ -834,6 +871,9 @@ bool CGameManager::EndPlayerTurn(bool stillHaveTime)
 	bool PlayerFinished = AddNextPlayerTasksNormal(false, true, !m_LetterPool.Empty());
 
 	m_TimerEventManager->StopTimer("time_limit_event");
+	glm::ivec2 WordsCenterPos = GetWordsMidPoint(CrossingWords);
+	glm::vec2 PosOnScreen = m_Renderer->GetBoardPosOnScreen(WordsCenterPos.x, TileCount - WordsCenterPos.y);
+	m_ScoreAnimationManager->StartAnimation(PosOnScreen.x, PosOnScreen.y, 0, Score);
 	m_CurrentPlayer->AddScore(Score);
 	UpdatePlayerScores();
 	SetGameState(EGameState::WaintingOnAnimation);
@@ -940,6 +980,8 @@ bool CGameManager::EndComputerTurn()
 
 	if (WordLength)
 	{
+		std::shared_ptr<CTask> WordAnimFinishedTask = AddTask(this, nullptr, "finish_word_letters_animation_task", CTask::GameThread);
+
 		AddNextPlayerTasksNormal(true, true, !m_LetterPool.Empty() && !GameFinished);
 		std::vector<size_t> LetterIndices = m_CurrentPlayer->GetLetterIndicesForWord(*ComputerWord.m_Word);
 		SetGameState(EGameState::WaintingOnAnimation);
@@ -948,17 +990,22 @@ bool CGameManager::EndComputerTurn()
 		UpdatePlayerScores();
 		m_Renderer->DisableSelection();
 
+		glm::ivec2 WordsCenterPos = GetWordsMidPoint(*CrossingWords);
+		glm::vec2 PosOnScreen = m_Renderer->GetBoardPosOnScreen(WordsCenterPos.x, TileCount - WordsCenterPos.y);
+		std::shared_ptr<CTask> ScoreAnimationTask = AddTask(this, &CGameManager::AddScoreAnimationTask, "start_score_animation_task", CTask::GameThread, int(PosOnScreen.x), int(PosOnScreen.y), ComputerStep.m_Score);
+		ScoreAnimationTask->AddDependencie(WordAnimFinishedTask);
+		ScoreAnimationTask->m_TaskStopped = false;
 
 		//computer letette az osszes betujet
 		if (GameFinished)
 		{
-			std::shared_ptr<CTask> WordAnimFinishedTask = AddTask(this, nullptr, "finish_word_letters_animation_task", CTask::GameThread);
 			std::shared_ptr<CTask> EndGameTask = AddTask(this, &CGameManager::EndGame, "end_game_task", CTask::RenderThread);
 
 			EndGameTask->AddDependencie(WordAnimFinishedTask);
 			EndGameTask->m_TaskStopped = false;
-			WordAnimFinishedTask->m_TaskStopped = false;
 		}
+
+		WordAnimFinishedTask->m_TaskStopped = false;
 	}
 
 	return false;
@@ -1347,7 +1394,12 @@ bool CGameManager::AddNextPlayerTasksNormal(bool hasWordAnimation, bool hasTileA
 	}
 
 	if (addMessageBoxTask)
+	{
+		std::shared_ptr<CTask> AnimateScoreTask = AddTask(this, nullptr, "score_animation_task", CTask::RenderThread);
+		ShowNextPlayerPopupTask->AddDependencie(AnimateScoreTask);
 		ShowNextPlayerPopupTask->m_TaskStopped = false;
+		AnimateScoreTask->m_TaskStopped = false;
+	}
 
 	return PlayerFinishedGame;
 }
@@ -1732,7 +1784,9 @@ void CGameManager::InitUIManager()
 {
 	//create ui manager + basic elements
 	m_UIManager = new CUIManager(this, m_TimerEventManager);
+	m_ScoreAnimationManager = new CScoreAnimationManager(70, this, m_TimerEventManager);
 	m_UIManager->InitBaseElements(m_Renderer->GetSquarePositionData(), m_Renderer->GetSquareColorData(), m_Renderer->GetSquareColorGridData16x6(), m_Renderer->GetSquareColorGridData8x4());
+
 
 	//set fps if needed
 	int ShowFps;

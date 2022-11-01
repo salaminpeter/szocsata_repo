@@ -58,6 +58,7 @@ public:
 	void AddLetterToBoard(wchar_t c);
 	void InitLetterTexPositions();
 	void CalculateScreenSpaceGrid();
+	glm::vec2 GetBoardPosOnScreen(int x, int y);
 	void GetSelectionPos(int& x, int& y);
 	void DisableSelection();
 	void RemoveLastLetter();

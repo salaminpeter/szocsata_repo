@@ -12,6 +12,16 @@ CUIButton::CUIButton(CUIElement* parent, std::shared_ptr<CSquarePositionData> po
 	PositionElement();
 }
 
+void CUIButton::SetTextColor(float r, float g, float b)
+{
+	CUIText* ButtonText = static_cast<CUIText*>(GetChild(L"ui_button_text"));
+
+	if (!ButtonText)
+		return;
+
+	ButtonText->SetModifyColor(glm::vec4(r, g, b, 1.f));
+}
+
 void CUIButton::AddText(const wchar_t* buttonText, float relTextHeight, CUIText::ETextAlign textAlignment, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> gridcolorData8x8, float padding)
 {
 	m_Text = buttonText;

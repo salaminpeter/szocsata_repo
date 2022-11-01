@@ -16,6 +16,7 @@ public:
 	void AddText(const wchar_t* buttonText, float relTextHeight, CUIText::ETextAlign textAlignment, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> gridcolorData8x8, float padding = 5.f);
 	void PositionText();
 	void SetText(const wchar_t* buttonText);
+	void SetTextColor(float r, float g, float b);
 
 private:
 

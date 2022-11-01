@@ -42,25 +42,6 @@ char FragmentShaderPerPixel[] =
 "	fragColour  = (texture(texSampler, fTexCoord) * modColor * LightIntensity);\n"
 "}";
 
-char VertexShaderSelection[] =
-"#version 300 es\n"
-"layout(location = 0) in vec4 vPosition;\n"
-"uniform mat4 MVP; \n"
-"void main() {\n"
-"	gl_Position = MVP * vPosition;\n"
-"}";
-
-char FragmentShaderSelection[] =
-"#version 300 es\n"
-"#ifdef GL_ES\n"
-"precision highp float;\n"
-"#endif\n"
-"uniform vec4 Color;\n"
-"out vec4 fragColour;\n"
-"void main() {\n"
-"	fragColour = Color;\n"
-"}";
-
 char VertexShaderTextured[] =
 "#version 300 es\n"
 "layout(location = 0) in vec4 vPosition;\n"

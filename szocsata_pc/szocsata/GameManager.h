@@ -33,6 +33,7 @@ class CCameraAnimationManager;
 class CPlayerLetterAnimationManager;
 class CDimmBGAnimationManager;
 class CButtonAnimationManager;
+class CScoreAnimationManager;
 class CGameState;
 class CGameThread;
 class CUIElement;
@@ -55,6 +56,12 @@ public:
 		delete m_TimerEventManager;
 		delete m_GameThread;
 		delete m_TaskManager;
+		delete m_WordAnimation;
+		delete m_CameraAnimationManager;
+		delete m_PlayerLetterAnimationManager;
+		delete m_DimmBGAnimationManager;
+		delete m_ButtonAnimationManager;
+		delete m_ScoreAnimationManager;
 
 		RemovePlayers();
 	}
@@ -150,6 +157,7 @@ public:
 	std::wstring GetWordAtPos(bool horizontal, int& x, int& y);
 	void SetBoardSize();
 	void SetTileCounterCount();
+	glm::ivec2 GetWordsMidPoint(const std::vector<TWordPos>& words);
 
 	wchar_t GetChOnBoard(int x, int y) { return m_GameBoard(x, y).m_Char; }
 	CWordTree::TNode* WordTreeRoot(wchar_t c) {return m_DataBase.GetWordTreeRoot(c);}
@@ -203,6 +211,7 @@ public:
     void StartGameLoopTask();
     void NextPlayerTask();
 	void NextPlayerTaskOnThread();
+	void AddScoreAnimationTask(int startX, int startY, int score);
 
     //TODO valamiert nem mukodik a perfect forwarding az osszes ilyen fuggvenynel, csak jobberteket lehet parameternek adni
 	template <typename ClassType, typename... ArgTypes>
@@ -226,6 +235,7 @@ public:
 	CUIManager* GetUIManager() { return m_UIManager; }
 	CTimerEventManager* GetTimerEventManager() { return m_TimerEventManager; }
 	CButtonAnimationManager* GetButtonAnimationManager() { return m_ButtonAnimationManager; }
+	CScoreAnimationManager* GetScoreAnimationManager() {return m_ScoreAnimationManager;}
 
 	const std::vector<TPlayerStep>& GetPlayerSteps() {return m_PlayerSteps;}
 	int GetLetterPoolCount() {return m_LetterPool.GetRemainingLetterCount(); }
@@ -293,6 +303,7 @@ private:
 	CPlayerLetterAnimationManager* m_PlayerLetterAnimationManager = nullptr;
 	CDimmBGAnimationManager* m_DimmBGAnimationManager = nullptr;
 	CButtonAnimationManager* m_ButtonAnimationManager = nullptr;
+	CScoreAnimationManager* m_ScoreAnimationManager = nullptr;
     CGameState* m_State;
 
 	public: //TODO

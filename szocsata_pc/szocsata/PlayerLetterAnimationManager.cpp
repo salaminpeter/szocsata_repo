@@ -37,7 +37,7 @@ void CPlayerLetterAnimationManager::AnimatePlayerLetter(double& timeFromStart, d
 	else
 		m_TimeSinceAnimStart += timeFromPrev;
 
-	float Mul = std::sinf((m_TimeSinceAnimStart / AnimTime) * (90.f * 3.14f / 180.f));
+	float Mul = sinf((m_TimeSinceAnimStart / AnimTime) * (90.f * 3.14f / 180.f));
 	float Scale = Mul * m_PlayerLetterAnimations[m_CurrentLetterIdx].m_DestScale;
 	glm::vec2 CurrPos = m_PlayerLetterAnimations[m_CurrentLetterIdx].m_AnimationPath.GetPathPoint(Mul);
 	float XPos = CurrPos.x;
@@ -202,12 +202,12 @@ CPlayerLetterAnimationManager::TPlayerLetterAnimation::TPlayerLetterAnimation(CU
 	AnimPathPoints.emplace_back(startX + (DestinationLeft ? -1.f : 1.f) * TileCounterSize.x, startY + TileCounterSize.y);
 
 	//p3 , p4
-	float Dist = glm::distance(glm::vec2(startX, startY), glm::vec2(destX, destY));
-	glm::vec2 MidPoint = glm::vec2(AnimPathPoints.back().x + destX, AnimPathPoints.back().y + destY) / 2.f;
-	glm::vec2 v = glm::normalize(glm::vec2(destX, destY) - MidPoint);
-	glm::vec2 Int0 = glm::vec2(AnimPathPoints.back().x, AnimPathPoints.back().y) + v * (Dist / 5.f);
-	glm::vec2 Int1 = glm::vec2(Int0.x, Int0.y) + v * (Dist / 5.f);
-	float Mul = Dist / 3.f;
+	float Dist0 = glm::distance(glm::vec2(startX, startY), glm::vec2(destX, destY));
+	float Dist1 = glm::distance(glm::vec2(AnimPathPoints.back().x, AnimPathPoints.back().y), glm::vec2(destX, destY));
+	glm::vec2 v = glm::normalize(glm::vec2(destX, destY) - glm::vec2(startX, startY));
+	glm::vec2 Int0 = glm::vec2(AnimPathPoints.back().x, AnimPathPoints.back().y) + v * (Dist1 / 3.f);
+	glm::vec2 Int1 = glm::vec2(Int0.x, Int0.y) + v * (Dist1 / 3.f);
+	float Mul = Dist0 / 8.f;
 	
 	AnimPathPoints.emplace_back(Int0.x + ((DestinationLeft ? 1.f : -1.f) * (v.y * Mul)), Int0.y + ((DestinationLeft ? -1.f : 1.f) * (v.x * Mul)));
 	AnimPathPoints.emplace_back(Int1.x + ((DestinationLeft ? 1.f : -1.f) * (v.y * Mul)), Int1.y + ((DestinationLeft ? -1.f : 1.f) * (v.x * Mul)));
