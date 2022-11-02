@@ -38,18 +38,19 @@ public:
 	}
 
 	bool HandleEvent(EEventType event);
-	bool PositionInElement(int x, int y);
+	bool PositionInElement(int x, int y, bool useTouchOffset = false);
 	void PositionElement();
 	void AddChild(CUIElement* child);
 	void RemoveLastChild();
 	void SetPosAndSize(float x, float y, float w, float h, bool midPointOrigo = true, bool scaleChildren = false);
 	void SetPosition(float x, float y, bool midPointOrigo = true);
 	void SetSizeWithChildren(float width, float height, float xScale = 0.f, float yScale = 0.f, int depth = 0);
-
 	glm::vec2 GetPosition(bool midPointOrigo = true);
 	glm::vec2 GetRelativePosition(glm::vec2 pos);
 	void DeleteRecursive();
-
+	int GetVisibleElemCount();
+	void Resize(float newWidth, float newHeight, int depth = 0);
+	void Scale(float scale);
 	glm::vec2 GetAbsolutePosition();
 
 	CModel* GetModel();
@@ -59,6 +60,7 @@ public:
 	float GetWidth() { return m_Width; }
 	void SetWidth(float w) { m_Width = w; }
 	void SetHeight(float h) { m_Height = h; }
+	void SetTouchOffset(float x, float y) {m_TouchOffsetX = x; m_TouchOffsetY = y;}
 
 	glm::vec2 GetTexturePos() {	return m_TexturePosition;}
 	glm::vec2 GetTexturePos(size_t idx) { return m_Children[idx]->GetTexturePos();}
@@ -78,9 +80,6 @@ public:
 	void SetCheckChildEvent(bool b) { m_CheckChildEvents = b; }
 	void SetModifyColor(glm::vec4 modColor) {m_TextureModColor = modColor;}
 	void SetKeepAspect(bool keep) {m_KeepAspect = keep;}
-	int GetVisibleElemCount();
-	void Resize(float newWidth, float newHeight, int depth = 0);
-	void Scale(float scale);
 
 	virtual void Render(CRenderer* renderer);
 	virtual bool HandleEventAtPos(int x, int y, EEventType event, CUIElement* root = nullptr, bool checkChildren = true, bool selfCheck = true);
@@ -112,6 +111,8 @@ protected:
 	float m_YPosition;
 	float m_Width;
 	float m_Height;
+	float m_TouchOffsetX = 0.f;
+	float m_TouchOffsetY = 0.f;
 	bool m_Visible = true;
 	bool m_Enabled = true;
 	bool m_KeepAspect = true;

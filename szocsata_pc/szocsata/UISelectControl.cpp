@@ -29,11 +29,13 @@ CUISelectControl::CUISelectControl(CUIElement* parent, const wchar_t* id, const 
 	float ArrowHeight = IconSize;
 	float ArrowWidth = ArrowHeight * .59f;
 
-	SelectPanel->AddButton(-(w - ArrowWidth - ArrowWidth / 2) / 2.f, 0.f, ArrowWidth, ArrowHeight, "left_arrow_icon.bmp", L"arrow_left");
-	GetChild(L"arrow_left")->SetEvent(CUIElement::ReleaseEvent, this, &CUISelectControl::ChangeEvent, -1);
+	CUIButton* Button = SelectPanel->AddButton(-(w - ArrowWidth - ArrowWidth / 2) / 2.f, 0.f, ArrowWidth, ArrowHeight, "left_arrow_icon.bmp", L"arrow_left");
+	Button->SetEvent(CUIElement::ReleaseEvent, this, &CUISelectControl::ChangeEvent, -1);
+	Button->SetTouchOffset(Button->GetWidth(), Button->GetHeight() / 2.f);
 
-	SelectPanel->AddButton((w - ArrowWidth - ArrowWidth / 2) / 2.f, 0, ArrowWidth, ArrowHeight, "right_arrow_icon.bmp", L"arrow_right");
-	GetChild(L"arrow_right")->SetEvent(CUIElement::ReleaseEvent, this, &CUISelectControl::ChangeEvent, 1);
+	Button = SelectPanel->AddButton((w - ArrowWidth - ArrowWidth / 2) / 2.f, 0, ArrowWidth, ArrowHeight, "right_arrow_icon.bmp", L"arrow_right");
+	Button->SetEvent(CUIElement::ReleaseEvent, this, &CUISelectControl::ChangeEvent, 1);
+	Button->SetTouchOffset(Button->GetWidth(), Button->GetHeight() / 2.f);
 }
 
 CUIElement* CUISelectControl::GetLeftButton()

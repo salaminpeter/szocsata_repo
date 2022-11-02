@@ -26,8 +26,8 @@ CUIText* CUIPanel::AddText(const wchar_t* text, float x, float y, float fontHeig
 	return (new CUIText(this, m_PositionData, m_GridColorData, text, fontHeight, x, y, m_ViewXPosition, m_ViewYPosition, r, g, b, id));
 }
 
-void CUIPanel::AddButton(float x, float y, float w, float h, const char* textureID, const wchar_t* id)
+CUIButton* CUIPanel::AddButton(float x, float y, float w, float h, const char* textureID, const wchar_t* id)
 {
-	new CUIButton(this, m_PositionData, m_ColorData, x, y, w, h, m_ViewXPosition, m_ViewYPosition, textureID, id);
+	return (new CUIButton(this, m_PositionData, m_ColorData, x, y, w, h, m_ViewXPosition, m_ViewYPosition, textureID, id));
 }
 

@@ -57,14 +57,16 @@ bool CUIElement::HandleEvent(EEventType event)
 	return false;
 }
 
-bool CUIElement::PositionInElement(int x, int y)
+bool CUIElement::PositionInElement(int x, int y, bool useTouchOffset)
 {
 	x -= m_ViewXPosition;
 	y -= m_ViewYPosition;
 
+	float XOffset = useTouchOffset ? m_TouchOffsetX : 0.f;
+	float YOffset = useTouchOffset ? m_TouchOffsetY : 0.f;
 	glm::vec2 AbsPos = GetAbsolutePosition();
 
-	return x >= AbsPos.x - m_Width / 2 && x <= AbsPos.x + m_Width / 2 && y >= AbsPos.y - m_Height / 2 && y <= AbsPos.y + m_Height / 2; //TODO check child elements!
+	return x + XOffset >= AbsPos.x - m_Width / 2 && x - XOffset <= AbsPos.x + m_Width / 2 && y + YOffset >= AbsPos.y - m_Height / 2 && y - YOffset <= AbsPos.y + m_Height / 2; 
 }
 
 glm::vec2 CUIElement::GetAbsolutePosition()
@@ -198,8 +200,8 @@ bool CUIElement::HandleEventAtPos(int x, int y, EEventType event, CUIElement* ro
 	if (selfCheck && root->HandleEventAtPos(x, y, event, root, false, false))
 		return true;
 	
-	//ha nincs custom fuggveny megnezzuk hogy a controllban van e a pozicio, es tusjuk e kezelni az esemenyt
-	else if (root->PositionInElement(x, y))
+	//ha nincs custom fuggveny megnezzuk hogy a controllban van e a pozicio, es tudjuk e kezelni az esemenyt
+	else if (root->PositionInElement(x, y, true))
 	{
 		if (root->HandleEvent(event))
 			return true;

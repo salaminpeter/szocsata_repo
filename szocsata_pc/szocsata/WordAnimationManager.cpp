@@ -98,6 +98,37 @@ int TWordAnimation::GetActiveLetterAnimCount()
 	return Count;
 }
 
+void CWordAnimationManager::FinishAnimations()
+{
+	for (auto& WordAnimation : m_WordAnimations)
+	{
+		for (auto& LetterAnimation : WordAnimation.m_LetterAnimations)
+		{
+			FinishLetterAnimation(LetterAnimation);
+			glm::vec3 Position = LetterAnimation.m_LetterModel->GetPosition();
+			Position.z = LetterAnimation.m_DestHeight;
+			LetterAnimation.m_LetterModel->SetPosition(Position);
+			m_GameManager->RemovePlacedLetterSelection(LetterAnimation.m_LetterModel->BoardX(), LetterAnimation.m_LetterModel->BoardY());
+		}
+	}
+}
+
+void CWordAnimationManager::FinishLetterAnimation(TLetterAnimation& letterAnim)
+{
+	bool ComputerTurn = m_GameManager->GetCurrentPlayer()->IsComputer();
+
+	if (!ComputerTurn)
+	{
+		int BoardX = letterAnim.m_LetterModel->BoardX();
+		int BoardY = letterAnim.m_LetterModel->BoardY();
+		m_GameManager->AddPlacedLetterSelection(BoardX, BoardY);
+	}
+
+	letterAnim.m_State = TLetterAnimation::Finished;
+	letterAnim.m_AminationTime = m_LetterAnimTime;
+	m_GameManager->GetRenderer()->SetTileVisible(letterAnim.m_BoardX, letterAnim.m_BoardY, false);
+}
+
 bool CWordAnimationManager::HandleLetterAnimation(std::vector<TLetterAnimation>& letters, double timeFromPrevUpdate)
 {
 	bool Finished = true;
@@ -115,19 +146,8 @@ bool CWordAnimationManager::HandleLetterAnimation(std::vector<TLetterAnimation>&
 
 		if (letters[i].m_AminationTime > m_LetterAnimTime)
 		{
-			bool ComputerTurn = m_GameManager->GetCurrentPlayer()->IsComputer();
-
-			if (!ComputerTurn)
-			{
-				int BoardX = letters[i].m_LetterModel->BoardX();
-				int BoardY = letters[i].m_LetterModel->BoardY();
-				m_GameManager->AddPlacedLetterSelection(BoardX, BoardY);
-			}
-
-			letters[i].m_State = TLetterAnimation::Finished;
-			letters[i].m_AminationTime = m_LetterAnimTime;
+			FinishLetterAnimation(letters[i]);
 			Position.z = letters[i].m_DestHeight;
-			m_GameManager->GetRenderer()->SetTileVisible(letters[i].m_BoardX, letters[i].m_BoardY, false);
 		}
 		else
 		{

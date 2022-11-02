@@ -168,16 +168,12 @@ bool CUIPlayerLetters::HandleEventAtPos(int x, int y, EEventType event, CUIEleme
 {
 	for (size_t i = 0; i < m_Children.size(); ++i)
 	{
-		bool b0 = m_Children[i]->IsEnabled();
-		bool b1 = m_Children[i]->IsVisible();
-		bool b2 = m_Children[i]->PositionInElement(x, y);
-
-
 		if (m_Children[i]->IsEnabled() && m_Children[i]->IsVisible() && m_Children[i]->PositionInElement(x, y))
 		{
 			//player letter clicked - release
 			if (event == CUIElement::ReleaseEvent)
 				m_Children[i]->HandleEvent(event);
+			
 			//player letter drag start
 			else if (event == CUIElement::TouchEvent)
 				m_UIManager->SetDraggedPlayerLetter(false, i, m_Children[i]->GetTexturePos(), glm::vec2(x, y));

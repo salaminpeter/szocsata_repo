@@ -53,8 +53,8 @@ public:
 
 private:
 
-	const float m_LetterAddInterval = 800.f; //TODO config
-	const float m_LetterAnimTime = 350.f; //TODO config
+	const float m_LetterAddInterval = 3800.f; //TODO config
+	const float m_LetterAnimTime = 3850.f; //TODO config
 
 	CTimerEventManager* m_TimerEventManager;
 	CGameManager* m_GameManager;

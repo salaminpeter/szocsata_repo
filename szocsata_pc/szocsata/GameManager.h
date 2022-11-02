@@ -240,6 +240,7 @@ public:
 	const std::vector<TPlayerStep>& GetPlayerSteps() {return m_PlayerSteps;}
 	int GetLetterPoolCount() {return m_LetterPool.GetRemainingLetterCount(); }
 	void AddPlacedLetterSelection(int x, int y);
+	void RemovePlacedLetterSelection(int x, int y);
 	void StartTask(const char* id) {m_TaskManager->StartTask(id);}
 	void AddPlayerStep(wchar_t c, int letterIdx, int xPos, int yPos) {	m_PlayerSteps.emplace_back(c, xPos, yPos, letterIdx);}
 	int GetLetterCount(int idx) {return m_LetterPool.GetLetterCount(idx);}
@@ -333,7 +334,6 @@ private:
 	EGameState m_PrevGameState = EGameState::None;
 
 	std::mutex m_GameStateLock;
-	std::mutex m_GamePausedLock;
 	std::mutex m_PlayerPopupLock;
 	std::mutex m_StateLock;
 
@@ -344,6 +344,6 @@ private:
 	int m_LastTurnTimeChanged = 0;
 	int m_TurnTimeStart = 0;
 
-	bool m_GamePaused = false;
+	std::atomic<bool> m_GamePaused = false;
 };
 

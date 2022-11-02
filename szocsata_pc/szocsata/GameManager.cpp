@@ -551,6 +551,9 @@ void CGameManager::CheckAndUpdateTime(double& timeFromStart, double& timeFromPre
 	{
 		m_TimerEventManager->StopTimer("time_limit_event");
 
+		//a meg letevofelben levo betuket letesszuk
+		m_WordAnimation->FinishAnimations();
+
 		//ha jatekos kore volt, megnezzuk hogy a lerakott betuk ervenyesek e
 		if (m_CurrentPlayer->GetName() != L"computer" && !EndPlayerTurn(false))
 			UndoAllSteps();
@@ -1465,13 +1468,11 @@ void CGameManager::SetGameState(int state)
 
 bool CGameManager::IsGamePaused()
 {
-	const std::lock_guard<std::mutex> lock(m_GamePausedLock); //TODO gamestatel allitani!
 	return m_GamePaused;
 }
 
 void CGameManager::SetGamePaused(bool paused)
 {
-	const std::lock_guard<std::mutex> lock(m_GamePausedLock);
 	m_GamePaused = paused;
 }
 
@@ -2168,6 +2169,11 @@ void CGameManager::HandleMultyDragEvent(int x0, int y0, int x1, int y1)
 void CGameManager::AddPlacedLetterSelection(int x, int y) 
 { 
 	m_Renderer->GetSelectionStore()->AddSelection(CSelectionStore::LetterSelection, x, y, "placed_letter_selection");
+}
+
+void CGameManager::RemovePlacedLetterSelection(int x, int y)
+{
+	m_Renderer->GetSelectionStore()->RemoveSelection(CSelectionStore::LetterSelection, x, y);
 }
 
 void CGameManager::RenderUI()
