@@ -17,7 +17,7 @@ glm::vec3 CSelectionStore::GetColorModifyer(ESelectionType type)
 	case BoardSelection:
 		return glm::vec3(.8f, .8f, 1.4f);
 	case LetterSelection:
-		return glm::vec3(0.98f, 0.9f, 0.39f);
+		return glm::vec3(1.02f, 1.f, 0.35f);
 	case SuccessSelection:
 		return glm::vec3(0.7f, 1.f, 0.7f);
 	case FailSelection:

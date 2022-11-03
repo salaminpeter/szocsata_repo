@@ -32,7 +32,7 @@ void CUIRankingsPanel::Init()
 	{
 		std::wstringstream ss;
 		ss << Name << L" : " << Score;
-		CUIIconTextButton* PlayerScore = m_GameManager->GetUIManager()->AddIconTextButton(RankingsLayout, ss.str().c_str(), m_PositionData, m_ColorData, m_GridColorData, 0, 0, PlayerLogoSize.x, PlayerLogoSize.y, "view_ortho", "", "kor_icon.bmp", L"ui_player_ranking_TODOCOUNT", "textured", 0.7f, 1.f, 0.7f, 0.f, CUIText::Left);
+		CUIIconTextButton* PlayerScore = m_GameManager->GetUIManager()->AddIconTextButton(RankingsLayout, ss.str().c_str(), m_PositionData, m_ColorData, m_GridColorData, 0, 0, PlayerLogoSize.x, PlayerLogoSize.y, "view_ortho", "", "kor_icon.bmp", L"ui_player_ranking_TODOCOUNT", "textured", 0.7f, 1.f, 0.7f, OkBtnSize.x / 8.f, CUIText::Left);
 		PlayerScore->SetIconColor(Color.r, Color.g, Color.b);
 	}
 

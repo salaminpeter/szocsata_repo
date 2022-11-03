@@ -214,6 +214,7 @@ void CWordAnimationManager::AnimationFinished()
 {
 	const std::lock_guard<std::mutex> lock(m_GameManager->GetStateLock());
 
+	m_UILetterIndices.clear();
 	bool ComputerTurn = m_GameManager->GetCurrentPlayer()->IsComputer();
 	
 	if (ComputerTurn)
@@ -227,6 +228,7 @@ void CWordAnimationManager::Reset()
 {
 	m_TimerEventManager->StopTimer("add_word_animation");
 	m_WordAnimations.clear();
+	m_UILetterIndices.clear();
 }
 
 void CWordAnimationManager::SaveState(std::ofstream& fileStream)

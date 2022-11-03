@@ -39,8 +39,8 @@ void CScoreAnimationManager::SetProperties(float startX, float startY, int playe
 	if (startX < m_Size / 2.f)
 		startX = m_Size * 2;
 
-	if (startY > m_GameManager->m_SurfaceHeigh - m_FirstAnimLength - 150.f)
-		startY = m_GameManager->m_SurfaceHeigh - m_FirstAnimLength - 150.f;
+	if (startY > m_GameManager->m_SurfaceHeigh - m_FirstAnimLength - m_Size * 2.f)
+		startY = m_GameManager->m_SurfaceHeigh - m_FirstAnimLength - m_Size * 2.f;
 
 	if (startX > m_GameManager->m_SurfaceWidth / 2 - m_Size / 2)
 		startX = m_GameManager->m_SurfaceWidth / 2 - m_Size * 2;
@@ -55,7 +55,7 @@ void CScoreAnimationManager::SetProperties(float startX, float startY, int playe
 	std::vector<glm::vec2> AnimPoints;
 
 	//p0
-	AnimPoints.emplace_back(startX, startY + 20.f);
+	AnimPoints.emplace_back(startX, startY);
 
 	//p1
 	AnimPoints.emplace_back(startX, startY + m_FirstAnimLength);
@@ -68,9 +68,25 @@ void CScoreAnimationManager::SetProperties(float startX, float startY, int playe
 	glm::vec2 IconPos = PlayerScoreIcon->GetAbsolutePosition();
 
 	float Distance = glm::distance(AnimPoints.back(), IconPos);
-	float p3x = ScorePanelPos.x - ScorePanel->GetWidth() / 2;
-	float p3y = ScorePanelPos.y + ScorePanel->GetHeight() * 2.f;
-	glm::vec2 NewPoint = glm::vec2((p3x + startX) / 2.f, m_GameManager->m_SurfaceHeigh - 100);
+	float p3x;
+	float p3y;
+	glm::vec2 NewPoint;
+	glm::vec2 LastPoint;
+
+	if (startY + m_FirstAnimLength < IconPos.y)
+	{
+		p3x = ScorePanelPos.x - ScorePanel->GetWidth() / 2;
+		p3y = ScorePanelPos.y + ScorePanel->GetHeight() * 2.f;
+		NewPoint = glm::vec2((p3x + startX) / 2.f, m_GameManager->m_SurfaceHeigh - m_Size * 2.f);
+		LastPoint = glm::vec2(IconPos.x - 20.f, 20.f);
+	}
+	else
+	{
+		p3x = ScorePanelPos.x - ScorePanel->GetWidth() / 2;
+		p3y = ScorePanelPos.y - ScorePanel->GetHeight() * 2.f;
+		NewPoint = glm::vec2((p3x + startX) / 2.f, m_Size * 2.f);
+		LastPoint = glm::vec2(IconPos.x + 20.f, -20.f);
+	}
 
 	//p2
 	AnimPoints.emplace_back(NewPoint.x, NewPoint.y);
@@ -79,13 +95,16 @@ void CScoreAnimationManager::SetProperties(float startX, float startY, int playe
 	AnimPoints.emplace_back(p3x, p3y);
 
 	//p4
-	AnimPoints.emplace_back(p3x + (p3y - IconPos.y) / 4.f, (p3y + IconPos.y) / 2.f);
+	if (startY + m_FirstAnimLength < IconPos.y)
+		AnimPoints.emplace_back(p3x + 2 * std::fabs(p3y - IconPos.y) / 4.f, (p3y + IconPos.y) / 2.f);
+	else
+		AnimPoints.emplace_back(p3x + std::fabs(p3y - IconPos.y) / 4.f, (p3y + IconPos.y) / 2.f);
 
 	//p5
 	AnimPoints.emplace_back(IconPos.x, IconPos.y);
 
 	//p6
-	AnimPoints.emplace_back(IconPos.x - 20, IconPos.y - 20);
+	AnimPoints.emplace_back(LastPoint.x, LastPoint.y);
 
 	m_AnimationPath->CreatePath(AnimPoints, 2);
 
@@ -157,15 +176,19 @@ void CScoreAnimationManager::AnimateScore(double& timeFromStart, double& timeFro
         {
             float Mul = sinf((m_PassedTime / m_FirstAnimTime) * glm::radians(90.f));
             glm::vec2 AnimPos = m_StartPosition + glm::vec2(0.f, m_FirstAnimLength * Mul);
-            ScoreButton->SetPosAndSize(AnimPos.x, AnimPos.y, m_Size + m_Size * (Mul * .5f), m_Size + m_Size * (Mul * .5f));
-            AnimEnded = m_PassedTime >= m_FirstAnimTime;
+			float NewSize = m_Size + m_Size * (Mul * .8f);
+			ScoreButton->SetPosition(AnimPos.x, AnimPos.y);
+			ScoreButton->SetSizeWithChildren(NewSize, NewSize);
+			AnimEnded = m_PassedTime >= m_FirstAnimTime;
         }
         else
         {
             float Mul = 1.f - sinf(glm::radians(90.f) + (m_PassedTime / m_AnimTime) * glm::radians(90.f));
+			float NewSize = m_CurrentSize - m_CurrentSize * Mul *.8f;
             glm::vec2 AnimPos = m_AnimationPath->GetPathPoint(Mul);
-            ScoreButton->SetPosAndSize(AnimPos.x, AnimPos.y,m_CurrentSize - m_CurrentSize * Mul * .6f, m_CurrentSize - m_CurrentSize * Mul * .6f);
-            AnimEnded = m_PassedTime >= m_AnimTime;
+			ScoreButton->SetPosition(AnimPos.x, AnimPos.y);
+			ScoreButton->SetSizeWithChildren(NewSize, NewSize);
+			AnimEnded = m_PassedTime >= m_AnimTime;
         }
 
         if (AnimEnded)
@@ -183,7 +206,7 @@ void CScoreAnimationManager::AnimateScore(double& timeFromStart, double& timeFro
                 m_GameManager->UpdatePlayerScores();
                 m_TimerEventManager->PauseTimer("score_animation_timer");
 				ScoreButton->SetVisible(false);
-				ScoreButton->SetPosAndSize(0, 0, m_Size, m_Size);
+				ScoreButton->SetSizeWithChildren(m_Size, m_Size);
 				m_GameManager->SetTaskFinished("score_animation_task");
 				return;
             }

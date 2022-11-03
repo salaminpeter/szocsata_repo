@@ -207,7 +207,7 @@ CPlayerLetterAnimationManager::TPlayerLetterAnimation::TPlayerLetterAnimation(CU
 	glm::vec2 v = glm::normalize(glm::vec2(destX, destY) - glm::vec2(startX, startY));
 	glm::vec2 Int0 = glm::vec2(AnimPathPoints.back().x, AnimPathPoints.back().y) + v * (Dist1 / 3.f);
 	glm::vec2 Int1 = glm::vec2(Int0.x, Int0.y) + v * (Dist1 / 3.f);
-	float Mul = Dist0 / 8.f;
+	float Mul = Dist0 / 9.5f;
 	
 	AnimPathPoints.emplace_back(Int0.x + ((DestinationLeft ? 1.f : -1.f) * (v.y * Mul)), Int0.y + ((DestinationLeft ? -1.f : 1.f) * (v.x * Mul)));
 	AnimPathPoints.emplace_back(Int1.x + ((DestinationLeft ? 1.f : -1.f) * (v.y * Mul)), Int1.y + ((DestinationLeft ? -1.f : 1.f) * (v.x * Mul)));
