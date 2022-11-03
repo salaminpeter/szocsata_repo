@@ -11,6 +11,8 @@ class CShaderManager
 {
 public:
 
+	~CShaderManager();
+
 	struct TShader
 	{
 		unsigned m_VertexShaderID;
@@ -23,7 +25,6 @@ public:
 	bool AddShader(const char* shaderID, const char* vertexShaderData, const char* fragmentShaderData);
 	bool ActivateShader(const char* shaderID);
 	int GetShaderVariableID(const char* shaderID, const char* variableID);
-	int GetProgramID(const char* shaderID);
 
 private:
 

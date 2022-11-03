@@ -3,6 +3,12 @@
 
 #include <vector>
 
+CShaderManager::~CShaderManager()
+{
+	for (auto& Shader : m_Shaders)
+		glDeleteShader(Shader.second.m_ShaderProgramID);
+}
+
 
 bool CShaderManager::AddShader(const char* shaderID, const char* vertexShaderData, const char* fragmentShaderData)
 {
@@ -110,13 +116,3 @@ int CShaderManager::GetShaderVariableID(const char* shaderID, const char* variab
 
 	return m_Shaders[shaderID].m_VariableID[variableID];
 }
-
-
-int CShaderManager::GetProgramID(const char* shaderID)
-{
-	if (m_Shaders.find(shaderID) == m_Shaders.end())
-		return -1;
-
-		return m_Shaders[shaderID].m_ShaderProgramID;
-}
-

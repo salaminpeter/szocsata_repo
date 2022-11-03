@@ -32,6 +32,7 @@ CUIMessageBox::CUIMessageBox(std::shared_ptr<CSquarePositionData> positionData, 
 		NewButton->SetEvent(CUIElement::ReleaseEvent, m_GameManager, &CGameManager::EnableReverseAnimation, (CUIElement*)NewButton);
 		m_GameManager->GetButtonAnimationManager()->SetEvent(NewButton, this, &CUIMessageBox::ButtonPressed, 1);
 		NewButton->CenterIcon();
+		NewButton->SetTouchOffset(m_GameManager->m_SurfaceWidth / 2, m_GameManager->m_SurfaceHeigh / 2);
 	}
 	else if (m_Type == OkCancel)
 	{

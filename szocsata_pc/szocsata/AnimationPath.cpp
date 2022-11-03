@@ -47,7 +47,8 @@ glm::vec2 CAnimationPath::GetPathPoint(float t)
 	if (t < 0.f || t >= 1.f)
 		return glm::vec2(-1, -1);
 
-	size_t Idx = static_cast<size_t>(t * static_cast<float>(m_Path.size()));
+	size_t Idx = static_cast<size_t>(t * (static_cast<float>(m_Path.size() - 1)));
+	Idx = Idx >= m_Path.size() ? m_Path.size() - 1 : Idx;
 
 	return m_Path[Idx];
 }

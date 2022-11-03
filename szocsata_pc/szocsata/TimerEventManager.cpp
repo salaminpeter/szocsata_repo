@@ -94,6 +94,7 @@ void CTimerEvent::SetTimerState(bool started, bool stopped, bool paused)
 		m_Paused = false;
 		m_CurrentTime = CTimer::GetCurrentTime();
 		m_StartTime = m_CurrentTime - m_TimeFromStart;
+		m_Started = true;
 		return;
 	}
 

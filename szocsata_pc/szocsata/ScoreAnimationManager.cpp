@@ -25,16 +25,25 @@ CScoreAnimationManager::~CScoreAnimationManager()
 
 void CScoreAnimationManager::SetProperties()
 {
-	SetProperties(m_StartPosition.x, m_StartPosition.y, m_PlayerIdx, m_Score, m_PassedTime, m_FirstAnimPhase);
+	SetProperties(m_StartPosition.x, m_StartPosition.y, m_PlayerIdx, m_Score, m_PassedTime, m_FirstAnimPhase, m_CurrentSize);
 }
 
-void CScoreAnimationManager::SetProperties(float startX, float startY, int playerIdx, int score, int passedTime, bool firstAnimPhase)
+void CScoreAnimationManager::SetProperties(float startX, float startY, int playerIdx, int score, int passedTime, bool firstAnimPhase, int currSize)
 {
+	const std::lock_guard<std::mutex> lock(m_GameManager->GetStateLock());
+
+	CUIButton* ScoreButton = static_cast<CUIButton*>(m_GameManager->GetUIManager()->GetUIElement(L"ui_score_btn"));
+	m_Size = ScoreButton->GetWidth();
+	m_CurrentSize = currSize  < 0 ? m_Size : currSize;
+
 	if (startX < m_Size / 2.f)
 		startX = m_Size * 2;
 
 	if (startY > m_GameManager->m_SurfaceHeigh - m_FirstAnimLength - 150.f)
 		startY = m_GameManager->m_SurfaceHeigh - m_FirstAnimLength - 150.f;
+
+	if (startX > m_GameManager->m_SurfaceWidth / 2 - m_Size / 2)
+		startX = m_GameManager->m_SurfaceWidth / 2 - m_Size * 2;
 
 	if (startY < m_Size / 2.f)
 		startY = m_Size * 2;
@@ -80,8 +89,7 @@ void CScoreAnimationManager::SetProperties(float startX, float startY, int playe
 
 	m_AnimationPath->CreatePath(AnimPoints, 2);
 
-	CUIButton* ScoreButton = static_cast<CUIButton*>(m_GameManager->GetUIManager()->GetUIElement(L"ui_score_btn"));
-	ScoreButton->SetPosAndSize(startX, startY, ScoreButton->GetWidth(), ScoreButton->GetHeight());
+	ScoreButton->SetPosAndSize(startX, startY, m_CurrentSize, m_CurrentSize);
 	SetScore(score);
 
 	m_StartPosition = glm::vec2(startX, startY);
@@ -90,6 +98,8 @@ void CScoreAnimationManager::SetProperties(float startX, float startY, int playe
 void CScoreAnimationManager::StartAnimation()
 {
 	m_AnimationInProgress = true;
+	CUIButton *ScoreButton = static_cast<CUIButton *>(m_GameManager->GetUIManager()->GetUIElement(L"ui_score_btn"));
+	ScoreButton->SetVisible(true);
 	m_TimerEventManager->StartTimer("score_animation_timer");
 }
 
@@ -136,47 +146,49 @@ void CScoreAnimationManager::LoadState(std::ifstream& fileStream)
 
 void CScoreAnimationManager::AnimateScore(double& timeFromStart, double& timeFromPrev)
 {
-	CUIButton* ScoreButton = static_cast<CUIButton*>(m_GameManager->GetUIManager()->GetUIElement(L"ui_score_btn"));
+    const std::lock_guard<std::mutex> lock(m_GameManager->GetStateLock());
+    {
+        CUIButton *ScoreButton = static_cast<CUIButton *>(m_GameManager->GetUIManager()->GetUIElement(L"ui_score_btn"));
 
-	m_PassedTime += timeFromPrev;
-	bool AnimEnded = m_PassedTime >= m_AnimTime;
+        m_PassedTime += timeFromPrev;
+        bool AnimEnded = m_PassedTime >= m_AnimTime;
 
-	if (m_FirstAnimPhase)
-	{
-		float Mul = sinf((m_PassedTime / m_FirstAnimTime) * glm::radians(90.f));
-		glm::vec2 AnimPos = m_StartPosition + glm::vec2(0.f, m_FirstAnimLength * Mul);
-		ScoreButton->SetPosAndSize(AnimPos.x, AnimPos.y, m_Size + m_Size * (Mul * .5f), m_Size + m_Size * (Mul * .5f));
-		AnimEnded = m_PassedTime >= m_FirstAnimTime;
-	}
-	else
-	{
-		float Mul = 1.f - sinf(glm::radians(90.f) + (m_PassedTime / m_AnimTime) * glm::radians(90.f));
-		glm::vec2 AnimPos = m_AnimationPath->GetPathPoint(Mul);
-		ScoreButton->SetPosAndSize(AnimPos.x, AnimPos.y, m_CurrentSize - m_CurrentSize * Mul * .6f, m_CurrentSize - m_CurrentSize * Mul * .6f);
-		AnimEnded = m_PassedTime >= m_AnimTime;
-	}
+        if (m_FirstAnimPhase)
+        {
+            float Mul = sinf((m_PassedTime / m_FirstAnimTime) * glm::radians(90.f));
+            glm::vec2 AnimPos = m_StartPosition + glm::vec2(0.f, m_FirstAnimLength * Mul);
+            ScoreButton->SetPosAndSize(AnimPos.x, AnimPos.y, m_Size + m_Size * (Mul * .5f), m_Size + m_Size * (Mul * .5f));
+            AnimEnded = m_PassedTime >= m_FirstAnimTime;
+        }
+        else
+        {
+            float Mul = 1.f - sinf(glm::radians(90.f) + (m_PassedTime / m_AnimTime) * glm::radians(90.f));
+            glm::vec2 AnimPos = m_AnimationPath->GetPathPoint(Mul);
+            ScoreButton->SetPosAndSize(AnimPos.x, AnimPos.y,m_CurrentSize - m_CurrentSize * Mul * .6f, m_CurrentSize - m_CurrentSize * Mul * .6f);
+            AnimEnded = m_PassedTime >= m_AnimTime;
+        }
 
-	if (AnimEnded)
-	{
-		if (m_FirstAnimPhase)
-		{
-			m_FirstAnimPhase = false;
-			m_PassedTime = 0;
-			m_CurrentSize = ScoreButton->GetWidth();
-			return;
-		}
-		else
-		{
-			m_AnimationInProgress = false;
-			ScoreButton->SetVisible(false);
-			m_GameManager->UpdatePlayerScores();
-			m_TimerEventManager->PauseTimer("score_animation_timer");
-			m_GameManager->SetTaskFinished("score_animation_task");
-			return;
-		}
-	}
-
-	ScoreButton->SetVisible(true); //TODO ocsmany
+        if (AnimEnded)
+        {
+            if (m_FirstAnimPhase)
+            {
+                m_FirstAnimPhase = false;
+                m_PassedTime = 0;
+                m_CurrentSize = ScoreButton->GetWidth();
+                return;
+            }
+            else
+            {
+                m_AnimationInProgress = false;
+                m_GameManager->UpdatePlayerScores();
+                m_TimerEventManager->PauseTimer("score_animation_timer");
+				ScoreButton->SetVisible(false);
+				ScoreButton->SetPosAndSize(0, 0, m_Size, m_Size);
+				m_GameManager->SetTaskFinished("score_animation_task");
+				return;
+            }
+        }
+    }
 }
 
 void CScoreAnimationManager::SetScore(int score)

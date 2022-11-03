@@ -16,7 +16,7 @@ public:
 
 	void SetScore(int score);
 	void StartAnimation();
-	void SetProperties(float startX, float startY, int playerIdx, int score, int passedTime, bool firstAnimPhase);
+	void SetProperties(float startX, float startY, int playerIdx, int score, int passedTime, bool firstAnimPhase, int currSize = -1);
 	void SetProperties();
 	void AnimateScore(double& timeFromStart, double& timeFromPrev);
 	void SaveState(std::ofstream& fileStream);
@@ -28,8 +28,8 @@ public:
 	
 private:
 
-	const float m_FirstAnimTime = 1000;
-	const float m_AnimTime = 3000;
+	const float m_FirstAnimTime = 3000;
+	const float m_AnimTime = 700;
 
 	CAnimationPath* m_AnimationPath;
 	CTimerEventManager* m_TimerEventManager;

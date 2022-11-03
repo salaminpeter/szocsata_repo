@@ -335,8 +335,8 @@ void CGameManager::StartGameLoopTask()
 
 void CGameManager::AddScoreAnimationTask()
 {
-	SetTaskFinished("start_score_animation_task");
 	m_ScoreAnimationManager->StartAnimation();
+	SetTaskFinished("start_score_animation_task");
 }
 
 void CGameManager::NextPlayerTaskOnThread()
@@ -1239,7 +1239,7 @@ void CGameManager::ContinueGameTask()
 	    bool HasWordAnimation = !m_WordAnimation->Empty();
 	    bool HasTileAnimation = !m_TileAnimations->Empty() || HasWordAnimation;
 	    bool HasLetterAnimation = !m_PlayerLetterAnimationManager->Empty() || HasWordAnimation;
-		bool HasScoreAnimation = m_ScoreAnimationManager->HasAnimation();
+		bool HasScoreAnimation = m_ScoreAnimationManager->HasAnimation() || HasWordAnimation;
 
 		AddNextPlayerTasksNormal(HasWordAnimation, HasTileAnimation, HasLetterAnimation, HasScoreAnimation);
 
