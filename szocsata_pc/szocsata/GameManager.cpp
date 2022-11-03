@@ -333,10 +333,10 @@ void CGameManager::StartGameLoopTask()
 	SetTaskFinished("start_game_loop_task");
 }
 
-void CGameManager::AddScoreAnimationTask(int startX, int startY, int score)
+void CGameManager::AddScoreAnimationTask()
 {
 	SetTaskFinished("start_score_animation_task");
-	m_ScoreAnimationManager->StartAnimation(startX, startY, GetCurrentPlayerIdx(), score);
+	m_ScoreAnimationManager->StartAnimation();
 }
 
 void CGameManager::NextPlayerTaskOnThread()
@@ -871,12 +871,13 @@ bool CGameManager::EndPlayerTurn(bool stillHaveTime)
 		return false;
 	}
 
-	bool PlayerFinished = AddNextPlayerTasksNormal(false, true, !m_LetterPool.Empty());
-
-	m_TimerEventManager->StopTimer("time_limit_event");
 	glm::ivec2 WordsCenterPos = GetWordsMidPoint(CrossingWords);
 	glm::vec2 PosOnScreen = m_Renderer->GetBoardPosOnScreen(WordsCenterPos.x, TileCount - WordsCenterPos.y);
-	m_ScoreAnimationManager->StartAnimation(PosOnScreen.x, PosOnScreen.y, 0, Score);
+	m_ScoreAnimationManager->SetProperties(PosOnScreen.x, PosOnScreen.y, 0, Score, 0, true);
+
+	bool PlayerFinished = AddNextPlayerTasksNormal(false, true, !m_LetterPool.Empty(), true);
+
+	m_TimerEventManager->StopTimer("time_limit_event");
 	m_CurrentPlayer->AddScore(Score);
 	SetGameState(EGameState::WaintingOnAnimation);
 	AddWordSelectionAnimationLocked(CrossingWords, true);
@@ -984,18 +985,16 @@ bool CGameManager::EndComputerTurn()
 	{
 		std::shared_ptr<CTask> WordAnimFinishedTask = AddTask(this, nullptr, "finish_word_letters_animation_task", CTask::GameThread);
 
-		AddNextPlayerTasksNormal(true, true, !m_LetterPool.Empty() && !GameFinished);
+		glm::ivec2 WordsCenterPos = GetWordsMidPoint(*CrossingWords);
+		glm::vec2 PosOnScreen = m_Renderer->GetBoardPosOnScreen(WordsCenterPos.x, TileCount - WordsCenterPos.y);
+		m_ScoreAnimationManager->SetProperties(PosOnScreen.x, PosOnScreen.y, 0, ComputerStep.m_Score, 0, true);
+
+		AddNextPlayerTasksNormal(true, true, !m_LetterPool.Empty() && !GameFinished, true);
 		std::vector<size_t> LetterIndices = m_CurrentPlayer->GetLetterIndicesForWord(*ComputerWord.m_Word);
 		SetGameState(EGameState::WaintingOnAnimation);
 		m_WordAnimation->AddWordAnimation(*ComputerWord.m_Word, LetterIndices, m_UIManager->GetPlayerLetters(m_Computer->GetName()), ComputerWord.m_X, TileCount - ComputerWord.m_Y - 1, ComputerWord.m_Horizontal);
 		m_GameBoard.AddWord(ComputerWord);
 		m_Renderer->DisableSelection();
-
-		glm::ivec2 WordsCenterPos = GetWordsMidPoint(*CrossingWords);
-		glm::vec2 PosOnScreen = m_Renderer->GetBoardPosOnScreen(WordsCenterPos.x, TileCount - WordsCenterPos.y);
-		std::shared_ptr<CTask> ScoreAnimationTask = AddTask(this, &CGameManager::AddScoreAnimationTask, "start_score_animation_task", CTask::GameThread, int(PosOnScreen.x), int(PosOnScreen.y), ComputerStep.m_Score);
-		ScoreAnimationTask->AddDependencie(WordAnimFinishedTask);
-		ScoreAnimationTask->m_TaskStopped = false;
 
 		//computer letette az osszes betujet
 		if (GameFinished)
@@ -1157,6 +1156,16 @@ void CGameManager::LoadWordAnims(std::ifstream& fileStream)
 	m_WordAnimation->LoadState(fileStream);
 }
 
+void CGameManager::SaveScoreAnim(std::ofstream& fileStream)
+{
+	m_ScoreAnimationManager->SaveState(fileStream);
+}
+
+void CGameManager::LoadScoreAnim(std::ifstream& fileStream)
+{
+	m_ScoreAnimationManager->LoadState(fileStream);
+}
+
 void CGameManager::SaveCamera(std::ofstream& fileStream)
 {
 	m_Renderer->SaveCameraState(fileStream);
@@ -1230,7 +1239,9 @@ void CGameManager::ContinueGameTask()
 	    bool HasWordAnimation = !m_WordAnimation->Empty();
 	    bool HasTileAnimation = !m_TileAnimations->Empty() || HasWordAnimation;
 	    bool HasLetterAnimation = !m_PlayerLetterAnimationManager->Empty() || HasWordAnimation;
-        AddNextPlayerTasksNormal(HasWordAnimation, HasTileAnimation, HasLetterAnimation);
+		bool HasScoreAnimation = m_ScoreAnimationManager->HasAnimation();
+
+		AddNextPlayerTasksNormal(HasWordAnimation, HasTileAnimation, HasLetterAnimation, HasScoreAnimation);
 
 		if (HasLetterAnimation)
 			m_TimerEventManager->StartTimer("player_letter_animation");
@@ -1240,6 +1251,9 @@ void CGameManager::ContinueGameTask()
 
 		if (HasTileAnimation)
 			m_TimerEventManager->StartTimer("tile_animation");
+
+		if (HasScoreAnimation)
+			m_TimerEventManager->StartTimer("score_animation_timer");
 	}
 	if (m_SavedGameState == EGameState::WaitingForMessageBox)
 	{
@@ -1247,7 +1261,7 @@ void CGameManager::ContinueGameTask()
 		if (m_SavedPopupType == CUIMessageBox::Ok)
 		{
 			ShowNextPlayerPopup();
-			AddNextPlayerTasksNormal(false, false, false, false);
+			AddNextPlayerTasksNormal(false, false, false, false, false);
 		}
 
 		//resume from passed toast
@@ -1349,7 +1363,7 @@ void CGameManager::StopThreads()
 	StopTaskThread();
 }
 
-bool CGameManager::AddNextPlayerTasksNormal(bool hasWordAnimation, bool hasTileAnimation, bool hasLetterAnimation, bool addMessageBoxTask)
+bool CGameManager::AddNextPlayerTasksNormal(bool hasWordAnimation, bool hasTileAnimation, bool hasLetterAnimation, bool hasScoreAnimation, bool addMessageBoxTask)
 {
 	bool PlayerFinishedGame = PlayerFinished();
 
@@ -1360,6 +1374,17 @@ bool CGameManager::AddNextPlayerTasksNormal(bool hasWordAnimation, bool hasTileA
 
 	std::shared_ptr<CTask> NextPlayerTurnTask = PlayerFinishedGame ? nullptr : AddTask(this, &CGameManager::NextPlayerTask, "next_player_turn_task", CTask::RenderThread);
 	std::shared_ptr<CTask> ClosePlayerPopupTask = PlayerFinishedGame ? nullptr : AddTask(this, nullptr, "msg_box_button_close_task", CTask::RenderThread);
+	std::shared_ptr<CTask> ScoreAnimationTask = nullptr;
+
+	if (hasScoreAnimation)
+	{
+		m_ScoreAnimationManager->SetProperties();
+		ScoreAnimationTask = AddTask(this, &CGameManager::AddScoreAnimationTask, "start_score_animation_task", CTask::GameThread);
+		std::shared_ptr<CTask> AnimateScoreTask = AddTask(this, nullptr, "score_animation_task", CTask::RenderThread);
+
+		if (addMessageBoxTask)
+			ShowNextPlayerPopupTask->AddDependencie(AnimateScoreTask);
+	}
 
 	if (hasTileAnimation)
 	{
@@ -1375,6 +1400,9 @@ bool CGameManager::AddNextPlayerTasksNormal(bool hasWordAnimation, bool hasTileA
 
 		if (addMessageBoxTask)
 			ShowNextPlayerPopupTask->AddDependencie(FinishWordLetterAnimationTask);
+
+		if (hasScoreAnimation)
+			ScoreAnimationTask->AddDependencie(FinishWordLetterAnimationTask);
 	}
 
 	if (hasLetterAnimation && !PlayerFinishedGame)
@@ -1387,6 +1415,7 @@ bool CGameManager::AddNextPlayerTasksNormal(bool hasWordAnimation, bool hasTileA
 		FinishDealLettersTask->m_TaskStopped = false;
 	}
 
+
 	if (NextPlayerTurnTask)
 	{
 		NextPlayerTurnTask->AddDependencie(ClosePlayerPopupTask);
@@ -1395,12 +1424,10 @@ bool CGameManager::AddNextPlayerTasksNormal(bool hasWordAnimation, bool hasTileA
 	}
 
 	if (addMessageBoxTask)
-	{
-		std::shared_ptr<CTask> AnimateScoreTask = AddTask(this, nullptr, "score_animation_task", CTask::RenderThread);
-		ShowNextPlayerPopupTask->AddDependencie(AnimateScoreTask);
 		ShowNextPlayerPopupTask->m_TaskStopped = false;
-		AnimateScoreTask->m_TaskStopped = false;
-	}
+
+	if (hasScoreAnimation)
+		ScoreAnimationTask->m_TaskStopped = false;
 
 	return PlayerFinishedGame;
 }

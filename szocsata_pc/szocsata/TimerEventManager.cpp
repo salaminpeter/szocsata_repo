@@ -38,7 +38,7 @@ void CTimerEventManager::Loop()
 	
 	while (it != m_TimerEvents.end())
 	{
-		if (!(*it)->IsStopped() && !(*it)->IsPaused())
+		if (!(*it)->IsStopped() && !(*it)->IsPaused() && (*it)->IsStarted())
 		{
 			(*it)->Call(false);
 			++it;

@@ -557,7 +557,7 @@ void CUIManager::InitBaseElements(std::shared_ptr<CSquarePositionData> positionD
 
 	Button = AddButton(m_RootDraggedLetterScreen, positionData, colorData, 0, 0, 0, 0, "view_ortho", "round_button_texture_generated", L"ui_score_btn", "textured");
 	Button->SetModifyColor(glm::vec4(1, 1, 1.f, 1.f));
-	float ScoreSize = m_GameManager->GetScoreAnimationManager()->GetTextSize();
+	float ScoreSize = m_GameManager->GetScoreAnimationManager()->GetSize();
 	Button->SetPosAndSize(0, 0, ScoreSize, ScoreSize);
 	Button->AddText(L"", 0.7f, CUIText::Center, positionData, gridcolorData16x6);
 	Button->SetTextColor(1, 1, 1);

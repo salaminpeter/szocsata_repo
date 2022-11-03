@@ -119,6 +119,7 @@ void CGameState::SaveGameState()
 		m_GameManager->SaveWordAnims(StateFile);
 		m_GameManager->SaveLetterAnims(StateFile);
 		m_GameManager->SaveCamera(StateFile);
+		m_GameManager->SaveScoreAnim(StateFile);
 		m_GameManager->SavePopupState(StateFile);
 	}
 
@@ -308,6 +309,7 @@ void CGameState::LoadPlayerAndBoardState()
 		m_GameManager->LoadWordAnims(StateFile);
 		m_GameManager->LoadLetterAnims(StateFile);
 		m_GameManager->LoadCamera(StateFile);
+		m_GameManager->LoadScoreAnim(StateFile);
 		m_GameManager->LoadPopupState(StateFile);
 
 		if (m_GameManager->m_SavedGameState != CGameManager::WaitingForMessageBox && CurrentPlayer->IsComputer())

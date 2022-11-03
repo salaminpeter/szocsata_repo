@@ -147,7 +147,7 @@ public:
 	void ExecuteTaskOnThread(const char* id, int threadId);
 	void StopThreads();
 	void AddNextPlayerTasksPass();
-	bool AddNextPlayerTasksNormal(bool hasWordAnimation, bool hasTileAnimation, bool hasLetterAnimation, bool addMessageBoxTask = true);
+	bool AddNextPlayerTasksNormal(bool hasWordAnimation, bool hasTileAnimation, bool hasLetterAnimation, bool hasScoreAnimation, bool addMessageBoxTask = true);
 
 	glm::ivec2 GetUIElementSize(const wchar_t* id);
 	float GetLetterSize();
@@ -183,6 +183,8 @@ public:
 	void LoadWordAnims(std::ifstream& fileStream);
 	void SaveLetterAnims(std::ofstream& fileStream);
 	void LoadLetterAnims(std::ifstream& fileStream);
+	void SaveScoreAnim(std::ofstream& fileStream);
+	void LoadScoreAnim(std::ifstream& fileStream);
 	void SavePopupState(std::ofstream& fileStream);
 	void LoadPopupState(std::ifstream& fileStream);
 	size_t GetCurrentPlayerIdx();
@@ -211,7 +213,7 @@ public:
     void StartGameLoopTask();
     void NextPlayerTask();
 	void NextPlayerTaskOnThread();
-	void AddScoreAnimationTask(int startX, int startY, int score);
+	void AddScoreAnimationTask();
 
     //TODO valamiert nem mukodik a perfect forwarding az osszes ilyen fuggvenynel, csak jobberteket lehet parameternek adni
 	template <typename ClassType, typename... ArgTypes>

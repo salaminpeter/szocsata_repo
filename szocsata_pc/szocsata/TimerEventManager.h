@@ -32,6 +32,7 @@ public:
 
 	bool IsStopped() { return m_Stopped; }
 	bool IsPaused() { return m_Paused; }
+	bool IsStarted() { return m_Started; }
 	std::string GetID() {return m_Id;}
 
 private:
