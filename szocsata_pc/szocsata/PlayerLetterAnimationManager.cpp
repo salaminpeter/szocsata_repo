@@ -8,6 +8,10 @@
 #include <iostream>
 #include <fstream>
 
+CPlayerLetterAnimationManager::CPlayerLetterAnimationManager(CGameManager* gameManager, CTimerEventManager* timerEventManager) : m_TimerEventManager(timerEventManager), m_GameManager(gameManager)
+{
+	m_TimerEventManager->AddTimerEvent(this, &CPlayerLetterAnimationManager::AnimatePlayerLetter, &CPlayerLetterAnimationManager::AnimFinishedEvent, "player_letter_animation");
+}
 
 void CPlayerLetterAnimationManager::StartAnimations()
 {
@@ -15,7 +19,6 @@ void CPlayerLetterAnimationManager::StartAnimations()
 	{
 		m_CurrentLetterIdx = 0;
 		m_PrevLetterIdx = 1;
-		m_TimerEventManager->AddTimerEvent(this, &CPlayerLetterAnimationManager::AnimatePlayerLetter, &CPlayerLetterAnimationManager::AnimFinishedEvent, "player_letter_animation");
 		m_TimerEventManager->StartTimer("player_letter_animation");
 	}
 }
@@ -24,7 +27,6 @@ void CPlayerLetterAnimationManager::AnimFinishedEvent()
 {
 	m_GameManager->SetTaskFinished("finish_player_deal_letters_task");
 }
-
 
 void CPlayerLetterAnimationManager::AnimatePlayerLetter(double& timeFromStart, double& timeFromPrev)
 {
@@ -62,7 +64,7 @@ void CPlayerLetterAnimationManager::AnimatePlayerLetter(double& timeFromStart, d
 		m_PlayerLetterAnimations[m_CurrentLetterIdx].m_PlayerLetter->Scale(m_PlayerLetterAnimations[m_CurrentLetterIdx].m_DestScale);
 		m_PlayerLetterAnimations[m_CurrentLetterIdx].m_PlayerLetter->SetPosAndSize(m_PlayerLetterAnimations[m_CurrentLetterIdx].m_DestX, m_PlayerLetterAnimations[m_CurrentLetterIdx].m_DestY, Scale, Scale);
 
-		m_TimerEventManager->StopTimer("player_letter_animation");
+		m_TimerEventManager->PauseTimer("player_letter_animation");
 		m_TimeSinceAnimStart = 0;
 
 		if (m_CurrentLetterIdx + 1 == m_PlayerLetterAnimations.size())
@@ -70,6 +72,7 @@ void CPlayerLetterAnimationManager::AnimatePlayerLetter(double& timeFromStart, d
 			if (m_GameManager->GetLetterPoolCount() == 0)
 				m_GameManager->GetUIManager()->SetTileCounterValue(0);
 
+			m_TimerEventManager->FinishTimer("player_letter_animation");
 			m_PlayerLetterAnimations.clear();
 			return;
 		}
@@ -137,7 +140,10 @@ void CPlayerLetterAnimationManager::LoadState(std::ifstream& fileStream)
 	fileStream.read((char *)&LetterAnimCount, sizeof(size_t));
 
 	if (LetterAnimCount == 0)
+	{
+		m_CurrentLetterIdx = 0;
 		return;
+	}
 
 	fileStream.read((char *)&m_TimeSinceAnimStart, sizeof(int));
 

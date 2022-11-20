@@ -50,6 +50,7 @@ private:
 	std::mutex m_TileAnimLock;
 	int m_PassedTime = 0;
 	bool m_HandleFinishEvent = false;
+	bool m_IgnoreFinishEvent;
 
 	const int m_AnimLength = 2550; //config!!
 };

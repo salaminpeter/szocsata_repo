@@ -7,7 +7,7 @@ void CSelectionStore::AddSelection(ESelectionType type, int x, int y, const char
 		return;
 	
 	const std::lock_guard<std::mutex> lock(m_Lock);
-	m_Selections[type].emplace_back(glm::ivec2(x, y), modifyColor ? *modifyColor : GetColorModifyer(type), id);
+	m_Selections[type].emplace_back(glm::ivec2(x, y), modifyColor ? *modifyColor : GetColorModifyer(type), id, type);
 }
 
 glm::vec3 CSelectionStore::GetColorModifyer(ESelectionType type)

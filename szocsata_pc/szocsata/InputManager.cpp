@@ -4,6 +4,11 @@
 #include "TimerEventManager.h"
 #include "Config.h"
 
+CInputManager::CInputManager(CGameManager* gameManager) :
+m_GameManager(gameManager)
+{
+	m_GameManager->GetTimerEventManager()->AddTimerEvent(this, &CInputManager::CheckDoubleClickEvent, nullptr, "timer_event_double_click");
+}
 
 void CInputManager::HandleTouchEvent(int x, int y)
 {
@@ -37,7 +42,6 @@ void CInputManager::HandleTouchEvent(int x, int y)
 	{
 		m_Touch0X = x;
 		m_Touch0Y = y;
-		m_GameManager->GetTimerEventManager()->AddTimerEvent(this, &CInputManager::CheckDoubleClickEvent, nullptr, "timer_event_double_click");
 		m_GameManager->GetTimerEventManager()->StartTimer("timer_event_double_click");
 		return;
 	}
@@ -157,21 +161,13 @@ void CInputManager::HandleDragEvent(int x, int y)
 		m_GameManager->HandleDragEvent(x, y);
 }
 
-void CInputManager::HandleDoubleClickEvent(int x, int y)
-{
-	const std::lock_guard<std::recursive_mutex> lock(m_InputLock);
-
-	m_GameManager->HandleDoubleClickEvent(x, y);
-}
-
-
 void CInputManager::CheckDoubleClickEvent(double& timeFromStart, double& timeFromPrev)
 {
 	const std::lock_guard<std::recursive_mutex> lock(m_InputLock);
 
 	if (timeFromStart >= 250)  //TODO config
 	{
-		m_GameManager->GetTimerEventManager()->StopTimer("timer_event_double_click");
+		m_GameManager->GetTimerEventManager()->FinishTimer("timer_event_double_click");
 
 		//2x is le lett nyomva adott idon belul a gomb
 		bool IsDoubleClick = m_SecondTouch;

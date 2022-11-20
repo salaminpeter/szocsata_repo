@@ -31,7 +31,7 @@ void CGameState::SaveGameState()
 	
 	std::ofstream StateFile(FilePath, std::ofstream::binary);
 
-	if (StateFile.fail())
+	if (!StateFile.good())
 		return;
 
 	int GameState = m_GameManager->GetGameState();
@@ -43,15 +43,41 @@ void CGameState::SaveGameState()
 	bool ComputerOpponentEnabled = m_GameManager->GetUIManager()->ComputerOpponentEnabled();
 
 	StateFile.write((char *)&GameState, sizeof(int));
+
+	if (!StateFile.good())
+		return;
+
 	StateFile.write((char *)&PlayerCountIdx, sizeof(int));
+
+	if (!StateFile.good())
+		return;
+
 	StateFile.write((char *)&BoardSize, sizeof(int));
+
+	if (!StateFile.good())
+		return;
+
 	StateFile.write((char *)&TimeLimit, sizeof(int));
+
+	if (!StateFile.good())
+		return;
+
 	StateFile.write((char *)&ComputerOpponentEnabled, sizeof(bool));
+
+	if (!StateFile.good())
+		return;
+
 	StateFile.write((char *)&Difficulty, sizeof(int));
+
+	if (!StateFile.good())
+		return;
 
 	if (OnGameScreen) {
 		size_t CurrentPlayerIdx = m_GameManager->GetCurrentPlayerIdx();
 		StateFile.write((char *) &CurrentPlayerIdx, sizeof(size_t));
+
+		if (!StateFile.good())
+			return;
 
 		m_GameManager->SetTileCount();
 		int TileCount;
@@ -70,6 +96,10 @@ void CGameState::SaveGameState()
 					StateFile.write((char *) &height, sizeof(int));
 				}
 			}
+
+			if (!StateFile.good())
+				return;
+
 		}
 
 		int PlayerCount = PlayerCountIdx + 1 + (ComputerOpponentEnabled ? 1 : 0);
@@ -77,50 +107,94 @@ void CGameState::SaveGameState()
 		for (size_t i = 0; i < PlayerCount; ++i) {
 			int Score = m_GameManager->GetPlayer(i)->GetScore();
 			StateFile.write((char *) &Score, sizeof(int));
+			if (!StateFile.good())
+				return;
 
 			unsigned int UsedLetters = m_GameManager->GetPlayer(i)->GetUsedLetters().GetList();
 			StateFile.write((char *) &UsedLetters, sizeof(unsigned int));
+			if (!StateFile.good())
+				return;
 
 			std::wstring Letters = m_GameManager->GetPlayerLetters(i);
 			std::wstring AllLetters = m_GameManager->GetPlayerLetters(i, true);
 			int LetterCount = Letters.length();
 
 			StateFile.write((char *) &LetterCount, sizeof(int));
+			if (!StateFile.good())
+				return;
 
 			for (size_t j = 0; j < LetterCount; ++j)
 				StateFile.write((char *) &Letters.at(j), sizeof(wchar_t));
 
+			if (!StateFile.good())
+				return;
+
 			for (size_t j = 0; j < LetterCount; ++j)
 				StateFile.write((char *) &AllLetters.at(j), sizeof(wchar_t));
+
+			if (!StateFile.good())
+				return;
 		}
 
 		const std::vector<TPlayerStep> &PlayerSteps = m_GameManager->GetPlayerSteps();
 		int PlayerStepCount = PlayerSteps.size();
 		StateFile.write((char *) &PlayerStepCount, sizeof(int));
 
+		if (!StateFile.good())
+			return;
+
 		for (int i = PlayerStepCount - 1; i >= 0; --i) {
 			StateFile.write((char *) &PlayerSteps[i].m_Char, sizeof(wchar_t));
 			StateFile.write((char *) &PlayerSteps[i].m_LetterIdx, sizeof(int));
 			StateFile.write((char *) &PlayerSteps[i].m_XPosition, sizeof(int));
 			StateFile.write((char *) &PlayerSteps[i].m_YPosition, sizeof(int));
+			if (!StateFile.good())
+				return;
+
 		}
 
 		SaveComputerStep(StateFile);
 
+		if (!StateFile.good())
+			return;
+
 		size_t CharCount = m_GameManager->GetCharacterCount();
 		StateFile.write((char *) &CharCount, sizeof(size_t));
+		if (!StateFile.good())
+			return;
 
 		for (size_t i = 0; i < CharCount; ++i) {
 			size_t LetterCount = m_GameManager->GetLetterCount(i);
 			StateFile.write((char *) &LetterCount, sizeof(size_t));
 		}
 
+		if (!StateFile.good())
+			return;
+
 		m_GameManager->SaveTileAnims(StateFile);
+		if (!StateFile.good())
+			return;
+
 		m_GameManager->SaveWordAnims(StateFile);
+		if (!StateFile.good())
+			return;
+
 		m_GameManager->SaveLetterAnims(StateFile);
+		if (!StateFile.good())
+			return;
+
 		m_GameManager->SaveCamera(StateFile);
+		if (!StateFile.good())
+			return;
+
 		m_GameManager->SaveScoreAnim(StateFile);
+		if (!StateFile.good())
+			return;
+
 		m_GameManager->SavePopupState(StateFile);
+		if (!StateFile.good())
+			return;
+
 	}
 
 	StateFile.close();
@@ -139,8 +213,14 @@ void CGameState::SaveComputerStep(std::ofstream& fileStream)
 
 		fileStream.write((char *)&HasComputerStep, sizeof(bool));
 
+		if (!fileStream.good())
+			return;
+
 		if (HasComputerStep)
 			Computer->SaveComputerStep(fileStream);
+
+		if (!fileStream.good())
+			return;
 	}
 }
 
@@ -177,7 +257,7 @@ void CGameState::LoadPlayerAndBoardState()
 	std::ifstream StateFile(FilePath, std::ifstream::binary);
 	StateFile.seekg(m_FilePos);
 
-	if (StateFile.fail())
+	if (!StateFile.good())
 		return;
 
 	float LetterHeight;
@@ -342,7 +422,7 @@ void CGameState::LoadGameState()
 #endif
 	std::ifstream StateFile(FilePath, std::ifstream::binary);
 
-	if (StateFile.fail())
+	if (!StateFile.good())
 		return;
 
 	int GameState;
@@ -353,6 +433,11 @@ void CGameState::LoadGameState()
 	bool ComputerOpponentEnabled;
 
 	StateFile.read((char *)&GameState, sizeof(int));
+	std::ios_base::iostate State = StateFile.rdstate();
+	bool eofbit = State == std::ios_base::eofbit;
+	bool failbit = State == std::ios_base::failbit;
+	bool badbit = State == std::ios_base::badbit;
+	bool goodbit = State == std::ios_base::goodbit;
 	StateFile.read((char *)&PlayerCountIdx, sizeof(int));
 	StateFile.read((char *)&BoardSize, sizeof(int));
 	StateFile.read((char *)&TimeLimit, sizeof(int));
@@ -361,7 +446,7 @@ void CGameState::LoadGameState()
 
 	m_FilePos = StateFile.tellg();
 
-    if (StateFile.fail())
+    if (!StateFile.good())
         return;
 
 	m_GameManager->GetUIManager()->SetPlayerCount(PlayerCountIdx);

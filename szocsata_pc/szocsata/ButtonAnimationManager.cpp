@@ -6,7 +6,6 @@
 CButtonAnimationManager::CButtonAnimationManager(CTimerEventManager* timerEventManager) : m_TimerEventManager(timerEventManager) 
 {
 	m_TimerEventManager->AddTimerEvent(this, &CButtonAnimationManager::HandleAnimation, nullptr, "button_animation");
-	m_TimerEventManager->PauseTimer("button_animation");
 }
 
 void CButtonAnimationManager::HandleAnimation(double& timeFromStart, double& timeFromPrev)
@@ -27,7 +26,7 @@ void CButtonAnimationManager::HandleAnimation(double& timeFromStart, double& tim
 		}
 		else
 		{
-			m_TimerEventManager->PauseTimer("button_animation");
+			m_TimerEventManager->FinishTimer("button_animation");
 
 			NewWidth = m_ButtonAnimation.m_DestWidth;
 			NewHeight = m_ButtonAnimation.m_DestHeight;
@@ -57,7 +56,7 @@ void CButtonAnimationManager::HandleAnimation(double& timeFromStart, double& tim
 		m_ButtonAnimation.m_DestHeight = StartHeight;
 		m_ButtonAnimation.m_AnimationFinished = false;
 		m_ButtonAnimation.m_RunReverseAnimation = false;
-		m_TimerEventManager->StartTimer("button_animation");
+		m_TimerEventManager->RestartTimer("button_animation");
 	}
 }
 
@@ -105,7 +104,6 @@ void CButtonAnimationManager::RunAnimationFinishEvent(CUIElement* button)
 void CButtonAnimationManager::EnableReverseAnimation(CUIElement* button)
 {
 	m_ButtonAnimation.m_RunReverseAnimation = true;
-	m_TimerEventManager->StartTimer("button_animation");
 }
 
 

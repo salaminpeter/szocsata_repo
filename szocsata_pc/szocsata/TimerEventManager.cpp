@@ -23,7 +23,7 @@ void CTimerEventManager::Reset()
 	auto it = m_TimerEvents.begin();
 
 	while (it != m_TimerEvents.end())
-		(*it++)->SetTimerState(false, true);
+		(*it++)->SetTimerState(false, false, true, false);
 }
 
 
@@ -38,18 +38,20 @@ void CTimerEventManager::Loop()
 	
 	while (it != m_TimerEvents.end())
 	{
-		if (!(*it)->IsStopped() && !(*it)->IsPaused() && (*it)->IsStarted())
-		{
+		//timer task is started, its running
+		if (!(*it)->IsFinished() && !(*it)->IsStopped() && !(*it)->IsPaused() && (*it)->IsStarted())
 			(*it)->Call(false);
-			++it;
-			continue;
-		}
-		else if ((*it)->IsStopped())
+
+		//timer task is stopped, it is removed
+		else if ((*it)->IsStopped()) //TODO nem kell ez a finsihed event alig van valahol hasznalva
 		{
-			(*it)->Call(true);
-			m_TimerEvents.erase(it++);
+			it = m_TimerEvents.erase(it);
 			continue;
 		}
+
+		//timer task is finished
+		else if ((*it)->IsFinished())
+			(*it)->Call(true);
 
 		++it;
 	}
@@ -57,10 +59,10 @@ void CTimerEventManager::Loop()
 	m_LastLoopTime = CTimer::GetCurrentTime();
 }
 
-void CTimerEventManager::ChangeTimerState(bool start, bool stop, bool pause, const char* id)
+void CTimerEventManager::ChangeTimerState(bool start, bool stop, bool pause, bool finish, const char* id)
 {
 	if (CTimerEvent* t = GetTimerEvent(id))
-		t->SetTimerState(start, stop, pause);
+		t->SetTimerState(start, stop, pause, finish);
 }
 
 CTimerEvent* CTimerEventManager::GetTimerEvent(const char* id)
@@ -82,18 +84,39 @@ CTimerEvent::~CTimerEvent()
 }
 
 
-void CTimerEvent::SetTimerState(bool started, bool stopped, bool paused) 
-{ 
+void CTimerEvent::SetTimerState(bool started, bool stopped, bool paused, bool finished)
+{
+	//finish timer
+	if (finished)
+	{
+		m_Finished = true;
+		m_FinishDone = false;
+		m_Started = m_Stopped = m_Paused = false;
+		return;
+	}
+	else
+		m_Finished = false;
+
 	//pause timer
 	if (!m_Paused && paused)
 		m_Paused = true;
 
 	//resume timer
-	if (m_Paused && !paused)
+	if (m_Paused && !paused && !started)
 	{
 		m_Paused = false;
 		m_CurrentTime = CTimer::GetCurrentTime();
 		m_StartTime = m_CurrentTime - m_TimeFromStart;
+		m_Started = true;
+		return;
+	}
+
+	//start / restart timer
+	if ((m_Paused || m_Finished) && started)
+	{
+		m_Paused = false;
+		m_Finished = false;
+		m_StartTime = m_CurrentTime = CTimer::GetCurrentTime();
 		m_Started = true;
 		return;
 	}
@@ -120,6 +143,9 @@ void CTimerEvent::Call(bool finished)
 
 	if (!finished)
 		m_Event->HandleEvent();
-	else if (m_FinishedEvent)
+	else if (m_FinishedEvent && !m_FinishDone)
+	{
+		m_FinishDone = true;
 		m_FinishedEvent->HandleEvent();
+	}
 }

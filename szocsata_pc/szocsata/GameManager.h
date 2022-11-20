@@ -112,7 +112,6 @@ public:
 	void UndoAllSteps();
 	void UndoStep(size_t idx);
 	void UndoStepAtPos(int x, int y);
-	void RemovePlacedLetterSelAtPos(int x, int y);
 	int GetPlayerStepIdxAtPos(int x, int y);
 	void DealCurrPlayerLetters();
 	void DealCurrPlayerLettersLocked();
@@ -150,7 +149,6 @@ public:
 	bool AddNextPlayerTasksNormal(bool hasWordAnimation, bool hasTileAnimation, bool hasLetterAnimation, bool hasScoreAnimation, bool addMessageBoxTask = true);
 
 	glm::ivec2 GetUIElementSize(const wchar_t* id);
-	float GetLetterSize();
 	std::wstring GetTimeStr(int msec);
 	std::string GetWorkingDir();
 	void ShowLoadingScreen(bool show);
@@ -162,9 +160,7 @@ public:
 	wchar_t GetChOnBoard(int x, int y) { return m_GameBoard(x, y).m_Char; }
 	CWordTree::TNode* WordTreeRoot(wchar_t c) {return m_DataBase.GetWordTreeRoot(c);}
     TField& Board(int x, int y) {return m_GameBoard(x, y);}
-    TField& TmpBoard(int x, int y) {return m_TmpGameBoard(x, y);}
 	CGameBoard& GetBoard(bool tmp) {return tmp ? m_TmpGameBoard : m_GameBoard;} const
-	std::wstring CurrentPlayerName() {return m_CurrentPlayer ? m_CurrentPlayer->GetName() : L"";}
 	int GetPlayerCount() {return m_Players.size();}
 	void SetLastTouchOnBoardView(bool onBoardView) { m_LastTouchOnBoardView = onBoardView; }
 	void SetLastTouchPos(int x, int y) { m_LastTouchX = x; m_LastTouchY = y; }

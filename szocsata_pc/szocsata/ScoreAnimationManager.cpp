@@ -204,7 +204,7 @@ void CScoreAnimationManager::AnimateScore(double& timeFromStart, double& timeFro
             {
                 m_AnimationInProgress = false;
                 m_GameManager->UpdatePlayerScores();
-                m_TimerEventManager->PauseTimer("score_animation_timer");
+                m_TimerEventManager->FinishTimer("score_animation_timer");
 				ScoreButton->SetVisible(false);
 				ScoreButton->SetSizeWithChildren(m_Size, m_Size);
 				m_GameManager->SetTaskFinished("score_animation_task");

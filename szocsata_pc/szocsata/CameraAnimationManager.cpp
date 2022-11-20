@@ -8,6 +8,7 @@
 
 CCameraAnimationManager::CCameraAnimationManager(CTimerEventManager* timerEventMgr, CGameManager* gameManager) : m_GameManager(gameManager), m_TimerEventManager(timerEventMgr) 
 {
+	m_TimerEventManager->AddTimerEvent(this, &CCameraAnimationManager::AnimateCamera, nullptr, "fit_to_view_animation");
 }
 
 void CCameraAnimationManager::AnimateCamera(double& timeFromStart, double& timeFromPrev)
@@ -59,7 +60,7 @@ void CCameraAnimationManager::AnimateCamera(double& timeFromStart, double& timeF
 
 	if (EndAnimation)
 	{
-		m_TimerEventManager->StopTimer("fit_to_view_animation");
+		m_TimerEventManager->FinishTimer("fit_to_view_animation");
 		m_GameManager->GetRenderer()->FittBoardToView(true);
 		m_GameManager->GetRenderer()->ResetZoom();
 		m_GameManager->GetRenderer()->CalculateScreenSpaceGrid();
@@ -74,7 +75,6 @@ void CCameraAnimationManager::StartFitToScreenAnimation()
 	m_CurrMoveDistance = 0.f;
 
 	m_GameManager->GetRenderer()->GetFitToScreemProps(m_DestTilt, m_DestRotation, m_DestZoom, m_DestMoveDistance, m_MoveDirection);
-	m_TimerEventManager->AddTimerEvent(this, &CCameraAnimationManager::AnimateCamera, nullptr, "fit_to_view_animation");
 	m_TimerEventManager->StartTimer("fit_to_view_animation");
 }
 

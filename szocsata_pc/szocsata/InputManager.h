@@ -8,14 +8,11 @@ class CInputManager
 {
 public:
 
-	CInputManager(CGameManager* gameManager) : 
-		m_GameManager(gameManager)
-	{}
+	CInputManager(CGameManager* gameManager);
 
 	void HandleTouchEvent(int x, int y);
 	void HandleReleaseEvent(int x, int y);
 	void HandleDragEvent(int x, int y);
-	void HandleDoubleClickEvent(int x, int y);
 	void HandleZoomEvent(float dist, float origoX, float origoY);
 	void HandleMultyTouchStart(float x0, float y0, float x1, float y1);
 	void HandleMultyTouch(float x0, float y0, float x1, float y1);

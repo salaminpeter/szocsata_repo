@@ -7,7 +7,7 @@ class CDimmBGAnimationManager
 {
 public:
 
-	CDimmBGAnimationManager(CGameManager* gameManager, CTimerEventManager* timerEventManager) : m_TimerEventManager(timerEventManager), m_GameManager(gameManager) {}
+	CDimmBGAnimationManager(CGameManager* gameManager, CTimerEventManager* timerEventManager);
 
 	void StartAnimation(bool fadiIn = true);
 

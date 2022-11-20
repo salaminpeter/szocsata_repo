@@ -25,9 +25,15 @@ void CComputer::SaveComputerStep(std::ofstream& fileStream)
 	fileStream.write((char *)&UsedLetters, sizeof(unsigned));
 	size_t CrossingWordCount = m_ComputerStep.m_CrossingWords.size();
 	fileStream.write((char *)&CrossingWordCount, sizeof(size_t));
+	if (!fileStream.good())
+		return;
 
 	for (auto CrossingWord : m_ComputerStep.m_CrossingWords)
 		CrossingWord.SaveToFile(fileStream);
+
+	if (!fileStream.good())
+		return;
+
 }
 
 void CComputer::LoadComputerStep(std::ifstream& fileStream)

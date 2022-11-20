@@ -28,11 +28,12 @@ public:
 	}
 
 	void Call(bool finished);
-	void SetTimerState(bool started, bool stopped, bool paused = false);
+	void SetTimerState(bool started, bool stopped, bool paused, bool finished);
 
 	bool IsStopped() { return m_Stopped; }
 	bool IsPaused() { return m_Paused; }
 	bool IsStarted() { return m_Started; }
+	bool IsFinished() { return m_Finished; }
 	std::string GetID() {return m_Id;}
 
 private:
@@ -40,9 +41,13 @@ private:
 	std::string m_Id;
 	CEventBase* m_Event = nullptr;
 	CEventBase* m_FinishedEvent = nullptr;
+
 	bool m_Stopped = false;
 	bool m_Paused = false;
 	bool m_Started = false;
+	bool m_Finished = false;
+	bool m_FinishDone = false;
+
 	double m_StartTime;
 	double m_CurrentTime;
 	double m_TimeFromStart;
@@ -72,15 +77,17 @@ public:
 	void Loop();
 	void Reset();
 
-	void StartTimer(const char* id) { ChangeTimerState(true, false, false ,id); }
-	void StopTimer(const char* id) { ChangeTimerState(false, true, false, id); }
-	void PauseTimer(const char* id) { ChangeTimerState(false, false, true, id); }
-	void ResumeTimer(const char* id) { ChangeTimerState(true, false, false, id); }
+	void StartTimer(const char* id) { ChangeTimerState(true, false, false, false, id); }
+	void RestartTimer(const char* id) { StartTimer(id); }
+	void RemoveTimer(const char* id) { ChangeTimerState(false, true, false, false, id); }
+	void FinishTimer(const char* id) { ChangeTimerState(false, false, false, true, id); }
+	void PauseTimer(const char* id) { ChangeTimerState(false, false, true, false, id); }
+	void ResumeTimer(const char* id) { ChangeTimerState(true, false, false, false, id); }
 
 private:
 
 	CTimerEvent* GetTimerEvent(const char* id);
-	void ChangeTimerState(bool start, bool stop, bool pause, const char* id);
+	void ChangeTimerState(bool start, bool stop, bool pause, bool finish, const char* id);
 
 private:
 	

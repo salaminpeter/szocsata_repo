@@ -30,17 +30,13 @@ private:
 
 public:
 
-	CPlayerLetterAnimationManager(CGameManager* gameManager, CTimerEventManager* timerEventManager) : m_TimerEventManager(timerEventManager), m_GameManager(gameManager) {}
+	CPlayerLetterAnimationManager(CGameManager* gameManager, CTimerEventManager* timerEventManager);
 
 	void StartAnimations();
 	void AddAnimation(CUIElement* playerLEtter, float destScale, float startX, float startY, float destX, float destY);
 	bool Empty();
 	void SaveState(std::ofstream& fileStream);
 	void LoadState(std::ifstream& fileStream);
-
-
-private:
-
 	void AnimatePlayerLetter(double& timeFromStart, double& timeFromPrev);
 	void AnimFinishedEvent();
 

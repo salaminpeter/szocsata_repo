@@ -24,11 +24,12 @@ CTileAnimationManager::CTileAnimationManager(CTimerEventManager* timerEventMgr, 
 	m_TimerEventManager(timerEventMgr),
 	m_GameManager(gameManager)
 {
+	m_TimerEventManager->AddTimerEvent(this, &CTileAnimationManager::UpdateColorEvent, &CTileAnimationManager::AnimFinishedEvent, "tile_animation");
 }
 
 CTileAnimationManager::~CTileAnimationManager()
 {
-	m_TimerEventManager->StopTimer("tile_animation");
+	m_TimerEventManager->RemoveTimer("tile_animation");
 }
 
 void CTileAnimationManager::AddTile(int x, int y, bool positive)
@@ -46,7 +47,7 @@ void CTileAnimationManager::AddTile(int x, int y, bool positive)
 
 void CTileAnimationManager::StartAnimation()
 {
-	m_TimerEventManager->AddTimerEvent(this, &CTileAnimationManager::UpdateColorEvent, m_HandleFinishEvent ? &CTileAnimationManager::AnimFinishedEvent : nullptr, "tile_animation");
+	m_IgnoreFinishEvent = !m_HandleFinishEvent;
 	m_TimerEventManager->StartTimer("tile_animation");
 }
 
@@ -59,15 +60,15 @@ void CTileAnimationManager::StartAnimation(bool positive)
 	m_DestColor = SelectionStore->GetColorModifyer(static_cast<CSelectionStore::ESelectionType>(m_SelectionType));
 	m_DestColor *= 100;
 	
+	m_IgnoreFinishEvent = !positive;
 	m_HandleFinishEvent = positive;
-	m_TimerEventManager->AddTimerEvent(this, &CTileAnimationManager::UpdateColorEvent, positive ? &CTileAnimationManager::AnimFinishedEvent : nullptr, "tile_animation");
 	m_TimerEventManager->StartTimer("tile_animation");
 }
 
 void CTileAnimationManager::Reset() 
 { 
 	const std::lock_guard<std::mutex> lock(m_TileAnimLock);
-	m_TimerEventManager->StopTimer("tile_animation");
+	m_TimerEventManager->PauseTimer("tile_animation");
 	m_TilePositions.clear();
 }
 
@@ -90,6 +91,7 @@ void CTileAnimationManager::SaveState(std::ofstream& fileStream)
 		fileStream.write((char *)&m_DestColor.g, sizeof(float));
 		fileStream.write((char *)&m_DestColor.b, sizeof(float));
 		fileStream.write((char *)&m_HandleFinishEvent, sizeof(bool));
+		fileStream.write((char *)&m_SelectionType, sizeof(int));
 	}
 
 	for (auto TilePos : m_TilePositions)
@@ -119,6 +121,7 @@ void CTileAnimationManager::LoadState(std::ifstream& fileStream)
 		fileStream.read((char *)&m_DestColor.g, sizeof(float));
 		fileStream.read((char *)&m_DestColor.b, sizeof(float));
 		fileStream.read((char *)&m_HandleFinishEvent, sizeof(bool));
+		fileStream.read((char *)&m_SelectionType, sizeof(int));
 	}
 
 	for (int i = 0; i < TileAnimCount; ++i)
@@ -132,7 +135,10 @@ void CTileAnimationManager::LoadState(std::ifstream& fileStream)
 
 void CTileAnimationManager::AnimFinishedEvent()
 {
-	m_GameManager->SetTaskFinished("finish_word_selection_animation_task");
+	if (!m_IgnoreFinishEvent)
+		m_GameManager->SetTaskFinished("finish_word_selection_animation_task");
+	else
+		m_IgnoreFinishEvent = false;
 }
 
 void CTileAnimationManager::UpdateColorEvent(double& timeFromStart, double& timeFromPrev)
@@ -157,7 +163,7 @@ void CTileAnimationManager::UpdateColorEvent(double& timeFromStart, double& time
 			CSelectionStore* SelectionStore = m_GameManager->GetRenderer()->GetSelectionStore();
 			SelectionStore->ClearSelections(static_cast<CSelectionStore::ESelectionType>(m_SelectionType));
 			m_PassedTime = 0;
-			m_TimerEventManager->StopTimer("tile_animation");
+			m_TimerEventManager->FinishTimer("tile_animation");
 
 			const std::lock_guard<std::mutex> lock(m_TileAnimLock);
 			{

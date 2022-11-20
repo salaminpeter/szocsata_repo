@@ -822,7 +822,7 @@ void CUIManager::CloseToast(double& timeFromStart, double& timeFromPrev)
 
 	if (1000 < CUIToast::m_TimeSinceShow) //TODO config
 	{
-		m_TimerEventManager->StopTimer("ui_toast_id");
+		m_TimerEventManager->PauseTimer("ui_toast_id");
 		CUIToast::m_TimeSinceShow = 0;
 
 		{

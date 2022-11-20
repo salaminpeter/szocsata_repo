@@ -5,6 +5,11 @@
 
 #include <cmath>
 
+CDimmBGAnimationManager::CDimmBGAnimationManager(CGameManager* gameManager, CTimerEventManager* timerEventManager) : m_TimerEventManager(timerEventManager), m_GameManager(gameManager)
+{
+	m_TimerEventManager->AddTimerEvent(this, &CDimmBGAnimationManager::AnimateBackground, &CDimmBGAnimationManager::AnimFinishedEvent, "dimming_animation");
+}
+
 
 void CDimmBGAnimationManager::AnimateBackground(double& timeFromStart, double& timeFromPrev)
 {
@@ -12,7 +17,7 @@ void CDimmBGAnimationManager::AnimateBackground(double& timeFromStart, double& t
 
 	if (timeFromStart >= AnimateDuration)
 	{
-		m_TimerEventManager->StopTimer("dimming_animation");
+		m_TimerEventManager->FinishTimer("dimming_animation");
 		return;
 	}
 
@@ -27,7 +32,6 @@ void CDimmBGAnimationManager::AnimateBackground(double& timeFromStart, double& t
 void CDimmBGAnimationManager::StartAnimation(bool fadiIn)
 {
 	m_FadeIn = fadiIn;
-	m_TimerEventManager->AddTimerEvent(this, &CDimmBGAnimationManager::AnimateBackground, &CDimmBGAnimationManager::AnimFinishedEvent, "dimming_animation");
 	m_TimerEventManager->StartTimer("dimming_animation");
 }
 

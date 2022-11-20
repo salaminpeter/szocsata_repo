@@ -16,8 +16,9 @@ public:
 		glm::vec3 m_ColorModifyer;
 		std::string m_Id;
 		bool m_Enabled = true;
+		ESelectionType m_Type;
 
-		TSelection(const glm::ivec2& position, const glm::vec3& colorMod, const char* id) : m_Position(position), m_ColorModifyer(colorMod), m_Id(id), m_Enabled(true) {}
+		TSelection(const glm::ivec2& position, const glm::vec3& colorMod, const char* id, ESelectionType selType) : m_Position(position), m_ColorModifyer(colorMod), m_Id(id), m_Enabled(true), m_Type(selType) {}
 	};
 
 	CSelectionStore()

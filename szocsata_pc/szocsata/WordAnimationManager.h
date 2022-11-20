@@ -49,6 +49,7 @@ class CWordAnimationManager
 {
 public:
 
+	CWordAnimationManager(CTimerEventManager* timerEventMgr, CGameManager* gameManager);
 	~CWordAnimationManager();
 
 private:
@@ -66,8 +67,6 @@ private:
 	std::mutex m_AnimListLock;
 
 public:
-
-	CWordAnimationManager(CTimerEventManager* timerEventMgr, CGameManager* gameManager) : m_TimerEventManager(timerEventMgr), m_GameManager(gameManager) {}
 
 	void SetLetterInProgress(TWordAnimation& word, TLetterAnimation& letter);
 	bool HandleLetterAnimation(std::vector<TLetterAnimation>& letters, double timeFromPrevUpdate);

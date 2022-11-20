@@ -890,6 +890,8 @@ void CRenderer::ClearResources()
 {
     const std::lock_guard<std::recursive_mutex> lock(m_RenderLock);
 
+    delete m_ShaderManager;
+
 	//delete letters on board //TODO wordanimationban meg van egy hivatkozas a CLettermodellre!!!
 	for (size_t i = 0; i < m_LettersOnBoard.size(); ++i)
 		delete m_LettersOnBoard[i];
@@ -1099,18 +1101,6 @@ void CRenderer::RemoveTopLetter(int x, int y)
 	}
 }
 
-void CRenderer::RemoveLastLetter()
-{
-	m_SelectionStore->RemoveSelection(CSelectionStore::LetterSelection, m_LettersOnBoard.back()->BoardX(), m_LettersOnBoard.back()->BoardY());
-	m_LettersOnBoard.pop_back();
-}
-
-bool CRenderer::IsCurrentTexture(const char* texId)
-{
-	return m_TextureManager->IsCurrentTexture(texId);
-}
-
-
 void CRenderer::SetLightPosition()
 {
 	float BoardHeight;
@@ -1187,8 +1177,19 @@ void CRenderer::Render()
 		for (unsigned i = 0; i < m_LettersOnBoard.size(); ++i)
 		{
 			CSelectionStore::TSelection* Selection = m_SelectionStore->GetSelection(m_LettersOnBoard[i]->BoardX(), m_LettersOnBoard[i]->BoardY());
+			CLetterModel* TopLetter = Selection ? GetLetterAtPos(m_LettersOnBoard[i]->BoardX(), m_LettersOnBoard[i]->BoardY()) : nullptr;
 
-			if (Selection && m_LettersOnBoard[i] == GetLetterAtPos(m_LettersOnBoard[i]->BoardX(), m_LettersOnBoard[i]->BoardY()))
+			if (!Selection || !TopLetter)
+				continue;
+
+			bool Select;
+
+			if (Selection->m_Type != CSelectionStore::SuccessSelection)
+				Select = TopLetter == m_LettersOnBoard[i];
+			else
+				Select = (m_LettersOnBoard[i]->BoardX() == TopLetter->BoardX() && m_LettersOnBoard[i]->BoardY() == TopLetter->BoardY());
+
+			if (Select)
 				m_SelectedLetters.push_back(m_LettersOnBoard[i]);
 		}
 

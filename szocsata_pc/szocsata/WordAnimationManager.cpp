@@ -14,6 +14,11 @@
 
 int TWordAnimation::m_CurrWordAnimID = 0;
 
+CWordAnimationManager::CWordAnimationManager(CTimerEventManager* timerEventMgr, CGameManager* gameManager) : m_TimerEventManager(timerEventMgr), m_GameManager(gameManager)
+{
+	m_TimerEventManager->AddTimerEvent(this, &CWordAnimationManager::AnimateLettersEvent, &CWordAnimationManager::AnimationFinished, "word_animations");
+}
+
 TWordAnimation::TWordAnimation(CGameManager* gameManager, std::wstring word, const std::vector<size_t>& uiLetterIndices, CUIPlayerLetters* playerLetters, int x, int y, bool horizontal, bool waitForPrevLetter)
 {
 	m_WaitForPrevLetter = waitForPrevLetter;
@@ -62,7 +67,7 @@ TWordAnimation::TWordAnimation(CGameManager* gameManager, std::wstring word, con
 
 CWordAnimationManager::~CWordAnimationManager()
 {
-	m_TimerEventManager->StopTimer("add_word_animation");
+	m_TimerEventManager->RemoveTimer("word_animations");
 }
 
 bool CWordAnimationManager::AddWordAnimation(std::wstring word, const std::vector<size_t>& uiLetterIndices, CUIPlayerLetters* playerLetters, int x, int y, bool horizontal, bool waitForPrevLetter)
@@ -81,7 +86,6 @@ bool CWordAnimationManager::AddWordAnimation(std::wstring word, const std::vecto
 			}
 	
 			m_WordAnimations.emplace_back(m_GameManager, word, uiLetterIndices, playerLetters, x, y, horizontal, waitForPrevLetter);
-			m_TimerEventManager->AddTimerEvent(this, &CWordAnimationManager::AnimateLettersEvent, &CWordAnimationManager::AnimationFinished, "word_animations");
 			m_TimerEventManager->StartTimer("word_animations");
 			return true;
 		}
@@ -202,7 +206,7 @@ void CWordAnimationManager::AnimateLettersEvent(double& timeFromStart, double& t
 
 				if (m_WordAnimations.size() == 0)
 				{
-					m_TimerEventManager->StopTimer("word_animations");
+					m_TimerEventManager->FinishTimer("word_animations");
 					return;
 				}
 			}
@@ -226,7 +230,7 @@ void CWordAnimationManager::AnimationFinished()
 
 void CWordAnimationManager::Reset()
 {
-	m_TimerEventManager->StopTimer("add_word_animation");
+	m_TimerEventManager->PauseTimer("word_animations");
 	m_WordAnimations.clear();
 	m_UILetterIndices.clear();
 }
@@ -234,7 +238,7 @@ void CWordAnimationManager::Reset()
 void CWordAnimationManager::SaveState(std::ofstream& fileStream)
 {
 	size_t WordAnimCount = m_WordAnimations.size();
-	m_TimerEventManager->PauseTimer("add_word_animation");
+	m_TimerEventManager->PauseTimer("word_animations");
 	fileStream.write((char *)&WordAnimCount, sizeof(size_t));
 
 	for (auto WordAnim : m_WordAnimations)
@@ -265,7 +269,7 @@ void CWordAnimationManager::SaveState(std::ofstream& fileStream)
 
 void CWordAnimationManager::LoadState(std::ifstream& fileStream)
 {
-	m_TimerEventManager->PauseTimer("add_word_animation");
+	m_TimerEventManager->PauseTimer("word_animations");
 
 	size_t WordAnimCount;
 	fileStream.read((char *)&WordAnimCount, sizeof(size_t));

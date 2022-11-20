@@ -431,11 +431,6 @@ void CGameManager::StartPlayerTurn(CPlayer* player, bool saveBoard)
 		m_UIManager->EnableGameButtons(true);
 }
 
-float CGameManager::GetLetterSize()
-{
-	return m_UIManager->GetLetterSize();
-}
-
 glm::ivec2 CGameManager::GetUIElementSize(const wchar_t* id)
 {
 	return glm::ivec2(m_UIManager->GetUIElement(id)->GetWidth(), m_UIManager->GetUIElement(id)->GetHeight());
@@ -549,7 +544,7 @@ void CGameManager::CheckAndUpdateTime(double& timeFromStart, double& timeFromPre
 	//lejart az ido uj jatekos jon
 	if (timeFromStart >= TimeLimit)
 	{
-		m_TimerEventManager->StopTimer("time_limit_event");
+		m_TimerEventManager->PauseTimer("time_limit_event");
 
 		//a meg letevofelben levo betuket letesszuk
 		m_WordAnimation->FinishAnimations();
@@ -705,8 +700,7 @@ void CGameManager::CurrentPlayerTurn(bool resumeGame)
 
 	if (m_UIManager->GetTimeLimit() != -1)
 	{
-		m_TimerEventManager->AddTimerEvent(this, &CGameManager::CheckAndUpdateTime, nullptr, "time_limit_event");
-		m_TimerEventManager->StartTimer("time_limit_event");
+		m_TimerEventManager->RestartTimer("time_limit_event");
 		m_LastTurnTimeChanged = 0;
 	}
 
@@ -729,8 +723,7 @@ void CGameManager::NextPlayerTurn()
 
 	if (m_UIManager->GetTimeLimit() != -1)
 	{ 
-		m_TimerEventManager->AddTimerEvent(this, &CGameManager::CheckAndUpdateTime, nullptr, "time_limit_event");
-		m_TimerEventManager->StartTimer("time_limit_event");
+		m_TimerEventManager->RestartTimer("time_limit_event");
 		m_LastTurnTimeChanged = 0;
 	}
 
@@ -877,7 +870,7 @@ bool CGameManager::EndPlayerTurn(bool stillHaveTime)
 
 	bool PlayerFinished = AddNextPlayerTasksNormal(false, true, !m_LetterPool.Empty(), true);
 
-	m_TimerEventManager->StopTimer("time_limit_event");
+	m_TimerEventManager->PauseTimer("time_limit_event");
 	m_CurrentPlayer->AddScore(Score);
 	SetGameState(EGameState::WaintingOnAnimation);
 	AddWordSelectionAnimationLocked(CrossingWords, true);
@@ -943,7 +936,7 @@ void CGameManager::DealComputerLettersEvent()
 
 bool CGameManager::EndComputerTurn()
 {
-	m_TimerEventManager->StopTimer("time_limit_event");
+	m_TimerEventManager->PauseTimer("time_limit_event");
 
 	int TileCount;
 
@@ -1217,6 +1210,10 @@ void CGameManager::ShowStartScreenTask()
 
 void CGameManager::ShowGameScreenTask()
 {
+	//go to game screen add coundown timer if nedded
+	if (m_UIManager->GetTimeLimit() != -1)
+		m_TimerEventManager->AddTimerEvent(this, &CGameManager::CheckAndUpdateTime, nullptr, "time_limit_event");
+
 	SetGameState(TurnInProgress);
 	SetTaskFinished("show_gamescreen_task");
 }
@@ -1243,17 +1240,19 @@ void CGameManager::ContinueGameTask()
 
 		AddNextPlayerTasksNormal(HasWordAnimation, HasTileAnimation, HasLetterAnimation, HasScoreAnimation);
 
+		/*
 		if (HasLetterAnimation)
 			m_TimerEventManager->StartTimer("player_letter_animation");
 
 		if (HasWordAnimation)
-			m_TimerEventManager->StartTimer("add_word_animation");
+			m_TimerEventManager->StartTimer("word_animations");
 
 		if (HasTileAnimation)
 			m_TimerEventManager->StartTimer("tile_animation");
 
 		if (HasScoreAnimation)
 			m_TimerEventManager->StartTimer("score_animation_timer");
+		 */
 	}
 	if (m_SavedGameState == EGameState::WaitingForMessageBox)
 	{
@@ -1273,10 +1272,7 @@ void CGameManager::ContinueGameTask()
 		m_TileAnimations->StartAnimation();
 
 	if (!m_WordAnimation->Empty())
-	{
-		m_TimerEventManager->AddTimerEvent(m_WordAnimation, &CWordAnimationManager::AnimateLettersEvent, &CWordAnimationManager::AnimationFinished, "word_animations");
 		m_TimerEventManager->StartTimer("word_animations");
-	}
 
 	if (!m_PlayerLetterAnimationManager->Empty())
 		m_PlayerLetterAnimationManager->StartAnimations();
@@ -1932,11 +1928,6 @@ void CGameManager::UndoStepAtPos(int x, int y)
 		UndoStep(Idx);
 }
 
-void CGameManager::RemovePlacedLetterSelAtPos(int x, int y)
-{
-	m_Renderer->GetSelectionStore()->RemoveSelection(CSelectionStore::LetterSelection, x, y);
-}
-
 int CGameManager::GetPlayerStepIdxAtPos(int x, int y)
 {
 	for (size_t i = 0; i < m_PlayerSteps.size(); ++i)
@@ -2146,7 +2137,7 @@ void CGameManager::HandleDragFromBoardView(int x, int y)
 	//placed letter back to dragged letter
 	else
 	{
-		RemovePlacedLetterSelAtPos(m_PlacedLetterTouchX, m_PlacedLetterTouchY);
+		RemovePlacedLetterSelection(m_PlacedLetterTouchX, m_PlacedLetterTouchY);
 		m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName())->SetLetterDragged(m_PlayerSteps[m_PlayerStepIdxUndo].m_LetterIdx, x, y);
 		UndoStepAtPos(m_PlacedLetterTouchX, m_PlacedLetterTouchY);
 		m_Renderer->SelectField(m_PlacedLetterTouchX, m_PlacedLetterTouchY);
@@ -2283,17 +2274,20 @@ void CGameManager::RenderFrame()
 
 //		if (m_FrameTime >= MinRenderTime)
 //		{ 
-			m_FrameTime = 0;
+		    m_FrameTime = 0;
 
-			const std::lock_guard<std::recursive_mutex> lock(m_Renderer->GetRenderLock());
+        {
+		    const std::lock_guard<std::recursive_mutex> lock(m_Renderer->GetRenderLock());
 
-			if (m_Renderer->ModelsInited() && GameScreenActive())
-				m_Renderer->Render();
-			else
-				m_Renderer->ClearBuffers();
-			
-			if (m_UIManager)
-				RenderUI();
+
+            if (m_Renderer->ModelsInited() && GameScreenActive())
+                m_Renderer->Render();
+            else
+                m_Renderer->ClearBuffers();
+
+            if (m_UIManager)
+                RenderUI();
+        }
 /*		}
 		else 
 		{
