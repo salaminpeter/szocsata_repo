@@ -8,7 +8,7 @@ class CSelectionStore
 {
 public:
 
-	enum ESelectionType { FailSelection, BoardSelection, LetterSelection, SuccessSelection, SelectionTypeLast};
+	enum ESelectionType { FailSelection, BoardSelection, LetterSelection, SuccessSelection, TopLetterSelection, SelectionTypeLast};
 
 	struct TSelection
 	{
@@ -40,6 +40,6 @@ public:
 
 private:
 
-	std::vector<std::vector<TSelection>> m_Selections = std::vector<std::vector<TSelection>>(4, std::vector<TSelection>());
+	std::vector<std::vector<TSelection>> m_Selections = std::vector<std::vector<TSelection>>(ESelectionType::SelectionTypeLast, std::vector<TSelection>());
 	std::mutex m_Lock;
 };

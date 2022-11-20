@@ -121,7 +121,7 @@ public:
 	void DealComputerLettersEvent();
 	int PlayerWordHorizontal();
 	EGameState GetGameState();
-	CLetterModel* AddLetterToBoard(int x, int y, wchar_t c, float height);
+	CLetterModel* AddLetterToBoard(int x, int y, wchar_t c, float height, bool checLetters = false);
 	void AddWordSelectionAnimationForComputer();
 	void UpdatePlayerScores();
 	bool EndGameIfPlayerFinished();

@@ -22,6 +22,8 @@ glm::vec3 CSelectionStore::GetColorModifyer(ESelectionType type)
 		return glm::vec3(0.7f, 1.f, 0.7f);
 	case FailSelection:
 		return glm::vec3(1.2f, 0.65f, 0.65f);
+	case TopLetterSelection:
+		return glm::vec3(1.f, 0.87f, 0.45f);
 	default:
 		return glm::vec3(1.f, 1.f, 1.f);
 	};

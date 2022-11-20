@@ -1071,8 +1071,14 @@ void CGameManager::UpdatePlayerScores()
 	m_UIManager->UpdateScorePanel();
 }
 
-CLetterModel* CGameManager::AddLetterToBoard(int x, int y, wchar_t c, float height)
+CLetterModel* CGameManager::AddLetterToBoard(int x, int y, wchar_t c, float height, bool checLetters)
 {
+	int TileCount;
+	CConfig::GetConfig("tile_count", TileCount);
+
+	if (m_GameBoard(x, TileCount - y - 1).m_Height == (checLetters ? 5 : 4))
+		m_Renderer->GetSelectionStore()->AddSelection(CSelectionStore::TopLetterSelection, x, y, "top_letter_selection");
+
 	return m_Renderer->AddLetterToBoard(x, y, c, height, true);
 }
 
@@ -1966,10 +1972,10 @@ void CGameManager::UndoStep(size_t idx)
 
 	m_UIManager->GetPlayerLetters(m_CurrentPlayer->GetName().c_str())->SetLetterVisibility(m_CurrentPlayer->GetUsedLetters());
 
+	m_Renderer->GetSelectionStore()->RemoveSelection(CSelectionStore::TopLetterSelection, BoardX, m_PlayerSteps[idx].m_YPosition);
 	m_Renderer->RemoveTopLetter(BoardX, m_PlayerSteps[idx].m_YPosition);
 	m_PlayerSteps[idx] = m_PlayerSteps.back();
 	m_PlayerSteps.pop_back();
-
 }
 
 //a lerakott betuk kozott maradt e ures mezo

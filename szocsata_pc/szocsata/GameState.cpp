@@ -303,7 +303,7 @@ void CGameState::LoadPlayerAndBoardState()
 					if (i == 1)
 					{
 						for (int h = 0; h < height; ++h)
-							m_GameManager->AddLetterToBoard(x, TileCount - y - 1, chr, BoardHeight / 2.f + h * LetterHeight + LetterHeight / 2.f);
+							m_GameManager->AddLetterToBoard(x, TileCount - y - 1, chr, BoardHeight / 2.f + h * LetterHeight + LetterHeight / 2.f, true);
 					}
 				}
 			}
