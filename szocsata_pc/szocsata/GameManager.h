@@ -147,6 +147,9 @@ public:
 	void StopThreads();
 	void AddNextPlayerTasksPass();
 	bool AddNextPlayerTasksNormal(bool hasWordAnimation, bool hasTileAnimation, bool hasLetterAnimation, bool hasScoreAnimation, bool addMessageBoxTask = true);
+	void AddCountDownTimerIfNeeded();
+	void StopCountdown();
+	void StartCountdown();
 
 	glm::ivec2 GetUIElementSize(const wchar_t* id);
 	std::wstring GetTimeStr(int msec);
@@ -339,8 +342,9 @@ private:
 
 	int m_ComputerWordIdx = -1;
 	int m_SavedPopupType;
+	int m_RemainingTurnTime = 0;
 	int m_LastTurnTimeChanged = 0;
-	int m_TurnTimeStart = 0;
+	bool m_CountDownRunning = false;
 
 	std::atomic<bool> m_GamePaused = false;
 };

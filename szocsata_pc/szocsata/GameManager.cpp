@@ -534,7 +534,9 @@ void CGameManager::CheckAndUpdateTime(double& timeFromStart, double& timeFromPre
 	if (m_LastTurnTimeChanged >= 1000 || m_LastTurnTimeChanged == 0)
 	{
 		m_LastTurnTimeChanged = 0;
-		std::wstring RemainingTimeStr = GetTimeStr(TimeLimit - timeFromStart);
+		m_RemainingTurnTime -= timeFromPrev;
+		m_RemainingTurnTime = m_RemainingTurnTime < 0 ? 0 : m_RemainingTurnTime;
+		std::wstring RemainingTimeStr = GetTimeStr(m_RemainingTurnTime);
 		m_UIManager->SetRemainingTimeStr(RemainingTimeStr.c_str());
 	}
 	else
@@ -542,9 +544,9 @@ void CGameManager::CheckAndUpdateTime(double& timeFromStart, double& timeFromPre
 
 
 	//lejart az ido uj jatekos jon
-	if (timeFromStart >= TimeLimit)
+	if (m_RemainingTurnTime == 0)
 	{
-		m_TimerEventManager->PauseTimer("time_limit_event");
+		StopCountdown();
 
 		//a meg letevofelben levo betuket letesszuk
 		m_WordAnimation->FinishAnimations();
@@ -699,10 +701,7 @@ void CGameManager::CurrentPlayerTurn(bool resumeGame)
 	}
 
 	if (m_UIManager->GetTimeLimit() != -1)
-	{
-		m_TimerEventManager->RestartTimer("time_limit_event");
-		m_LastTurnTimeChanged = 0;
-	}
+		StartCountdown();
 
 	StartPlayerTurn(m_CurrentPlayer, !resumeGame);
 }
@@ -722,10 +721,7 @@ void CGameManager::NextPlayerTurn()
 	m_Players[NextPlayerIdx]->m_Passed = false;
 
 	if (m_UIManager->GetTimeLimit() != -1)
-	{ 
-		m_TimerEventManager->RestartTimer("time_limit_event");
-		m_LastTurnTimeChanged = 0;
-	}
+		StartCountdown();
 
 	m_CurrentPlayer = m_Players[NextPlayerIdx];
 
@@ -870,7 +866,7 @@ bool CGameManager::EndPlayerTurn(bool stillHaveTime)
 
 	bool PlayerFinished = AddNextPlayerTasksNormal(false, true, !m_LetterPool.Empty(), true);
 
-	m_TimerEventManager->PauseTimer("time_limit_event");
+	StopCountdown();
 	m_CurrentPlayer->AddScore(Score);
 	SetGameState(EGameState::WaintingOnAnimation);
 	AddWordSelectionAnimationLocked(CrossingWords, true);
@@ -936,10 +932,9 @@ void CGameManager::DealComputerLettersEvent()
 
 bool CGameManager::EndComputerTurn()
 {
-	m_TimerEventManager->PauseTimer("time_limit_event");
+	StopCountdown();
 
 	int TileCount;
-
 	CConfig::GetConfig("tile_count", TileCount);
 
 	TComputerStep ComputerStep;
@@ -1191,16 +1186,27 @@ void CGameManager::LoadState()
 	SetTaskFinished("load_game_state_task");
 }
 
+void CGameManager::StartCountdown()
+{
+	m_TimerEventManager->RestartTimer("time_limit_event");
+	m_LastTurnTimeChanged = 0;
+
+	if (m_RemainingTurnTime == 0)
+		m_RemainingTurnTime = m_UIManager->GetTimeLimit();
+}
+
+void CGameManager::StopCountdown()
+{
+	m_TimerEventManager->PauseTimer("time_limit_event");
+	m_RemainingTurnTime = m_UIManager->GetTimeLimit();
+}
+
 void CGameManager::ShowSavedScreenTask()
 {
-	if (!GameScreenActive(m_SavedGameState))
-		SetGameState(m_SavedGameState);
-	else
-	{
-		SetGameState(m_SavedGameState);
+	if (GameScreenActive(m_SavedGameState))
 		m_UIManager->SetScorePanelLayoutBox();
-	}
 
+	SetGameState(m_SavedGameState);
 	SetTaskFinished("resume_on_saved_screen_task");
 	SetTaskFinished("game_started_task");
 
@@ -1214,12 +1220,15 @@ void CGameManager::ShowStartScreenTask()
 	m_UIManager->m_UIInitialized = true;
 }
 
+void CGameManager::AddCountDownTimerIfNeeded()
+{
+	if (m_UIManager->GetTimeLimit() != -1)
+		m_TimerEventManager->AddTimerEvent(this, &CGameManager::CheckAndUpdateTime, nullptr,"time_limit_event");
+}
+
 void CGameManager::ShowGameScreenTask()
 {
-	//go to game screen add coundown timer if nedded
-	if (m_UIManager->GetTimeLimit() != -1)
-		m_TimerEventManager->AddTimerEvent(this, &CGameManager::CheckAndUpdateTime, nullptr, "time_limit_event");
-
+	AddCountDownTimerIfNeeded();
 	SetGameState(TurnInProgress);
 	SetTaskFinished("show_gamescreen_task");
 }
@@ -1245,21 +1254,8 @@ void CGameManager::ContinueGameTask()
 		bool HasScoreAnimation = m_ScoreAnimationManager->HasAnimation() || HasWordAnimation;
 
 		AddNextPlayerTasksNormal(HasWordAnimation, HasTileAnimation, HasLetterAnimation, HasScoreAnimation);
-
-		/*
-		if (HasLetterAnimation)
-			m_TimerEventManager->StartTimer("player_letter_animation");
-
-		if (HasWordAnimation)
-			m_TimerEventManager->StartTimer("word_animations");
-
-		if (HasTileAnimation)
-			m_TimerEventManager->StartTimer("tile_animation");
-
-		if (HasScoreAnimation)
-			m_TimerEventManager->StartTimer("score_animation_timer");
-		 */
 	}
+
 	if (m_SavedGameState == EGameState::WaitingForMessageBox)
 	{
 		//resume from player popup
@@ -1272,6 +1268,14 @@ void CGameManager::ContinueGameTask()
 		//resume from passed toast
 		else if (m_SavedPopupType == CUIMessageBox::NoButton)
 			AddNextPlayerTasksPass();
+	}
+
+	else
+	{
+		AddCountDownTimerIfNeeded();
+
+		if (m_CountDownRunning)
+			StartCountdown();
 	}
 
 	if (!m_TileAnimations->Empty())

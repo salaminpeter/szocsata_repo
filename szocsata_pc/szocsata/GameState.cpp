@@ -2,6 +2,7 @@
 #include "GameState.h"
 #include "GameBoard.h"
 #include "GameManager.h"
+#include "TimerEventManager.h"
 #include "UIManager.h"
 #include "UIPlayerLetters.h"
 #include "Config.h"
@@ -73,6 +74,17 @@ void CGameState::SaveGameState()
 		return;
 
 	if (OnGameScreen) {
+
+		bool HasTimeLimit = m_GameManager->GetUIManager()->GetTimeLimit() != -1;
+		bool TimerRunning = m_GameManager->GetTimerEventManager()->IsTimerRunning("time_limit_event");
+		StateFile.write((char *)&HasTimeLimit, sizeof(bool));
+
+		if (HasTimeLimit)
+		{
+			StateFile.write((char *)&m_GameManager->m_RemainingTurnTime, sizeof(int));
+			StateFile.write((char *)&TimerRunning, sizeof(bool));
+		}
+
 		size_t CurrentPlayerIdx = m_GameManager->GetCurrentPlayerIdx();
 		StateFile.write((char *) &CurrentPlayerIdx, sizeof(size_t));
 
@@ -278,6 +290,14 @@ void CGameState::LoadPlayerAndBoardState()
 #endif
 	if (m_GameManager->GameScreenActive(m_GameManager->m_SavedGameState))
 	{
+		bool HasTimeLimit;
+		StateFile.read((char *)&HasTimeLimit, sizeof(bool));
+
+		if (HasTimeLimit)
+		{
+			StateFile.read((char *)&m_GameManager->m_RemainingTurnTime, sizeof(int));
+			StateFile.read((char *)&m_GameManager->m_CountDownRunning, sizeof(bool));
+		}
 
 		size_t CurrentPlayerIdx;
 		StateFile.read((char *)&CurrentPlayerIdx, sizeof(size_t));

@@ -18,6 +18,14 @@ CTimerEventManager::~CTimerEventManager()
 	Reset();
 }
 
+bool CTimerEventManager::IsTimerRunning(const char* id)
+{
+	if (CTimerEvent* t = GetTimerEvent(id))
+		return (t->IsStarted() && !t->IsPaused());
+
+	return false;
+}
+
 void CTimerEventManager::Reset()
 {
 	auto it = m_TimerEvents.begin();

@@ -76,6 +76,7 @@ public:
 
 	void Loop();
 	void Reset();
+	bool IsTimerRunning(const char* id);
 
 	void StartTimer(const char* id) { ChangeTimerState(true, false, false, false, id); }
 	void RestartTimer(const char* id) { StartTimer(id); }
