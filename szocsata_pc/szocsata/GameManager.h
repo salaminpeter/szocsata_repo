@@ -90,7 +90,8 @@ public:
 
 	void HandleReleaseEventFromBoardView(int x, int y);
 	void HandleReleaseEventFromUIView(int x, int y);
-	void HandleReleaseEvent(int x, int y);
+    void HandleReleaseEvent(int x, int y);
+    void HandleReleaseEvent();
 	void HandleToucheEvent(int x, int y);
 	bool HandleDoubleClickEvent(int x, int y);
 	void HandleDragEvent(int x, int y);

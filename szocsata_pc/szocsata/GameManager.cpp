@@ -1877,6 +1877,10 @@ void CGameManager::UndoComp()
 	StartComputerturn();
 }
 
+void CGameManager::HandleReleaseEvent()
+{
+    m_TouchX = -1;
+}
 
 void CGameManager::HandleReleaseEvent(int x, int y)
 {

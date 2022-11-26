@@ -68,6 +68,7 @@ public class MainActivity extends AppCompatActivity {
                                                     int y = (int)event.getY(0);
                                                     m_FingerPos0.x = x;
                                                     m_FingerPos0.y = y;
+
                                                     if (!m_MultyTouch)
                                                         HandleTouchEvent(x, y);
                                                     return true;
@@ -95,7 +96,7 @@ public class MainActivity extends AppCompatActivity {
                                                     else {
                                                         int x = (int)event.getX(0);
                                                         int y = (int)event.getY(0);
-                                                        Log.i("dist", "HandleRelease x : " + x + " y : " + y );
+                                                        Log.i("fos", "HandleRelease x : " + x + " y : " + y );
                                                         HandleReleaseEvent(x, y);
                                                     }
                                                         return true;
@@ -103,13 +104,13 @@ public class MainActivity extends AppCompatActivity {
 
                                                 if (Action == MotionEvent.ACTION_POINTER_UP) {
                                                     Log.i("fos", "finger 2 up : " + 1);
-                                                    m_MultyTouch = false;
                                                     HandleMultyTouchEndEvent();
+                                                    m_MultyTouch = false;
                                                     return true;
                                                 }
 
                                                 if (Action == MotionEvent.ACTION_MOVE) {
-  //                                                  Log.i("fos", "finger move : " + event.getPointerCount() + " kk " + m_MultyTouch);
+  //                                                 Log.i("fos", "finger move : " + event.getPointerCount() + " kk " + m_MultyTouch);
                                                     if (m_MultyTouch) {
 
                                                         int pointerCount = event.getPointerCount();
@@ -147,7 +148,7 @@ public class MainActivity extends AppCompatActivity {
                                                     else {
                                                         int x = (int)event.getX(0);
                                                         int y = (int)event.getY(0);
-                                                        Log.i("dist", "HandleDrag x : " + x + " y : " + y );
+                                                        Log.i("fos", "HandleDrag x : " + x + " y : " + y );
                                                        HandleDragEvent(x, y);
                                                     }
 
