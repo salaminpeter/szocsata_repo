@@ -26,7 +26,7 @@ public:
 		bool m_RunReverseAnimation = false;
 		bool m_AnimationFinished = false;
 
-		const float m_MaxScale = 1.3;
+		const float m_MaxScale = 0.7;
 
 		TButtonAnimation() = default;
 		TButtonAnimation(CUIElement* button);

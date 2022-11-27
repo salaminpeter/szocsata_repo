@@ -91,12 +91,11 @@ public:
 	void StopThread() { m_StopTaskThread = true; }
 
 	std::mutex Mtx;
-	std::condition_variable m_TasksCleared;
+	std::atomic_bool m_TaskThreadStopped = false;
 
 private:
 
 	void FreeTask(const char* taskId);
-	void StartPendingTasks();
 	std::shared_ptr<CTask> GetTask(const char* id);
 
 private:

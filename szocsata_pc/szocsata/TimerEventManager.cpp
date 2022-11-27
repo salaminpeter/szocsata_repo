@@ -15,7 +15,13 @@ namespace Logger {
 
 CTimerEventManager::~CTimerEventManager()
 {
-	Reset();
+	//Reset();
+	const std::lock_guard<std::mutex> lock(m_Lock);
+
+	for (auto TimerEvent : m_TimerEvents)
+		delete TimerEvent;
+
+	m_TimerEvents.clear();
 }
 
 bool CTimerEventManager::IsTimerRunning(const char* id)

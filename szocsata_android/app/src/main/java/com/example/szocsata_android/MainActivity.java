@@ -9,6 +9,7 @@ import androidx.core.view.MotionEventCompat;
 import android.accessibilityservice.FingerprintGestureController;
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.AssetManager;
 import android.graphics.Point;
 import android.graphics.PointF;
@@ -20,6 +21,9 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
 import com.example.szocsata_android.R;
+
+import java.io.File;
+import java.io.IOException;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -171,8 +175,35 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume(){
         super.onResume();
-        hideStatusBar();
+
+        String Path = getFilesDir() + "/secondstart";
+        File SecondStartFile = new File(Path);
+
+        if (SecondStartFile.exists() == false) {
+            try {
+                SecondStartFile.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            Intent i = new Intent(getApplicationContext(), MainActivity.class);
+            i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(i);
+            android.os.Process.killProcess(android.os.Process.myPid());
+            return;
+        }
+
         m_OpenGLView.onResume();
+
+        SecondStartFile.delete();
+
+/*
+        hideStatusBar();
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        m_OpenGLView.onResume();*/
     }
 
     @Override

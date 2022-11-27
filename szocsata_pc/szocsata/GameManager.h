@@ -322,6 +322,7 @@ private:
 	int m_SurfaceHeigh;
 	bool m_StopGameLoop = false;
 	std::atomic_bool m_ContinueGame = false;
+	std::atomic_bool m_GameThreadStopped = false;
 	bool m_PauseGameLoop = false;
 
 	bool m_StartOnGameScreen = false;

@@ -1367,6 +1367,9 @@ void CGameManager::StopThreads()
 {
 	m_StopGameLoop = true;
 	StopTaskThread();
+
+	while (!m_GameThreadStopped || !m_TaskManager->m_TaskThreadStopped)
+		std::this_thread::sleep_for(std::chrono::milliseconds(30));
 }
 
 bool CGameManager::AddNextPlayerTasksNormal(bool hasWordAnimation, bool hasTileAnimation, bool hasLetterAnimation, bool hasScoreAnimation, bool addMessageBoxTask)
@@ -1525,10 +1528,15 @@ CGameManager::EGameState CGameManager::GetGameState()
 
 void CGameManager::GameLoop()
 {
+	m_GameThreadStopped = false;
+
 	while (true)
 	{
 		if (m_StopGameLoop)
+		{
+			m_GameThreadStopped = true;
 			return;
+		}
 
 		if (IsGamePaused())
 		{

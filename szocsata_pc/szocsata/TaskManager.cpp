@@ -137,10 +137,15 @@ void CTaskManager::StartTask(const char* id)
 
 void CTaskManager::TaskLoop()
 {
+	m_TaskThreadStopped = false;
+
 	while (true)
 	{
 		if (m_StopTaskThread)
+		{
+			m_TaskThreadStopped = true;
 			return;
+		}
 
 		if (CTimer::GetCurrentTime() - m_LastLoopTime < m_Frequency)
 			continue;

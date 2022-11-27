@@ -32,7 +32,7 @@ void CButtonAnimationManager::HandleAnimation(double& timeFromStart, double& tim
 			NewHeight = m_ButtonAnimation.m_DestHeight;
 			m_ButtonAnimation.m_AnimationFinished = true;
 
-			bool IsReversdeAnimation = m_ButtonAnimation.m_StartWidth > m_ButtonAnimation.m_DestWidth;
+			bool IsReversdeAnimation = m_ButtonAnimation.m_StartWidth < m_ButtonAnimation.m_DestWidth;
 
 			if (IsReversdeAnimation)
 			{
