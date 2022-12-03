@@ -144,7 +144,7 @@ void CUIScorePanel::Init()
 		PlayerName->SetPosAndSize(XPos, YPos - NameTopBottom.y - (MaxTextHeight - MaxNameScoreHeight) / 2, PlayerName->GetWidth(), PlayerName->GetHeight(), false);
 
 		IconId << L"ui_player_score_icon_" << Idx;
-		CUIPanel* IconPanel = new CUIPanel(this, IconId.str().c_str(), m_PositionData, m_ColorData, m_GridColorData, 0, 0, 0, 0, m_ViewXPosition, m_ViewYPosition, "kor_icon.bmp", 0, 0);
+		CUIPanel* IconPanel = new CUIPanel(this, IconId.str().c_str(), m_PositionData, m_ColorData, m_GridColorData, 0, 0, 0, 0, m_ViewXPosition, m_ViewYPosition, "round_player_icon_texture_generated", 0, 0);
 		float ph = PlayerName->GetHeight();
 		float IconY = PlayerName->GetPosition(false).y + NameTopBottom.y + (NameTopBottom.x - NameTopBottom.y - IconSize) / 2;
 		m_Children.back()->SetPosAndSize(IconSize / 2, IconY, IconSize, IconSize, false);

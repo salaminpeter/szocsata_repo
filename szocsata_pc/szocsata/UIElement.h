@@ -52,6 +52,7 @@ public:
 	void Resize(float newWidth, float newHeight, int depth = 0);
 	void Scale(float scale);
 	glm::vec2 GetAbsolutePosition();
+	void SwapChildren(size_t chIdx0, size_t chIdx1);
 
 	CModel* GetModel();
 	CModel* GetModel(size_t idx);

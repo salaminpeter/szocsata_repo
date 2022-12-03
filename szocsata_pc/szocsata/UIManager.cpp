@@ -214,7 +214,7 @@ void CUIManager::InitMainScreen(std::shared_ptr<CSquarePositionData> positionDat
 
 	//Start screen buttons
 	IconTextButton = AddIconTextButton(m_MainScreenBtnLayout, L"új játék", positionData, colorData, gridcolorData16x6, 0, 0, BtnSize.x, BtnSize.y, "view_ortho", "start_scr_btn_texture_generated", "play_icon.bmp", L"ui_new_game_btn", "textured", .65f, .7f);
-	IconTextButton->SetTextColor(.92f, .92f, .92f);
+	IconTextButton->SetTextColor(.96f, .92f, .92f);
 	IconTextButton->SetIconColor(.92f, .92f, .92f);
 	IconTextButton->SetEvent(CUIElement::TouchEvent, m_GameManager, &CGameManager::AddButtonAnimation, (CUIElement*)IconTextButton);
 	IconTextButton->SetEvent(CUIElement::ReleaseEvent, m_GameManager, &CGameManager::EnableReverseAnimation, (CUIElement*)IconTextButton);
@@ -234,7 +234,7 @@ void CUIManager::InitMainScreen(std::shared_ptr<CSquarePositionData> positionDat
 	*/
 
 	IconTextButton = AddIconTextButton(m_MainScreenBtnLayout, L"szabályok", positionData, colorData, gridcolorData16x6, 0, 0, BtnSize.x, BtnSize.y, "view_ortho", "start_scr_btn_texture_generated", "book_icon.bmp", L"ui_rules_game_btn", "textured", .65f, 1.31f);
-	IconTextButton->SetTextColor(.92f, .92f, .92f);
+	IconTextButton->SetTextColor(.96f, .92f, .92f);
 	IconTextButton->SetIconColor(.92f, .92f, .92f);
 	IconTextButton->SetEvent(CUIElement::ReleaseEvent, m_GameManager, &CGameManager::GoToStartGameScrEvent);
 
@@ -428,7 +428,7 @@ void CUIManager::InitGameScreen(std::shared_ptr<CSquarePositionData> positionDat
 	CUIHorizontalLayout* SubLayout0 = new CUIHorizontalLayout(0, UIPanelHeight - LayoutBox0Height, UIPanelWidth, LayoutBox0Height, ViewPos.x, ViewPos.y, GameScreenLayout, L"ui_game_screen_sub_layout0", (CountdownActive ? 2 : 1), 0.5, 0.5);
 
 	SubLayout0->SetBoxSizeProps(0, PlayerLogoSize.x, PlayerLogoSize.y, true);
-	AddIconTextButton(SubLayout0, L"", positionData, colorData, gridcolorData16x6, 0, 0, PlayerLogoSize.x, PlayerLogoSize.y, "view_ortho", "current_player_texture_generated", "kor_icon.bmp", L"ui_current_palyer_logo", "textured", 0.7f, 1.f, 0.7f, 0.f, CUIText::Center);
+	AddIconTextButton(SubLayout0, L"", positionData, colorData, gridcolorData16x6, 0, 0, PlayerLogoSize.x, PlayerLogoSize.y, "view_ortho", "current_player_texture_generated", "round_player_icon_texture_generated", L"ui_current_palyer_logo", "textured", 0.7f, 1.f, 0.7f, 0.f, CUIText::Center);
 
 	if (CountdownActive)
 	{

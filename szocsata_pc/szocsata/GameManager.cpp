@@ -129,7 +129,7 @@ void CGameManager::AddPlayers(int playerCount, bool addComputer, bool addLetters
 	int LetterCount;
 	CConfig::GetConfig("letter_count", LetterCount);
 
-	std::vector<glm::vec3> PlayerColors = { glm::vec3(0, 1, 1),  glm::vec3(0, 1, 0), glm::vec3(0, 0, 1), glm::vec3(1, 1, 0), glm::vec3(1, 1, 1) };
+	std::vector<glm::vec3> PlayerColors = { glm::vec3(.35f, .78f, .95f),  glm::vec3(.56f, .82f, .47f), glm::vec3(.67f, .58f, .72f), glm::vec3(.92f, .8f, 0.f), glm::vec3(.92f, .92f, .92f) };
 
 	for (int i = 0; i < playerCount; ++i)
 	{
@@ -1246,6 +1246,10 @@ void CGameManager::ContinueGameTask()
 
 	bool ComputerStep = m_CurrentPlayer->IsComputer() && m_Computer->GetComputerStep().IsStepValid();
 
+	AddCountDownTimerIfNeeded();
+	std::wstring RemainingTimeStr = GetTimeStr(m_RemainingTurnTime);
+	m_UIManager->SetRemainingTimeStr(RemainingTimeStr.c_str());
+
 	if (m_SavedGameState == EGameState::WaintingOnAnimation)
 	{
 	    bool HasWordAnimation = !m_WordAnimation->Empty();
@@ -1270,13 +1274,9 @@ void CGameManager::ContinueGameTask()
 			AddNextPlayerTasksPass();
 	}
 
-	else
-	{
-		AddCountDownTimerIfNeeded();
-
-		if (m_CountDownRunning)
+	else if (m_CountDownRunning)
 			StartCountdown();
-	}
+
 
 	if (!m_TileAnimations->Empty())
 		m_TileAnimations->StartAnimation();

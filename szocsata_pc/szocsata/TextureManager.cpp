@@ -289,7 +289,9 @@ void CTextureManager::GenerateRoundedBoxTexture(int w, int h, int r, glm::vec4 c
 
 void CTextureManager::GenerateScorePanelTexture(float scorePanelWidth, float scorePanelHeight)
 {
-	GenerateRoundedBoxTexture(scorePanelWidth, scorePanelHeight, scorePanelHeight / 6, glm::vec4(0.89f, 0.71f, 0.51f, 0.4f), 2, glm::vec4(.41f, .21f, .09f, 1.f), "player_score_panel_texture_generated", true);
+    float r = scorePanelHeight / 6;
+    r = 25 > r ? r : 25;
+	GenerateRoundedBoxTexture(scorePanelWidth, scorePanelHeight, r, glm::vec4(0.89f, 0.71f, 0.51f, 0.4f), 2, glm::vec4(.41f, .21f, .09f, 1.f), "player_score_panel_texture_generated", true);
 }
 
 void CTextureManager::GenerateTileCounterTexture(float size)
@@ -329,6 +331,7 @@ void CTextureManager::GenerateTextures(float viewWidth, float viewHeight)
 	GenerateRoundedBoxTexture(viewHeight / 8, viewHeight / 8, viewHeight / 16, glm::vec4(0.89f, 0.71f, 0.51f, 0.5f), 3, glm::vec4(1, 1, 1, 1.f), "round_button_texture_generated");
 	GenerateRoundedBoxTexture(viewHeight / 8, viewHeight / 8, viewHeight / 16, glm::vec4(0.89f, 0.71f, 0.51f, 0.5f), 3, glm::vec4(.41f, .21f, .09f, 1.f), "round_icon_texture_generated");
 	GenerateRoundedBoxTexture(viewWidth / 2, viewWidth / 3, viewWidth / 50, glm::vec4(0.89f, 0.71f, 0.51f, .7f), 2, glm::vec4(.41f, .21f, .09f, 1.f), "messagebox_texture_generated");
+	GenerateRoundedBoxTexture(128, 128, 64, glm::vec4(1.f, 1.f, 1.f, 0.5f), 6, glm::vec4(.3f, .3f, .3f, 1.f), "round_player_icon_texture_generated");
 
 	Generate2x2Texture(glm::vec4(1.f, 1.f, 1.f, 1.f), "solid_color_texture_generated");
 }

@@ -1208,6 +1208,9 @@ void CRenderer::Render()
 
 		for (unsigned i = 0; i < m_SelectedLetters.size(); ++i)
 		{
+			if (!m_SelectedLetters[i]->Visible())
+				continue;
+
 			CSelectionStore::TSelection* Selection = m_SelectionStore->GetSelection(m_SelectedLetters[i]->BoardX(), m_SelectedLetters[i]->BoardY());
 			SetModifyColor(Selection->m_ColorModifyer.r, Selection->m_ColorModifyer.g, Selection->m_ColorModifyer.b, 1, "per_pixel_light_textured");
 			DrawModel(m_SelectedLetters[i], "board_perspecive", "per_pixel_light_textured", true, !BufferBound, !BufferBound, (i == m_SelectedLetters.size() - 1));

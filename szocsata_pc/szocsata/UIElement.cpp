@@ -69,6 +69,15 @@ bool CUIElement::PositionInElement(int x, int y, bool useTouchOffset)
 	return x + XOffset >= AbsPos.x - m_Width / 2 && x - XOffset <= AbsPos.x + m_Width / 2 && y + YOffset >= AbsPos.y - m_Height / 2 && y - YOffset <= AbsPos.y + m_Height / 2; 
 }
 
+void CUIElement::SwapChildren(size_t chIdx0, size_t chIdx1)
+{
+	if (chIdx0 >= m_Children.size() || chIdx1 >= m_Children.size())
+		return;
+
+	std::swap(m_Children[chIdx0], m_Children[chIdx1]);
+}
+
+
 glm::vec2 CUIElement::GetAbsolutePosition()
 {
 	glm::vec2 AbsPos(m_XPosition, m_YPosition);
