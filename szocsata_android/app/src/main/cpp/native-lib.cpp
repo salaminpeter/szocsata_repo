@@ -38,10 +38,10 @@ JNI_OnLoad(JavaVM *jvm, void *reserved)
 //    JNIEnv *env;
     g_VM->GetEnv((void **)&g_Env, JNI_VERSION_1_6);
 
-    jclass cls = (*g_Env).FindClass("com/example/szocsata_android/OpenGLRenderer");
+    jclass cls = (*g_Env).FindClass("com/momosoft/szocsata3d/OpenGLRenderer");
     g_OpenGLRendererClass = (jclass)(*g_Env).NewGlobalRef(cls);
 
-    jclass cls1 = (*g_Env).FindClass("com/example/szocsata_android/MainActivity");
+    jclass cls1 = (*g_Env).FindClass("com/momosoft/szocsata3d/MainActivity");
     g_MainActivityClass = (jclass)(*g_Env).NewGlobalRef(cls1);
 
     return JNI_VERSION_1_6;
@@ -50,7 +50,7 @@ JNI_OnLoad(JavaVM *jvm, void *reserved)
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_szocsata_1android_MainActivity_SetAssetManager(JNIEnv *env, jobject thiz, jobject asset_manager) {
+Java_com_momosoft_szocsata3d_MainActivity_SetAssetManager(JNIEnv *env, jobject thiz, jobject asset_manager) {
     CIOManager::InitFileHandler(new CFileHandlerAndroid());
     CFileHandlerAndroid::m_AssetManager = env->NewGlobalRef(asset_manager);
     env->GetJavaVM(&CFileHandlerAndroid::m_VM);
@@ -60,7 +60,7 @@ Java_com_example_szocsata_1android_MainActivity_SetAssetManager(JNIEnv *env, job
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_szocsata_1android_OpenGLRenderer_Render(JNIEnv *env, jobject thiz) {
+Java_com_momosoft_szocsata3d_OpenGLRenderer_Render(JNIEnv *env, jobject thiz) {
     gm->RenderFrame();
 }
 
@@ -141,61 +141,61 @@ void InitGameManager(int surfWidth, int surfHeight)
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_szocsata_1android_OpenGLRenderer_InitGameManager(JNIEnv *env, jobject thiz, jint surface_width, jint surface_height) {
+Java_com_momosoft_szocsata3d_OpenGLRenderer_InitGameManager(JNIEnv *env, jobject thiz, jint surface_width, jint surface_height) {
     InitGameManager(surface_width, surface_height);
 }
 
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_szocsata_1android_MainActivity_HandleTouchEvent(JNIEnv *env, jobject thiz, jint x, jint y) {
+Java_com_momosoft_szocsata3d_MainActivity_HandleTouchEvent(JNIEnv *env, jobject thiz, jint x, jint y) {
     InputManager->HandleTouchEvent(x, y);
 }
 
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_szocsata_1android_MainActivity_HandleReleaseEvent(JNIEnv *env, jobject thiz, jint x, jint y) {
+Java_com_momosoft_szocsata3d_MainActivity_HandleReleaseEvent(JNIEnv *env, jobject thiz, jint x, jint y) {
     InputManager->HandleReleaseEvent(x, y);
 }
 
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_szocsata_1android_MainActivity_HandleDragEvent(JNIEnv *env, jobject thiz, jint x, jint y) {
+Java_com_momosoft_szocsata3d_MainActivity_HandleDragEvent(JNIEnv *env, jobject thiz, jint x, jint y) {
     InputManager->HandleDragEvent(x, y);
 }
 
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_szocsata_1android_MainActivity_HandleMultyTouchStartEvent(JNIEnv *env, jobject thiz, jint x0, jint y0, jint x1, jint y1) {
+Java_com_momosoft_szocsata3d_MainActivity_HandleMultyTouchStartEvent(JNIEnv *env, jobject thiz, jint x0, jint y0, jint x1, jint y1) {
     InputManager->HandleMultyTouchStart(x0, y0, x1, y1);
 }
 
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_szocsata_1android_MainActivity_HandleMultyTouchEvent(JNIEnv *env, jobject thiz, jint x0, jint y0, jint x1, jint y1) {
+Java_com_momosoft_szocsata3d_MainActivity_HandleMultyTouchEvent(JNIEnv *env, jobject thiz, jint x0, jint y0, jint x1, jint y1) {
    InputManager->HandleMultyTouch(x0, y0, x1, y1);
 }
 
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_szocsata_1android_MainActivity_HandleMultyTouchEndEvent(JNIEnv *env, jobject thiz) {
+Java_com_momosoft_szocsata3d_MainActivity_HandleMultyTouchEndEvent(JNIEnv *env, jobject thiz) {
     InputManager->HandleMultyTouchEnd();
 }
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_szocsata_1android_OpenGLRenderer_SetThisInGameManager(JNIEnv *env, jobject thiz, jobject obj) {
+Java_com_momosoft_szocsata3d_OpenGLRenderer_SetThisInGameManager(JNIEnv *env, jobject thiz, jobject obj) {
     gm->SetRendererObject(env->NewGlobalRef(obj));
 }
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_szocsata_1android_OpenGLRenderer_EndInitAndStart(JNIEnv *env, jobject thiz) {
+Java_com_momosoft_szocsata3d_OpenGLRenderer_EndInitAndStart(JNIEnv *env, jobject thiz) {
 
     gm->ShowLoadingScreen(true);
     gm->GetUIManager()->m_UIInitialized = false;
@@ -209,7 +209,7 @@ Java_com_example_szocsata_1android_OpenGLRenderer_EndInitAndStart(JNIEnv *env, j
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_szocsata_1android_MainActivity_ClearResources(JNIEnv *env, jobject thiz) {
+Java_com_momosoft_szocsata3d_MainActivity_ClearResources(JNIEnv *env, jobject thiz) {
     if (!gm)
         return;
 
@@ -223,7 +223,7 @@ Java_com_example_szocsata_1android_MainActivity_ClearResources(JNIEnv *env, jobj
 
 extern "C"
 JNIEXPORT bool JNICALL
-Java_com_example_szocsata_1android_OpenGLRenderer_CreateGameManager(JNIEnv *env, jobject thiz)
+Java_com_momosoft_szocsata3d_OpenGLRenderer_CreateGameManager(JNIEnv *env, jobject thiz)
 {
     const std::lock_guard<std::mutex> lock(m_GMLock);
     if (gm)
@@ -235,7 +235,7 @@ Java_com_example_szocsata_1android_OpenGLRenderer_CreateGameManager(JNIEnv *env,
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_szocsata_1android_OpenGLRenderer_RunTaskOnRenderThread(JNIEnv *env, jobject thiz, jstring id)
+Java_com_momosoft_szocsata3d_OpenGLRenderer_RunTaskOnRenderThread(JNIEnv *env, jobject thiz, jstring id)
 {
     const char *nativeStringId = env->GetStringUTFChars(id, 0);
     gm->StartTask(nativeStringId);
@@ -244,7 +244,7 @@ Java_com_example_szocsata_1android_OpenGLRenderer_RunTaskOnRenderThread(JNIEnv *
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_szocsata_1android_MainActivity_StopGameLoop(JNIEnv *env, jobject thiz)
+Java_com_momosoft_szocsata3d_MainActivity_StopGameLoop(JNIEnv *env, jobject thiz)
 {
     gm->m_StopGameLoop = true;
     gm->StopTaskThread();
@@ -252,6 +252,6 @@ Java_com_example_szocsata_1android_MainActivity_StopGameLoop(JNIEnv *env, jobjec
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_szocsata_1android_MainActivity_ResumeGame(JNIEnv *env, jobject thiz)
+Java_com_momosoft_szocsata3d_MainActivity_ResumeGame(JNIEnv *env, jobject thiz)
 {
 }

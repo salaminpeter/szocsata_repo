@@ -1,10 +1,7 @@
-package com.example.szocsata_android;
+package com.momosoft.szocsata3d;
 
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
-import android.os.Build;
-
-import androidx.annotation.RequiresApi;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;

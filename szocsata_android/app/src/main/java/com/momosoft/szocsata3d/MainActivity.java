@@ -1,26 +1,17 @@
-package com.example.szocsata_android;
+package com.momosoft.szocsata3d;
 
-import androidx.annotation.MainThread;
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.core.view.MotionEventCompat;
 
-import android.accessibilityservice.FingerprintGestureController;
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.AssetManager;
 import android.graphics.Point;
-import android.graphics.PointF;
-import android.opengl.GLSurfaceView;
-import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.TextView;
-import com.example.szocsata_android.R;
+
+import com.momosoft.szocsata3d.R;
 
 import java.io.File;
 import java.io.IOException;

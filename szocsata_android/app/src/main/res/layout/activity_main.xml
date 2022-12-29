@@ -2,13 +2,30 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/opengl_view_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity"
-    >
+    android:background="@android:color/black"
+    android:backgroundTint="@android:color/black"
+    android:backgroundTintMode="screen"
+    tools:context=".MainActivity">
 
-    <com.example.szocsata_android.OpenGLView
+    <com.momosoft.szocsata3d.OpenGLView
         android:id="@+id/openGLView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent" />
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="223dp"
+        android:layout_height="66dp"
+        android:text="Loading..."
+        android:textAlignment="center"
+        android:textColor="#FFFFFF"
+        android:textSize="30sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/openGLView"
+        app:layout_constraintTop_toTopOf="@+id/openGLView" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

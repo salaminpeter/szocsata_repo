@@ -1,10 +1,8 @@
-package com.example.szocsata_android;
+package com.momosoft.szocsata3d;
 
 import android.content.Context;
 import android.opengl.GLSurfaceView;
 import android.util.AttributeSet;
-
-import androidx.annotation.MainThread;
 
 public class OpenGLView extends GLSurfaceView {
 

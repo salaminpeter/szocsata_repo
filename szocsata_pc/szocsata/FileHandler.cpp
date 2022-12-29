@@ -49,29 +49,14 @@ bool CFileHandlerAndroid::GetStreamStrForFile(const char *path, std::wstringstre
 		return false;
 
 	long size = AAsset_getLength(asset);
-	char* Buffer = new char[2048];
-	wchar_t* wstr = new wchar_t[4096];
-	long ReadBytes = 0;
-	int ReadSize = 2048;
-
-	while (true)
-	{
-		if (ReadBytes + ReadSize > size)
-			ReadSize = size - ReadBytes;
-
-		AAsset_read(asset, (void *) Buffer, ReadSize);
-		Buffer[ReadSize] = '\0';
-		int NewBuffSize = mbstowcs(wstr, Buffer, ReadSize);
-		wstr[NewBuffSize] = '\0';
-		ReadBytes += ReadSize;
-		outStream << wstr;
-
-		if (size == ReadBytes)
-			break;
-	}
-
+	char* Buffer = new char[size];
+	AAsset_read(asset, (void*)Buffer, size);
 	AAsset_close(asset);
 
+	wchar_t* wstr = new wchar_t[size];
+	int NewBuffSize = mbstowcs(wstr, Buffer, size);
+
+	outStream << wstr;
 	delete[] Buffer;
 	delete[] wstr;
 

@@ -17,17 +17,16 @@ android {
             keyPassword 'loncstenger'
         }
     }
-    compileSdkVersion 30
+    compileSdkVersion 31
     buildToolsVersion "30.0.2"
 
     defaultConfig {
-        applicationId "com.example.szocsata_android"
+        applicationId "com.momosoft.szocsata3d"
         minSdkVersion 21
-        targetSdkVersion 30
-        versionCode 1
+        targetSdkVersion 31
+        versionCode 3
         versionName "1.0"
 
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         externalNativeBuild {
             cmake {
                 cppFlags "-std=c++17", "-DPLATFORM_ANDROID", "-I${project.buildDir}/../../../../OpenGLES/glm-0.9.9.6/"
@@ -60,7 +59,4 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.2.0'
     implementation 'com.google.android.material:material:1.2.1'
     implementation 'androidx.constraintlayout:constraintlayout:2.0.2'
-    testImplementation 'junit:junit:4.+'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.2'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
 }

@@ -224,7 +224,7 @@ void CGameManager::FinishRenderInit()
 
     if (env)
     {
-        jclass Class = env->FindClass("com/example/szocsata_android/OpenGLRenderer");
+        jclass Class = env->FindClass("com/momosoft/szocsata3d/OpenGLRenderer");
         jmethodID Method = env->GetMethodID(Class, "FinishRenderInit", "()V");
         env->CallVoidMethod(m_RendererObject, Method);
     }
@@ -448,7 +448,7 @@ void CGameManager::ShowLoadingScreen(bool show)
 
 	if (env)
 	{
-		jclass Class = env->FindClass("com/example/szocsata_android/MainActivity");
+		jclass Class = env->FindClass("com/momosoft/szocsata3d/MainActivity");
 		jmethodID Method = env->GetStaticMethodID(Class, "showLoadingScreen", "(Z)V");
 		env->CallStaticVoidMethod(Class, Method, show);
 	}
@@ -482,7 +482,7 @@ std::string CGameManager::GetWorkingDir()
 
 	if (env)
 	{
-		jclass Class = env->FindClass("com/example/szocsata_android/MainActivity");
+		jclass Class = env->FindClass("com/momosoft/szocsata3d/MainActivity");
 		jmethodID Method = env->GetStaticMethodID(Class, "GetWorkingDir", "()Ljava/lang/String;");
 		jstring str = static_cast<jstring>(env->CallStaticObjectMethod(Class, Method));
 		res = env->GetStringUTFChars(str, nullptr);
