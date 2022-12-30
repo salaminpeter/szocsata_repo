@@ -3,6 +3,7 @@
 #include "Model.h"
 #include "Renderer.h"
 
+std::mutex* CUIElement::m_RenderMutex = nullptr;
 
 CUIElement::CUIElement(CUIElement* parent, const wchar_t* id, CModel* model, int x, int y, int w, int h, int vx, int vy, float tx, float ty) :
 	m_Parent(parent),
@@ -77,6 +78,11 @@ void CUIElement::SwapChildren(size_t chIdx0, size_t chIdx1)
 	std::swap(m_Children[chIdx0], m_Children[chIdx1]);
 }
 
+void CUIElement::SetVisible(bool visible)
+{
+	const std::lock_guard<std::mutex> lock(*m_RenderMutex);
+	m_Visible = visible;
+}
 
 glm::vec2 CUIElement::GetAbsolutePosition()
 {
@@ -163,12 +169,10 @@ void CUIElement::RenderInner(CRenderer* renderer, int& elemIdx, int& colorBuffer
 	}
 
 	for (size_t i = 0; i < m_Children.size(); ++i)
-	{
 		m_Children[i]->RenderInner(renderer, elemIdx, colorBufferID, textureOffset, elemCount);
-	}
 }
 
-void CUIElement::Render(CRenderer* renderer) 
+void CUIElement::Render(CRenderer* renderer)
 {
 	int VisibleElements = GetVisibleElemCount();
 	int RenderedElements = 0;
@@ -329,12 +333,7 @@ void CUIElement::AddChild(CUIElement* child)
 	m_Children.push_back(child);
 }
 
-void CUIElement::RemoveLastChild()
-{
-	m_Children.pop_back();
-}
-
-void CUIElement::Scale(float scale) 
+void CUIElement::Scale(float scale)
 { 
 	m_Model->SetScale(glm::vec3(scale)); 
 }
@@ -342,14 +341,6 @@ void CUIElement::Scale(float scale)
 CModel* CUIElement::GetModel()
 {
 	return m_Model;
-}
-
-CModel* CUIElement::GetModel(size_t idx)
-{
-	if (idx >= m_Children.size())
-		return nullptr;
-
-	return m_Children[idx]->GetModel();
 }
 
 CUIElement* CUIElement::GetChild(const wchar_t* childIdx)

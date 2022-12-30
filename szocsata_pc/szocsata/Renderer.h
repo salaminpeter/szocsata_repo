@@ -23,8 +23,6 @@ class CRoundedBoxColorData;
 class CRoundedSquarePositionData;
 class CSquarePositionData;
 class CSquareColorData;
-class CBoardTilesPositionData;
-class CBoardTilesTextureData;
 class CBoardTiles;
 class CShaderManager;
 class CSelectionStore;
@@ -61,7 +59,6 @@ public:
 	glm::vec2 GetBoardPosOnScreen(int x, int y);
 	void GetSelectionPos(int& x, int& y);
 	void DisableSelection();
-	void RemoveLastLetter();
 	void RemoveTopLetter(int x, int y);
 	CLetterModel* GetLetterAtPos(int x, int y);
 	void SetTexturePos(glm::vec2 texturePos);
@@ -86,20 +83,18 @@ public:
 	float SetBoardSize();
 	void SetTileVisible(int x, int y, bool visible);
 	bool IsTileVisible(int x, int y);
-	bool IsCurrentTexture(const char* texId);
 	glm::vec2 GetTextureSize(const char* textureID);
 	void DeleteBuffers();
-	void GenerateBoardModel();
 	void HideSelection(bool hide);
+	void PositionCamera(const char* viewId, const glm::vec3 position);
 
 	bool ModelsInited() { return m_3DModelsInited; }
 	bool EngineInited() { return m_EnginelsInited; }
-	float GetCameraTiltAngle() { return m_CameraTiltAngle; }
 	void ResetCameraDir() {m_CameraTiltAngle =0.f;}
 	void SetModelsInited(bool inited) {m_3DModelsInited = inited;}
 	CSelectionStore* GetSelectionStore() {return m_SelectionStore;}
 
-	std::recursive_mutex& GetRenderLock() {return m_RenderLock;}
+	std::mutex& GetRenderLock() {return m_RenderLock;}
 
 	std::shared_ptr<CSquarePositionData> GetSquarePositionData() { return m_SquarePositionData; }
 	std::shared_ptr<CSquareColorData> GetSquareColorData() { return m_SquareColorData; }
@@ -186,6 +181,6 @@ private:
 	unsigned long m_LastAnimTime;
 	bool m_BoardAnimated = false;
 
-	std::recursive_mutex m_RenderLock;
+	std::mutex m_RenderLock;
 	std::mutex m_ScreenSpaceTilesLock;
 };

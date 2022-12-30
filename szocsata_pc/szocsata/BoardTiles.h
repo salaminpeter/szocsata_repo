@@ -2,7 +2,7 @@
 
 #include <memory>
 #include <vector>
-#include "glm\gtc\matrix_transform.hpp"
+#include <glm/glm.hpp>
 
 #include "Model.h"
 

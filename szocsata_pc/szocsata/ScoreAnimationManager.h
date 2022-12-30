@@ -24,8 +24,8 @@ public:
 
 	float GetSize() {return m_Size;}
 	float HasAnimation() {return m_AnimationInProgress;}
+	void SetPlayerIdx(int idx) {m_PlayerIdx = idx;}
 
-	
 private:
 
 	const float m_FirstAnimTime = 3000;

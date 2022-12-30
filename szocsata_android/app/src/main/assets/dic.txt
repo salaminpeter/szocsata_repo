@@ -20060,7 +20060,6 @@ idillikus
 idiotizmus
 idióma
 idióta
-ido
 idol
 idom
 idomacél
@@ -58673,6 +58672,7 @@ ventilál
 ventilátor
 venyige
 ver
+vége
 veranda
 verbunk
 verbunkos

@@ -12,7 +12,6 @@ public:
 		CUIElement(parent, id, new CModel(false, 0, nullptr, nullptr), x, y, w, h, vx, vy, 0.f, 0.f)
 	{
 		m_KeepAspect = false;
-		m_IsLayout = true;
 	}
 
 	void AddLayoutBoxes(int count, float whRatio = 1.f, int minGap = 0.f, int maxGap = 0.f, int maxW = 0.f, int maxH = 0.f);

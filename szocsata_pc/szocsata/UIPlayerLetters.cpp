@@ -132,7 +132,7 @@ void CUIPlayerLetters::SetLetterVisibility(CBinaryBoolList usedLetters)
 
 void CUIPlayerLetters::SetUILetters()
 {
-	const std::lock_guard<std::recursive_mutex> lock(m_GameManager->GetRenderer()->GetRenderLock());
+	const std::lock_guard<std::mutex> lock(m_GameManager->GetRenderer()->GetRenderLock());
 
 	std::wstring& letters = m_Player->GetLetters();
 

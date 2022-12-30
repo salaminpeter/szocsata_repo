@@ -72,11 +72,7 @@ void CGameManager::ResetToStartScreen()
 	m_TimerEventManager->Reset();
 	m_TaskManager->Reset();
 	m_Renderer->DisableSelection();
-
-	{
-		const std::lock_guard<std::recursive_mutex> lock(m_Renderer->GetRenderLock());
-		m_Renderer->ClearGameScreenResources();
-	}
+	m_Renderer->ClearGameScreenResources();
 
 	//TODO torolni az osszes cuccot amit a GenerateModelsTask al ujra letrehozok!!!!!!!!!!!!!!!!!
 
@@ -1385,6 +1381,8 @@ bool CGameManager::AddNextPlayerTasksNormal(bool hasWordAnimation, bool hasTileA
 	std::shared_ptr<CTask> ClosePlayerPopupTask = PlayerFinishedGame ? nullptr : AddTask(this, nullptr, "msg_box_button_close_task", CTask::RenderThread);
 	std::shared_ptr<CTask> ScoreAnimationTask = nullptr;
 
+	m_ScoreAnimationManager->SetPlayerIdx(GetCurrentPlayerIdx());
+
 	if (hasScoreAnimation)
 	{
 		m_ScoreAnimationManager->SetProperties();
@@ -1931,7 +1929,7 @@ void CGameManager::UndoAllSteps()
 	while (m_PlayerSteps.size())
 		UndoLastStep();
 
-	const std::lock_guard<std::recursive_mutex> lock(m_Renderer->GetRenderLock());
+	const std::lock_guard<std::mutex> lock(m_Renderer->GetRenderLock());
 
 	m_Renderer->GetSelectionStore()->ClearSelections(CSelectionStore::LetterSelection);
 	m_Renderer->DisableSelection();
@@ -2299,7 +2297,7 @@ void CGameManager::RenderFrame()
 		    m_FrameTime = 0;
 
         {
-		    const std::lock_guard<std::recursive_mutex> lock(m_Renderer->GetRenderLock());
+		    const std::lock_guard<std::mutex> lock(m_Renderer->GetRenderLock());
 
 
             if (m_Renderer->ModelsInited() && GameScreenActive())

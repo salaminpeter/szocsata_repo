@@ -167,7 +167,7 @@ void CTileAnimationManager::UpdateColorEvent(double& timeFromStart, double& time
 
 			const std::lock_guard<std::mutex> lock(m_TileAnimLock);
 			{
-				const std::lock_guard<std::recursive_mutex> lock(m_GameManager->GetRenderer()->GetRenderLock());
+				const std::lock_guard<std::mutex> lock(m_GameManager->GetRenderer()->GetRenderLock());
 				{
 					m_TilePositions.clear();
 					m_PassedTime = 0;

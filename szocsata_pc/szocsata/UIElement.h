@@ -1,10 +1,10 @@
 #pragma once
 
-#include "glm\gtc\matrix_transform.hpp"
-
+#include <glm/glm.hpp>
 #include <memory>
 #include <vector>
 #include <string>
+#include <mutex>
 
 #include "Event.h"
 
@@ -19,6 +19,8 @@ public:
 	
 	enum EEventType { TouchEvent, ReleaseEvent, PositionChangeEvent, DoubleClickEvent };
 	enum EAlignmentType { Center, Left, Right, Top, Bottom, None };
+
+	static std::mutex* m_RenderMutex; //TODO shared + ocsmany
 
 	CUIElement(CUIElement*  parent, const wchar_t* id, CModel *model, int x, int y, int w, int h, int vx, int vy, float tx, float ty);
 	virtual ~CUIElement();
@@ -41,7 +43,6 @@ public:
 	bool PositionInElement(int x, int y, bool useTouchOffset = false);
 	void PositionElement();
 	void AddChild(CUIElement* child);
-	void RemoveLastChild();
 	void SetPosAndSize(float x, float y, float w, float h, bool midPointOrigo = true, bool scaleChildren = false);
 	void SetPosition(float x, float y, bool midPointOrigo = true);
 	void SetSizeWithChildren(float width, float height, float xScale = 0.f, float yScale = 0.f, int depth = 0);
@@ -53,9 +54,10 @@ public:
 	void Scale(float scale);
 	glm::vec2 GetAbsolutePosition();
 	void SwapChildren(size_t chIdx0, size_t chIdx1);
+	void SetVisible(bool visible);
+
 
 	CModel* GetModel();
-	CModel* GetModel(size_t idx);
 
 	float GetHeight() { return m_Height; }
 	float GetWidth() { return m_Width; }
@@ -64,13 +66,9 @@ public:
 	void SetTouchOffset(float x, float y) {m_TouchOffsetX = x; m_TouchOffsetY = y;}
 
 	glm::vec2 GetTexturePos() {	return m_TexturePosition;}
-	glm::vec2 GetTexturePos(size_t idx) { return m_Children[idx]->GetTexturePos();}
-
 	void SetTexturePosition(glm::vec2 texPos) {m_TexturePosition = texPos;}
-	void SetVisible(bool visible) {m_Visible = visible;}
 	void SetVisible(bool visible, size_t idx) { m_Children[idx]->SetVisible(visible); }
 	bool IsVisible() {return m_Visible;}
-	bool IsVisible(size_t idx) { return m_Children[idx]->m_Visible; }
 	std::wstring GetID() const {return m_ID;}
 	int GetChildCount() {return m_Children.size();}
 	CUIElement* GetChild(size_t childIdx);
@@ -78,7 +76,6 @@ public:
 	CUIElement* GetParent() {return m_Parent;}
 	void Enable(bool enable) { m_Enabled = enable; }
 	bool IsEnabled() { return m_Enabled; }
-	void SetCheckChildEvent(bool b) { m_CheckChildEvents = b; }
 	void SetModifyColor(glm::vec4 modColor) {m_TextureModColor = modColor;}
 	void SetKeepAspect(bool keep) {m_KeepAspect = keep;}
 
@@ -91,15 +88,12 @@ protected:
 
 public:
 	std::vector<CUIElement*> m_Children;
-	bool m_IsLayout = false;
 
 private:
 	void RenderInner(CRenderer* renderer, int& elemIdx, int& colorBufferID, int& textureOffset, int elemCount = 0);
 
 protected:
 	
-	const float m_MinResizeDif = 4.f;
-
 	CUIElement* m_Parent = nullptr;
 	CModel* m_Model = nullptr;
 	CEventBase* m_EventTouch = nullptr;

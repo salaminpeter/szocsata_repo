@@ -38,6 +38,7 @@ CRenderer::CRenderer(int screenWidth, int screenHeight, CGameManager* gameManage
 	m_GameManager(gameManager),
 	m_ZoomCenter(-1.f, -1.f)
 {
+	CUIElement::m_RenderMutex = &m_RenderLock;
 }
 
 float CRenderer::GetFittedViewProps(float fovY, bool topView, glm::vec2& camPos)
@@ -175,7 +176,7 @@ void CRenderer::FittBoardToView(bool topView)
 
 void CRenderer::RotateCamera(float rotateAngle, float tiltAngle, bool intersectWithBoard)
 {
-	const std::lock_guard<std::recursive_mutex> lock(m_RenderLock);
+	const std::lock_guard<std::mutex> lock(m_RenderLock);
 
 	float BoardRotMin;
 	float BoardRotMax;
@@ -348,30 +349,26 @@ glm::vec3 CRenderer::VectorBoardIntersect(glm::vec3 pos, glm::vec3 vec, bool boa
 
 void CRenderer::DragCamera(int x0, int y0, int x1, int y1)
 {
-	const std::lock_guard<std::recursive_mutex> lock(m_RenderLock);
-
 	glm::vec3 StartPos = ScreenPosToBoardPos(x0, y0, true);
 	glm::vec3 EndPos = ScreenPosToBoardPos(x1, y1, true);
 	glm::vec3 DragDir = StartPos - EndPos;
 	glm::vec3 CameraPos = m_Views["board_perspecive"]->GetCameraPosition();
 	glm::vec3 NewCameraPos(CameraPos.x + DragDir.x, CameraPos.y + DragDir.y, CameraPos.z);
 
-	m_Views["board_perspecive"]->PositionCamera(NewCameraPos);
+	PositionCamera("board_perspecive", NewCameraPos);
 }
 
 void CRenderer::ZoomCameraSimple(float dist)
 {
 	glm::vec3 CameraLookAt = m_Views["board_perspecive"]->GetCameraLookAt();
 	glm::vec3 CameraPos = m_Views["board_perspecive"]->GetCameraPosition();
-	glm::vec3 NewCameraPos = CameraPos - dist * CameraLookAt;
-	m_Views["board_perspecive"]->PositionCamera(CameraPos + m_CameraZoomVector * std::fabs(dist));
+	glm::vec3 NewCameraPos = CameraPos + m_CameraZoomVector * std::fabs(dist);
+	PositionCamera("board_perspecive", NewCameraPos);
 }
 
 
 void CRenderer::ZoomCameraCentered(float dist, float origoX, float origoY)
 {
-	const std::lock_guard<std::recursive_mutex> lock(m_RenderLock);
-
 	if (m_ZoomEndType == EZoomEndType::ZoomInEnd && dist < 0.f || m_ZoomEndType == EZoomEndType::ZoomOutEnd && dist > 0.f || m_ZoomEndType == EZoomEndType::None && m_LastZoomDist * dist < 0)
 	{
 		m_ZoomInited = false;
@@ -450,7 +447,7 @@ void CRenderer::ZoomCameraCentered(float dist, float origoX, float origoY)
 	if (std::fabs(dist) > 0.001)
 	{
 		glm::vec3 CameraPos = m_Views["board_perspecive"]->GetCameraPosition();
-		m_Views["board_perspecive"]->PositionCamera(CameraPos + m_CameraZoomVector * std::fabs(dist));
+		PositionCamera("board_perspecive", CameraPos + m_CameraZoomVector * std::fabs(dist));
 	}
 }
 
@@ -499,13 +496,11 @@ void CRenderer::GetFitToScreemProps(float& tilt, float& rotation, float& zoom, f
 
 void CRenderer::CameraFitToViewAnim(float tilt, float rotation, float zoom, float move, const glm::vec2& dir)
 {
-	const std::lock_guard<std::recursive_mutex> lock(m_RenderLock);
-
 	glm::vec3 CameraLookAt = m_Views["board_perspecive"]->GetCameraLookAt();
 	glm::vec3 CameraPosition = m_Views["board_perspecive"]->GetCameraPosition();
 
 	//move
-	m_Views["board_perspecive"]->PositionCamera(glm::vec3(CameraPosition.x - dir.x * move, CameraPosition.y - dir.y * move, CameraPosition.z));
+	PositionCamera("board_perspecive", glm::vec3(CameraPosition.x - dir.x * move, CameraPosition.y - dir.y * move, CameraPosition.z));
 
 	//rotate / tilt
 	RotateCamera(rotation, tilt, false);
@@ -514,7 +509,17 @@ void CRenderer::CameraFitToViewAnim(float tilt, float rotation, float zoom, floa
 	CameraLookAt = m_Views["board_perspecive"]->GetCameraLookAt();
 	CameraPosition = m_Views["board_perspecive"]->GetCameraPosition();
 	glm::vec3 NewCamPos = CameraPosition + zoom * CameraLookAt;
-	m_Views["board_perspecive"]->PositionCamera(NewCamPos);
+	PositionCamera("board_perspecive", NewCamPos);
+}
+
+void CRenderer::PositionCamera(const char* viewId, const glm::vec3 position)
+{
+	if (m_Views.find(viewId) == m_Views.end())
+		return;
+
+	const std::lock_guard<std::mutex> lock(m_RenderLock);
+
+	m_Views[viewId]->PositionCamera(position);
 }
 
 glm::vec2 CRenderer::GetBoardPosOnScreen(int x, int y)
@@ -790,19 +795,6 @@ void CRenderer::InitRenderer()
 	m_EnginelsInited = true;
 }
 
-void CRenderer::GenerateBoardModel()
-{
-	const std::lock_guard<std::recursive_mutex> lock(m_RenderLock);
-
-	int TileCount;
-	CConfig::GetConfig("tile_count", TileCount);
-
-	SetBoardSize();
-	m_BoardModel = new CBoardBaseModel();
-	m_BoardTiles = new CBoardTiles(TileCount, this, m_GameManager, m_BoardModel);
-}
-
-
 void CRenderer::DeleteBuffers()
 {
 	std::vector<unsigned int> BufferIds =
@@ -864,7 +856,7 @@ float CRenderer::SetBoardSize()
 
 void CRenderer::ClearGameScreenResources()
 {
-    const std::lock_guard<std::recursive_mutex> lock(m_RenderLock);
+    const std::lock_guard<std::mutex> lock(m_RenderLock);
 
     //delete letters on board //TODO wordanimationban meg van egy hivatkozas a CLettermodellre!!!
 	for (size_t i = 0; i < m_LettersOnBoard.size(); ++i)
@@ -888,7 +880,7 @@ void CRenderer::ClearGameScreenResources()
 
 void CRenderer::ClearResources()
 {
-    const std::lock_guard<std::recursive_mutex> lock(m_RenderLock);
+    const std::lock_guard<std::mutex> lock(m_RenderLock);
 
     delete m_ShaderManager;
 

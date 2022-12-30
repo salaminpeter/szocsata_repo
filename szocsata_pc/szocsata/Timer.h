@@ -4,6 +4,7 @@
 #include <map>
 #include <string>
 #include <ratio>
+#include <mutex>
 
 class CTimer
 {
@@ -27,12 +28,14 @@ public:
 
 	static double GetCurrentTime()
 	{
+		const std::lock_guard<std::mutex> lock(m_GetTimeLock);
 		TTimeSpan TimeSpan = std::chrono::duration_cast<std::chrono::milliseconds>(Clock::now().time_since_epoch());
 		return TimeSpan.count();
 	}
 
 private:
 
+	static std::mutex m_GetTimeLock;
 	static  std::map<std::string, TTimePoint> m_Timers;
 	static std::chrono::high_resolution_clock::time_point m_StartTime;
 };

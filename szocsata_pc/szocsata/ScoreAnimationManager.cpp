@@ -128,10 +128,6 @@ void CScoreAnimationManager::SaveState(std::ofstream& fileStream)
 	m_TimerEventManager->PauseTimer("score_animation_timer");
 
 	fileStream.write((char *)&m_AnimationInProgress, sizeof(bool));
-
-	if (!m_AnimationInProgress)
-		return;
-
 	fileStream.write((char *)&m_PlayerIdx, sizeof(int));
 	fileStream.write((char *)&m_PassedTime, sizeof(int));
 	fileStream.write((char *)&m_Size, sizeof(float));
@@ -148,10 +144,6 @@ void CScoreAnimationManager::LoadState(std::ifstream& fileStream)
 	m_TimerEventManager->PauseTimer("score_animation_timer");
 
 	fileStream.read((char *)&m_AnimationInProgress, sizeof(bool));
-
-	if (!m_AnimationInProgress)
-		return;
-
 	fileStream.read((char *)&m_PlayerIdx, sizeof(int));
 	fileStream.read((char *)&m_PassedTime, sizeof(int));
 	fileStream.read((char *)&m_Size, sizeof(float));

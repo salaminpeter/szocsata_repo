@@ -2,8 +2,7 @@
 
 #include "ModelPositionData.h"
 #include "ModelColorData.h"
-#include "glm\gtc\matrix_transform.hpp"
-
+#include <glm/glm.hpp>
 #include <vector>
 
 class CRoundedBoxPositionData : public CModelPositionData
