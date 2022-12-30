@@ -278,9 +278,9 @@ void CUIText::InitFontTexPositions()
 	m_FontTexPos[L'?'] = glm::vec2(10, 1);
 
 	m_FontCharWidth[L'0'] = 52;
-	m_FontCharWidth[L'1'] = 47;
-	m_FontCharWidth[L'2'] = 45;
-	m_FontCharWidth[L'3'] = 34;
+	m_FontCharWidth[L'1'] = 35;
+	m_FontCharWidth[L'2'] = 38;
+	m_FontCharWidth[L'3'] = 36;
 	m_FontCharWidth[L'4'] = 43;
 	m_FontCharWidth[L'5'] = 38;
 	m_FontCharWidth[L'6'] = 41;
