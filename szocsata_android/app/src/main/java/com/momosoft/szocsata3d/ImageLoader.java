@@ -17,7 +17,7 @@ public class ImageLoader {
     private static  ByteBuffer m_ImageBytes = null;
     private static  int m_Width = 0;
     private static  int m_Height = 0;
-    private static  int m_ByteCount  = 0;
+    private static  int m_ColorDepth  = 0;
 
     ImageLoader(Context ctx) {
         m_Context = ctx;
@@ -52,10 +52,10 @@ public class ImageLoader {
         m_Height = bmp.getHeight();
 
         if (bmp.getConfig() == Bitmap.Config.RGB_565) {
-            m_ByteCount = 3;
+            m_ColorDepth = 3;
         }
         else if (bmp.getConfig() == Bitmap.Config.ARGB_8888) {
-            m_ByteCount = 4;
+            m_ColorDepth = 4;
         }
 
         return true;
@@ -65,8 +65,8 @@ public class ImageLoader {
         return m_Width;
     }
 
-    public static int GetByteCount() {
-        return m_ByteCount;
+    public static int GetColorDepth() {
+        return m_ColorDepth;
     }
 
     public static int GetHeight() {

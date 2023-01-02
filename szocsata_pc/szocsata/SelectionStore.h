@@ -35,6 +35,7 @@ public:
 	void ClearSelections(ESelectionType type);
 	glm::vec3 GetColorModifyer(ESelectionType type);
 	void SetModifyColor(ESelectionType type, const glm::vec3& color);
+	void Reset();
 
 	std::mutex& GetLock() { return m_Lock; }
 

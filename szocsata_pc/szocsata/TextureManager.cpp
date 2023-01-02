@@ -14,7 +14,7 @@
 
 void CTextureManager::AddTexture(const char* path, int colorDepth, bool filter)
 {
-	CTexture* NewTexture = new CTexture(path, m_GameManager, colorDepth, filter);
+	CTexture* NewTexture = new CTexture(path, colorDepth, filter);
 
 	m_Textures[path] = NewTexture;
 }
@@ -25,7 +25,7 @@ void CTextureManager::DeleteTextures()
 	TextureIds.reserve(m_Textures.size());
 
 	for (auto it = m_Textures.begin(); it != m_Textures.end(); ++it)
-		TextureIds.push_back(it->second->texture);
+		TextureIds.push_back(it->second->TextureId());
 
 	glDeleteTextures(TextureIds.size(), &TextureIds[0]);
 }
@@ -48,7 +48,7 @@ bool CTextureManager::ActivateTexture(const char* texId)
 
 	if (m_CurrentTexture != texId)
 	{
-		glBindTexture(GL_TEXTURE_2D, m_Textures[texId]->texture);
+		glBindTexture(GL_TEXTURE_2D, m_Textures[texId]->TextureId());
 		m_CurrentTexture = texId;
 	}
 
@@ -58,7 +58,7 @@ bool CTextureManager::ActivateTexture(const char* texId)
 void CTextureManager::GenerateHeaderTexture()
 {
 	uint8_t ImageData[16] = { 105, 56, 23, 180, 105, 56, 23, 180, 105, 56, 23, 180, 105, 56, 23, 180 };
-	CTexture* NewTexture = new CTexture("header_texture_generated", ImageData, 2, 2, nullptr, 4);
+	CTexture* NewTexture = new CTexture("header_texture_generated", ImageData, 2, 2, 4);
 
 	m_Textures["header_texture_generated"] = NewTexture;
 }
@@ -71,7 +71,7 @@ void CTextureManager::Generate2x2Texture(glm::vec4 color, const char* textureID)
 							  uint8_t(color.r * 255), uint8_t(color.g * 255), uint8_t(color.b * 255), uint8_t(color.a * 255) 
 							};
 
-	CTexture* NewTexture = new CTexture(textureID, ImageData, 2, 2, nullptr, 4);
+	CTexture* NewTexture = new CTexture(textureID, ImageData, 2, 2, 4);
 
 	m_Textures[textureID] = NewTexture;
 }
@@ -278,7 +278,7 @@ void CTextureManager::GenerateRoundedBoxTexture(int w, int h, int r, glm::vec4 c
 
 	AntialiasTexture(ImageData, w, h, glm::ivec3(color.r * 255, color.g * 255, color.b * 255), Offset / 2);
 
-	CTexture* NewTexture = new CTexture(textureID, &ImageData[0], w, h, nullptr, 4);
+	CTexture* NewTexture = new CTexture(textureID, &ImageData[0], w, h, 4);
 
 	m_Textures[textureID] = NewTexture;
 }

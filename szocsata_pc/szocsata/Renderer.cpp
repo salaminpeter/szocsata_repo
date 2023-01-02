@@ -823,7 +823,7 @@ glm::vec2 CRenderer::GetTextureSize(const char* textureID)
 	if (!Texture)
 		return glm::vec2(0.f, 0.f);
 
-	return glm::vec2(Texture->m_Width, Texture->m_Height);
+	return glm::vec2(Texture->Width(), Texture->Height());
 }
 
 bool CRenderer::IsTileVisible(int x, int y)

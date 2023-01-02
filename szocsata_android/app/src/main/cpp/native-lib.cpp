@@ -3,6 +3,7 @@
 #include <jni.h>
 #include <string>
 #include "../../../../../szocsata_pc/szocsata/GameManager.h"
+#include "../../../../../szocsata_pc/szocsata/ImageLoader.h"
 #include "../../../../../szocsata_pc/szocsata/FileHandler.h"
 #include "../../../../../szocsata_pc/szocsata/IOManager.h"
 #include "../../../../../szocsata_pc/szocsata/InputManager.h"
@@ -36,7 +37,6 @@ JNI_OnLoad(JavaVM *jvm, void *reserved)
 {
     g_VM = jvm;
 
-//    JNIEnv *env;
     g_VM->GetEnv((void **)&g_Env, JNI_VERSION_1_6);
 
     jclass cls = (*g_Env).FindClass("com/momosoft/szocsata3d/OpenGLRenderer");
@@ -72,6 +72,7 @@ void InitGameManager(int surfWidth, int surfHeight)
 {
     gm->m_JavaVM = g_VM;
     InputManager = new CInputManager(gm);
+    CImageLoader::SetJavaVM(g_VM);
 
     gm->ShowLoadingScreen(true);
 

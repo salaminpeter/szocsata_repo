@@ -38,6 +38,13 @@ void CSelectionStore::ClearSelections(ESelectionType type)
 	m_Selections[type].clear();
 }
 
+void CSelectionStore::Reset()
+{
+	const std::lock_guard<std::mutex> lock(m_Lock);
+	m_Selections.clear();
+}
+
+
 void CSelectionStore::SetModifyColor(ESelectionType type, const glm::vec3& color)
 {
 	if (type >= ESelectionType::SelectionTypeLast)
