@@ -6,13 +6,14 @@
 #include <stdio.h>
 #include <math.h>
 #include <string>
+#include "GameManager.h"
 
 class CTexture
 {
 	public:
 
-	CTexture(const char* fileName, int colorDepth = 3, bool filter = true) : mName(fileName), m_ColorDepth(colorDepth) {InitTexture(filter);}
-	CTexture(const char* fileName, uint8_t* imageData, int width, int height, int colorDepth = 3, bool filter = true);
+	CTexture(const char* fileName, CGameManager* gm, int colorDepth = 3, bool filter = true) : mName(fileName), m_ColorDepth(colorDepth) {InitTexture(filter,nullptr, gm);}
+	CTexture(const char* fileName, uint8_t* imageData, int width, int height, CGameManager* gm, int colorDepth = 3, bool filter = true);
 
 	unsigned texture;
 	std::string mName;
@@ -30,9 +31,9 @@ class CTexture
 
 	typedef struct Image Image;
 
-	int ImageLoad(const char *filename, Image *image);
+	int ImageLoad(const char *filename, Image *image, CGameManager* gm);
 
-	Image * loadTexture() {
+	Image * loadTexture(CGameManager* gm) {
 
 		Image *image1;
 
@@ -49,7 +50,7 @@ class CTexture
 		}
 
 
-		if (!ImageLoad(mName.c_str(), image1)) {
+		if (!ImageLoad(mName.c_str(), image1, gm)) {
 
 			exit(1);
 
@@ -59,7 +60,7 @@ class CTexture
 
 	}
 
-	void InitTexture(bool filter, uint8_t* imageData = nullptr);
+	void InitTexture(bool filter, uint8_t* imageData = nullptr, CGameManager* gm= nullptr);
 
 	int m_ColorDepth;
 };

@@ -4,11 +4,13 @@
 #include <string>
 
 class CTexture;
+class CGameManager;
 
 class CTextureManager
 {
 public:
 
+    CTextureManager(CGameManager* gm) : m_GameManager(gm) {}
 	~CTextureManager() {DeleteTextures();}
 
 	void AddTexture(const char* path, int colorDepth = 3, bool filter = true);
@@ -22,7 +24,6 @@ public:
 	void GenerateRankingsPanelTexture(float width, float height);
 	void GenerateTileCounterTexture(float size);
 	void GenerateLetterPanelTexture(float width, float height);
-	bool IsCurrentTexture(const char* texId);
 	void DeleteTextures();
 
 	const CTexture* GetTexture(const char* textureID);
@@ -34,7 +35,8 @@ private:
 	void Generate2x2Texture(glm::vec4 color, const char* textureID);
 
 private:
-	
+
+    CGameManager* m_GameManager;
 	std::string m_CurrentTexture;
 	std::map<std::string, CTexture*> m_Textures;
 };

@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.os.Debug;
 
 import com.momosoft.szocsata3d.R;
 
@@ -166,7 +167,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume(){
         super.onResume();
-
+        Debug.waitForDebugger();
+        ImageLoader.m_Context = this;
         String Path = getFilesDir() + "/secondstart";
         File SecondStartFile = new File(Path);
 

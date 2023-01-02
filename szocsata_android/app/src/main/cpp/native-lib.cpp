@@ -28,6 +28,7 @@ JNIEnv* g_Env;
 
 jclass g_OpenGLRendererClass;
 jclass g_MainActivityClass;
+jclass g_ImageLoaderClass;
 
 extern "C"
 JNIEXPORT jint JNICALL
@@ -43,6 +44,9 @@ JNI_OnLoad(JavaVM *jvm, void *reserved)
 
     jclass cls1 = (*g_Env).FindClass("com/momosoft/szocsata3d/MainActivity");
     g_MainActivityClass = (jclass)(*g_Env).NewGlobalRef(cls1);
+
+    jclass cls2 = (*g_Env).FindClass("com/momosoft/szocsata3d/ImageLoader");
+    g_ImageLoaderClass = (jclass)(*g_Env).NewGlobalRef(cls2);
 
     return JNI_VERSION_1_6;
 }

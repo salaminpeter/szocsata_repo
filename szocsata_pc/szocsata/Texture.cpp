@@ -9,18 +9,19 @@
 #define GL3_PROTOTYPES 1
 #include <GLES3\gl3.h>
 
-CTexture::CTexture(const char* fileName, uint8_t* imageData, int width, int height, int colorDepth, bool filter) : 
+CTexture::CTexture(const char* fileName, uint8_t* imageData, int width, int height, CGameManager* gm, int colorDepth, bool filter) :
 	mName(fileName), 
 	m_ColorDepth(colorDepth),
 	m_Width(width),
 	m_Height(height)
 {
-	InitTexture(filter, imageData);
+	InitTexture(filter, imageData, gm);
 }
 
 
-int CTexture::ImageLoad(const char *filename, Image *image)
+int CTexture::ImageLoad(const char *filename, Image *image, CGameManager* gm)
 {
+#ifndef PLATFORM_ANDROID
 	CFileHandlerBase::CMemoryBuffer MemBuffer;
 
 	if (!CIOManager::GetMemoryStreamForFile(filename, MemBuffer))
@@ -62,15 +63,27 @@ int CTexture::ImageLoad(const char *filename, Image *image)
 	// Set width and height to the values loaded from the file
 	m_Width = image->sizeX = biWidth;
 	m_Height = image->sizeY = biHeight;
+#else
+	gm->LoadImageData(filename);
+	std::vector<uint8_t> Data = gm->GetImageData();
+    image->data = new uint8_t[Data.size()];
+
+    for (unsigned long i = 0; i < Data.size(); i++)
+        image->data[i] = Data[i];
+
+    m_Width = image->sizeX = gm->GetImageSize(true);
+    m_Height = image->sizeY = gm->GetImageSize(false);
+    m_ColorDepth = gm->GetImageColorDepth();
+#endif
 
 	return 1;
 }
 
-void CTexture::InitTexture(bool filter, uint8_t* imageData)
+void CTexture::InitTexture(bool filter, uint8_t* imageData, CGameManager* gm)
 {
 	if (!imageData)
 	{
-		Image *image1 = loadTexture();
+		Image *image1 = loadTexture(gm);
 
 		if (image1 == NULL) {
 

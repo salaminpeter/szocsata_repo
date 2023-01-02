@@ -161,6 +161,11 @@ public:
 	void SetTileCounterCount();
 	glm::ivec2 GetWordsMidPoint(const std::vector<TWordPos>& words);
 
+	bool LoadImageData(const char* path);
+	int GetImageSize(bool width);
+	int GetImageColorDepth();
+	std::vector<uint8_t> GetImageData();
+
 	wchar_t GetChOnBoard(int x, int y) { return m_GameBoard(x, y).m_Char; }
 	CWordTree::TNode* WordTreeRoot(wchar_t c) {return m_DataBase.GetWordTreeRoot(c);}
     TField& Board(int x, int y) {return m_GameBoard(x, y);}

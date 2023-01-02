@@ -764,7 +764,7 @@ void CRenderer::InitRenderer()
 	m_Views["view_ortho"]->InitCamera(glm::vec3(m_ScreenWidth / 2, m_ScreenHeight / 2, 10.f), glm::vec3(m_ScreenWidth / 2, m_ScreenHeight / 2, 0.f), glm::vec3(0, 1, 0));
 	m_Views["view_ortho"]->InitOrtho();
 
-	m_TextureManager = new CTextureManager();
+	m_TextureManager = new CTextureManager(m_GameManager);
 	m_TextureManager->AddTexture("letters.bmp");
 	m_TextureManager->AddTexture("boardtex.bmp");
 	m_TextureManager->AddTexture("gridtex.bmp");

@@ -23,7 +23,7 @@ public class ImageLoader {
         m_Context = ctx;
     }
 
-    public static void LoadImage(String path) throws IOException {
+    public static boolean LoadImage(String path) throws IOException {
         InputStream is = null;
         Bitmap bmp = null;
 
@@ -33,7 +33,7 @@ public class ImageLoader {
             bmp = BitmapFactory.decodeStream(is);
         }
         catch (IOException e) {
-            Log.d("", "f");
+            return false;
         }
         finally {
             if (is != null) {
@@ -45,11 +45,20 @@ public class ImageLoader {
         matrix.postScale(1, -1, bmp.getWidth() / 2f, bmp.getHeight() / 2f);
         bmp = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), matrix, true);
 
-        m_ByteCount = bmp.getRowBytes() * bmp.getHeight();
-        m_ImageBytes = ByteBuffer.allocate(m_ByteCount);
+        int ByteCount = bmp.getRowBytes() * bmp.getHeight();
+        m_ImageBytes = ByteBuffer.allocate(ByteCount);
         bmp.copyPixelsToBuffer(m_ImageBytes);
         m_Width = bmp.getWidth();
         m_Height = bmp.getHeight();
+
+        if (bmp.getConfig() == Bitmap.Config.RGB_565) {
+            m_ByteCount = 3;
+        }
+        else if (bmp.getConfig() == Bitmap.Config.ARGB_8888) {
+            m_ByteCount = 4;
+        }
+
+        return true;
     }
 
     public static int GetWidth() {
