@@ -82,8 +82,8 @@ public:
 	void InitStartUIScreens();
 	void RenderFrame();
 	void RenderUI();
-	void AddWordSelectionAnimation(const std::vector<TWordPos>& wordPos, bool positive);
 	void AddWordSelectionAnimationLocked(const std::vector<TWordPos>& wordPos, bool positive);
+
 	void AddButtonAnimation(CUIElement* button);
 	void EnableReverseAnimation(CUIElement* button);
 	void FinishRenderInit();
@@ -243,6 +243,8 @@ public:
 	int GetLetterPoolCount() {return m_LetterPool.GetRemainingLetterCount(); }
 	void AddPlacedLetterSelection(int x, int y);
 	void RemovePlacedLetterSelection(int x, int y);
+	void AddBoardSelectionAnimation(int x, int y);
+	void RemoveBoardSelectionAnimation();
 	void StartTask(const char* id) {m_TaskManager->StartTask(id);}
 	void AddPlayerStep(wchar_t c, int letterIdx, int xPos, int yPos) {	m_PlayerSteps.emplace_back(c, xPos, yPos, letterIdx);}
 	int GetLetterCount(int idx) {return m_LetterPool.GetLetterCount(idx);}
@@ -280,6 +282,10 @@ public:
 	//==============================================================================
 	void UndoComp();
 	//==============================================================================
+
+private:
+
+	void AddWordSelectionAnimation(const std::vector<TWordPos>& wordPos, bool positive);
 
 private:
 

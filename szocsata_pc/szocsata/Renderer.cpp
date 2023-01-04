@@ -65,23 +65,31 @@ float CRenderer::GetFittedViewProps(float fovY, bool topView, glm::vec2& camPos)
 
 void CRenderer::SelectField(int x, int y)
 {
-	m_SelectionStore->RemoveSelection(CSelectionStore::BoardSelection, "board_selection");
+	if (m_SelectionX == x && m_SelectionY == y)
+		return;
+
+	m_SelectionStore->RemoveSelection(CSelectionStore::BoardSelectionOk);
+	m_SelectionStore->RemoveSelection(CSelectionStore::BoardSelectionFail);
 	m_SelectionX = x;
 	m_SelectionY = y;
-	glm::vec3 Color = m_SelectionStore->GetColorModifyer(m_GameManager->SelectionPosIllegal(x, y) ? CSelectionStore::FailSelection : CSelectionStore::BoardSelection);
-	m_SelectionStore->AddSelection(CSelectionStore::BoardSelection, x, y, "board_selection", &Color);
+	m_GameManager->AddBoardSelectionAnimation(x, y);
 }
 
 void CRenderer::DisableSelection()
 {
-	m_SelectionStore->RemoveSelection(CSelectionStore::BoardSelection, "board_selection");
+    m_SelectionStore->RemoveSelection(CSelectionStore::BoardSelectionOk);
+    m_SelectionStore->RemoveSelection(CSelectionStore::BoardSelectionFail);
+	m_GameManager->RemoveBoardSelectionAnimation();
 	m_SelectionX = m_SelectionY = -1;
 }
 
 void CRenderer::HideSelection(bool hide) 
 { 
-	if (hide)
-		m_SelectionStore->RemoveSelection(CSelectionStore::BoardSelection, "board_selection");
+	if (hide) {
+        m_SelectionStore->RemoveSelection(CSelectionStore::BoardSelectionOk);
+        m_SelectionStore->RemoveSelection(CSelectionStore::BoardSelectionFail);
+		m_GameManager->RemoveBoardSelectionAnimation();
+	}
 	else
 		SelectField(m_SelectionX, m_SelectionY);
 }
@@ -90,16 +98,6 @@ void CRenderer::GetSelectionPos(int& x, int& y)
 {
 	x = m_SelectionX;
 	y = m_SelectionY;
-}
-
-void CRenderer::AddLetterToBoard(wchar_t c)
-{
-	if (m_SelectionX == -1)
-		return;
-
-	AddLetterToBoard(m_SelectionX, m_SelectionY, c);
-	m_SelectionX = -1;
-	m_SelectionStore->RemoveSelection(CSelectionStore::BoardSelection, "board_selection");
 }
 
 CLetterModel* CRenderer::AddLetterToBoard(int x, int y, wchar_t c, float height, bool setHeight)

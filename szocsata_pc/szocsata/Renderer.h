@@ -53,7 +53,6 @@ public:
 	glm::vec2 GetViewPosition(const char* viewId);
 	void SelectField(int x, int y);
 	CLetterModel* AddLetterToBoard(int x, int y, wchar_t c, float height = 0.f, bool setHeight = false);
-	void AddLetterToBoard(wchar_t c);
 	void InitLetterTexPositions();
 	void CalculateScreenSpaceGrid();
 	glm::vec2 GetBoardPosOnScreen(int x, int y);

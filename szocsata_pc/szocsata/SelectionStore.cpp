@@ -7,6 +7,7 @@ void CSelectionStore::AddSelection(ESelectionType type, int x, int y, const char
 		return;
 	
 	const std::lock_guard<std::mutex> lock(m_Lock);
+	std::vector<TSelection>& Sel = m_Selections[type];
 	m_Selections[type].emplace_back(glm::ivec2(x, y), modifyColor ? *modifyColor : GetColorModifyer(type), id, type);
 }
 
@@ -14,13 +15,14 @@ glm::vec3 CSelectionStore::GetColorModifyer(ESelectionType type)
 {
 	switch (type)
 	{
-	case BoardSelection:
-		return glm::vec3(.8f, .8f, 1.4f);
+	case BoardSelectionOk:
+		return glm::vec3(.9f, .9f, 1.8f);
 	case LetterSelection:
 		return glm::vec3(1.02f, 1.f, 0.35f);
 	case SuccessSelection:
 		return glm::vec3(0.7f, 1.f, 0.7f);
 	case FailSelection:
+	case BoardSelectionFail:
 		return glm::vec3(1.2f, 0.65f, 0.65f);
 	case TopLetterSelection:
 		return glm::vec3(1.f, 0.87f, 0.45f);
@@ -51,6 +53,7 @@ void CSelectionStore::SetModifyColor(ESelectionType type, const glm::vec3& color
 		return;
 
 	const std::lock_guard<std::mutex> lock(m_Lock);
+	std::vector<TSelection>& Sel = m_Selections[type];
 	for (auto& Selection : m_Selections[type])
 		Selection.m_ColorModifyer = color;
 }
@@ -79,6 +82,8 @@ void CSelectionStore::RemoveSelection(ESelectionType type, int x, int y)
 
 	for (size_t i = 0; i < m_Selections[type].size(); ++i)
 	{
+		std::vector<TSelection>& Sel = m_Selections[type];
+
 		if (m_Selections[type][i].m_Position.x == x && m_Selections[type][i].m_Position.y == y)
 		{
 			m_Selections[type][i] = m_Selections[type].back();
@@ -88,34 +93,12 @@ void CSelectionStore::RemoveSelection(ESelectionType type, int x, int y)
 	}
 }
 
-void CSelectionStore::RemoveSelection(ESelectionType type, const char* id)
+void CSelectionStore::RemoveSelection(ESelectionType type)
 {
 	if (type >= ESelectionType::SelectionTypeLast)
 		return;
 
 	const std::lock_guard<std::mutex> lock(m_Lock);
-
-	for (size_t i = 0;  i < m_Selections[type].size(); ++i)
-	{
-		if (m_Selections[type][i].m_Id == id)
-		{
-			m_Selections[type][i] = m_Selections[type].back();
-			m_Selections[type].pop_back();
-		}
-	}
-}
-
-void CSelectionStore::EnableSelection(ESelectionType type, const char* id, bool enable)
-{
-	if (type >= ESelectionType::SelectionTypeLast)
-		return;
-
-	const std::lock_guard<std::mutex> lock(m_Lock);
-
-	for (auto Selection : m_Selections[type])
-	{
-		if (Selection.m_Id == id)
-			Selection.m_Enabled = enable;
-	}
+    m_Selections[type].clear();
 }
 

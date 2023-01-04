@@ -394,6 +394,7 @@ void CGameManager::AddWordSelectionAnimation(const std::vector<TWordPos>& wordPo
 {
 	int TileCount;
 	CConfig::GetConfig("tile_count", TileCount);
+	CTileAnimationManager::EAnimationType AnimType = positive ? CTileAnimationManager::WordSelectionSuccess : CTileAnimationManager::WordSelectionFail;
 
 	for (size_t j = 0; j < wordPos.size(); ++j)
 	{
@@ -402,13 +403,13 @@ void CGameManager::AddWordSelectionAnimation(const std::vector<TWordPos>& wordPo
 
 		for (size_t i = 0; i < wordPos[j].m_WordLength; ++i)
 		{
-			m_TileAnimations->AddTile(x, y, positive);
+			m_TileAnimations->AddTile(x, y, AnimType, false);
 			x += wordPos[j].m_Horizontal ? 1 : 0;
 			y -= wordPos[j].m_Horizontal ? 0 : 1;
 		}
 	}
 
-	m_TileAnimations->StartAnimation(positive);
+	m_TileAnimations->StartAnimation(AnimType);
 }
 
 void CGameManager::StartPlayerTurn(CPlayer* player, bool saveBoard)
@@ -1250,7 +1251,7 @@ void CGameManager::ContinueGameTask()
 	if (m_SavedGameState == EGameState::WaintingOnAnimation)
 	{
 	    bool HasWordAnimation = !m_WordAnimation->Empty();
-	    bool HasTileAnimation = !m_TileAnimations->Empty() || HasWordAnimation;
+	    bool HasTileAnimation = !m_TileAnimations->Empty(CTileAnimationManager::WordSelectionSuccess) || !m_TileAnimations->Empty(CTileAnimationManager::WordSelectionFail) || HasWordAnimation;
 	    bool HasLetterAnimation = !m_PlayerLetterAnimationManager->Empty() || HasWordAnimation;
 		bool HasScoreAnimation = m_ScoreAnimationManager->HasAnimation() || HasWordAnimation;
 
@@ -1272,11 +1273,9 @@ void CGameManager::ContinueGameTask()
 	}
 
 	else if (m_CountDownRunning)
-			StartCountdown();
+		StartCountdown();
 
-
-	if (!m_TileAnimations->Empty())
-		m_TileAnimations->StartAnimation();
+	m_TileAnimations->StartAnimation();
 
 	if (!m_WordAnimation->Empty())
 		m_TimerEventManager->StartTimer("word_animations");
@@ -1834,8 +1833,6 @@ void CGameManager::InitUIManager()
 	if (ShowFps && ConfigFound)
 		m_UIManager->SetText(L"ui_fps_text", L"fps : 0");
 
-	m_TileAnimations->SetUIManager(m_UIManager);
-
 	SetTaskFinished("init_uimanager_task");
 }
 
@@ -2203,6 +2200,31 @@ void CGameManager::HandleMultyDragEvent(int x0, int y0, int x1, int y1)
 		return;
 
     m_Renderer->DragCamera(x0, y0, x1, y1);
+}
+
+void CGameManager::RemoveBoardSelectionAnimation()
+{
+	m_TileAnimations->StopAnimation(CTileAnimationManager::CursorSelectionFail);
+	m_TileAnimations->StopAnimation(CTileAnimationManager::CursorSelectionOk);
+}
+
+void CGameManager::AddBoardSelectionAnimation(int x, int y)
+{
+    glm::ivec2 SelectionPos0 = m_TileAnimations->GetSelectionPos(CTileAnimationManager::CursorSelectionFail, 0);
+    glm::ivec2 SelectionPos1 = m_TileAnimations->GetSelectionPos(CTileAnimationManager::CursorSelectionOk, 0);
+	CTileAnimationManager::EAnimationType AnimType = SelectionPosIllegal(x, y) ? CTileAnimationManager::CursorSelectionFail : CTileAnimationManager::CursorSelectionOk;
+
+    if (SelectionPos0.x == x && SelectionPos0.y == y && AnimType == CTileAnimationManager::CursorSelectionFail ||
+        SelectionPos1.x == x && SelectionPos1.y == y && AnimType == CTileAnimationManager::CursorSelectionOk)
+    {
+		m_TileAnimations->AddTile(x, y, AnimType, true);
+		return;
+	}
+
+	m_TileAnimations->StopAnimation(CTileAnimationManager::CursorSelectionOk);
+	m_TileAnimations->StopAnimation(CTileAnimationManager::CursorSelectionFail);
+	m_TileAnimations->AddTile(x, y, AnimType, false);
+	m_TileAnimations->StartAnimation(AnimType);
 }
 
 void CGameManager::AddPlacedLetterSelection(int x, int y) 
