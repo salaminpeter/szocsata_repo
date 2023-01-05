@@ -184,16 +184,20 @@ void CTileAnimationManager::LoadState(std::ifstream& fileStream)
 
 void CTileAnimationManager::StopAnimation(EAnimationType animType)
 {
-	const std::lock_guard<std::mutex> lock(m_GameManager->GetStateLock());
-	{
+//	const std::lock_guard<std::mutex> lock(m_GameManager->GetStateLock());
+//	{
 		const std::lock_guard<std::mutex> lock(m_TileAnimLock);
 		{
 //			const std::lock_guard<std::mutex> lock(m_GameManager->GetRenderer()->GetRenderLock());
 //			{
 				m_Animations[animType].m_TilePositions.clear();
 				m_Animations[animType].m_PassedTime = 0;
+
+                CSelectionStore* SelectionStore = m_GameManager->GetRenderer()->GetSelectionStore();
+                SelectionStore->RemoveSelection(static_cast<CSelectionStore::ESelectionType>(GetSelectionType(animType)));
+
 //			}
-		}
+//		}
 	}
 }
 
