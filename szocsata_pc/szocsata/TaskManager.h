@@ -86,7 +86,8 @@ public:
 	void StartTask(const char* id);
 	void ActivateTask(const char* id);
 	void Reset();
-	void WaitForTaskToFinish();
+	void WaitForTasksToFinish();
+	bool StartedTasksFinished();
 
 	void StopThread() { m_StopTaskThread = true; }
 
@@ -106,12 +107,12 @@ private:
 	double m_LastLoopTime = 0;
 	std::recursive_mutex m_Lock;  // TODO az m_Lock kene hogy ne legyen rekurziv
 	std::mutex m_FinishLock;
-	std::thread* m_Thread;
 	CGameManager* m_GameManager;
-	bool m_StopTaskThread = false;
 
 	std::unique_ptr<CThreadDump> m_ThreadDump;
 
-	std::atomic<bool> m_ThreadsDone = false;
+	std::thread* m_Thread;
+	std::atomic<bool> m_TasksDone = false;
+	std::atomic<bool> m_StopTaskThread = false;
 };
 

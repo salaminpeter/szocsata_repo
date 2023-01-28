@@ -92,7 +92,8 @@ void CGameManager::ResetToStartScreen()
 	ShowGameScreenTask->AddDependencie(GenerateModelsTask);
 	ShowGameScreenTask->AddDependencie(GameStartedTask);
 	ShowCurrPopupTask->AddDependencie(ShowGameScreenTask);
-	BeginGameTask->AddDependencie(ClosePlayerPopupTask);
+    ClosePlayerPopupTask->AddDependencie(ShowCurrPopupTask);
+    BeginGameTask->AddDependencie(ClosePlayerPopupTask);
 
 	RemovePlayers();
 	m_GameBoard.Reset();
@@ -339,7 +340,7 @@ void CGameManager::AddScoreAnimationTask()
 void CGameManager::NextPlayerTaskOnThread()
 {
 	std::unique_lock<std::mutex> Lock(m_TaskManager->Mtx);
-	m_TaskManager->WaitForTaskToFinish();
+	m_TaskManager->WaitForTasksToFinish();
 	NextPlayerTurn();
 }
 
@@ -395,6 +396,7 @@ void CGameManager::AddWordSelectionAnimation(const std::vector<TWordPos>& wordPo
 	int TileCount;
 	CConfig::GetConfig("tile_count", TileCount);
 	CTileAnimationManager::EAnimationType AnimType = positive ? CTileAnimationManager::WordSelectionSuccess : CTileAnimationManager::WordSelectionFail;
+	m_TileAnimations->StopAnimation(CTileAnimationManager::WordSelectionFail);
 
 	for (size_t j = 0; j < wordPos.size(); ++j)
 	{
@@ -1359,13 +1361,34 @@ void CGameManager::GenerateModelsTask()
 	SetTaskFinished("generate_models_task");
 }
 
+void CGameManager::HideLoadScreen()
+{
+	ShowLoadingScreen(false);
+	m_TaskManager->SetTaskFinished("hide_load_screen_task");
+}
+
+
+void CGameManager::WaitForTaskThreadStop()
+{
+	while (!m_TaskManager->m_TaskThreadStopped)
+		std::this_thread::sleep_for(std::chrono::milliseconds(30));
+}
+
+void CGameManager::WaitForGameThreadStop()
+{
+	while (!m_GameThreadStopped)
+		std::this_thread::sleep_for(std::chrono::milliseconds(30));
+}
+
 void CGameManager::StopThreads()
 {
-	m_StopGameLoop = true;
+	//wait for already started tasks to finish, then stop thread
 	StopTaskThread();
+	WaitForTaskThreadStop();
 
-	while (!m_GameThreadStopped || !m_TaskManager->m_TaskThreadStopped)
-		std::this_thread::sleep_for(std::chrono::milliseconds(30));
+	//wait for game thread to stop
+	StopGameThread();
+	WaitForGameThreadStop();
 }
 
 bool CGameManager::AddNextPlayerTasksNormal(bool hasWordAnimation, bool hasTileAnimation, bool hasLetterAnimation, bool hasScoreAnimation, bool addMessageBoxTask)
@@ -1373,15 +1396,14 @@ bool CGameManager::AddNextPlayerTasksNormal(bool hasWordAnimation, bool hasTileA
 	bool PlayerFinishedGame = PlayerFinished();
 
 	std::shared_ptr<CTask> ShowNextPlayerPopupTask = nullptr;
-
-	if (addMessageBoxTask)
-		ShowNextPlayerPopupTask = AddTask(this, PlayerFinishedGame ? &CGameManager::EndGame : &CGameManager::ShowNextPlayerPopup, "show_next_player_popup_task", CTask::RenderThread);
-
 	std::shared_ptr<CTask> NextPlayerTurnTask = PlayerFinishedGame ? nullptr : AddTask(this, &CGameManager::NextPlayerTask, "next_player_turn_task", CTask::RenderThread);
 	std::shared_ptr<CTask> ClosePlayerPopupTask = PlayerFinishedGame ? nullptr : AddTask(this, nullptr, "msg_box_button_close_task", CTask::RenderThread);
 	std::shared_ptr<CTask> ScoreAnimationTask = nullptr;
 
-	m_ScoreAnimationManager->SetPlayerIdx(GetCurrentPlayerIdx());
+    if (addMessageBoxTask)
+        ShowNextPlayerPopupTask = AddTask(this, PlayerFinishedGame ? &CGameManager::EndGame : &CGameManager::ShowNextPlayerPopup,"show_next_player_popup_task", CTask::RenderThread);
+
+    m_ScoreAnimationManager->SetPlayerIdx(GetCurrentPlayerIdx());
 
 	if (hasScoreAnimation)
 	{
@@ -1476,10 +1498,7 @@ void CGameManager::ExecuteTaskOnThread(const char* id, int threadId)
 	else if (threadId == CTask::RenderThread)
 		RunTaskOnRenderThread(id);
 	else if (threadId == CTask::CurrentThread)
-	{
 		m_TaskManager->StartTask(id);
-	}
-
 
 //windowsos hekk itt nincsen ui threadunk
 #else

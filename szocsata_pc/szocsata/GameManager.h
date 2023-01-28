@@ -190,15 +190,14 @@ public:
 	size_t GetCurrentPlayerIdx();
 	void LoadState();
 	void LoadPlayerAndBoardState();
+	void WaitForTaskThreadStop();
+	void WaitForGameThreadStop();
 	void SetTaskFinished(const char* id) { m_TaskManager->SetTaskFinished(id); }
-	void StopTaskThread() {m_TaskManager->StopThread();}
-    void HideLoadScreen()
-    {
-	    ShowLoadingScreen(false);
-	    m_TaskManager->SetTaskFinished("hide_load_screen_task");
-    }
-
-    void HidePopup();
+	void StopTaskThread() { m_TaskManager->StopThread(); }
+	void StopGameThread() { m_StopGameLoop = true; }
+	
+	void HideLoadScreen();
+	void HidePopup();
     void ShowStartScreenTask();
 	void ShowGameScreenTask();
 	void ShowSavedScreenTask();
@@ -326,7 +325,7 @@ private:
 	int m_PlacedLetterTouchY;
 	int m_SurfaceWidth;
 	int m_SurfaceHeigh;
-	bool m_StopGameLoop = false;
+	std::atomic_bool m_StopGameLoop = false;
 	std::atomic_bool m_ContinueGame = false;
 	std::atomic_bool m_GameThreadStopped = false;
 	bool m_PauseGameLoop = false;

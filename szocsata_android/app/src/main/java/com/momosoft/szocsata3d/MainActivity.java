@@ -1,16 +1,16 @@
 package com.momosoft.szocsata3d;
 
 import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.AssetManager;
+import android.content.res.Configuration;
 import android.graphics.Point;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
 import android.os.Debug;
+
+import com.momosoft.szocsata3d.TouchInputManager;
 
 import com.momosoft.szocsata3d.R;
 
@@ -20,6 +20,7 @@ import java.io.IOException;
 public class MainActivity extends AppCompatActivity {
 
     private OpenGLView m_OpenGLView;
+    private TouchInputManager m_TouchInputManager;
 
     // Used to load the 'native-lib' library on application startup.
     static {
@@ -27,11 +28,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public native void ClearResources();
-
-    private static Point m_FingerPos0 = new Point();
-    private static Point m_FingerPos1 = new Point();
-    private static boolean m_MultyTouch = false;
-    private static double Distance = 0;
+    public native void StopThreads();
+    public native void SaveState();
 
     private boolean m_PauseHandled = true;
 
@@ -51,111 +49,8 @@ public class MainActivity extends AppCompatActivity {
         AssetManager am = getAssets();
         SetAssetManager(am);
 
-        m_OpenGLView.setOnTouchListener(new View.OnTouchListener() {
-                                            @Override
-                                            public boolean onTouch(View v, MotionEvent event) {
-
-                                                int Action = event.getActionMasked();
-
-                                                if (Action == MotionEvent.ACTION_DOWN) {
-                                                    Log.i("fos", "finger one down : " + 0);
-                                                    hideStatusBar();
-                                                    int x = (int)event.getX(0);
-                                                    int y = (int)event.getY(0);
-                                                    m_FingerPos0.x = x;
-                                                    m_FingerPos0.y = y;
-
-                                                    if (!m_MultyTouch)
-                                                        HandleTouchEvent(x, y);
-                                                    return true;
-                                                }
-
-                                                if (Action == MotionEvent.ACTION_POINTER_DOWN) {
-                                                        Log.i("fos", "finger 2 down : " + 1);
-                                                    m_MultyTouch = true;
-                                                    int x = (int)event.getX(1);
-                                                    int y = (int)event.getY(1);
-                                                    m_FingerPos1.x = x;
-                                                    m_FingerPos1.y = y;
-                                                    Distance = Math.sqrt((double)((m_FingerPos0.x - m_FingerPos1.x) * (m_FingerPos0.x - m_FingerPos1.x) + (m_FingerPos0.y - m_FingerPos1.y) * (m_FingerPos0.y - m_FingerPos1.y)));
-                                                    Log.i("dist", "start Distance : " + Distance);
-                                                    HandleMultyTouchStartEvent(m_FingerPos0.x, m_OpenGLView.getHeight() - m_FingerPos0.y, m_FingerPos1.x, m_OpenGLView.getHeight() - m_FingerPos1.y);
-                                                    return  true;
-                                                }
-
-                                                if (Action == MotionEvent.ACTION_UP) {
-                                                    Log.i("fos", "finger 1 up : " + 1);
-                                                    if (m_MultyTouch) {
-                                                        HandleMultyTouchEndEvent();
-                                                        m_MultyTouch = false;
-                                                    }
-                                                    else {
-                                                        int x = (int)event.getX(0);
-                                                        int y = (int)event.getY(0);
-                                                        Log.i("fos", "HandleRelease x : " + x + " y : " + y );
-                                                        HandleReleaseEvent(x, y);
-                                                    }
-                                                        return true;
-                                                 }
-
-                                                if (Action == MotionEvent.ACTION_POINTER_UP) {
-                                                    Log.i("fos", "finger 2 up : " + 1);
-                                                    HandleMultyTouchEndEvent();
-                                                    m_MultyTouch = false;
-                                                    return true;
-                                                }
-
-                                                if (Action == MotionEvent.ACTION_MOVE) {
-  //                                                 Log.i("fos", "finger move : " + event.getPointerCount() + " kk " + m_MultyTouch);
-                                                    if (m_MultyTouch) {
-
-                                                        int pointerCount = event.getPointerCount();
-                                                        int dif = 0;
-
-                                                        for(int i = 0; i < pointerCount; ++i)
-                                                        {
-                                                            int pointerIndex = i;
-                                                            int pointerId = event.getPointerId(pointerIndex);
-                                                            Log.d("pointer id - move",Integer.toString(pointerId));
-                                                            if(pointerId == 0)
-                                                            {
-                                                                dif += Math.abs(m_FingerPos0.x - (int)event.getX(pointerIndex)) + Math.abs(m_FingerPos0.y - (int)event.getX(pointerIndex));
-                                                                m_FingerPos0.x = (int)event.getX(pointerIndex);
-                                                                m_FingerPos0.y = (int)event.getY(pointerIndex);
-                                                                Log.i("fos", "finger 0 moved :  x - " + m_FingerPos0.x + " y - " + m_FingerPos0.y);
-                                                            }
-                                                            if(pointerId == 1)
-                                                            {
-                                                                dif += Math.abs(m_FingerPos1.x - (int)event.getX(pointerIndex)) + Math.abs(m_FingerPos1.y - (int)event.getX(pointerIndex));
-                                                                m_FingerPos1.x = (int)event.getX(pointerIndex);
-                                                                m_FingerPos1.y = (int)event.getY(pointerIndex);
-                                                                Log.i("fos", "finger 1 moved :  x - " + m_FingerPos1.x + " y - " + m_FingerPos1.y);
-                                                            }
-                                                        }
-
-                                                        //if (dif > 4) {
-                                                            double Dist = Math.sqrt((double)((m_FingerPos0.x - m_FingerPos1.x) * (m_FingerPos0.x - m_FingerPos1.x) + (m_FingerPos0.y - m_FingerPos1.y) * (m_FingerPos0.y - m_FingerPos1.y)));
-                                                            Log.i("dist", "Distance : " + (Dist - Distance));
-                                                            Distance = Dist;
-                                                            HandleMultyTouchEvent(m_FingerPos0.x, m_OpenGLView.getHeight() - m_FingerPos0.y, m_FingerPos1.x, m_OpenGLView.getHeight() - m_FingerPos1.y);
-                                                        //}
-                                                    }
-
-                                                    else {
-                                                        int x = (int)event.getX(0);
-                                                        int y = (int)event.getY(0);
-                                                        Log.i("fos", "HandleDrag x : " + x + " y : " + y );
-                                                       HandleDragEvent(x, y);
-                                                    }
-
-                                                    return true;
-                                                }
-
-                                                return v.onTouchEvent(event);
-                                            }
-                                        }
-
-        );
+        m_TouchInputManager = new TouchInputManager(this);
+        m_OpenGLView.setOnTouchListener(m_TouchInputManager.m_TouchInputListener);
     }
 
     @Override
@@ -165,9 +60,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    public void onConfigurationChanged(Configuration newConfig)
+    {
+        super.onConfigurationChanged(newConfig);
+    }
+
+    @Override
     protected void onResume(){
         super.onResume();
-        Debug.waitForDebugger();
+//        Debug.waitForDebugger();
         ImageLoader.m_Context = this;
         String Path = getFilesDir() + "/secondstart";
         File SecondStartFile = new File(Path);
@@ -207,14 +108,21 @@ public class MainActivity extends AppCompatActivity {
             return;
 
         m_PauseHandled = true;
+
+        StopThreads();
         m_OpenGLView.onPause();
+        SaveState();
         ClearResources();
     }
     @Override
     public void onPointerCaptureChanged(boolean hasCapture) {
     }
 
-    private void hideStatusBar() {
+    public Point GetGLViewSize() {
+        return new Point(m_OpenGLView.getWidth(), m_OpenGLView.getHeight());
+    }
+
+    public void hideStatusBar() {
         View decorView = getWindow().getDecorView();
         decorView.setSystemUiVisibility(
                 View.SYSTEM_UI_FLAG_IMMERSIVE

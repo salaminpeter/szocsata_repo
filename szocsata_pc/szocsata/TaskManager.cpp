@@ -37,7 +37,7 @@ void CTaskManager::FreeTask(const char* taskId)
 				m_TaskList.remove(nullptr);
 
 			if (m_TaskList.size() == 0 && PrevSize != 0)
-				m_ThreadsDone = true;
+				m_TasksDone = true;
 
 			return;
 		}
@@ -73,14 +73,26 @@ void CTaskManager::AddDependencie(const char* taskId, const char* depId)
 #include <chrono>
 #include <thread>
 
-void CTaskManager::WaitForTaskToFinish()
+bool CTaskManager::StartedTasksFinished()
 {
-	while (!m_ThreadsDone)
+	for (auto it = m_TaskList.begin(); it != m_TaskList.end(); ++it)
+	{
+		if ((*it)->m_Task && (*it)->m_TaskStarted && !(*it)->m_TaskFinished)
+			return false;
+	}
+
+	return true;
+}
+
+
+void CTaskManager::WaitForTasksToFinish()
+{
+	while (!m_TasksDone)
 	{
 		std::this_thread::sleep_for(std::chrono::milliseconds(30));
 	}
 
-	m_ThreadsDone = false;
+	m_TasksDone = false;
 }
 
 void CTaskManager::FinishTask(const char *taskId, std::atomic<bool>* flag)
@@ -141,7 +153,7 @@ void CTaskManager::TaskLoop()
 
 	while (true)
 	{
-		if (m_StopTaskThread)
+		if (m_StopTaskThread && StartedTasksFinished())
 		{
 			m_TaskThreadStopped = true;
 			return;
@@ -158,7 +170,7 @@ void CTaskManager::TaskLoop()
 				if ((*it)->m_TaskFinished || (*it)->m_TaskStopped)
 					continue;
 
-				if (!(*it)->m_TaskStarted)
+				if (!m_StopTaskThread && !(*it)->m_TaskStarted)
 				{
 					if (!(*it)->DependenciesResolved())
 						continue;

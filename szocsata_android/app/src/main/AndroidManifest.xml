@@ -13,7 +13,7 @@
         android:theme="@style/Theme.Szocsata_android">
 
       <activity android:name=".MainActivity"
-                android:configChanges="keyboardHidden|orientation|screenSize"
+                android:configChanges="keyboardHidden|orientation|screenSize|layoutDirection|locale"
                 android:screenOrientation="landscape"
                 android:exported="true">
             <intent-filter>

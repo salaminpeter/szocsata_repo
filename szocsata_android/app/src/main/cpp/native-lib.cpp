@@ -215,13 +215,12 @@ Java_com_momosoft_szocsata3d_OpenGLRenderer_EndInitAndStart(JNIEnv *env, jobject
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_momosoft_szocsata3d_MainActivity_ClearResources(JNIEnv *env, jobject thiz) {
+    const std::lock_guard<std::mutex> lock(m_GMLock);
+
     if (!gm)
         return;
 
-    const std::lock_guard<std::mutex> lock(m_GMLock);
-    gm->StopThreads();
-    gm->SaveState();
-    gm->HidePopup();
+//    gm->HidePopup(); ez miert kellett TODO
     delete gm;
     gm = nullptr;
 }
@@ -259,4 +258,24 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_com_momosoft_szocsata3d_MainActivity_ResumeGame(JNIEnv *env, jobject thiz)
 {
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_momosoft_szocsata3d_MainActivity_StopThreads(JNIEnv *env, jobject thiz)
+{
+    const std::lock_guard<std::mutex> lock(m_GMLock);
+
+    if (gm)
+        gm->StopThreads();
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_momosoft_szocsata3d_MainActivity_SaveState(JNIEnv *env, jobject thiz)
+{
+    const std::lock_guard<std::mutex> lock(m_GMLock);
+
+    if (gm)
+        gm->SaveState();
 }
