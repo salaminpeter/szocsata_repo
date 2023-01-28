@@ -56,7 +56,6 @@ public:
 		delete m_TimerEventManager;
 		delete m_GameThread;
 		delete m_TaskManager;
-		delete m_WordAnimation;
 		delete m_CameraAnimationManager;
 		delete m_PlayerLetterAnimationManager;
 		delete m_DimmBGAnimationManager;
