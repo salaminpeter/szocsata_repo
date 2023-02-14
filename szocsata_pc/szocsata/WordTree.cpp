@@ -1,6 +1,11 @@
 #include "stdafx.h"
 #include "WordTree.h"
 
+#include <algorithm>
+#include <limits>
+#include <fstream>
+
+#undef max //TODO!!! numeric limits nem megy miatta
 
 void CWordTree::Delete(TNode* node)
 {
@@ -54,4 +59,71 @@ CWordTree::TNode* CWordTree::TNode::FindChild(wchar_t chr)
 	}
 
 	return nullptr;
+}
+
+CWordFlatTree::TNode* CWordFlatTree::TNode::Parent()
+{
+    if (m_ParentIdx == std::numeric_limits<size_t>::max())
+        return nullptr;
+
+	return &m_ParentClass.lock()->m_FlatTree[m_ParentIdx];
+}
+
+CWordFlatTree::TNode* CWordFlatTree::TNode::FindChild(wchar_t chr)
+{
+	auto ParentClassPtr = m_ParentClass.lock();
+
+	for (size_t i = 0; i < m_ChildCount; ++i)
+	{
+		if (ParentClassPtr->m_FlatTree[m_ChildrenIdx + i].m_Char == chr)
+			return &ParentClassPtr->m_FlatTree[m_ChildrenIdx + i];
+	}
+
+	return nullptr;
+}
+
+void CWordFlatTree::FlattenNodeChildren(CWordTree::TNode& node, size_t level, size_t parentIdx)
+{
+	for (auto ChildNode : node.m_Children)
+		m_FlatTree.emplace_back(ChildNode->m_Char, parentIdx, 0, ChildNode->m_Children.size(), ChildNode->m_WordEnd, level + 1);
+
+	size_t Idx = m_FlatTree.size() - node.m_Children.size();
+
+	for (auto ChildNode : node.m_Children)
+		FlattenNodeChildren(*ChildNode, level + 1, Idx++);
+
+	//set childisx values
+	if (level == 0)
+	{
+		size_t ParentIdx = std::numeric_limits<size_t>::max();
+
+		for (size_t i = 0; i < m_FlatTree.size(); ++i)
+		{
+			if (m_FlatTree[i].m_ParentIdx != ParentIdx)
+			{
+				ParentIdx = m_FlatTree[i].m_ParentIdx;
+				m_FlatTree[ParentIdx].m_ChildrenIdx = i;
+			}
+		}
+	}
+}
+
+void CWordFlatTree::SetParentClasses(std::weak_ptr<CWordFlatTree> parent)
+{
+    for (auto& Node : m_FlatTree)
+        Node.m_ParentClass = parent;
+}
+
+void CWordFlatTree::FlattenWordTree(CWordTree& wordTree)
+{
+	//add root
+	m_FlatTree.emplace_back(wordTree.Root()->m_Char, std::numeric_limits<size_t>::max(), 1, wordTree.Root()->m_Children.size(), false, 0);
+
+	FlattenNodeChildren(*wordTree.Root(), 0, 0);
+}
+
+void CWordFlatTree::SaveTree(const char* path)
+{
+    std::ofstream File(path, std::ios::out | std::ios::binary);
+
 }

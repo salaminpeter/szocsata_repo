@@ -136,7 +136,7 @@ void CComputer::AddResult(const TWordPos& wordPos, CBinaryBoolList usedLetters)
 }
 
 
-void CComputer::BackTrackWord(CWordTree::TNode* node, std::wstring& word, int x, int y, bool horizontal, CBinaryBoolList usedLetters)
+void CComputer::BackTrackWord(CWordFlatTree::TNode* node, std::wstring& word, int x, int y, bool horizontal, CBinaryBoolList usedLetters)
 {
 	if (!node) {
 
@@ -156,16 +156,16 @@ void CComputer::BackTrackWord(CWordTree::TNode* node, std::wstring& word, int x,
 	}
 
 	word = node->m_Char + word;
-	BackTrackWord(node->m_Parent, word, x, y, horizontal, usedLetters);
+	BackTrackWord(node->Parent(), word, x, y, horizontal, usedLetters);
 }
 
 
-void CComputer::GetWordsInFieldList(const std::wstring& letters, CWordTree::TNode* node, CBinaryBoolList usedLetters, std::vector<TField*>& fieldList, int wordStartIdx, int pos, bool horizontal, int charCount)
+void CComputer::GetWordsInFieldList(const std::wstring& letters, CWordFlatTree::TNode* node, CBinaryBoolList usedLetters, std::vector<TField*>& fieldList, int wordStartIdx, int pos, bool horizontal, int charCount)
 {
 	if (fieldList.size() == wordStartIdx + charCount)
 		return;
 
-	CWordTree::TNode* ChildNode = nullptr;
+	CWordFlatTree::TNode* ChildNode = nullptr;
 	wchar_t CurrentLetter = fieldList[wordStartIdx + charCount - 1]->m_Char;
 	int CurrentFieldHeight = fieldList[wordStartIdx + charCount - 1]->m_Height;
 
@@ -206,7 +206,7 @@ void CComputer::GetWordsInFieldList(const std::wstring& letters, CWordTree::TNod
 		{
 			CBinaryBoolList UsedLetters = usedLetters;
 			UsedLetters.SetFlag(i, true);
-			CWordTree::TNode* RootNode = m_GameManager->WordTreeRoot(letters[i]);
+			CWordFlatTree::TNode* RootNode = m_GameManager->WordTreeRoot(letters[i]);
 
 			if (!RootNode)
 				return;
@@ -244,7 +244,7 @@ void CComputer::ComputeRowCol(int idx, bool rows)
 		for (int i = 0; i < TileCount; ++i)
 			Row.push_back(&m_GameManager->Board(i, idx));
 
-		CWordTree::TNode* CurrentNode = nullptr;
+		CWordFlatTree::TNode* CurrentNode = nullptr;
 
 		for (int i = 0; i < Row.size(); ++i)
 		{
@@ -281,7 +281,7 @@ void CComputer::ComputeRowCol(int idx, bool rows)
 		for (int i = 0; i < TileCount; ++i)
 			Column.push_back(&m_GameManager->Board(idx, i));
 
-		CWordTree::TNode* CurrentNode = nullptr;
+		CWordFlatTree::TNode* CurrentNode = nullptr;
 
 		for (int i = 0; i < Column.size(); ++i)
 		{

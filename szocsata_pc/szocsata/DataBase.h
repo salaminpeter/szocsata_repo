@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include <map>
+#include <vector>
 
 #include "WordTree.h"
 
@@ -9,18 +10,18 @@ class CWordTree;
 class CDataBase
 {
 public:
+
 	int linecount = 0;
 	void LoadDataBase(const char* dbFilePath);
-	bool WordExists(std::wstring& word, CWordTree::TNode* node = nullptr, int charIdx = 0);
-	
-	CWordTree::TNode* GetWordTreeRoot(wchar_t c)
-	{
-		if (m_WordTrees.find(c) == m_WordTrees.end())
-			return nullptr;
+    bool WordExists(std::wstring& word, CWordFlatTree::TNode* node = nullptr, int charIdx = 0);
+	CWordFlatTree::TNode* GetWordTreeRoot(wchar_t c);
 
-		return m_WordTrees[c]->Root();
-	}
+private:
+
+	void WriteNodeToBinary(CWordTree::TNode* node, std::ofstream& stream);
 		
 private:
+
 	std::map<wchar_t, CWordTree*> m_WordTrees;
+	std::map<wchar_t, std::shared_ptr<CWordFlatTree>> m_WordTree;
 };

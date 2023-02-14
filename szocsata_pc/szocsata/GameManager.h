@@ -161,7 +161,7 @@ public:
 	glm::ivec2 GetWordsMidPoint(const std::vector<TWordPos>& words);
 
 	wchar_t GetChOnBoard(int x, int y) { return m_GameBoard(x, y).m_Char; }
-	CWordTree::TNode* WordTreeRoot(wchar_t c) {return m_DataBase.GetWordTreeRoot(c);}
+	CWordFlatTree::TNode* WordTreeRoot(wchar_t c) {return m_DataBase.GetWordTreeRoot(c);}
     TField& Board(int x, int y) {return m_GameBoard(x, y);}
 	CGameBoard& GetBoard(bool tmp) {return tmp ? m_TmpGameBoard : m_GameBoard;} const
 	int GetPlayerCount() {return m_Players.size();}

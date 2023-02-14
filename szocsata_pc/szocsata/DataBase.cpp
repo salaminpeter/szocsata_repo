@@ -13,6 +13,33 @@
 #include "FileHandler.h"
 
 
+CWordFlatTree::TNode* CDataBase::GetWordTreeRoot(wchar_t c)
+{
+	if (m_WordTree.find(c) == m_WordTree.end())
+		return nullptr;
+
+	return m_WordTree[c]->GetNode(0);
+}
+
+void CDataBase::WriteNodeToBinary(CWordTree::TNode* node, std::ofstream& stream)
+{
+	size_t ChildCount = node->m_Children.size();
+
+	if (node->m_Parent == nullptr)
+	{
+		stream.write((char*)&node->m_Char, sizeof(wchar_t));
+		stream.write((char*)&ChildCount, sizeof(size_t));
+	}
+
+	for (auto& TreeNode : node->m_Children)
+	{
+		stream.write((char*)&node->m_Char, sizeof(wchar_t));
+		stream.write((char*)&ChildCount, sizeof(size_t));
+	}
+
+	for (auto& TreeNode : node->m_Children)
+		WriteNodeToBinary(TreeNode, stream);
+}
 
 void CDataBase::LoadDataBase(const char* dbFilePath)
 {
@@ -43,29 +70,34 @@ void CDataBase::LoadDataBase(const char* dbFilePath)
 		WordTree->AddWord(Str, WordTree->Root());
 		linecount++;
 	}
+
+	for (auto& WordTree : m_WordTrees)
+	{
+		m_WordTree[WordTree.first] = std::make_shared<CWordFlatTree>();
+		m_WordTree[WordTree.first]->FlattenWordTree(*WordTree.second);
+		m_WordTree[WordTree.first]->SetParentClasses(m_WordTree[WordTree.first]);
+	}
 }
 
-
-bool CDataBase::WordExists(std::wstring& word, CWordTree::TNode* node, int charIdx)
+bool CDataBase::WordExists(std::wstring& word, CWordFlatTree::TNode* node, int charIdx)
 {
-	if (charIdx == word.length())
-		return node->m_WordEnd;
+    if (charIdx == word.length())
+        return node->m_WordEnd;
 
-	if (node)
-	{
-		CWordTree::TNode* ChildNode = node->FindChild(word.at(charIdx));
+    if (node)
+    {
+        CWordFlatTree::TNode* ChildNode = node->FindChild(word.at(charIdx));
 
-		if (!ChildNode)
+        if (!ChildNode)
 			return false;
 
-		return WordExists(word, ChildNode, ++charIdx);
-	}
-	else
-	{
-		if (m_WordTrees.find(word.at(0)) == m_WordTrees.end())
-			return false;
+        return WordExists(word, ChildNode, ++charIdx);
+    }
+    else
+    {
+        if (m_WordTree.find(word.at(0)) == m_WordTree.end())
+            return false;
 
-		return WordExists(word, m_WordTrees[word.at(0)]->Root(), 1);
-	}
+        return WordExists(word, m_WordTree[word.at(0)]->GetNode(0), 1);
+    }
 }
-
