@@ -1,8 +1,10 @@
 #pragma once
-#ifdef PLATFORM_ANDROID
 #include <vector>
-#include <jni.h>
 #include <glm/glm.hpp>
+
+#ifdef PLATFORM_ANDROID
+#include <jni.h>
+#endif
 
 class CImageLoader
 {
@@ -12,7 +14,9 @@ public:
 	
 	static bool LoadImage(const char* path);
 
+#ifdef PLATFORM_ANDROID
 	static void SetJavaVM(JavaVM* javaVM) {m_JavaVM = javaVM;}
+#endif
 	static glm::ivec2 GetSize() {return glm::ivec2(m_Width, m_Height);}
 	static int GetColorDepth() {return m_ColorDepth;}
 	static std::vector<uint8_t>& GetData() {return m_ImageData;}
@@ -26,11 +30,12 @@ private:
 
 private:
 
+#ifdef PLATFORM_ANDROID
 	static JavaVM* m_JavaVM;
+#endif
 	static int m_Width;
 	static int m_Height;
 	static int m_ColorDepth;
 	static std::vector<uint8_t> m_ImageData;
 };
 
-#endif

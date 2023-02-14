@@ -1,10 +1,14 @@
-#ifdef PLATFORM_ANDROID
-
 #include <string>
 #include "stdafx.h"
 #include "ImageLoader.h"
 
+#ifdef PLATFORM_ANDROID
 JavaVM* CImageLoader::m_JavaVM = nullptr;
+#else
+#include "FileHandler.h"
+#include "IOManager.h"
+#endif
+
 int CImageLoader::m_Width = 0;
 int CImageLoader::m_Height = 0;
 int CImageLoader::m_ColorDepth = 0;
@@ -13,6 +17,7 @@ std::vector<uint8_t> CImageLoader::m_ImageData;
 
 bool CImageLoader::LoadImageData(const char* path)
 {
+#ifdef PLATFORM_ANDROID
 	extern jclass g_ImageLoaderClass;
 
 	JNIEnv* env;
@@ -44,10 +49,47 @@ bool CImageLoader::LoadImageData(const char* path)
 	}
 
 	return Success;
+#else
+	CFileHandlerBase::CMemoryBuffer MemBuffer;
+
+	if (!CIOManager::GetMemoryStreamForFile(path, MemBuffer))
+	{
+		return 0;
+	}
+
+	uint16_t bfType = *(uint16_t*)(&MemBuffer.m_Buffer.get()[0]);
+	uint32_t biSizeImage = *(uint32_t*)(&MemBuffer.m_Buffer.get()[34]);
+	uint32_t  bfOffBits = *(uint32_t*)(&MemBuffer.m_Buffer.get()[10]);
+	int32_t biWidth = *(int32_t*)(&MemBuffer.m_Buffer.get()[18]);
+	int32_t biHeight = *(int32_t*)(&MemBuffer.m_Buffer.get()[22]);
+	int32_t ColorDepth = *(int32_t*)(&MemBuffer.m_Buffer.get()[28]);
+
+	if (bfType != 0x4D42)
+		return 0;
+
+	m_ImageData.reserve(biSizeImage);
+	m_ImageData.resize(biSizeImage, 0);
+	MemBuffer.Read(bfOffBits, biSizeImage, (char*)(&m_ImageData[0]));
+
+	uint8_t tmpRGB = 0;
+	int add = m_ColorDepth;
+
+	for (unsigned long i = 0; i < biSizeImage; i += add)
+	{
+		tmpRGB = m_ImageData[i];
+		m_ImageData[i] = m_ImageData[i + 2];
+		m_ImageData[i + 2] = tmpRGB;
+	}
+
+	m_Width = biWidth;
+	m_Height = biHeight;
+
+#endif
 }
 
 int CImageLoader::GetImageSize(ESizeType type)
 {
+#ifdef PLATFORM_ANDROID
 	extern jclass g_ImageLoaderClass;
 
 	JNIEnv* env;
@@ -79,10 +121,14 @@ int CImageLoader::GetImageSize(ESizeType type)
 	}
 
 	return Result;
+#else
+	return (type == Width ? m_Width : m_Height);
+#endif
 }
 
 int CImageLoader::GetImageColorDepth()
 {
+#ifdef PLATFORM_ANDROID
 	extern jclass g_ImageLoaderClass;
 
 	JNIEnv* env;
@@ -112,10 +158,14 @@ int CImageLoader::GetImageColorDepth()
 	}
 
 	return Result;
+#else
+	return m_ColorDepth;
+#endif
 }
 
 std::vector<uint8_t> CImageLoader::GetImageData()
 {
+#ifdef PLATFORM_ANDROID
 	extern jclass g_ImageLoaderClass;
 
 	JNIEnv* env;
@@ -152,6 +202,10 @@ std::vector<uint8_t> CImageLoader::GetImageData()
 	env->GetByteArrayRegion(Data, 0, ArrLen, reinterpret_cast<jbyte*>(&Result[0]));
 
 	return Result;
+#else
+	return m_ImageData;
+#endif
+
 }
 
 bool CImageLoader::LoadImage(const char* path)
@@ -175,4 +229,3 @@ bool CImageLoader::LoadImage(const char* path)
 
 
 
-#endif
