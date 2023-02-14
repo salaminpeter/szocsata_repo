@@ -22,7 +22,11 @@ CTexture::CTexture(const char* fileName, uint8_t* imageData, int width, int heig
 CTexture::CTexture(const char* fileName, int colorDepth, bool filter) : m_Name(fileName), m_ColorDepth(colorDepth)
 {
 	ImageLoad(m_Name.c_str());
+#ifdef PLATFORM_ANDROID
 	InitTexture(filter, &(CImageLoader::GetData())[0]);
+#else
+	InitTexture(filter, &(m_ImageData)[0]);
+#endif
 }
 
 
@@ -64,6 +68,9 @@ const int CTexture::ImageLoad(const char *fileName)
 
 	for (unsigned long i = 0; i < biSizeImage; i += add)
 	{
+		if (i + 2 >= m_ImageData.size())
+			break;
+
 		tmpRGB = m_ImageData[i];
 		m_ImageData[i] = m_ImageData[i + 2];
 		m_ImageData[i + 2] = tmpRGB;
