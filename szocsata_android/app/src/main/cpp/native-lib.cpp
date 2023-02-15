@@ -75,6 +75,7 @@ void InitGameManager(int surfWidth, int surfHeight)
     CImageLoader::SetJavaVM(g_VM);
 
     gm->ShowLoadingScreen(true);
+    gm->LoadDataBase();
 
     bool ResumeGame = gm->GameStateFileFound();
 
@@ -226,7 +227,7 @@ Java_com_momosoft_szocsata3d_MainActivity_ClearResources(JNIEnv *env, jobject th
 }
 
 extern "C"
-JNIEXPORT bool JNICALL
+JNIEXPORT jboolean JNICALL
 Java_com_momosoft_szocsata3d_OpenGLRenderer_CreateGameManager(JNIEnv *env, jobject thiz)
 {
     const std::lock_guard<std::mutex> lock(m_GMLock);

@@ -122,8 +122,50 @@ void CWordFlatTree::FlattenWordTree(CWordTree& wordTree)
 	FlattenNodeChildren(*wordTree.Root(), 0, 0);
 }
 
-void CWordFlatTree::SaveTree(const char* path)
+void CWordFlatTree::LoadTree(std::ifstream& file)
 {
-    std::ofstream File(path, std::ios::out | std::ios::binary);
+	size_t TreeSize;
+	file.read((char*)&TreeSize, sizeof(size_t));
+
+	if (!file.good())
+        return;
+
+	m_FlatTree.reserve(TreeSize);
+
+	for (int i = 0; i < TreeSize; ++i)
+	{
+		wchar_t  Char;
+		size_t ParentIdx;
+		size_t ChildrenIdx;
+		size_t ChildCount;
+		size_t Level;
+		bool WordEnd;
+
+		file.read((char*)&Char, sizeof(wchar_t ));
+		file.read((char*)&ParentIdx, sizeof(size_t));
+		file.read((char*)&ChildrenIdx, sizeof(size_t));
+		file.read((char*)&ChildCount, sizeof(size_t));
+		file.read((char*)&Level, sizeof(size_t));
+		file.read((char*)&WordEnd, sizeof(bool));
+
+		m_FlatTree.emplace_back(Char, ParentIdx, ChildrenIdx, ChildCount, WordEnd, Level);
+	}
+
+}
+
+void CWordFlatTree::SaveTree(std::ofstream& file)
+{
+	size_t TreeSize = m_FlatTree.size();
+	file.write((char*)&TreeSize, sizeof(size_t));
+
+	for (auto& Node : m_FlatTree)
+	{
+		file.write((char*)&Node.m_Char, sizeof(wchar_t ));
+		file.write((char*)&Node.m_ParentIdx, sizeof(size_t));
+		file.write((char*)&Node.m_ChildrenIdx, sizeof(size_t));
+		file.write((char*)&Node.m_ChildCount, sizeof(size_t));
+		file.write((char*)&Node.m_Level, sizeof(size_t));
+		file.write((char*)&Node.m_WordEnd, sizeof(bool));
+	}
 
 }

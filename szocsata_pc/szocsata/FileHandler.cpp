@@ -89,9 +89,6 @@ bool CFileHandlerAndroid::GetMemoryStreamForFile(const char *path, CMemoryBuffer
 
 bool CFileHandlerWin32::GetStreamStrForFile(const char *path, std::stringstream& outStream)
 {
-
-
-	const char * pth = "D:/szoparbaj/config.txt"; //!!!!!!!!!!!!!
 	std::ifstream FileStream;
 	FileStream.open(path);
 

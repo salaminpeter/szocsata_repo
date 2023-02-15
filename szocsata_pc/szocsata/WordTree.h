@@ -70,6 +70,8 @@ public:
 
 	void FlattenWordTree(CWordTree& wordTree);
     void SetParentClasses(std::weak_ptr<CWordFlatTree> parent);
+	void SaveTree(std::ofstream& file);
+	void LoadTree(std::ifstream& file);
 
 	TNode* GetNode(size_t idx)
 	{
@@ -81,7 +83,6 @@ public:
 
 private:
 
-    void SaveTree(const char* path);
 	void FlattenNodeChildren(CWordTree::TNode& node, size_t level, size_t parentIdx);
 
 private:

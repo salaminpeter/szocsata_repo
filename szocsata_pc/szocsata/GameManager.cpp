@@ -35,8 +35,6 @@ CGameManager::CGameManager()
 {
 	CConfig::LoadConfigs("config.txt");
 
-	m_DataBase.LoadDataBase("dic.txt");
-
 	m_State = new CGameState(this);
 	m_TimerEventManager = new CTimerEventManager();
 	m_TileAnimations = new CTileAnimationManager(m_TimerEventManager, this);

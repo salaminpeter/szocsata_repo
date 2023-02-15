@@ -15,6 +15,7 @@ public:
 	void LoadDataBase(const char* dbFilePath);
     bool WordExists(std::wstring& word, CWordFlatTree::TNode* node = nullptr, int charIdx = 0);
 	CWordFlatTree::TNode* GetWordTreeRoot(wchar_t c);
+	void SaveDataBase(const char*path);
 
 private:
 

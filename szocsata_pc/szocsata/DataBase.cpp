@@ -43,6 +43,7 @@ void CDataBase::WriteNodeToBinary(CWordTree::TNode* node, std::ofstream& stream)
 
 void CDataBase::LoadDataBase(const char* dbFilePath)
 {
+/*
 	std::wstringstream StrStream;
 	std::wstring Str;
 
@@ -77,7 +78,36 @@ void CDataBase::LoadDataBase(const char* dbFilePath)
 		m_WordTree[WordTree.first]->FlattenWordTree(*WordTree.second);
 		m_WordTree[WordTree.first]->SetParentClasses(m_WordTree[WordTree.first]);
 	}
+*/
+
+	std::ifstream File(dbFilePath, std::ios::in | std::ios::binary);
+
+	while (File.good())
+    {
+        wchar_t  Char;
+
+        if (!File.seekg(sizeof(size_t), std::ios::cur))
+            break;
+
+        File.read((char*)&Char, sizeof(wchar_t ));
+        File.seekg(-sizeof(size_t) - sizeof(wchar_t), std::ios::cur);
+
+        m_WordTree[Char] = std::make_shared<CWordFlatTree>();
+        m_WordTree[Char]->LoadTree(File);
+        m_WordTree[Char]->SetParentClasses(m_WordTree[Char]);
+    }
 }
+
+void CDataBase::SaveDataBase(const char*path)
+{
+	std::ofstream File(path, std::ios::out | std::ios::binary);
+
+	for (auto& WordTree : m_WordTree)
+		WordTree.second->SaveTree(File);
+
+	File.close();
+}
+
 
 bool CDataBase::WordExists(std::wstring& word, CWordFlatTree::TNode* node, int charIdx)
 {
