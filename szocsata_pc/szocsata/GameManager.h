@@ -251,6 +251,7 @@ public:
 	void PauseGameLoop(bool pause) {m_PauseGameLoop = pause;}
 	bool ResumedOnGameScreen() {return GameScreenActive(m_SavedGameState);}
 	std::mutex& GetStateLock() {return m_StateLock;}
+//    void LoadDataBase() {m_DataBase.LoadDataBase("dic.txt");	SaveDataBase();}
     void LoadDataBase() {m_DataBase.LoadDataBase((GetWorkingDir() + "/db.dat").c_str());}
     void SaveDataBase() {m_DataBase.SaveDataBase((GetWorkingDir() + "/db.dat").c_str());}
 

@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.AssetManager;
 import android.content.res.Configuration;
+import android.graphics.BitmapFactory;
 import android.graphics.Point;
 import android.os.Bundle;
 import android.view.View;
@@ -15,7 +16,11 @@ import com.momosoft.szocsata3d.TouchInputManager;
 import com.momosoft.szocsata3d.R;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.Buffer;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -51,6 +56,7 @@ public class MainActivity extends AppCompatActivity {
 
         m_TouchInputManager = new TouchInputManager(this);
         m_OpenGLView.setOnTouchListener(m_TouchInputManager.m_TouchInputListener);
+        InstallDB();
     }
 
     @Override
@@ -68,11 +74,11 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume(){
         super.onResume();
-//        Debug.waitForDebugger();
+ //      Debug.waitForDebugger();
         ImageLoader.m_Context = this;
         String Path = getFilesDir() + "/secondstart";
         File SecondStartFile = new File(Path);
-
+/*
         if (SecondStartFile.exists() == false) {
             try {
                 SecondStartFile.createNewFile();
@@ -85,7 +91,7 @@ public class MainActivity extends AppCompatActivity {
             android.os.Process.killProcess(android.os.Process.myPid());
             return;
         }
-
+*/
         m_OpenGLView.onResume();
 
         SecondStartFile.delete();
@@ -153,6 +159,43 @@ public class MainActivity extends AppCompatActivity {
                 textView.setVisibility(show ? View.VISIBLE : View.INVISIBLE);
             }
         });
+    }
+
+    public void InstallDB()
+    {
+        File DBFile = new File(getFilesDir() + "/db.dat");
+
+        if (!DBFile.exists()) {
+            AssetManager am = getAssets();
+            InputStream is = null;
+            OutputStream os = null;
+
+            try {
+                byte[] Buffer = new byte[4096];
+                int BytesRead = -1;
+
+                is = am.open("db.dat");
+                os = new FileOutputStream(getFilesDir() + "/db.dat");
+
+                while ((BytesRead = is.read(Buffer)) != -1) {
+                    os.write(Buffer, 0, BytesRead);
+                }
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+            }
+            finally {
+                try {
+                    if (is != null)
+                        is.close();
+                    if (os != null)
+                        os.close();
+                }
+                catch (IOException e) {
+                        e.printStackTrace();
+                }
+            }
+        }
     }
 
         /**

@@ -21,25 +21,6 @@ CWordFlatTree::TNode* CDataBase::GetWordTreeRoot(wchar_t c)
 	return m_WordTree[c]->GetNode(0);
 }
 
-void CDataBase::WriteNodeToBinary(CWordTree::TNode* node, std::ofstream& stream)
-{
-	size_t ChildCount = node->m_Children.size();
-
-	if (node->m_Parent == nullptr)
-	{
-		stream.write((char*)&node->m_Char, sizeof(wchar_t));
-		stream.write((char*)&ChildCount, sizeof(size_t));
-	}
-
-	for (auto& TreeNode : node->m_Children)
-	{
-		stream.write((char*)&node->m_Char, sizeof(wchar_t));
-		stream.write((char*)&ChildCount, sizeof(size_t));
-	}
-
-	for (auto& TreeNode : node->m_Children)
-		WriteNodeToBinary(TreeNode, stream);
-}
 
 void CDataBase::LoadDataBase(const char* dbFilePath)
 {
@@ -78,23 +59,30 @@ void CDataBase::LoadDataBase(const char* dbFilePath)
 		m_WordTree[WordTree.first]->FlattenWordTree(*WordTree.second);
 		m_WordTree[WordTree.first]->SetParentClasses(m_WordTree[WordTree.first]);
 	}
-*/
+    */
 
 	std::ifstream File(dbFilePath, std::ios::in | std::ios::binary);
+
+    int FileSize = File.tellg();
+    File.seekg( 0, std::ios::end );
+    int curpos = File.tellg();
+    FileSize = curpos - FileSize;
+    File.seekg( 0, std::ios::beg );
 
 	while (File.good())
     {
         wchar_t  Char;
 
-        if (!File.seekg(sizeof(size_t), std::ios::cur))
-            break;
-
+        File.seekg(sizeof(size_t), std::ios::cur);
         File.read((char*)&Char, sizeof(wchar_t ));
         File.seekg(-sizeof(size_t) - sizeof(wchar_t), std::ios::cur);
 
         m_WordTree[Char] = std::make_shared<CWordFlatTree>();
         m_WordTree[Char]->LoadTree(File);
         m_WordTree[Char]->SetParentClasses(m_WordTree[Char]);
+
+        if (File.tellg() == FileSize)
+            break;
     }
 }
 

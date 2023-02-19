@@ -7,6 +7,7 @@
 
 #undef max //TODO!!! numeric limits nem megy miatta
 
+#ifndef EXCLUDE_LEGACY_WORDTREE
 void CWordTree::Delete(TNode* node)
 {
 	if (!node)
@@ -61,27 +62,6 @@ CWordTree::TNode* CWordTree::TNode::FindChild(wchar_t chr)
 	return nullptr;
 }
 
-CWordFlatTree::TNode* CWordFlatTree::TNode::Parent()
-{
-    if (m_ParentIdx == std::numeric_limits<size_t>::max())
-        return nullptr;
-
-	return &m_ParentClass.lock()->m_FlatTree[m_ParentIdx];
-}
-
-CWordFlatTree::TNode* CWordFlatTree::TNode::FindChild(wchar_t chr)
-{
-	auto ParentClassPtr = m_ParentClass.lock();
-
-	for (size_t i = 0; i < m_ChildCount; ++i)
-	{
-		if (ParentClassPtr->m_FlatTree[m_ChildrenIdx + i].m_Char == chr)
-			return &ParentClassPtr->m_FlatTree[m_ChildrenIdx + i];
-	}
-
-	return nullptr;
-}
-
 void CWordFlatTree::FlattenNodeChildren(CWordTree::TNode& node, size_t level, size_t parentIdx)
 {
 	for (auto ChildNode : node.m_Children)
@@ -108,18 +88,41 @@ void CWordFlatTree::FlattenNodeChildren(CWordTree::TNode& node, size_t level, si
 	}
 }
 
-void CWordFlatTree::SetParentClasses(std::weak_ptr<CWordFlatTree> parent)
-{
-    for (auto& Node : m_FlatTree)
-        Node.m_ParentClass = parent;
-}
-
 void CWordFlatTree::FlattenWordTree(CWordTree& wordTree)
 {
 	//add root
 	m_FlatTree.emplace_back(wordTree.Root()->m_Char, std::numeric_limits<size_t>::max(), 1, wordTree.Root()->m_Children.size(), false, 0);
 
 	FlattenNodeChildren(*wordTree.Root(), 0, 0);
+}
+
+#endif
+
+CWordFlatTree::TNode* CWordFlatTree::TNode::Parent()
+{
+    if (m_ParentIdx == std::numeric_limits<size_t>::max())
+        return nullptr;
+
+	return &m_ParentClass.lock()->m_FlatTree[m_ParentIdx];
+}
+
+CWordFlatTree::TNode* CWordFlatTree::TNode::FindChild(wchar_t chr)
+{
+	auto ParentClassPtr = m_ParentClass.lock();
+
+	for (size_t i = 0; i < m_ChildCount; ++i)
+	{
+		if (ParentClassPtr->m_FlatTree[m_ChildrenIdx + i].m_Char == chr)
+			return &ParentClassPtr->m_FlatTree[m_ChildrenIdx + i];
+	}
+
+	return nullptr;
+}
+
+void CWordFlatTree::SetParentClasses(std::weak_ptr<CWordFlatTree> parent)
+{
+    for (auto& Node : m_FlatTree)
+        Node.m_ParentClass = parent;
 }
 
 void CWordFlatTree::LoadTree(std::ifstream& file)

@@ -5,6 +5,9 @@
 #include <vector>
 #include <memory>
 
+#define EXCLUDE_LEGACY_WORDTREE
+
+#ifndef EXCLUDE_LEGACY_WORDTREE
 class CWordTree
 {
 public:
@@ -45,6 +48,7 @@ private:
 
 	TNode* m_Root;
 };
+#endif
 
 class CWordFlatTree
 {
@@ -68,7 +72,9 @@ public:
 		TNode* Parent();
 	};
 
+#ifndef EXCLUDE_LEGACY_WORDTREE
 	void FlattenWordTree(CWordTree& wordTree);
+#endif
     void SetParentClasses(std::weak_ptr<CWordFlatTree> parent);
 	void SaveTree(std::ofstream& file);
 	void LoadTree(std::ifstream& file);
@@ -82,8 +88,10 @@ public:
 	}
 
 private:
+#ifndef EXCLUDE_LEGACY_WORDTREE
 
 	void FlattenNodeChildren(CWordTree::TNode& node, size_t level, size_t parentIdx);
+#endif
 
 private:
 

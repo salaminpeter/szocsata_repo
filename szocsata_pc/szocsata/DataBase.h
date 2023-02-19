@@ -19,10 +19,6 @@ public:
 
 private:
 
-	void WriteNodeToBinary(CWordTree::TNode* node, std::ofstream& stream);
-		
-private:
-
-	std::map<wchar_t, CWordTree*> m_WordTrees;
+//	std::map<wchar_t, CWordTree*> m_WordTrees;
 	std::map<wchar_t, std::shared_ptr<CWordFlatTree>> m_WordTree;
 };
