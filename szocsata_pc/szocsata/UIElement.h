@@ -55,6 +55,7 @@ public:
 	glm::vec2 GetAbsolutePosition();
 	void SwapChildren(size_t chIdx0, size_t chIdx1);
 	void SetVisible(bool visible);
+	void SetVisibleWOMutex(bool visible) {m_Visible = visible;} //TODO OCSMANY
 
 
 	CModel* GetModel();

@@ -7,6 +7,6 @@ class CBoardBaseModel : public CModel
 {
 public:
 	
-	CBoardBaseModel();
+	CBoardBaseModel(int lod, const char* shaderId);
 };
 

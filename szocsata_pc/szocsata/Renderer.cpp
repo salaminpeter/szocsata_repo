@@ -108,6 +108,7 @@ CLetterModel* CRenderer::AddLetterToBoard(int x, int y, wchar_t c, float height,
 	float TileGap;
 	float TileSize;
 	int TileCount;
+	int LightQuality;
 
 	CConfig::GetConfig("tile_size", TileSize);
 	CConfig::GetConfig("board_size", BoardSize);
@@ -115,12 +116,15 @@ CLetterModel* CRenderer::AddLetterToBoard(int x, int y, wchar_t c, float height,
 	CConfig::GetConfig("tile_gap", TileGap);
 	CConfig::GetConfig("tile_count", TileCount);
 	CConfig::GetConfig("letter_height", LetterHeight);
+	CConfig::GetConfig("lighting_quality", LightQuality);
+
+	const char* ShaderID = LightQuality == 2 ? "per_pixel_light_textured" : "per_vertex_light_textured";
 
 	BoardHeight /= 2;
 
 	int LetterCount = m_GameManager->Board(x, TileCount - y - 1).m_Height;
 
-	m_LettersOnBoard.push_back(new CLetterModel(m_LetterColorData->m_Offset * m_LetterTexPos[c].y * 8 + m_LetterColorData->m_Offset * m_LetterTexPos[c].x, x, y, c, m_LetterPositionData, m_LetterColorData));
+	m_LettersOnBoard.push_back(new CLetterModel(m_LetterColorData->m_Offset * m_LetterTexPos[c].y * 8 + m_LetterColorData->m_Offset * m_LetterTexPos[c].x, ShaderID, x, y, c, m_LetterPositionData, m_LetterColorData));
 	m_LettersOnBoard.back()->SetParent(m_BoardModel);
 	m_LettersOnBoard.back()->ResetMatrix();
 
@@ -708,6 +712,22 @@ bool CRenderer::GenerateStartScreenTextures(float startBtnW, float startBtnH, fl
 	return true;
 }
 
+int CRenderer::GetLodLevel(int detail)
+{
+	//low 3d detail
+	if (detail == 0)
+		return 1;
+
+	//middle 3d detail
+	else if (detail == 1)
+		return 3;
+
+	//high 3d detail
+	else if (detail == 2)
+		return 5;
+}
+
+
 //init parts of renderer which does not require the tilecount config (will be set on start screen by user)
 void CRenderer::InitRenderer()
 {
@@ -719,18 +739,7 @@ void CRenderer::InitRenderer()
 	CConfig::GetConfig("letter_height", LetterHeight);
 	CConfig::GetConfig("board_height", BoardHeight);
 
-	CConfig::AddConfig("camera_min_height", BoardHeight / 2.f + LetterHeight * 5.f + 2.5f);
-
-	//TODO config!!!!
-	CConfig::AddConfig("letter_side_lod", 5);
-	CConfig::AddConfig("letter_side_radius", 0.1f);
-	CConfig::AddConfig("letter_edge_lod", 5);
-	CConfig::AddConfig("letter_edge_radius", .09f);
-	CConfig::AddConfig("tile_side_lod", 5);
-	CConfig::AddConfig("tile_side_radius", .1f);
-	CConfig::AddConfig("tile_edge_lod", 5);
-	CConfig::AddConfig("tile_edge_radius", .09f);
-
+	CConfig::AddConfig("camera_min_height", BoardHeight / 2.f + LetterHeight * 5.f + 2.5f, false);
 
 	m_SquarePositionData = std::make_shared<CSquarePositionData>();
 	m_SquarePositionData->GeneratePositionBuffer();
@@ -750,6 +759,7 @@ void CRenderer::InitRenderer()
 
 	m_ShaderManager = new CShaderManager();
 	m_ShaderManager->AddShader("per_pixel_light_textured", VertexShaderPerPixel, FragmentShaderPerPixel);
+	m_ShaderManager->AddShader("per_vertex_light_textured", VertexShaderPerVertex, FragmentShaderPerVertex);
 	m_ShaderManager->AddShader("textured", VertexShaderTextured, FragmentShaderTextured);
 
 	m_SelectionStore = new CSelectionStore();
@@ -847,7 +857,7 @@ float CRenderer::SetBoardSize()
 	CConfig::GetConfig("tile_size", TileSize);
 
 	float BoardSize = ((TileCount + 1) * TileGap + TileCount * TileSize) / 2.f;
-	CConfig::AddConfig("board_size", BoardSize);
+	CConfig::AddConfig("board_size", BoardSize, false);
 
 	return BoardSize;
 }
@@ -921,6 +931,7 @@ bool CRenderer::GenerateModels()
 	float TileEdgeRadius;
 	float TileHeight;
 	int TileCount;
+	int LightQuality;
 
 	CConfig::GetConfig("tile_height", TileHeight);
 	CConfig::GetConfig("tile_count", TileCount);
@@ -937,6 +948,14 @@ bool CRenderer::GenerateModels()
 	CConfig::GetConfig("tile_side_radius", TileSideRadius);
 	CConfig::GetConfig("tile_edge_lod", TileEdgeLOD);
 	CConfig::GetConfig("tile_edge_radius", TileEdgeRadius);
+
+	CConfig::GetConfig("lighting_quality", LightQuality);
+	const char* ShaderID = LightQuality == 2 ? "per_pixel_light_textured" : "per_vertex_light_textured";
+
+	LetterSideLOD = GetLodLevel(LetterSideLOD);
+	LetterEdgeLOD = GetLodLevel(LetterEdgeLOD);
+	TileSideLOD = GetLodLevel(TileSideLOD);
+	TileEdgeLOD = GetLodLevel(TileEdgeLOD);
 
 	m_RoundedSquarePositionData = std::make_shared<CRoundedSquarePositionData>(TileSize);
 	m_RoundedSquarePositionData->GeneratePositionBuffer();
@@ -974,7 +993,7 @@ bool CRenderer::GenerateModels()
 	m_TileColorData->GenerateTextureCoordBuffer(Connected);
 
 	SetBoardSize();
-	m_BoardModel = new CBoardBaseModel();
+	m_BoardModel = new CBoardBaseModel(LetterSideLOD, ShaderID);
 	m_BoardTiles = new CBoardTiles(TileCount, this, m_GameManager, m_BoardModel);
 
 	FittBoardToView(true);
@@ -1142,10 +1161,15 @@ void CRenderer::Render()
 {
 	ClearBuffers();
 
-	GLuint DistanceDividerID = m_ShaderManager->GetShaderVariableID("per_pixel_light_textured", "DistanceDivider");
+	int LightQuality;
+	CConfig::GetConfig("lighting_quality", LightQuality);
+
+	const char* ShaderID = LightQuality == 2 ? "per_pixel_light_textured" : "per_vertex_light_textured";
+
+	GLuint DistanceDividerID = m_ShaderManager->GetShaderVariableID(ShaderID, "DistanceDivider");
 	glDepthMask(GL_FALSE);
 	glUniform1f(DistanceDividerID, 10.f);
-	DrawModel(m_BoardModel, "board_perspecive", "per_pixel_light_textured", true);
+	DrawModel(m_BoardModel, "board_perspecive", ShaderID, true);
 
 	glDepthMask(GL_TRUE);
 	glUniform1f(DistanceDividerID, 12.f);
@@ -1189,7 +1213,7 @@ void CRenderer::Render()
 		{
 			if (m_LettersOnBoard[i]->Visible() && std::find(m_SelectedLetters.begin(), m_SelectedLetters.end(), m_LettersOnBoard[i]) == m_SelectedLetters.end())
 			{
-				DrawModel(m_LettersOnBoard[i], "board_perspecive", "per_pixel_light_textured", true, !BufferBound, !BufferBound, (i == LastVisibleLetterIdx && m_SelectedLetters.size() != 0), true);
+				DrawModel(m_LettersOnBoard[i], "board_perspecive", ShaderID, true, !BufferBound, !BufferBound, (i == LastVisibleLetterIdx && m_SelectedLetters.size() != 0), true);
 				BufferBound = true;
 			}
 		}
@@ -1202,12 +1226,12 @@ void CRenderer::Render()
 				continue;
 
 			CSelectionStore::TSelection* Selection = m_SelectionStore->GetSelection(m_SelectedLetters[i]->BoardX(), m_SelectedLetters[i]->BoardY());
-			SetModifyColor(Selection->m_ColorModifyer.r, Selection->m_ColorModifyer.g, Selection->m_ColorModifyer.b, 1, "per_pixel_light_textured");
-			DrawModel(m_SelectedLetters[i], "board_perspecive", "per_pixel_light_textured", true, !BufferBound, !BufferBound, (i == m_SelectedLetters.size() - 1));
+			SetModifyColor(Selection->m_ColorModifyer.r, Selection->m_ColorModifyer.g, Selection->m_ColorModifyer.b, 1, ShaderID);
+			DrawModel(m_SelectedLetters[i], "board_perspecive", ShaderID, true, !BufferBound, !BufferBound, (i == m_SelectedLetters.size() - 1));
 			BufferBound = true;
 		}
 
-		SetModifyColor(1.f, 1.f, 1.f, 1.f, "per_pixel_light_textured");
+		SetModifyColor(1.f, 1.f, 1.f, 1.f, ShaderID);
 
 		m_BoardTiles->RenderTiles();
 	}

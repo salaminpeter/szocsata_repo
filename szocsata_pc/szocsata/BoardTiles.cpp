@@ -9,8 +9,8 @@
 #include "SelectionStore.h"
 
 
-CTileModel::CTileModel(unsigned textureOffset, std::shared_ptr<CRoundedBoxPositionData> positionData, std::shared_ptr<CModelColorData> colorData) :
-	CModel(true, 3, positionData, colorData, "gridtex.bmp", "per_pixel_light_textured", textureOffset)
+CTileModel::CTileModel(unsigned textureOffset, const char* shaderId, std::shared_ptr<CRoundedBoxPositionData> positionData, std::shared_ptr<CModelColorData> colorData) :
+	CModel(true, 3, positionData, colorData, "gridtex.bmp", shaderId, textureOffset)
 {
 }
 
@@ -28,12 +28,16 @@ CBoardTiles::CBoardTiles(int tileCount, CRenderer* renderer, CGameManager* gameM
 	float TileSize;
 	float BoardSize;
 	float BoardHeight;
+	int LightQuality;
 
 	CConfig::GetConfig("board_size", BoardSize);
 	CConfig::GetConfig("board_height", BoardHeight);
 	CConfig::GetConfig("tile_gap", TileGap);
 	CConfig::GetConfig("tile_count", TileCount);
 	CConfig::GetConfig("tile_size", TileSize);
+	CConfig::GetConfig("lighting_quality", LightQuality);
+
+	const char* ShaderID = LightQuality == 2 ? "per_pixel_light_textured" : "per_vertex_light_textured";
 
 	m_BoardTiles.reserve(TileCount * TileCount);
 	m_TileShadows.reserve(TileCount * TileCount);
@@ -44,7 +48,7 @@ CBoardTiles::CBoardTiles(int tileCount, CRenderer* renderer, CGameManager* gameM
 		{
 			//add tile
 			float Offset = renderer->GetTileColorData()->m_Offset;
-			m_BoardTiles.emplace_back(Offset * y * TileCount + Offset * x, renderer->GetTilePositionData(), renderer->GetTileColorData());
+			m_BoardTiles.emplace_back(Offset * y * TileCount + Offset * x, ShaderID, renderer->GetTilePositionData(), renderer->GetTileColorData());
 			m_BoardTiles.back().SetParent(parent);
 			m_BoardTiles.back().ResetMatrix();
 
@@ -91,19 +95,28 @@ void CBoardTiles::SetTileVisible(int x, int y, bool visible)
 void CBoardTiles::RenderTiles()
 {
 	int TileCount;
+	int LightQuality;
+
 	CConfig::GetConfig("tile_count", TileCount);
+	CConfig::GetConfig("lighting_quality", LightQuality);
 
-	glDisable(GL_DEPTH);
-	glEnable(GL_BLEND);
+	const char* ShaderID = LightQuality == 2 ? "per_pixel_light_textured" : "per_vertex_light_textured";
 
-	m_Renderer->SetTexturePos(glm::vec2(0.f, 0.f));
-	m_Renderer->SetModifyColor(1.f, 1.f, 1.f, 1.f, "textured");
+	//render shadows
+	if (LightQuality != 0)
+	{
+		glDisable(GL_DEPTH);
+		glEnable(GL_BLEND);
 
-	for (size_t i = 0; i < m_TileShadows.size(); ++i)
-		m_Renderer->DrawModel(&m_TileShadows[i], "board_perspecive", "textured", false);
+		m_Renderer->SetTexturePos(glm::vec2(0.f, 0.f));
+		m_Renderer->SetModifyColor(1.f, 1.f, 1.f, 1.f, "textured");
 
-	glDisable(GL_BLEND);
-	glEnable(GL_DEPTH);
+		for (size_t i = 0; i < m_TileShadows.size(); ++i)
+			m_Renderer->DrawModel(&m_TileShadows[i], "board_perspecive", "textured", false);
+
+		glDisable(GL_BLEND);
+		glEnable(GL_DEPTH);
+	}
 
 	CSelectionStore* SelectionStore = m_GameManager->GetRenderer()->GetSelectionStore();
 	CSelectionStore::TSelection* Selection = nullptr;
@@ -143,7 +156,7 @@ void CBoardTiles::RenderTiles()
 
 		if (m_BoardTiles[i].IsVisible())
 		{
-			m_Renderer->DrawModel(&m_BoardTiles[i], "board_perspecive", "per_pixel_light_textured", true, !BufferBound, !BufferBound, (i == LastVisibleTileIdx && !SelectedTile), true);
+			m_Renderer->DrawModel(&m_BoardTiles[i], "board_perspecive", ShaderID, true, !BufferBound, !BufferBound, (i == LastVisibleTileIdx && !SelectedTile), true);
 
 			BufferBound = true;
 
@@ -154,11 +167,11 @@ void CBoardTiles::RenderTiles()
 
 	if (SelectedTile)
 	{ 
-		m_Renderer->SetModifyColor(BoardSelection->m_ColorModifyer.r, BoardSelection->m_ColorModifyer.g, BoardSelection->m_ColorModifyer.b, 1, "per_pixel_light_textured");
-		m_Renderer->DrawModel(SelectedTile, "board_perspecive", "per_pixel_light_textured", true, false, false, true, true);
+		m_Renderer->SetModifyColor(BoardSelection->m_ColorModifyer.r, BoardSelection->m_ColorModifyer.g, BoardSelection->m_ColorModifyer.b, 1, ShaderID);
+		m_Renderer->DrawModel(SelectedTile, "board_perspecive", ShaderID, true, false, false, true, true);
 	}
 
-	m_Renderer->SetModifyColor(1.f, 1.f, 1.f, 1.f, "per_pixel_light_textured");
+	m_Renderer->SetModifyColor(1.f, 1.f, 1.f, 1.f, ShaderID);
 }
 
 glm::vec2 CBoardTiles::GetTilePosition(int x, int y)

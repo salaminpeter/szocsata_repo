@@ -2,16 +2,34 @@
 
 #include <map>
 #include <string>
+#include <sstream>
 
 class CSettingBase
 {
+public:
+	
+	CSettingBase(bool saveToFile) : m_SaveToFile(saveToFile) {}
+	virtual std::string GetValueAsString() = 0;
+
+	bool m_SaveToFile = true;
 };
 
 template <class T>
 class CSetting : public CSettingBase
 {
 public:
-	CSetting(T value) : m_Value(value) {}
+	CSetting(T value, bool saveToFile) : CSettingBase(saveToFile), m_Value(value) {}
+	
+	virtual std::string GetValueAsString()
+	{
+		std::stringstream ss;
+		ss.precision(2);
+		ss.setf(std::ios::fixed);
+		ss << m_Value;
+		return ss.str();
+	}
+
+
 	T m_Value;
 };
 
@@ -31,12 +49,13 @@ public:
 	}
 
 	template <class T>
-	static void AddConfig(std::string name, T value)
+	static void AddConfig(std::string name, T value, bool saveToFile = true)
 	{
-		m_Configs[name] = (CSettingBase*)(new CSetting<T>(value));
+		m_Configs[name] = (CSettingBase*)(new CSetting<T>(value, saveToFile));
 	}
 
 	static void LoadConfigs(const char* path);
+	static void SaveConfigs(const char* path);
 
 private:
 

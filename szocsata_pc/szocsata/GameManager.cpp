@@ -58,6 +58,45 @@ void CGameManager::StartGameThread()
 	m_GameThread->Start(); 
 }
 
+void CGameManager::SaveSettings()
+{
+	SetGameState(CGameManager::OnStartScreen);
+
+	int Detail3D = m_UIManager->Get3DDetail();
+	int LightQuality = m_UIManager->GetLightQuality();
+	int FPSLimit = m_UIManager->GetFPSLimit();
+	int PlayerCount = m_UIManager->GetPlayerCount();
+	int TilesOnBoard = m_UIManager->GetBoardSize();
+	int TimeLimit = m_UIManager->GetTimeLimitIdx();
+	int ComputerEnabled = m_UIManager->ComputerOpponentEnabled();
+	int GameDifficulty = m_UIManager->GetDifficulty();
+
+	CConfig::AddConfig("letter_side_lod", Detail3D);
+	CConfig::AddConfig("letter_side_radius", 0.1f);
+	CConfig::AddConfig("letter_edge_lod", Detail3D);
+	CConfig::AddConfig("letter_edge_radius", .09f);
+	CConfig::AddConfig("tile_side_lod", Detail3D);
+	CConfig::AddConfig("tile_side_radius", .1f);
+	CConfig::AddConfig("tile_edge_lod", Detail3D);
+	CConfig::AddConfig("tile_edge_radius", .09f);
+	CConfig::AddConfig("lighting_quality", LightQuality);
+	CConfig::AddConfig("fps_cap", FPSLimit);
+	CConfig::AddConfig("player_count", PlayerCount);
+	CConfig::AddConfig("tiles_on_board", TilesOnBoard);
+	CConfig::AddConfig("time_limit", TimeLimit);
+	CConfig::AddConfig("computer_enabled", ComputerEnabled);
+	CConfig::AddConfig("game_difficulty", GameDifficulty);
+
+	std::string FilePath = GetWorkingDir() +
+#ifdef PLATFORM_ANDROID
+		"/config.txt";
+#else
+		"config.txt";
+#endif
+	
+	CConfig::SaveConfigs(FilePath.c_str());
+}
+
 void CGameManager::ResetToStartScreen()
 {
 	m_State->RemoveSaveFile();
@@ -69,8 +108,17 @@ void CGameManager::ResetToStartScreen()
 	m_WordAnimation->Reset();
 	m_TimerEventManager->Reset();
 	m_TaskManager->Reset();
-	m_Renderer->GetSelectionStore()->Reset();
 	m_Renderer->DisableSelection();
+
+	CUIElement* OkButton = m_UIManager->GetUIElement(L"ui_ok_btn");
+	CUIElement* CancelButton = m_UIManager->GetUIElement(L"ui_cancel_btn");
+	CUIElement* PauseButton = m_UIManager->GetUIElement(L"ui_pause_btn");
+	CUIElement* ExitButton = m_UIManager->GetUIElement(L"ui_exit_btn");
+	m_ButtonAnimationManager->RemoveAnimation(OkButton);
+	m_ButtonAnimationManager->RemoveAnimation(CancelButton);
+	m_ButtonAnimationManager->RemoveAnimation(PauseButton);
+	m_ButtonAnimationManager->RemoveAnimation(ExitButton);
+
 	m_Renderer->ClearGameScreenResources();
 
 	//TODO torolni az osszes cuccot amit a GenerateModelsTask al ujra letrehozok!!!!!!!!!!!!!!!!!
@@ -243,6 +291,7 @@ void CGameManager::FinishRenderInit()
 	SetTileCount();
 	InitBasedOnTileCount(true);
 	GenerateGameScreenTextures();
+	SaveSettings();
 //	GetUIManager()->m_UIInitialized = true;
 
 	SetTaskFinished("game_started_task");
@@ -617,12 +666,12 @@ void CGameManager::ShowNextPlayerPopup()
 
 bool CGameManager::GameScreenActive(EGameState state)
 {
-    return (state != EGameState::OnRankingsScreen && state != EGameState::OnStartGameScreen && state != EGameState::OnStartScreen);
+    return (state != EGameState::OnRankingsScreen && state != EGameState::OnStartGameScreen && state != EGameState::OnStartScreen && state != EGameState::OnSettingsScreen);
 }
 
 bool CGameManager::GameScreenActive()
 {
-	return (GetGameState() != EGameState::OnRankingsScreen && GetGameState() != EGameState::OnStartGameScreen && GetGameState() != EGameState::OnStartScreen);
+	return (GetGameState() != EGameState::OnRankingsScreen && GetGameState() != EGameState::OnStartGameScreen && GetGameState() != EGameState::OnStartScreen && GetGameState() != EGameState::OnSettingsScreen);
 }
 
 void CGameManager::SetPlayerLetters(size_t idx, const std::wstring& letters)
@@ -2270,6 +2319,11 @@ void CGameManager::RenderUI()
 
 	glDisable(GL_BLEND);
 	glEnable(GL_DEPTH_TEST);
+}
+
+void CGameManager::GoToSettingsScrEvent()
+{
+	SetGameState(CGameManager::OnSettingsScreen);
 }
 
 void CGameManager::GoToStartGameScrEvent()

@@ -11,6 +11,22 @@
 
 std::map<std::string, CSettingBase*> CConfig::m_Configs;
 
+void CConfig::SaveConfigs(const char* path)
+{
+	std::ofstream ConfigFile(path, std::ofstream::out | std::ofstream::trunc);
+
+	if (!ConfigFile.good())
+		return;
+
+	for (auto& Config : m_Configs)
+	{
+		if (Config.second->m_SaveToFile)
+			ConfigFile << Config.first << " = " << Config.second->GetValueAsString() << '\n';
+	}
+
+	ConfigFile.close();
+}
+
 void CConfig::LoadConfigs(const char* path)
 {
 	std::stringstream StrStream;

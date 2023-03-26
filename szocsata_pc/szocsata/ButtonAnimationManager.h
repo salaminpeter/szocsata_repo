@@ -37,6 +37,7 @@ public:
 	void HandleAnimation(double& timeFromStart, double& timeFromPrev);
 	void EnableReverseAnimation(CUIElement* button);
 	void RunAnimationFinishEvent(CUIElement* button);
+	void RemoveAnimation(CUIElement* button);
 
 	template <typename ClassType, typename... ArgTypes>
 	void SetEvent(CUIElement* button, ClassType* funcClass, typename CEvent<ClassType, ArgTypes...>::TFuncPtrType funcPtr, ArgTypes&&... args)

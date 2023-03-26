@@ -11,7 +11,7 @@
 
 #include <vector>
 
-CBoardBaseModel::CBoardBaseModel() : CModel(true, 3, std::make_shared<CBoardPositionData>(5), std::make_shared<CBoardColorData>(5), "boardtex.bmp", "per_pixel_light_textured") //TODO lod configbol jojjon!
+CBoardBaseModel::CBoardBaseModel(int lod, const char* shaderId) : CModel(true, 3, std::make_shared<CBoardPositionData>(lod), std::make_shared<CBoardColorData>(lod), "boardtex.bmp", shaderId) 
 { 
 	float BoardSize;
 	CConfig::GetConfig("board_size", BoardSize);

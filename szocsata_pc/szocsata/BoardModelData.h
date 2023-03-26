@@ -12,6 +12,7 @@ public:
 	void GenerateBoardVertices();
 	void GeneratePositionBuffer() override;
 
+	void SetLOD(int lod) {m_LOD = lod;}
 	std::vector<glm::vec3>& GetVertices() { return m_Vertices; }
 
 private:

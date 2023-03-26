@@ -33,19 +33,12 @@ glm::vec3 CSelectionStore::GetColorModifyer(ESelectionType type)
 
 void CSelectionStore::ClearSelections(ESelectionType type)
 {
-	if (type >= ESelectionType::SelectionTypeLast)
+	if (type >= m_Selections.size() || type >= ESelectionType::SelectionTypeLast)
 		return;
 	
 	const std::lock_guard<std::mutex> lock(m_Lock);
 	m_Selections[type].clear();
 }
-
-void CSelectionStore::Reset()
-{
-	const std::lock_guard<std::mutex> lock(m_Lock);
-	m_Selections.clear();
-}
-
 
 void CSelectionStore::SetModifyColor(ESelectionType type, const glm::vec3& color)
 {
@@ -99,6 +92,8 @@ void CSelectionStore::RemoveSelection(ESelectionType type)
 		return;
 
 	const std::lock_guard<std::mutex> lock(m_Lock);
-    m_Selections[type].clear();
+	
+	if (m_Selections.size() > static_cast<int>(type))
+		m_Selections[type].clear();
 }
 

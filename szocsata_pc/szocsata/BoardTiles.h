@@ -15,7 +15,7 @@ class CTileModel : public CModel
 {
 public:
 	
-	CTileModel(unsigned textureOffset, std::shared_ptr<CRoundedBoxPositionData> positionData, std::shared_ptr<CModelColorData> colorData);
+	CTileModel(unsigned textureOffset, const char* shaderId, std::shared_ptr<CRoundedBoxPositionData> positionData, std::shared_ptr<CModelColorData> colorData);
 
 	void SetVisible(bool visible) {m_Visible = visible;	}
 	bool IsVisible() {return m_Visible;}

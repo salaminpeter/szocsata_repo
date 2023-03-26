@@ -42,7 +42,7 @@ class CGameManager
 {
 public:
 	
-	enum EGameState { NextTurn, WaintingOnAnimation, WaitingForMessageBox, TurnInProgress, GameEnded, BeginGame, Paused, OnStartGameScreen, OnStartScreen, OnRankingsScreen, None};
+	enum EGameState { NextTurn, WaintingOnAnimation, WaitingForMessageBox, TurnInProgress, GameEnded, BeginGame, Paused, OnStartGameScreen, OnSettingsScreen, OnStartScreen, OnRankingsScreen, None};
 
 	CGameManager();
 
@@ -65,6 +65,7 @@ public:
 		RemovePlayers();
 	}
 
+	void SaveSettings();
 	void ResetToStartScreen();
 	void AddPlayers(int playerCount, bool addComputer, bool addLetters = true);
 	void RemovePlayers();
@@ -252,7 +253,14 @@ public:
 	bool ResumedOnGameScreen() {return GameScreenActive(m_SavedGameState);}
 	std::mutex& GetStateLock() {return m_StateLock;}
 //    void LoadDataBase() {m_DataBase.LoadDataBase("dic.txt");	SaveDataBase();}
-    void LoadDataBase() {m_DataBase.LoadDataBase((GetWorkingDir() + "/db.dat").c_str());}
+    void LoadDataBase() 
+	{
+#ifdef PLATFORM_ANDROID 
+		m_DataBase.LoadDataBase((GetWorkingDir() + "/db.dat").c_str()); 
+#else
+	//	m_DataBase.LoadDataBase("db.dat");
+#endif
+	}
     void SaveDataBase() {m_DataBase.SaveDataBase((GetWorkingDir() + "/db.dat").c_str());}
 
 
@@ -274,6 +282,7 @@ public:
 	void EndPlayerTurnEvent();
 	void TopViewEvent();
 	void GoToStartGameScrEvent();
+	void GoToSettingsScrEvent();
 
 	int frames = 0;
 	long m_LastRenderTime;

@@ -37,43 +37,14 @@ void CGameState::SaveGameState()
 
 	int GameState = m_GameManager->GetGameState();
 	int OnGameScreen = m_GameManager->GameScreenActive(static_cast<CGameManager::EGameState>(GameState));
-	int PlayerCountIdx = m_GameManager->GetUIManager()->GetPlayerCount();
-	int BoardSize = m_GameManager->GetUIManager()->GetBoardSize();
-	int TimeLimit = m_GameManager->GetUIManager()->GetTimeLimitIdx();
-	int Difficulty = m_GameManager->GetUIManager()->GetDifficulty();
-	bool ComputerOpponentEnabled = m_GameManager->GetUIManager()->ComputerOpponentEnabled();
 
 	StateFile.write((char *)&GameState, sizeof(int));
 
 	if (!StateFile.good())
 		return;
 
-	StateFile.write((char *)&PlayerCountIdx, sizeof(int));
-
-	if (!StateFile.good())
-		return;
-
-	StateFile.write((char *)&BoardSize, sizeof(int));
-
-	if (!StateFile.good())
-		return;
-
-	StateFile.write((char *)&TimeLimit, sizeof(int));
-
-	if (!StateFile.good())
-		return;
-
-	StateFile.write((char *)&ComputerOpponentEnabled, sizeof(bool));
-
-	if (!StateFile.good())
-		return;
-
-	StateFile.write((char *)&Difficulty, sizeof(int));
-
-	if (!StateFile.good())
-		return;
-
-	if (OnGameScreen) {
+	if (OnGameScreen) 
+	{
 
 		bool HasTimeLimit = m_GameManager->GetUIManager()->GetTimeLimit() != -1;
 		bool TimerRunning = m_GameManager->GetTimerEventManager()->IsTimerRunning("time_limit_event");
@@ -114,7 +85,12 @@ void CGameState::SaveGameState()
 
 		}
 
-		int PlayerCount = PlayerCountIdx + 1 + (ComputerOpponentEnabled ? 1 : 0);
+		int NumberOfPlayers;
+		int ComputerEnabled;
+		CConfig::GetConfig("player_count", NumberOfPlayers);
+		CConfig::GetConfig("computer_enabled", ComputerEnabled);
+
+		int PlayerCount = NumberOfPlayers + 1 + (ComputerEnabled ? 1 : 0);
 
 		for (size_t i = 0; i < PlayerCount; ++i) {
 			int Score = m_GameManager->GetPlayer(i)->GetScore();
@@ -446,11 +422,6 @@ void CGameState::LoadGameState()
 		return;
 
 	int GameState;
-	int PlayerCountIdx;
-	int BoardSize;
-	int TimeLimit;
-	int Difficulty;
-	bool ComputerOpponentEnabled;
 
 	StateFile.read((char *)&GameState, sizeof(int));
 	std::ios_base::iostate State = StateFile.rdstate();
@@ -458,22 +429,12 @@ void CGameState::LoadGameState()
 	bool failbit = State == std::ios_base::failbit;
 	bool badbit = State == std::ios_base::badbit;
 	bool goodbit = State == std::ios_base::goodbit;
-	StateFile.read((char *)&PlayerCountIdx, sizeof(int));
-	StateFile.read((char *)&BoardSize, sizeof(int));
-	StateFile.read((char *)&TimeLimit, sizeof(int));
-	StateFile.read((char *)&ComputerOpponentEnabled, sizeof(bool));
-	StateFile.read((char *)&Difficulty, sizeof(int));
 
 	m_FilePos = StateFile.tellg();
 
     if (!StateFile.good())
         return;
 
-	m_GameManager->GetUIManager()->SetPlayerCount(PlayerCountIdx);
-	m_GameManager->GetUIManager()->SetBoardSize(BoardSize);
-	m_GameManager->GetUIManager()->SetTimeLimitIdx(TimeLimit);
-	m_GameManager->GetUIManager()->SetComputerOpponentEnabled(ComputerOpponentEnabled);
-	m_GameManager->GetUIManager()->SetDifficulty(Difficulty);
 	m_GameManager->SetTileCount();
 	m_GameManager->SetBoardSize();
 	m_GameManager->m_SavedGameState = static_cast<CGameManager::EGameState>(GameState);

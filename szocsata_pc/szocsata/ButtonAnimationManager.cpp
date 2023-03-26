@@ -91,6 +91,16 @@ CButtonAnimationManager::TButtonAnimation& CButtonAnimationManager::TButtonAnima
 	return *this;
 }
 
+void CButtonAnimationManager::RemoveAnimation(CUIElement* button)
+{
+	auto Elem = m_AnimFinishEvents.find(button);
+
+	if (Elem == m_AnimFinishEvents.end())
+		return;
+
+	m_AnimFinishEvents.erase(button);
+}
+
 void CButtonAnimationManager::RunAnimationFinishEvent(CUIElement* button)
 {
 	auto Elem = m_AnimFinishEvents.find(button);

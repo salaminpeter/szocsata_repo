@@ -3,6 +3,9 @@ plugins {
 }
 
 android {
+    lintOptions {
+        checkReleaseBuilds false
+    }
     signingConfigs {
         debug {
             storePassword 'loncstenger'
@@ -24,8 +27,9 @@ android {
         applicationId "com.momosoft.szocsata3d"
         minSdkVersion 21
         targetSdkVersion 31
-        versionCode 3
-        versionName "1.0"
+        versionCode 11
+        versionName "11.0"
+        ndk { debugSymbolLevel 'FULL' }
 
         externalNativeBuild {
             cmake {

@@ -87,6 +87,9 @@ public:
 	int GetPlayerCount();
 	int GetTimeLimit();
 	int GetTimeLimitIdx();
+	int Get3DDetail();
+	int GetLightQuality();
+	int GetFPSLimit();
 	void SetDifficulty(int diff);
 	void SetBoardSize(int size);
 	void SetPlayerCount(int count);
@@ -122,10 +125,12 @@ public:
 	void InitStartGameScreen(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData8x8);
 	void InitGameScreen(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData8x8);
 	void InitRankingsScreen(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData8x8);
-
+	void InitSettingsScreen(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData16x6);
 	void SetScorePanelLayoutBox();
+	glm::ivec2 GetUIElemSize(const char* id);
 
 	std::recursive_mutex& GetUILock() { return m_UILock; }
+
 
 private:
 
@@ -145,6 +150,7 @@ public: //TODO
 	CUIElement* m_RootGameScreen = nullptr;
 	CUIElement* m_RootDraggedLetterScreen = nullptr;
 	CUIElement* m_RootGameEndScreen = nullptr;
+	CUIElement* m_RootSettingsScreen = nullptr;
 
 	CUITileCounter* m_UITileCounter;
 	CUIMessageBox* m_MessageBoxOk;
@@ -156,6 +162,8 @@ public: //TODO
 	CUIPanel* m_UIScreenPanel;
 	CUIPanel* m_GameScreenPanel;
 	CUIPanel* m_DimmPanel;
+
+	std::map<std::string, glm::ivec2> m_UIElemSize;
 
 	CUIVerticalLayout* m_MainScreenBtnLayout;
 
