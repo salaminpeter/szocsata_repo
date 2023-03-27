@@ -107,6 +107,7 @@ public:
 	void InitFont();
 	glm::ivec2 GetScorePanelSize();
 
+	void ShowSettingsPanel(int panelIdx);
 	void ClearUIElements();
 	void ClearGameScreenUIElements();
 

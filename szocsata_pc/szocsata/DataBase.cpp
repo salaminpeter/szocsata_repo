@@ -75,13 +75,13 @@ void CDataBase::LoadDataBase(const char* dbFilePath)
 
         File.seekg(sizeof(size_t), std::ios::cur);
         File.read((char*)&Char, sizeof(wchar_t ));
-        File.seekg(-sizeof(size_t) - sizeof(wchar_t), std::ios::cur);
+        File.seekg(-int(sizeof(size_t) + sizeof(wchar_t)), std::ios::cur);
 
         m_WordTree[Char] = std::make_shared<CWordFlatTree>();
         m_WordTree[Char]->LoadTree(File);
         m_WordTree[Char]->SetParentClasses(m_WordTree[Char]);
 
-        if (File.tellg() == FileSize)
+        if (int(File.tellg()) == FileSize)
             break;
     }
 }

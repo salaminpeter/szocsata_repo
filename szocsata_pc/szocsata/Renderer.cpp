@@ -932,6 +932,9 @@ bool CRenderer::GenerateModels()
 	float TileHeight;
 	int TileCount;
 	int LightQuality;
+	int Detail3D;
+
+	CConfig::GetConfig("3d_quality", Detail3D);
 
 	CConfig::GetConfig("tile_height", TileHeight);
 	CConfig::GetConfig("tile_count", TileCount);
@@ -939,23 +942,19 @@ bool CRenderer::GenerateModels()
 	CConfig::GetConfig("letter_height", LetterHeight);
 	CConfig::GetConfig("tile_size", TileSize);
 
-	CConfig::GetConfig("letter_side_lod", LetterSideLOD);
 	CConfig::GetConfig("letter_side_radius", LetterSideRadius);
-	CConfig::GetConfig("letter_edge_lod", LetterEdgeLOD);
 	CConfig::GetConfig("letter_edge_radius", LetterEdgeRadius);
 
-	CConfig::GetConfig("tile_side_lod", TileSideLOD);
 	CConfig::GetConfig("tile_side_radius", TileSideRadius);
-	CConfig::GetConfig("tile_edge_lod", TileEdgeLOD);
 	CConfig::GetConfig("tile_edge_radius", TileEdgeRadius);
 
 	CConfig::GetConfig("lighting_quality", LightQuality);
 	const char* ShaderID = LightQuality == 2 ? "per_pixel_light_textured" : "per_vertex_light_textured";
 
-	LetterSideLOD = GetLodLevel(LetterSideLOD);
-	LetterEdgeLOD = GetLodLevel(LetterEdgeLOD);
-	TileSideLOD = GetLodLevel(TileSideLOD);
-	TileEdgeLOD = GetLodLevel(TileEdgeLOD);
+	LetterSideLOD = GetLodLevel(Detail3D);
+	LetterEdgeLOD = GetLodLevel(Detail3D);
+	TileSideLOD = GetLodLevel(Detail3D);
+	TileEdgeLOD = GetLodLevel(Detail3D);
 
 	m_RoundedSquarePositionData = std::make_shared<CRoundedSquarePositionData>(TileSize);
 	m_RoundedSquarePositionData->GeneratePositionBuffer();

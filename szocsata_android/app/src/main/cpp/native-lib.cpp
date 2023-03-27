@@ -71,6 +71,8 @@ Java_com_momosoft_szocsata3d_OpenGLRenderer_Render(JNIEnv *env, jobject thiz) {
 void InitGameManager(int surfWidth, int surfHeight)
 {
     gm->m_JavaVM = g_VM;
+
+    gm->Init();
     InputManager = new CInputManager(gm);
     CImageLoader::SetJavaVM(g_VM);
 
@@ -205,7 +207,6 @@ Java_com_momosoft_szocsata3d_OpenGLRenderer_EndInitAndStart(JNIEnv *env, jobject
 
     gm->ShowLoadingScreen(true);
     gm->GetUIManager()->m_UIInitialized = false;
-    gm->SetTileCount();
     gm->InitBasedOnTileCount(true);
     gm->GenerateGameScreenTextures();
     gm->SetTaskFinished("game_started_task");

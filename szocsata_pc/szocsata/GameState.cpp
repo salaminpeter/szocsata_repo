@@ -7,6 +7,7 @@
 #include "UIPlayerLetters.h"
 #include "Config.h"
 #include "UILayout.h"
+#include "UIMessageBox.h"
 
 #include<iostream>
 #include<fstream>
@@ -62,7 +63,6 @@ void CGameState::SaveGameState()
 		if (!StateFile.good())
 			return;
 
-		m_GameManager->SetTileCount();
 		int TileCount;
 		CConfig::GetConfig("tile_count", TileCount);
 
@@ -255,9 +255,10 @@ void CGameState::LoadPlayerAndBoardState()
 	CConfig::GetConfig("letter_height", LetterHeight);
 
 	int PlayerCountIdx = m_GameManager->GetUIManager()->GetPlayerCount();
-	bool ComputerOpponentEnabled = m_GameManager->GetUIManager()->ComputerOpponentEnabled();
+    int ComputerOpponentEnabled;
+    CConfig::GetConfig("computer_enabled", ComputerOpponentEnabled);
 
-	int TileCount;
+    int TileCount;
 	CConfig::GetConfig("tile_count", TileCount);
 
 #ifndef PLATFORM_ANDROID
@@ -305,7 +306,7 @@ void CGameState::LoadPlayerAndBoardState()
 			}
 		}
 
-		int PlayerCount = PlayerCountIdx + 1 + (ComputerOpponentEnabled ? 1 : 0);
+		int PlayerCount = PlayerCountIdx + 1 + ComputerOpponentEnabled;
 
 		for (size_t i = 0; i < PlayerCount; ++i)
 		{
@@ -410,7 +411,7 @@ void CGameState::LoadGameState()
 {
 	const std::lock_guard<std::mutex> lock(m_GameManager->GetStateLock());
 
-	std::string FilePath = m_GameManager->GetWorkingDir() + 
+	std::string FilePath = m_GameManager->GetWorkingDir() +
 #ifdef PLATFORM_ANDROID
 		"/state.dat";
 #else
@@ -435,7 +436,6 @@ void CGameState::LoadGameState()
     if (!StateFile.good())
         return;
 
-	m_GameManager->SetTileCount();
 	m_GameManager->SetBoardSize();
 	m_GameManager->m_SavedGameState = static_cast<CGameManager::EGameState>(GameState);
 

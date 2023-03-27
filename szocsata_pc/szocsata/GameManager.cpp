@@ -28,12 +28,31 @@
 #define GL3_PROTOTYPES 1
 #include <GLES3\gl3.h>
 #include <fstream>
-
 #include <algorithm>
+
+#ifdef PLATFORM_ANDROID
+#include <jni.h>
+#endif
 
 CGameManager::CGameManager()
 {
-	CConfig::LoadConfigs("config.txt");
+#ifndef PLATFORM_ANDROID
+	Init();
+#endif
+}
+
+void CGameManager::Init()
+{
+	std::string FilePath = GetWorkingDir() +
+#ifdef PLATFORM_ANDROID
+	"/config.txt";
+#else
+	"config.txt";
+#endif
+
+	//try loading saved config, load defaults if failed
+	if (!CConfig::LoadConfigs(FilePath.c_str(), false))
+		CConfig::LoadConfigs("config.txt", true); //TODO ellenorizni sikerult e!!!!!
 
 	m_State = new CGameState(this);
 	m_TimerEventManager = new CTimerEventManager();
@@ -58,35 +77,59 @@ void CGameManager::StartGameThread()
 	m_GameThread->Start(); 
 }
 
-void CGameManager::SaveSettings()
+int CGameManager::GetTileCount()
 {
-	SetGameState(CGameManager::OnStartScreen);
+	int TileCountIdx;
+	CConfig::GetConfig("tiles_on_board_idx", TileCountIdx);
 
-	int Detail3D = m_UIManager->Get3DDetail();
-	int LightQuality = m_UIManager->GetLightQuality();
-	int FPSLimit = m_UIManager->GetFPSLimit();
-	int PlayerCount = m_UIManager->GetPlayerCount();
-	int TilesOnBoard = m_UIManager->GetBoardSize();
-	int TimeLimit = m_UIManager->GetTimeLimitIdx();
-	int ComputerEnabled = m_UIManager->ComputerOpponentEnabled();
-	int GameDifficulty = m_UIManager->GetDifficulty();
+	if (TileCountIdx == 0)
+		return 7;
+	else if (TileCountIdx == 1)
+		return 8;
+	else if (TileCountIdx == 2)
+		return 9;
+	else if (TileCountIdx == 3)
+		return 10;
 
-	CConfig::AddConfig("letter_side_lod", Detail3D);
-	CConfig::AddConfig("letter_side_radius", 0.1f);
-	CConfig::AddConfig("letter_edge_lod", Detail3D);
-	CConfig::AddConfig("letter_edge_radius", .09f);
-	CConfig::AddConfig("tile_side_lod", Detail3D);
-	CConfig::AddConfig("tile_side_radius", .1f);
-	CConfig::AddConfig("tile_edge_lod", Detail3D);
-	CConfig::AddConfig("tile_edge_radius", .09f);
-	CConfig::AddConfig("lighting_quality", LightQuality);
-	CConfig::AddConfig("fps_cap", FPSLimit);
-	CConfig::AddConfig("player_count", PlayerCount);
-	CConfig::AddConfig("tiles_on_board", TilesOnBoard);
-	CConfig::AddConfig("time_limit", TimeLimit);
-	CConfig::AddConfig("computer_enabled", ComputerEnabled);
-	CConfig::AddConfig("game_difficulty", GameDifficulty);
+	return 0;
+}
 
+void CGameManager::SaveSettings(bool fromUI)
+{
+	if (fromUI)
+	{
+		int PlayerCount = m_UIManager->GetPlayerCount();
+		int TilesOnBoard = m_UIManager->GetBoardSize();
+		int TimeLimit = m_UIManager->GetTimeLimitIdx();
+		int ComputerEnabled = m_UIManager->ComputerOpponentEnabled();
+		int GameDifficulty = m_UIManager->GetDifficulty();
+
+		CConfig::AddConfig("player_count", PlayerCount);
+		CConfig::AddConfig("tiles_on_board_idx", TilesOnBoard);
+		CConfig::AddConfig("tiles_count", GetTileCount());
+		CConfig::AddConfig("time_limit", TimeLimit);
+		CConfig::AddConfig("computer_enabled", ComputerEnabled);
+		CConfig::AddConfig("game_difficulty", GameDifficulty);
+	}
+	else
+		{
+		int Detail3D = m_UIManager->Get3DDetail();
+		int LightQuality = m_UIManager->GetLightQuality();
+		int FPSLimit = m_UIManager->GetFPSLimit();
+		int LodLevel = m_Renderer->GetLodLevel(Detail3D);
+
+		CConfig::AddConfig("3d_quality", Detail3D);
+		CConfig::AddConfig("letter_side_lod", LodLevel);
+		CConfig::AddConfig("letter_side_radius", 0.1f);
+		CConfig::AddConfig("letter_edge_lod", LodLevel);
+		CConfig::AddConfig("letter_edge_radius", .09f);
+		CConfig::AddConfig("tile_side_lod", LodLevel);
+		CConfig::AddConfig("tile_side_radius", .1f);
+		CConfig::AddConfig("tile_edge_lod", LodLevel);
+		CConfig::AddConfig("tile_edge_radius", .09f);
+		CConfig::AddConfig("lighting_quality", LightQuality);
+		CConfig::AddConfig("fps_cap", FPSLimit);
+	}
 	std::string FilePath = GetWorkingDir() +
 #ifdef PLATFORM_ANDROID
 		"/config.txt";
@@ -120,6 +163,8 @@ void CGameManager::ResetToStartScreen()
 	m_ButtonAnimationManager->RemoveAnimation(ExitButton);
 
 	m_Renderer->ClearGameScreenResources();
+
+	m_RemainingTurnTime = 0;
 
 	//TODO torolni az osszes cuccot amit a GenerateModelsTask al ujra letrehozok!!!!!!!!!!!!!!!!!
 
@@ -259,6 +304,8 @@ void CGameManager::InitLetterPool(bool initLettersCount)
 
 void CGameManager::FinishRenderInit()
 {
+	SaveSettings(true);
+
 #ifdef PLATFORM_ANDROID
     extern jclass g_MainActivityClass;
     extern jclass g_OpenGLRendererClass;
@@ -288,10 +335,8 @@ void CGameManager::FinishRenderInit()
     }
 #else
 //	GetUIManager()->m_UIInitialized = false;
-	SetTileCount();
 	InitBasedOnTileCount(true);
 	GenerateGameScreenTextures();
-	SaveSettings();
 //	GetUIManager()->m_UIInitialized = true;
 
 	SetTaskFinished("game_started_task");
@@ -324,23 +369,6 @@ void CGameManager::RunTaskOnRenderThread(const char* id)
     m_JavaVM->DetachCurrentThread();
 }
 #endif
-
-
-void CGameManager::SetTileCount()
-{
-	int TileCount = m_UIManager->GetBoardSize();
-
-	if (TileCount == 0)
-		TileCount = 7;
-	else if (TileCount == 1)
-		TileCount = 8;
-	else if (TileCount == 2)
-		TileCount = 9;
-	else if (TileCount == 3)
-		TileCount = 10;
-
-	CConfig::AddConfig("tile_count", TileCount);
-}
 
 void CGameManager::SetBoardSize()
 {
@@ -410,8 +438,14 @@ void CGameManager::InitPlayersTask()
 
 void CGameManager::InitPlayers(bool addLetters)
 {
-	int PlayerCount = m_UIManager->GetPlayerCount() + 1;
-	AddPlayers(PlayerCount, m_UIManager->ComputerOpponentEnabled(), addLetters);
+	int ComputerEnabled;
+	int PlayerCount;
+
+	CConfig::GetConfig("computer_enabled", ComputerEnabled);
+	CConfig::GetConfig("player_count", PlayerCount);
+
+	PlayerCount++; //mert a player_count csak egy index a selectboxba
+	AddPlayers(PlayerCount, ComputerEnabled, addLetters);
 	m_UIManager->InitScorePanel();
 	UpdatePlayerScores();
 }
@@ -1097,17 +1131,6 @@ bool CGameManager::PlayerFinished()
 	return (m_CurrentPlayer->GetLetterCount() == 0 && m_LetterPool.GetRemainingLetterCount() == 0);
 }
 
-bool CGameManager::EndGameIfPlayerFinished()
-{
-	if (PlayerFinished())
-	{
-		EndGame();
-		return true;
-	}
-
-	return false;
-}
-
 void CGameManager::UpdatePlayerScores()
 {
 	m_UIManager->UpdateScorePanel();
@@ -1580,6 +1603,7 @@ void CGameManager::EndGame()
 {
 	m_UIManager->UpdateRankingsPanel();
 	m_TaskManager->Reset();
+	m_RemainingTurnTime = 0;
 	SetTaskFinished("show_next_player_popup_task");
 	SetGameState(EGameState::GameEnded);
 }

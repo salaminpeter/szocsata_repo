@@ -54,7 +54,7 @@ public:
 		m_Configs[name] = (CSettingBase*)(new CSetting<T>(value, saveToFile));
 	}
 
-	static void LoadConfigs(const char* path);
+	static bool LoadConfigs(const char* path, bool loadDefaults);
 	static void SaveConfigs(const char* path);
 
 private:

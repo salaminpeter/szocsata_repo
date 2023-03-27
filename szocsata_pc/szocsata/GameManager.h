@@ -65,14 +65,14 @@ public:
 		RemovePlayers();
 	}
 
-	void SaveSettings();
+	void Init();
+	void SaveSettings(bool fromUI);
 	void ResetToStartScreen();
 	void AddPlayers(int playerCount, bool addComputer, bool addLetters = true);
 	void RemovePlayers();
 	void StartGame(bool resumeGame);
 	void InitBasedOnTileCount(bool addLetters);
 	void InitPlayers(bool addLetters);
-	void SetTileCount();
 	void InitLetterPool(bool initLettersCount = true);
 	int CalculateScore(const TWordPos& word, std::vector<TWordPos>* crossingWords = nullptr);
 	void CreateRenderer(int surfaceWidth, int surfaceHeight);
@@ -125,7 +125,6 @@ public:
 	CLetterModel* AddLetterToBoard(int x, int y, wchar_t c, float height, bool checLetters = false);
 	void AddWordSelectionAnimationForComputer();
 	void UpdatePlayerScores();
-	bool EndGameIfPlayerFinished();
 	bool PlayerFinished();
 	std::wstring GetNextPlayerName();
 	int GetDifficulty();
@@ -151,6 +150,7 @@ public:
 	void AddCountDownTimerIfNeeded();
 	void StopCountdown();
 	void StartCountdown();
+	int GetTileCount();
 
 	glm::ivec2 GetUIElementSize(const wchar_t* id);
 	std::wstring GetTimeStr(int msec);
@@ -173,6 +173,7 @@ public:
 	void SetCurentPlayer(size_t idx) {m_CurrentPlayer = m_Players[idx];}
  	void SaveState() { m_State->SaveGameState(); }
 	void CleanLetterPool() {m_LetterPool.ClearEmptyLetterIndices();}
+	void SaveSettingsFromSettingsPage() {SaveSettings(false); SetGameState(CGameManager::OnStartScreen);}
 
 
 	void SaveTileAnims(std::ofstream& fileStream);

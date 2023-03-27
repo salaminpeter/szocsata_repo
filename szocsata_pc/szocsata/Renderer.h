@@ -86,6 +86,7 @@ public:
 	void DeleteBuffers();
 	void HideSelection(bool hide);
 	void PositionCamera(const char* viewId, const glm::vec3 position);
+	int GetLodLevel(int detail);
 
 	bool ModelsInited() { return m_3DModelsInited; }
 	bool EngineInited() { return m_EnginelsInited; }
@@ -107,7 +108,6 @@ private:
 	glm::vec3 ScreenPosToBoardPos(float screenX, float screenY, bool boardOnly = false);
 	glm::vec3 VectorBoardIntersect(glm::vec3 pos, glm::vec3 vec, bool boardOnly = false);
 	glm::vec3 GetCameraLookAtPoint(bool intersectWithBoard);
-	int GetLodLevel(int detail);
 
 
 private:

@@ -27,13 +27,24 @@ void CConfig::SaveConfigs(const char* path)
 	ConfigFile.close();
 }
 
-void CConfig::LoadConfigs(const char* path)
+bool CConfig::LoadConfigs(const char* path, bool loadDefaults)
 {
 	std::stringstream StrStream;
 	std::string Str;
 
-	if (!CIOManager::GetStreamStrForFile(path, StrStream))
-		return;
+
+	if (loadDefaults && !CIOManager::GetStreamStrForFile(path, StrStream))
+		return false;
+
+	if (!loadDefaults)
+	{
+		std::ifstream ConfigFile(path, std::ofstream::in);
+
+		if (!ConfigFile.good())
+			return false;
+
+		StrStream << ConfigFile.rdbuf();
+	}
 
 	while (std::getline(StrStream, Str))
 	{
@@ -71,4 +82,6 @@ void CConfig::LoadConfigs(const char* path)
 			AddConfig<int>(ConfigName, n);
 		}
 	}
+
+	return true;
 }

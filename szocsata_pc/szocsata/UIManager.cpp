@@ -300,19 +300,23 @@ void CUIManager::InitSettingsScreen(std::shared_ptr<CSquarePositionData> positio
 	IconTextButton = AddIconTextButton(VerticalLayoutButtons, L"grafika", positionData, colorData, gridcolorData16x6, 0, 0, SettingsBtnSize.x, SettingsBtnSize.y, "view_ortho", "start_scr_btn_texture_generated", "computer_icon.bmp", L"ui_graphics_settings_btn", "textured", .64f, 1.16f);
 	IconTextButton->SetTextColor(.92f, .92f, .92f);
 	IconTextButton->SetIconColor(.92f, .92f, .92f);
-//	IconTextButton->SetEvent(false, m_GameManager, &CGameManager::GoToStartGameScrEvent);
-
+	IconTextButton->SetEvent(CUIElement::TouchEvent, m_GameManager, &CGameManager::AddButtonAnimation, (CUIElement*)IconTextButton);
+	IconTextButton->SetEvent(CUIElement::ReleaseEvent, m_GameManager, &CGameManager::EnableReverseAnimation, (CUIElement*)IconTextButton);
+	m_GameManager->GetButtonAnimationManager()->SetEvent(IconTextButton, this, &CUIManager::ShowSettingsPanel, 0);
 
 	//game options button
 	IconTextButton = AddIconTextButton(VerticalLayoutButtons, L"jaték beállítások", positionData, colorData, gridcolorData16x6, 0, 0, SettingsBtnSize.x, SettingsBtnSize.y, "view_ortho", "start_scr_btn_texture_generated", "book_icon.bmp", L"ui_manual_settings_btn", "textured", .64f, 1.53f);
 	IconTextButton->SetTextColor(.92f, .92f, .92f);
 	IconTextButton->SetIconColor(.92f, .92f, .92f);
-//	IconTextButton->SetEvent(false, m_GameManager, &CGameManager::GoToStartGameScrEvent);
+	IconTextButton->SetEvent(CUIElement::TouchEvent, m_GameManager, &CGameManager::AddButtonAnimation, (CUIElement*)IconTextButton);
+	IconTextButton->SetEvent(CUIElement::ReleaseEvent, m_GameManager, &CGameManager::EnableReverseAnimation, (CUIElement*)IconTextButton);
+	m_GameManager->GetButtonAnimationManager()->SetEvent(IconTextButton, this, &CUIManager::ShowSettingsPanel, 1);
 
 	glm::ivec2 SelectControlSize = GetSizeByArea(35.f, 2.8f, m_GameManager->m_SurfaceWidth * m_GameManager->m_SurfaceHeigh, (m_GameManager->m_SurfaceWidth - HorizLayoutMaxWidth) / 2);
 	
 	//middle vertical layout for selector buttons
-	CUILayout* VerticalLayoutSettings= new CUIVerticalLayout(HorizLayoutMaxWidth, 0, m_GameManager->m_SurfaceWidth - HorizLayoutMaxWidth - BackButtonSize.x * 1.2f, HorizLayoutMaxHeight, ViewPos.x, ViewPos.y, HorizontalLayout, L"ui_settings_screen_settings_layout_middle", 3, .5f, .7f, SelectControlSize.x / SelectControlSize.y, SelectControlSize.y / 5, SelectControlSize.y, SelectControlSize.x, SelectControlSize.y);
+	CUIPanel* GraphicsSettingsPanel = new CUIPanel(HorizontalLayout, L"ui_graphics_settings_panel", nullptr, nullptr, nullptr, HorizLayoutMaxWidth, 0, m_GameManager->m_SurfaceWidth - HorizLayoutMaxWidth - BackButtonSize.x * 1.2f, HorizLayoutMaxHeight, ViewPos.x, ViewPos.y, "", 0.f, 0.f);
+	CUILayout* VerticalLayoutSettings= new CUIVerticalLayout(0, 0, m_GameManager->m_SurfaceWidth - HorizLayoutMaxWidth - BackButtonSize.x * 1.2f, HorizLayoutMaxHeight, ViewPos.x, ViewPos.y, GraphicsSettingsPanel, L"ui_settings_screen_settings_layout_middle", 3, .5f, .7f, SelectControlSize.x / SelectControlSize.y, SelectControlSize.y / 5, SelectControlSize.y, SelectControlSize.x, SelectControlSize.y);
 
 	VerticalLayoutSettings->SetBoxSizeProps(0, SelectControlSize.x, SelectControlSize.y, true);
 	VerticalLayoutSettings->SetBoxSizeProps(1, SelectControlSize.x, SelectControlSize.y, true);
@@ -324,7 +328,7 @@ void CUIManager::InitSettingsScreen(std::shared_ptr<CSquarePositionData> positio
 	int LightQuality;
 	int FPSCap;
 
-	CConfig::GetConfig("letter_edge_lod", Detail3D);
+	CConfig::GetConfig("3d_quality", Detail3D);
 	CConfig::GetConfig("lighting_quality", LightQuality);
 	CConfig::GetConfig("fps_cap", FPSCap);
 
@@ -356,7 +360,7 @@ void CUIManager::InitSettingsScreen(std::shared_ptr<CSquarePositionData> positio
 	IconTextButton = AddIconTextButton(VerticalLayoutOKBtn, L"", positionData, colorData, nullptr, 0, 0, BackButtonSize.x, BackButtonSize.y, "view_ortho", "round_button_texture_generated", "exit_icon.bmp", L"ui_exit_settings_btn", "textured", 0.6f, .86f);
 	IconTextButton->SetEvent(CUIElement::TouchEvent, m_GameManager, &CGameManager::AddButtonAnimation, (CUIElement*)IconTextButton);
 	IconTextButton->SetEvent(CUIElement::ReleaseEvent, m_GameManager, &CGameManager::EnableReverseAnimation, (CUIElement*)IconTextButton);
-	m_GameManager->GetButtonAnimationManager()->SetEvent(IconTextButton, m_GameManager, &CGameManager::SaveSettings);
+	m_GameManager->GetButtonAnimationManager()->SetEvent(IconTextButton, m_GameManager, &CGameManager::SaveSettingsFromSettingsPage);
 	IconTextButton->CenterIcon();
 
 	SettingsScreeLayout->AlignChildren();
@@ -456,7 +460,7 @@ void CUIManager::InitStartGameScreen(std::shared_ptr<CSquarePositionData> positi
 	int GameDifficulty;
 
 	CConfig::GetConfig("player_count", PlayerCount);
-	CConfig::GetConfig("tiles_on_board", TilesOnBoard);
+	CConfig::GetConfig("tiles_on_board_idx", TilesOnBoard);
 	CConfig::GetConfig("time_limit", TimeLimit);
 	CConfig::GetConfig("computer_enabled", ComputerEnabled);
 	CConfig::GetConfig("game_difficulty", GameDifficulty);
@@ -629,6 +633,13 @@ void CUIManager::InitGameScreen(std::shared_ptr<CSquarePositionData> positionDat
 	m_DimmPanel->SetVisibleWOMutex(false);
 }
 
+void CUIManager::ShowSettingsPanel(int panelIdx)
+{
+	CUIElement* GraphicsSettingsPanel = GetUIElement(L"ui_graphics_settings_panel");
+
+	GraphicsSettingsPanel->SetVisible(panelIdx == 0);
+}
+
 glm::ivec2 CUIManager::GetUIElemSize(const char* id)
 {
 	if (m_UIElemSize.find(id) == m_UIElemSize.end())
@@ -762,6 +773,7 @@ void CUIManager::ClearUIElements()
 		delete m_UIRoots[i];
 
 	m_UIRoots.clear();
+	CUIMessageBox::m_ActiveMessageBox = nullptr;
 	delete m_MessageBoxOk;
 	delete m_Toast;
 	delete m_MessageBoxResumeGame;
@@ -807,7 +819,7 @@ int CUIManager::GetDifficulty()
 bool CUIManager::ComputerOpponentEnabled()
 {
 	CUIElement* Panel = m_RootStartGameScreen->GetChild(L"ui_background_panel_start_game_screen");
-	return static_cast<CUISelectControl*>(GetUIElement(L"ui_select_computer_opponent"))->GetIndex() == 0;
+	return (static_cast<CUISelectControl*>(GetUIElement(L"ui_select_computer_opponent"))->GetIndex() == 0);
 }
 
 float CUIManager::GetLetterSize()
@@ -827,7 +839,8 @@ int CUIManager::GetTimeLimitIdx()
 
 int CUIManager::GetTimeLimit()
 {
-	int TimeLimitIdx = static_cast<CUISelectControl*>(GetUIElement(L"ui_select_time_limit"))->GetIndex();
+	int TimeLimitIdx;
+    CConfig::GetConfig("time_limit", TimeLimitIdx);
 
 	switch (TimeLimitIdx)
 	{
