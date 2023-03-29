@@ -28,8 +28,6 @@ class CUIScorePanel;
 class CUIPlayerLetterPanel;
 class CPlayer;
 class CUIVerticalLayout;
-class CUIGameScreenPanel;
-
 
 class CUIManager
 {
@@ -54,8 +52,6 @@ public:
 	CUIPlayerLetters* AddPlayerLetters(CPlayer* player, std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, bool addLetters = true);
 	CUIElement* GetUIElement(const wchar_t* id);
 	
-	void PositionPlayerLetter(const std::wstring& playerId, size_t letterIdx, float x, float y, float size);
-
 	CUIPlayerLetters* GetPlayerLetters(const std::wstring& playerID);
 	CUIPlayerLetters* GetPlayerLetters(size_t idx);
 
@@ -91,11 +87,6 @@ public:
 	int GetLightQuality();
 	int GetFPSLimit();
 	int ComputerOpponentEnabledIdx();
-	void SetDifficulty(int diff);
-	void SetBoardSize(int size);
-	void SetPlayerCount(int count);
-	void SetTimeLimitIdx(int limit);
-	void SetComputerOpponentEnabled(bool enabled);
 
 	float GetLetterSize();
 	void ShowPlayerLetters(bool show, const wchar_t* playerId);
@@ -103,7 +94,6 @@ public:
 	void UpdateRankingsPanel();
 	void UpdateScorePanel();
 	void InitScorePanel();
-	void InitRankingsPanel();
 	void InitFont();
 	glm::ivec2 GetScorePanelSize();
 
@@ -128,7 +118,6 @@ public:
 	void InitRankingsScreen(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData8x8);
 	void InitSettingsScreen(std::shared_ptr<CSquarePositionData> positionData, std::shared_ptr<CSquareColorData> colorData, std::shared_ptr<CSquareColorData> gridcolorData16x6);
 	void SetScorePanelLayoutBox();
-	glm::ivec2 GetUIElemSize(const char* id);
 
 	std::recursive_mutex& GetUILock() { return m_UILock; }
 
@@ -174,7 +163,5 @@ public: //TODO
 
 	size_t m_DraggedPlayerLetterIdx;
 	bool m_PlayerLetterDragged = false;
-	bool m_GameButtonsDisabled = false;
-	bool m_StartScreenActive = true;
 	bool m_UIInitialized = false;
 };

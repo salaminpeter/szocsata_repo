@@ -198,7 +198,6 @@ public:
 	void StopGameThread() { m_StopGameLoop = true; }
 	
 	void HideLoadScreen();
-	void HidePopup();
     void ShowStartScreenTask();
 	void ShowGameScreenTask();
 	void ShowSavedScreenTask();
@@ -277,7 +276,6 @@ public:
 	bool PositionOnBoardView(int x, int y);
 	
 	bool HasEmptyFieldInWord(int& min, int& max);
-	glm::ivec2 GetSelectionPosition();
 	void SetDimmPanelOpacity(float opacity);
 
 	void PauseGameEvent();
@@ -342,9 +340,8 @@ private:
 	std::atomic_bool m_StopGameLoop = false;
 	std::atomic_bool m_ContinueGame = false;
 	std::atomic_bool m_GameThreadStopped = false;
-	bool m_PauseGameLoop = false;
 
-	bool m_StartOnGameScreen = false;
+	bool m_PauseGameLoop = false;
 
 #ifdef PLATFORM_ANDROID
 	JavaVM* m_JavaVM;
@@ -356,7 +353,6 @@ private:
 	EGameState m_PrevGameState = EGameState::None;
 
 	std::mutex m_GameStateLock;
-	std::mutex m_PlayerPopupLock;
 	std::mutex m_StateLock;
 
 	CPlayer* m_CurrentPlayer = nullptr;

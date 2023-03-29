@@ -2073,11 +2073,6 @@ int CGameManager::GetPlayerStepIdxAtPos(int x, int y)
 	return -1;	
 }
 
-void CGameManager::HidePopup()
-{ 
-	m_UIManager->CloseMessageBox(); 
-}
-
 void CGameManager::UndoStep(size_t idx)
 {
 	if (m_PlayerSteps.size() <= idx)
@@ -2140,41 +2135,6 @@ bool CGameManager::HasEmptyFieldInWord(int& min, int& max)
 	}
 
 	return false;
-}
-
-
-//ha a lerakott szo utolso karaktere utan, ervenyes mezo van a tablan, amit ki lehet valasztani
-//akkor adjuk vissza a koordinatait
-glm::ivec2 CGameManager::GetSelectionPosition()
-{
-	int Horizontal = PlayerWordHorizontal();
-
-	if (Horizontal == -1)
-		return glm::ivec2(-1, -1);
-
-	int TileCount;
-	CConfig::GetConfig("tile_count", TileCount);
-	int Lim = -1;
-	size_t Idx;
-
-	for (size_t i = 0; i < m_PlayerSteps.size(); ++i)
-	{
-		if (Horizontal == 1 && m_PlayerSteps[i].m_XPosition > Lim || Horizontal == 0 && (m_PlayerSteps[i].m_YPosition < Lim || Lim == -1))
-		{
-			Lim = Horizontal ? m_PlayerSteps[i].m_XPosition : m_PlayerSteps[i].m_YPosition;
-			Idx = i;
-		}
-	}
-
-	if (Lim + 1 >= TileCount || Lim - 1 < 0)
-		return glm::ivec2(-1, -1);
-
-	if (Horizontal && !SelectionPosIllegal(m_PlayerSteps[Idx].m_XPosition + 1, m_PlayerSteps[Idx].m_YPosition))
-		return glm::ivec2(m_PlayerSteps[Idx].m_XPosition + 1, m_PlayerSteps[Idx].m_YPosition);
-	else if (!Horizontal && !SelectionPosIllegal(m_PlayerSteps[Idx].m_XPosition, m_PlayerSteps[Idx].m_YPosition - 1))
-		return glm::ivec2(m_PlayerSteps[Idx].m_XPosition, m_PlayerSteps[Idx].m_YPosition - 1);
-
-	return glm::ivec2(-1, -1);
 }
 
 bool CGameManager::PositionOnBoardView(int x, int y)

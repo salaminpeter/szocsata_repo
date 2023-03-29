@@ -100,13 +100,6 @@ CUIPlayerLetters* CUIManager::AddPlayerLetters(CPlayer* player, std::shared_ptr<
 	return PlayerLetters;
 }
 
-void CUIManager::PositionPlayerLetter(const std::wstring& playerId, size_t letterIdx, float x, float y, float size)
-{
-	if (CUIPlayerLetters* pl = GetPlayerLetters(playerId))
-		pl->PositionPlayerLetter(letterIdx, x, y, size);
-}
-
-
 CUIPlayerLetters* CUIManager::GetPlayerLetters(size_t idx)
 {
 	if (idx >= m_PlayerLetterPanel->GetChildCount())
@@ -640,14 +633,6 @@ void CUIManager::ShowSettingsPanel(int panelIdx)
 	GraphicsSettingsPanel->SetVisible(panelIdx == 0);
 }
 
-glm::ivec2 CUIManager::GetUIElemSize(const char* id)
-{
-	if (m_UIElemSize.find(id) == m_UIElemSize.end())
-		return glm::ivec2();
-
-	return m_UIElemSize[id];
-}
-
 void CUIManager::SetScorePanelLayoutBox()
 {
     static_cast<CUILayout*>(GetUIElement(L"ui_game_screen_sub_layout3"))->SetBoxSizeProps(0, m_ScorePanel->GetWidth(), m_ScorePanel->GetHeight(), false);
@@ -794,12 +779,6 @@ void CUIManager::InitScorePanel()
 	m_ScorePanel->Init();
 }
 
-void CUIManager::InitRankingsPanel()
-{
-	m_RankingsPanel->Init();
-	m_RootGameEndScreen->AlignChildren();
-}
-
 glm::ivec2 CUIManager::GetScorePanelSize()
 { 
 	return glm::ivec2(m_ScorePanel->GetWidth(), m_ScorePanel->GetHeight());
@@ -877,37 +856,6 @@ int CUIManager::GetFPSLimit()
 int CUIManager::GetPlayerCount()
 {
 	return static_cast<CUISelectControl*>(GetUIElement(L"ui_select_player_count"))->GetIndex();
-}
-
-void CUIManager::SetDifficulty(int diff)
-{
-	static_cast<CUISelectControl*>(GetUIElement(L"ui_select_difficulty"))->SetIndex(diff);
-}
-
-void CUIManager::SetBoardSize(int size)
-{
-	static_cast<CUISelectControl*>(GetUIElement(L"ui_select_board_size"))->SetIndex(size);
-}
-
-void CUIManager::SetPlayerCount(int count)
-{
-	static_cast<CUISelectControl*>(GetUIElement(L"ui_select_player_count"))->SetIndex(count);
-}
-
-void CUIManager::SetTimeLimitIdx(int limit)
-{
-	static_cast<CUISelectControl*>(GetUIElement(L"ui_select_time_limit"))->SetIndex(limit);
-}
-
-void CUIManager::SetComputerOpponentEnabled(bool enabled)
-{
-	static_cast<CUISelectControl*>(GetUIElement(L"ui_select_computer_opponent"))->SetIndex(enabled ? 0 : 1);
-}
-
-
-bool CUIManager::IsGameButton(const CUIButton* button) const
-{
-	return (button->GetID() == L"ui_ok_btn");
 }
 
 void CUIManager::SetRemainingTimeStr(const wchar_t* timeStr)
