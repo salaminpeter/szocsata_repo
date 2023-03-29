@@ -945,7 +945,7 @@ bool CGameManager::EndPlayerTurn(bool stillHaveTime)
 	glm::ivec2 WordsCenterPos = GetWordsMidPoint(CrossingWords);
 	glm::vec2 PosOnScreen = m_Renderer->GetBoardPosOnScreen(WordsCenterPos.x, TileCount - WordsCenterPos.y);
 	m_ScoreAnimationManager->SetProperties(PosOnScreen.x, PosOnScreen.y, 0, Score, 0, true);
-
+	m_UIManager->EnableGameButtons(false);
 	bool PlayerFinished = AddNextPlayerTasksNormal(false, true, !m_LetterPool.Empty(), true);
 
 	StopCountdown();
@@ -1058,7 +1058,7 @@ bool CGameManager::EndComputerTurn()
 		glm::ivec2 WordsCenterPos = GetWordsMidPoint(*CrossingWords);
 		glm::vec2 PosOnScreen = m_Renderer->GetBoardPosOnScreen(WordsCenterPos.x, TileCount - WordsCenterPos.y);
 		m_ScoreAnimationManager->SetProperties(PosOnScreen.x, PosOnScreen.y, 0, ComputerStep.m_Score, 0, true);
-
+        m_UIManager->EnableGameButtons(false);
 		AddNextPlayerTasksNormal(true, true, !m_LetterPool.Empty() && !GameFinished, true);
 		std::vector<size_t> LetterIndices = m_CurrentPlayer->GetLetterIndicesForWord(*ComputerWord.m_Word);
 		SetGameState(EGameState::WaintingOnAnimation);
