@@ -644,6 +644,9 @@ void CGameManager::CheckAndUpdateTime(double& timeFromStart, double& timeFromPre
 
 bool CGameManager::SelectionPosIllegal(int x, int y)
 {
+    int TileCount;
+    CConfig::GetConfig("tile_count", TileCount);
+
 	//nem a tablara tettuk a betut
 	if (x == -1 || y == -1)
 		return true;
@@ -656,10 +659,7 @@ bool CGameManager::SelectionPosIllegal(int x, int y)
 	if (m_PlayerSteps.size() >= 2 && !(m_PlayerSteps[0].m_XPosition == m_PlayerSteps[1].m_XPosition && x == m_PlayerSteps[0].m_XPosition || m_PlayerSteps[0].m_YPosition == m_PlayerSteps[1].m_YPosition && y == m_PlayerSteps[0].m_YPosition))
 		return true;
 
-	int TileCount;
-	CConfig::GetConfig("tile_count", TileCount);
-
-	//ha mar 5 elemes a torony amire rakni akarunk	
+	//ha mar 5 elemes a torony amire rakni akarunk
 	if (m_GameBoard(x, TileCount - y - 1).m_Height == 5)
 		return true;
 	
@@ -1837,6 +1837,48 @@ int CGameManager::CalculateScore(const TWordPos& word, std::vector<TWordPos>* cr
 	return CrossingWordsValid ? Score : 0;
 }
 
+void CGameManager::SelectNextPositon()
+{
+	glm::ivec2 NextSelPos = GetNextCursorPos();
+
+	m_Renderer->HideSelection(true);
+
+	if (NextSelPos.x != -1 && NextSelPos.y != -1)
+	{
+		m_Renderer->HideSelection(false);
+		m_Renderer->SelectField(NextSelPos.x, NextSelPos.y);
+	}
+}
+
+glm::ivec2 CGameManager::GetNextCursorPos()
+{
+    if (m_PlayerSteps.size() <= 1)
+        return glm::ivec2 (-1, -1);
+
+    int TileCount;
+    CConfig::GetConfig("tile_count", TileCount);
+
+    glm::ivec2 SelectionPos = glm::ivec2 (m_PlayerSteps.back().m_XPosition, m_PlayerSteps.back().m_YPosition);
+
+    bool WordHorizontal = m_PlayerSteps[0].m_YPosition == m_PlayerSteps[1].m_YPosition;
+
+    while (true)
+    {
+        SelectionPos.x += (WordHorizontal ? 1 : 0);
+        SelectionPos.y -= (WordHorizontal ? 0 : 1);
+
+        if (SelectionPos.x < 0 || SelectionPos.x >= TileCount || SelectionPos.y < 0 || SelectionPos.y >= TileCount)
+            return glm::ivec2 (-1, -1);
+
+		if (SelectionPosIllegal(SelectionPos.x, SelectionPos.y))
+			continue;
+
+        return SelectionPos;
+    }
+
+    return glm::ivec2 (-1, -1);
+}
+
 void CGameManager::PlayerLetterReleased(size_t letterIdx)
 {
 	m_UIManager->SetDraggedPlayerLetter(false, 0, glm::vec2(0.f, 0.f), glm::vec2(0.f, 0.f), true);
@@ -1876,26 +1918,11 @@ void CGameManager::PlayerLetterReleased(size_t letterIdx)
 	if (Horizontal == 1 && SelY != m_PlayerSteps[0].m_YPosition || Horizontal == 0 && SelX != m_PlayerSteps[0].m_XPosition)
 		return;
 
-
 	int BoardY = TileCount - SelY - 1;
 	m_GameBoard(SelX, BoardY).m_Char = PlacedLetter;
 	m_GameBoard(SelX, BoardY).m_Height++;
 
-	if ((Horizontal == 1 && SelX < TileCount - 1 || Horizontal == 0 && SelY > 0))
-	{
-		SelX += Horizontal ? 1 : 0;
-		SelY -= Horizontal ? 0 : 1;
-
-		if (!SelectionPosIllegal(SelX, SelY))
-		{
-			m_Renderer->HideSelection(false);
-			m_Renderer->SelectField(SelX, SelY);
-		}
-		else
-			m_Renderer->HideSelection(true);
-	}
-	else
-		m_Renderer->HideSelection(true);
+	SelectNextPositon();
 }
 
 void CGameManager::SetDimmPanelOpacity(float opacity)

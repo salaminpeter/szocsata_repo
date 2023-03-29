@@ -264,7 +264,8 @@ public:
 	}
     void SaveDataBase() {m_DataBase.SaveDataBase((GetWorkingDir() + "/db.dat").c_str());}
 
-
+	void SelectNextPositon();
+    glm::ivec2 GetNextCursorPos();
 	void StartGameThread();
 	bool GameStateFileFound();
 

@@ -1224,20 +1224,12 @@ void CUIManager::HandleReleaseEvent(int x, int y)
 		if (!NoDrag && !m_GameManager->SelectionPosIllegal(SelX, SelY))
 			m_GameManager->PlayerLetterReleased(m_DraggedPlayerLetterIdx);
 
-		glm::ivec2 NextSelPos = m_GameManager->GetSelectionPosition();
-
-		if (NextSelPos.x != -1)
-			m_GameManager->GetRenderer()->SelectField(NextSelPos.x, NextSelPos.y);
-		else
-			m_GameManager->GetRenderer()->DisableSelection();
-
 		m_PlayerLetterDragged = false;
 
 		if (!NoDrag)
 			return;
 	}
 
-	
 	CUIElement* Root = GetActiveScreenUIRoot();
 
 	for (size_t i = 0; i < Root->GetChildCount(); ++i)
