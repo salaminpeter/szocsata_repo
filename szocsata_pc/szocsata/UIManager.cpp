@@ -462,7 +462,7 @@ void CUIManager::InitStartGameScreen(std::shared_ptr<CSquarePositionData> positi
 	CConfig::GetConfig("player_count", PlayerCount);
 	CConfig::GetConfig("tiles_on_board_idx", TilesOnBoard);
 	CConfig::GetConfig("time_limit", TimeLimit);
-	CConfig::GetConfig("computer_enabled", ComputerEnabled);
+	CConfig::GetConfig("computer_enabled_idx", ComputerEnabled);
 	CConfig::GetConfig("game_difficulty", GameDifficulty);
 
 	//number of players
@@ -816,10 +816,9 @@ int CUIManager::GetDifficulty()
 	return static_cast<CUISelectControl*>(GetUIElement(L"ui_select_difficulty"))->GetIndex();
 }
 
-bool CUIManager::ComputerOpponentEnabled()
+int CUIManager::ComputerOpponentEnabledIdx()
 {
-	CUIElement* Panel = m_RootStartGameScreen->GetChild(L"ui_background_panel_start_game_screen");
-	return (static_cast<CUISelectControl*>(GetUIElement(L"ui_select_computer_opponent"))->GetIndex() == 0);
+	return static_cast<CUISelectControl*>(GetUIElement(L"ui_select_computer_opponent"))->GetIndex();
 }
 
 float CUIManager::GetLetterSize()

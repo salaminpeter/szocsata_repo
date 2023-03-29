@@ -135,6 +135,7 @@ void InitGameManager(int surfWidth, int surfHeight)
 
         LoadGameStateTask->m_TaskStopped = false;
         ReturnToSavedStateTask->m_TaskStopped = false;
+        ContinueGameTask->m_TaskStopped = false;
     }
 
     CreateRendererTask->m_TaskStopped = false;

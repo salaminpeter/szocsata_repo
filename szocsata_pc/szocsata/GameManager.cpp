@@ -101,14 +101,14 @@ void CGameManager::SaveSettings(bool fromUI)
 		int PlayerCount = m_UIManager->GetPlayerCount();
 		int TilesOnBoard = m_UIManager->GetBoardSize();
 		int TimeLimit = m_UIManager->GetTimeLimitIdx();
-		int ComputerEnabled = m_UIManager->ComputerOpponentEnabled();
+		int ComputerEnabledIdx = m_UIManager->ComputerOpponentEnabledIdx();
 		int GameDifficulty = m_UIManager->GetDifficulty();
 
 		CConfig::AddConfig("player_count", PlayerCount);
 		CConfig::AddConfig("tiles_on_board_idx", TilesOnBoard);
-		CConfig::AddConfig("tiles_count", GetTileCount());
+		CConfig::AddConfig("tile_count", GetTileCount());
 		CConfig::AddConfig("time_limit", TimeLimit);
-		CConfig::AddConfig("computer_enabled", ComputerEnabled);
+		CConfig::AddConfig("computer_enabled_idx", ComputerEnabledIdx);
 		CConfig::AddConfig("game_difficulty", GameDifficulty);
 	}
 	else
@@ -438,14 +438,14 @@ void CGameManager::InitPlayersTask()
 
 void CGameManager::InitPlayers(bool addLetters)
 {
-	int ComputerEnabled;
+	int ComputerEnabledIdx;
 	int PlayerCount;
 
-	CConfig::GetConfig("computer_enabled", ComputerEnabled);
+	CConfig::GetConfig("computer_enabled_idx", ComputerEnabledIdx);
 	CConfig::GetConfig("player_count", PlayerCount);
 
 	PlayerCount++; //mert a player_count csak egy index a selectboxba
-	AddPlayers(PlayerCount, ComputerEnabled, addLetters);
+	AddPlayers(PlayerCount, !ComputerEnabledIdx, addLetters);
 	m_UIManager->InitScorePanel();
 	UpdatePlayerScores();
 }
@@ -1402,7 +1402,7 @@ void CGameManager::ReturnToSavedStateTask()
 		m_TaskManager->AddDependencie("generate_models_task", "board_size_set_task");
 		m_TaskManager->AddDependencie("resume_on_saved_screen_task", "init_uimanager_startscreens_task");
 		GenerateModelsTask->AddDependencie(BoardSizeSetTask);
-		m_TaskManager->AddDependencie("hide", "generate_models_task");
+		m_TaskManager->AddDependencie("hide_load_screen_task", "generate_models_task");
 
 		BoardSizeSetTask->m_TaskStopped = false;
 	}

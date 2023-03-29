@@ -90,6 +90,7 @@ public:
 	int Get3DDetail();
 	int GetLightQuality();
 	int GetFPSLimit();
+	int ComputerOpponentEnabledIdx();
 	void SetDifficulty(int diff);
 	void SetBoardSize(int size);
 	void SetPlayerCount(int count);
@@ -97,7 +98,6 @@ public:
 	void SetComputerOpponentEnabled(bool enabled);
 
 	float GetLetterSize();
-	bool ComputerOpponentEnabled();
 	void ShowPlayerLetters(bool show, const wchar_t* playerId);
 
 	void UpdateRankingsPanel();

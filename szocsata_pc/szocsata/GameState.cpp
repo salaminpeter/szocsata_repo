@@ -86,11 +86,11 @@ void CGameState::SaveGameState()
 		}
 
 		int NumberOfPlayers;
-		int ComputerEnabled;
+		int ComputerEnabledIdx;
 		CConfig::GetConfig("player_count", NumberOfPlayers);
-		CConfig::GetConfig("computer_enabled", ComputerEnabled);
+		CConfig::GetConfig("computer_enabled_idx", ComputerEnabledIdx);
 
-		int PlayerCount = NumberOfPlayers + 1 + (ComputerEnabled ? 1 : 0);
+		int PlayerCount = NumberOfPlayers + 1 + (ComputerEnabledIdx == 0 ? 1 : 0);
 
 		for (size_t i = 0; i < PlayerCount; ++i) {
 			int Score = m_GameManager->GetPlayer(i)->GetScore();
@@ -255,8 +255,8 @@ void CGameState::LoadPlayerAndBoardState()
 	CConfig::GetConfig("letter_height", LetterHeight);
 
 	int PlayerCountIdx = m_GameManager->GetUIManager()->GetPlayerCount();
-    int ComputerOpponentEnabled;
-    CConfig::GetConfig("computer_enabled", ComputerOpponentEnabled);
+    int ComputerOpponentEnabledIdx;
+    CConfig::GetConfig("computer_enabled_idx", ComputerOpponentEnabledIdx);
 
     int TileCount;
 	CConfig::GetConfig("tile_count", TileCount);
@@ -306,7 +306,7 @@ void CGameState::LoadPlayerAndBoardState()
 			}
 		}
 
-		int PlayerCount = PlayerCountIdx + 1 + ComputerOpponentEnabled;
+		int PlayerCount = PlayerCountIdx + 1 + (ComputerOpponentEnabledIdx ? 0 : 1);
 
 		for (size_t i = 0; i < PlayerCount; ++i)
 		{
