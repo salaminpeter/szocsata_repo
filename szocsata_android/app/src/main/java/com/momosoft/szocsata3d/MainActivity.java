@@ -74,11 +74,13 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume(){
         super.onResume();
- //      Debug.waitForDebugger();
+        hideStatusBar();
+
+//       Debug.waitForDebugger();
         ImageLoader.m_Context = this;
         String Path = getFilesDir() + "/secondstart";
         File SecondStartFile = new File(Path);
-/*
+
         if (SecondStartFile.exists() == false) {
             try {
                 SecondStartFile.createNewFile();
@@ -91,19 +93,9 @@ public class MainActivity extends AppCompatActivity {
             android.os.Process.killProcess(android.os.Process.myPid());
             return;
         }
-*/
+
         m_OpenGLView.onResume();
-
         SecondStartFile.delete();
-
-/*
-        hideStatusBar();
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        m_OpenGLView.onResume();*/
     }
 
     @Override
