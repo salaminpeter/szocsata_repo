@@ -289,6 +289,7 @@ public:
 	long m_LastRenderTime;
 	bool m_RenderTimeSet = false;
 	long m_FrameTime = 0;
+	std::atomic_bool m_LoadScreenActive = false;
 
 	//==============================================================================
 	void UndoComp();

@@ -519,8 +519,9 @@ glm::ivec2 CGameManager::GetUIElementSize(const wchar_t* id)
 
 void CGameManager::ShowLoadingScreen(bool show)
 {
-#ifdef PLATFORM_ANDROID
+	m_LoadScreenActive = show;
 
+#ifdef PLATFORM_ANDROID
 	extern jclass g_MainActivityClass;
 
 	JNIEnv* env;

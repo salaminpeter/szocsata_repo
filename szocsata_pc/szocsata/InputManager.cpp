@@ -12,6 +12,9 @@ m_GameManager(gameManager)
 
 void CInputManager::HandleTouchEvent(int x, int y)
 {
+	if (m_GameManager->m_LoadScreenActive)
+		return;
+
 	const std::lock_guard<std::recursive_mutex> lock(m_InputLock);
 
 	int WindowHeigth;
@@ -49,12 +52,18 @@ void CInputManager::HandleTouchEvent(int x, int y)
 
 void CInputManager::HandleZoomEvent(float dist, float origoX, float origoY)
 {
+	if (m_GameManager->m_LoadScreenActive)
+		return;
+
 	const std::lock_guard<std::recursive_mutex> lock(m_InputLock);
 	m_GameManager->HandleZoomEvent(dist, origoX, origoY);
 }
 
 void CInputManager::HandleMultyTouchStart(float x0, float y0, float x1, float y1)
 {
+	if (m_GameManager->m_LoadScreenActive)
+		return;
+
 	const std::lock_guard<std::recursive_mutex> lock(m_InputLock);
 	m_Touch0X = x0;
 	m_Touch0Y = y0;
@@ -67,6 +76,9 @@ void CInputManager::HandleMultyTouchStart(float x0, float y0, float x1, float y1
 
 void CInputManager::HandleMultyTouchEnd()
 {
+	if (m_GameManager->m_LoadScreenActive)
+		return;
+
 	const std::lock_guard<std::recursive_mutex> lock(m_InputLock);
 	m_GameManager->HandleZoomEndEvent();
 	m_GameManager->HandleReleaseEvent();
@@ -74,6 +86,9 @@ void CInputManager::HandleMultyTouchEnd()
 
 void CInputManager::HandleMultyTouch(float x0, float y0, float x1, float y1)
 {
+	if (m_GameManager->m_LoadScreenActive)
+		return;
+
 	const std::lock_guard<std::recursive_mutex> lock(m_InputLock);
 	glm::vec2 v0(x0 - m_Touch0X, y0 - m_Touch0Y);
 	glm::vec2 v1(x1 - m_Touch1X, y1 - m_Touch1Y);
@@ -91,7 +106,6 @@ void CInputManager::HandleMultyTouch(float x0, float y0, float x1, float y1)
 
 	if (LenV1 < 0.1)
 		v1 = -v0;
-
 
 	float Dist = std::sqrtf((x0 - x1) * (x0 - x1) +  (y0  - y1) * (y0 - y1));
 
@@ -124,6 +138,9 @@ void CInputManager::HandleMultyTouch(float x0, float y0, float x1, float y1)
 
 void CInputManager::HandleReleaseEvent(int x, int y)
 {
+	if (m_GameManager->m_LoadScreenActive)
+		return;
+
 	const std::lock_guard<std::recursive_mutex> lock(m_InputLock);
 
 	//dragging stop, CheckDoubleClickEvent already finished, have to handle release event here
@@ -166,6 +183,9 @@ void CInputManager::HandleReleaseEvent(int x, int y)
 
 void CInputManager::HandleDragEvent(int x, int y)
 {
+	if (m_GameManager->m_LoadScreenActive)
+		return;
+
 	const std::lock_guard<std::recursive_mutex> lock(m_InputLock);
 	
 	if (m_Dragged && m_DoubleClickTimePassed)
@@ -174,6 +194,9 @@ void CInputManager::HandleDragEvent(int x, int y)
 
 void CInputManager::CheckDoubleClickEvent(double& timeFromStart, double& timeFromPrev)
 {
+	if (m_GameManager->m_LoadScreenActive)
+		return;
+
 	const std::lock_guard<std::recursive_mutex> lock(m_InputLock);
 
 	if (timeFromStart >= 250)  //TODO config
